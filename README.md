@@ -6,6 +6,6 @@ A project folder for experimenting with Git and GitHub.
 
 Clone the repository and explore the files.
 
-## Contibuting
+## Contributing
 
 Pull requests are welcome. Please open an issue first to discuss what you would like to change.
