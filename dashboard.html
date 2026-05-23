@@ -4652,9 +4652,13 @@ function renderPriceList(){
         finalIls=Math.round(baseIls*(1-disc));
         listIls=Math.round(baseIls);
         if(ep.cur==='EUR'){
-          priceCell=`<span style="color:#718096;font-size:.73rem">€${ep.price.toLocaleString()}</span><br><span>₪${listIls.toLocaleString()}</span>`;
+          priceCell=`<span style="color:#718096;font-size:.73rem">€${ep.price.toLocaleString()}</span>`
+            +`<span style="color:#b0bec5;font-size:.66rem;display:block;line-height:1.2">×${plEurRate.toFixed(2)}</span>`
+            +`<span>₪${listIls.toLocaleString()}</span>`;
         } else if(ep.cur==='USD'){
-          priceCell=`<span style="color:#718096;font-size:.73rem">$${ep.price.toLocaleString()}</span><br><span>₪${listIls.toLocaleString()}</span>`;
+          priceCell=`<span style="color:#718096;font-size:.73rem">$${ep.price.toLocaleString()}</span>`
+            +`<span style="color:#b0bec5;font-size:.66rem;display:block;line-height:1.2">×${plUsdRate.toFixed(2)}</span>`
+            +`<span>₪${listIls.toLocaleString()}</span>`;
         } else {
           priceCell=`₪${listIls.toLocaleString()}`;
         }
