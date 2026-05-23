@@ -1,7 +1,7 @@
 services:
   - type: web
     name: afkon-dashboard
-    runtime: node
+    env: node
     plan: starter        # $7/month — no sleep, persistent disk
     buildCommand: npm install
     startCommand: node server.js
