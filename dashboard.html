@@ -10,6 +10,23 @@
 :root{--blue:#4f86f7;--bg:#f0f2f5;--card:#fff;--border:#edf2f7;--text:#1a1a2e;--muted:#718096}
 body{font-family:'Segoe UI',Arial,sans-serif;background:var(--bg);color:var(--text);direction:rtl}
 
+/* viewer-mode: hide all edit/delete/add controls */
+body.viewer-mode .btn-add,
+body.viewer-mode .task-edit-btn,
+body.viewer-mode .task-delete-btn,
+body.viewer-mode .task-clone-btn,
+body.viewer-mode [onclick*="openModal(null"],
+body.viewer-mode [onclick*="deleteTask"],
+body.viewer-mode [onclick*="openModal(task"],
+body.viewer-mode .pl-edit-btn,
+body.viewer-mode [onclick*="openPlEdit"],
+body.viewer-mode [onclick*="savePlEdit"],
+body.viewer-mode .btn-csv
+{ display:none !important }
+body.viewer-mode select.status-sel,
+body.viewer-mode select.pri-sel
+{ pointer-events:none; opacity:.6 }
+
 /* header */
 header{background:linear-gradient(135deg,#1a1a2e,#16213e);color:#fff;padding:0 26px;height:76px;
   display:flex;align-items:stretch;justify-content:space-between;flex-wrap:wrap;gap:12px}
@@ -3658,6 +3675,9 @@ async function doLogout(){
     if(u.role==='admin'){
       const ab=document.getElementById('btn-admin');
       if(ab) ab.style.display='';
+    }
+    if(u.role==='viewer'){
+      document.body.classList.add('viewer-mode');
     }
   }catch(e){}
 })();
