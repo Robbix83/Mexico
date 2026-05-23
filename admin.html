@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ניהול — אפקון</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Segoe UI',system-ui,Arial,sans-serif;background:#f1f5f9;color:#1e293b;min-height:100vh}
+
+/* Header */
+.header{background:#1a2a4a;color:#fff;padding:0 24px;display:flex;align-items:center;height:56px;gap:16px;position:sticky;top:0;z-index:100}
+.header h1{font-size:1rem;font-weight:700;flex:1}
+.header a{color:#93c5fd;text-decoration:none;font-size:.85rem;padding:6px 14px;border:1px solid #3b4f6b;border-radius:6px}
+.header a:hover{background:#2d4a7a}
+
+/* Tabs */
+.tabs{display:flex;gap:0;background:#fff;border-bottom:2px solid #e2e8f0;padding:0 24px}
+.tab{padding:14px 22px;cursor:pointer;font-weight:600;font-size:.88rem;color:#64748b;border-bottom:2px solid transparent;margin-bottom:-2px;transition:color .15s}
+.tab.active{color:#4f86f7;border-bottom-color:#4f86f7}
+.tab:hover:not(.active){color:#334155}
+
+/* Content */
+.content{padding:24px;max-width:1100px;margin:0 auto}
+.panel{display:none}.panel.active{display:block}
+
+/* Cards */
+.card{background:#fff;border-radius:12px;box-shadow:0 1px 4px rgba(0,0,0,.08);overflow:hidden;margin-bottom:20px}
+.card-head{padding:16px 20px;border-bottom:1px solid #f1f5f9;display:flex;align-items:center;gap:10px}
+.card-head h2{font-size:.93rem;font-weight:700;flex:1}
+
+/* Tables */
+table{width:100%;border-collapse:collapse;font-size:.83rem}
+th{background:#f8fafc;padding:10px 14px;text-align:right;font-weight:600;color:#475569;border-bottom:1px solid #e2e8f0;white-space:nowrap}
+td{padding:10px 14px;border-bottom:1px solid #f1f5f9;vertical-align:middle}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:#f8fafc}
+
+/* Badges */
+.badge{display:inline-block;padding:2px 10px;border-radius:20px;font-size:.75rem;font-weight:700}
+.badge-admin{background:#dbeafe;color:#1d4ed8}
+.badge-viewer{background:#f0fdf4;color:#166534}
+.badge-on{background:#dcfce7;color:#166534}
+.badge-off{background:#fee2e2;color:#991b1b}
+
+/* Buttons */
+.btn{padding:7px 14px;border:none;border-radius:6px;font-size:.8rem;font-weight:600;cursor:pointer;transition:background .15s}
+.btn-primary{background:#4f86f7;color:#fff}.btn-primary:hover{background:#3b73e5}
+.btn-danger{background:#fee2e2;color:#b91c1c}.btn-danger:hover{background:#fecaca}
+.btn-warning{background:#fef3c7;color:#92400e}.btn-warning:hover{background:#fde68a}
+.btn-sm{padding:4px 10px;font-size:.75rem}
+.btn-group{display:flex;gap:6px;flex-wrap:wrap}
+
+/* Toolbar */
+.toolbar{padding:14px 20px;display:flex;gap:10px;flex-wrap:wrap;align-items:center;border-bottom:1px solid #f1f5f9}
+.toolbar input,.toolbar select{
+  padding:7px 11px;border:1.5px solid #e2e8f0;border-radius:7px;font-size:.82rem;outline:none;
+}
+.toolbar input:focus,.toolbar select:focus{border-color:#4f86f7}
+.toolbar label{font-size:.8rem;color:#64748b;font-weight:600}
+
+/* Modal */
+.modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:500;align-items:center;justify-content:center}
+.modal-bg.open{display:flex}
+.modal{background:#fff;border-radius:14px;padding:28px 28px 24px;width:380px;max-width:96vw;box-shadow:0 20px 60px rgba(0,0,0,.25)}
+.modal h3{font-size:1rem;font-weight:700;margin-bottom:18px}
+.field{margin-bottom:14px}
+.field label{display:block;font-size:.8rem;font-weight:600;color:#475569;margin-bottom:4px}
+.field input,.field select{width:100%;padding:9px 12px;border:1.5px solid #e2e8f0;border-radius:7px;font-size:.88rem;direction:ltr}
+.field input:focus,.field select:focus{outline:none;border-color:#4f86f7}
+.modal-actions{display:flex;gap:10px;justify-content:flex-end;margin-top:20px}
+.err-msg{color:#dc2626;font-size:.8rem;margin-top:8px;display:none}
+.err-msg.show{display:block}
+
+/* Empty */
+.empty{text-align:center;padding:40px;color:#94a3b8;font-size:.9rem}
+
+/* Pagination */
+.pagination{display:flex;gap:8px;align-items:center;padding:12px 20px;justify-content:flex-end;font-size:.82rem;color:#64748b}
+.page-btn{padding:5px 12px;border:1px solid #e2e8f0;border-radius:6px;cursor:pointer;background:#fff}
+.page-btn:hover{background:#f1f5f9}
+.page-btn:disabled{opacity:.4;cursor:not-allowed}
+</style>
+</head>
+<body>
+
+<!-- Header -->
+<div class="header">
+  <h1>🛡️ לוח ניהול — אפקון</h1>
+  <a href="/">← חזרה לדאשבורד</a>
+  <a href="#" onclick="logout()">יציאה</a>
+</div>
+
+<!-- Tabs -->
+<div class="tabs">
+  <div class="tab active" onclick="switchTab('users',this)">👥 משתמשים</div>
+  <div class="tab" onclick="switchTab('audit',this)">📋 יומן פעילות</div>
+</div>
+
+<!-- ── USERS PANEL ── -->
+<div class="content">
+<div class="panel active" id="panel-users">
+  <div class="card">
+    <div class="card-head">
+      <h2>ניהול משתמשים</h2>
+      <button class="btn btn-primary btn-sm" onclick="openAddUser()">+ הוסף משתמש</button>
+    </div>
+    <table id="users-table">
+      <thead><tr>
+        <th>שם משתמש</th><th>תפקיד</th><th>סטטוס</th>
+        <th>נוצר</th><th>כניסה אחרונה</th><th>פעולות</th>
+      </tr></thead>
+      <tbody id="users-tbody"><tr><td colspan="6" class="empty">טוען...</td></tr></tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ── AUDIT PANEL ── -->
+<div class="panel" id="panel-audit">
+  <div class="card">
+    <div class="card-head"><h2>יומן פעילות</h2></div>
+    <div class="toolbar">
+      <div><label>משתמש</label><br><input id="f-user" placeholder="כל המשתמשים" oninput="loadAudit(1)"></div>
+      <div><label>פעולה</label><br>
+        <select id="f-action" onchange="loadAudit(1)">
+          <option value="">הכל</option>
+          <option value="login">כניסה</option>
+          <option value="login_fail">כניסה כושלת</option>
+          <option value="logout">יציאה</option>
+          <option value="view_ds">פתיחת דאטה-שיט</option>
+          <option value="search">חיפוש</option>
+          <option value="edit">עריכה</option>
+          <option value="export">ייצוא</option>
+          <option value="create_user">יצירת משתמש</option>
+          <option value="reset_password">איפוס סיסמה</option>
+          <option value="update_user">עדכון משתמש</option>
+        </select>
+      </div>
+      <div><label>מתאריך</label><br><input id="f-from" type="date" onchange="loadAudit(1)"></div>
+      <div><label>עד תאריך</label><br><input id="f-to" type="date" onchange="loadAudit(1)"></div>
+    </div>
+    <table>
+      <thead><tr><th>זמן</th><th>משתמש</th><th>פעולה</th><th>פרטים</th><th>IP</th></tr></thead>
+      <tbody id="audit-tbody"><tr><td colspan="5" class="empty">בחר פאנל פעילות לטעינה</td></tr></tbody>
+    </table>
+    <div class="pagination">
+      <button class="page-btn" id="prev-btn" onclick="loadAudit(auditPage-1)" disabled>◀ הקודם</button>
+      <span id="page-info">—</span>
+      <button class="page-btn" id="next-btn" onclick="loadAudit(auditPage+1)" disabled>הבא ▶</button>
+    </div>
+  </div>
+</div>
+</div><!-- /content -->
+
+<!-- ── ADD USER MODAL ── -->
+<div class="modal-bg" id="modal-add">
+  <div class="modal">
+    <h3>הוספת משתמש חדש</h3>
+    <div class="field"><label>שם משתמש</label>
+      <input id="nu-name" type="text" autocomplete="off" placeholder="username">
+    </div>
+    <div class="field"><label>סיסמה (מינימום 6 תווים)</label>
+      <input id="nu-pass" type="password" placeholder="••••••">
+    </div>
+    <div class="field"><label>תפקיד</label>
+      <select id="nu-role">
+        <option value="viewer">צופה (viewer)</option>
+        <option value="admin">מנהל (admin)</option>
+      </select>
+    </div>
+    <div class="err-msg" id="add-err"></div>
+    <div class="modal-actions">
+      <button class="btn" onclick="closeModal('modal-add')">ביטול</button>
+      <button class="btn btn-primary" onclick="submitAddUser()">הוסף</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── RESET PASSWORD MODAL ── -->
+<div class="modal-bg" id="modal-reset">
+  <div class="modal">
+    <h3>איפוס סיסמה</h3>
+    <p id="reset-name-label" style="font-size:.85rem;color:#64748b;margin-bottom:14px"></p>
+    <div class="field"><label>סיסמה חדשה (מינימום 6 תווים)</label>
+      <input id="rp-pass" type="password" placeholder="••••••">
+    </div>
+    <div class="err-msg" id="reset-err"></div>
+    <div class="modal-actions">
+      <button class="btn" onclick="closeModal('modal-reset')">ביטול</button>
+      <button class="btn btn-primary" onclick="submitResetPassword()">אפס סיסמה</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── State ──────────────────────────────────────────────────────────────────
+let users = [];
+let resetUserId = null;
+let auditPage = 1;
+const PAGE_SIZE = 50;
+
+const ACTION_LABELS = {
+  login:'כניסה', login_fail:'כניסה כושלת', logout:'יציאה',
+  view_ds:'פתיחת דאטה-שיט', search:'חיפוש', edit:'עריכה',
+  export:'ייצוא', create_user:'יצירת משתמש', reset_password:'איפוס סיסמה',
+  update_user:'עדכון משתמש'
+};
+
+// ── Tabs ───────────────────────────────────────────────────────────────────
+function switchTab(name, el) {
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('panel-'+name).classList.add('active');
+  if (name==='audit') loadAudit(1);
+  if (name==='users') loadUsers();
+}
+
+// ── Users ──────────────────────────────────────────────────────────────────
+async function loadUsers() {
+  const res = await fetch('/api/users');
+  users = await res.json();
+  renderUsers();
+}
+
+function renderUsers() {
+  const tbody = document.getElementById('users-tbody');
+  if (!users.length) { tbody.innerHTML='<tr><td colspan="6" class="empty">אין משתמשים</td></tr>'; return; }
+  tbody.innerHTML = users.map(u => `
+    <tr>
+      <td><strong>${u.username}</strong></td>
+      <td><span class="badge badge-${u.role}">${u.role==='admin'?'מנהל':'צופה'}</span></td>
+      <td><span class="badge ${u.active?'badge-on':'badge-off'}">${u.active?'פעיל':'מושבת'}</span></td>
+      <td>${fmtDate(u.created_at)}</td>
+      <td>${u.last_login?fmtDate(u.last_login):'—'}</td>
+      <td>
+        <div class="btn-group">
+          <button class="btn btn-warning btn-sm" onclick="openResetPassword(${u.id},'${u.username}')">איפוס סיסמה</button>
+          <button class="btn btn-sm ${u.active?'btn-danger':''}" onclick="toggleActive(${u.id},${u.active})">${u.active?'השבת':'הפעל'}</button>
+          <button class="btn btn-sm" onclick="toggleRole(${u.id},'${u.role}')">${u.role==='admin'?'הפוך לצופה':'הפוך למנהל'}</button>
+        </div>
+      </td>
+    </tr>
+  `).join('');
+}
+
+async function toggleActive(id, current) {
+  if (!confirm(current?'להשבית משתמש זה?':'להפעיל משתמש זה?')) return;
+  await api('PUT',`/api/users/${id}`,{active:!current});
+  loadUsers();
+}
+
+async function toggleRole(id, currentRole) {
+  const newRole = currentRole==='admin'?'viewer':'admin';
+  if (!confirm(`לשנות תפקיד ל-${newRole}?`)) return;
+  await api('PUT',`/api/users/${id}`,{role:newRole});
+  loadUsers();
+}
+
+function openAddUser() {
+  document.getElementById('nu-name').value='';
+  document.getElementById('nu-pass').value='';
+  document.getElementById('nu-role').value='viewer';
+  document.getElementById('add-err').classList.remove('show');
+  document.getElementById('modal-add').classList.add('open');
+  setTimeout(()=>document.getElementById('nu-name').focus(),100);
+}
+
+async function submitAddUser() {
+  const username = document.getElementById('nu-name').value.trim();
+  const password = document.getElementById('nu-pass').value;
+  const role     = document.getElementById('nu-role').value;
+  const errEl    = document.getElementById('add-err');
+  errEl.classList.remove('show');
+
+  const res = await api('POST','/api/users',{username,password,role});
+  if (res.ok) {
+    closeModal('modal-add');
+    loadUsers();
+  } else {
+    errEl.textContent = res.error || 'שגיאה';
+    errEl.classList.add('show');
+  }
+}
+
+function openResetPassword(id, username) {
+  resetUserId = id;
+  document.getElementById('reset-name-label').textContent = `משתמש: ${username}`;
+  document.getElementById('rp-pass').value = '';
+  document.getElementById('reset-err').classList.remove('show');
+  document.getElementById('modal-reset').classList.add('open');
+  setTimeout(()=>document.getElementById('rp-pass').focus(),100);
+}
+
+async function submitResetPassword() {
+  const password = document.getElementById('rp-pass').value;
+  const errEl    = document.getElementById('reset-err');
+  errEl.classList.remove('show');
+
+  const res = await api('POST',`/api/users/${resetUserId}/reset-password`,{password});
+  if (res.ok) {
+    closeModal('modal-reset');
+    alert('הסיסמה אופסה בהצלחה');
+  } else {
+    errEl.textContent = res.error || 'שגיאה';
+    errEl.classList.add('show');
+  }
+}
+
+// ── Audit ──────────────────────────────────────────────────────────────────
+async function loadAudit(page=1) {
+  auditPage = page;
+  const params = new URLSearchParams({
+    limit: PAGE_SIZE,
+    offset: (page-1)*PAGE_SIZE,
+  });
+  const fUser   = document.getElementById('f-user').value.trim();
+  const fAction = document.getElementById('f-action').value;
+  const fFrom   = document.getElementById('f-from').value;
+  const fTo     = document.getElementById('f-to').value;
+  if (fUser)   params.set('username', fUser);
+  if (fAction) params.set('action',   fAction);
+  if (fFrom)   params.set('from',     fFrom);
+  if (fTo)     params.set('to',       fTo+'T23:59:59');
+
+  const res  = await fetch('/api/audit?'+params);
+  const data = await res.json();
+  renderAudit(data, page);
+}
+
+function renderAudit({rows, total}, page) {
+  const tbody = document.getElementById('audit-tbody');
+  if (!rows.length) { tbody.innerHTML='<tr><td colspan="5" class="empty">אין רשומות</td></tr>'; }
+  else {
+    tbody.innerHTML = rows.map(r=>`
+      <tr>
+        <td style="white-space:nowrap">${fmtDate(r.timestamp)}</td>
+        <td><strong>${r.username||'—'}</strong></td>
+        <td>${ACTION_LABELS[r.action]||r.action}</td>
+        <td style="max-width:300px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${esc(r.detail||'')}">${r.detail||'—'}</td>
+        <td style="font-family:monospace;font-size:.78rem">${r.ip||'—'}</td>
+      </tr>
+    `).join('');
+  }
+  const pages = Math.ceil(total/PAGE_SIZE)||1;
+  document.getElementById('page-info').textContent = `עמוד ${page} מתוך ${pages} (${total} רשומות)`;
+  document.getElementById('prev-btn').disabled = page<=1;
+  document.getElementById('next-btn').disabled = page>=pages;
+}
+
+// ── Helpers ────────────────────────────────────────────────────────────────
+async function api(method, url, body) {
+  const res = await fetch(url, {
+    method,
+    headers:{'Content-Type':'application/json'},
+    body: body ? JSON.stringify(body) : undefined,
+  });
+  return res.json();
+}
+
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+
+function fmtDate(iso) {
+  if (!iso) return '—';
+  const d = new Date(iso.endsWith('Z')?iso:iso+'Z');
+  return d.toLocaleString('he-IL',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'});
+}
+
+function esc(s) { return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+async function logout() {
+  await fetch('/api/auth/logout',{method:'POST'});
+  window.location.href='/login';
+}
+
+// Close modals on background click
+document.querySelectorAll('.modal-bg').forEach(el=>{
+  el.addEventListener('click', e=>{ if(e.target===el) el.classList.remove('open'); });
+});
+
+// Init
+loadUsers();
+</script>
+</body>
+</html>

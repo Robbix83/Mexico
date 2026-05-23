@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>כניסה — אפקון</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{
+    min-height:100vh;display:flex;align-items:center;justify-content:center;
+    background:linear-gradient(135deg,#1a2a4a 0%,#2d4a7a 100%);
+    font-family:'Segoe UI',system-ui,Arial,sans-serif;
+  }
+  .card{
+    background:#fff;border-radius:16px;padding:40px 36px;
+    width:360px;box-shadow:0 20px 60px rgba(0,0,0,.35);
+  }
+  .logo{display:flex;align-items:center;justify-content:center;margin-bottom:28px;gap:12px}
+  .logo img{height:48px}
+  .logo-text{font-size:1.3rem;font-weight:700;color:#1a2a4a;letter-spacing:-.5px}
+  h1{font-size:1.05rem;font-weight:600;color:#374151;text-align:center;margin-bottom:24px}
+  label{display:block;font-size:.82rem;font-weight:600;color:#4b5563;margin-bottom:5px}
+  input{
+    width:100%;padding:11px 14px;border:1.5px solid #d1d5db;border-radius:8px;
+    font-size:.93rem;outline:none;transition:border-color .2s;direction:ltr;text-align:left;
+  }
+  input:focus{border-color:#4f86f7}
+  .field{margin-bottom:18px}
+  .btn{
+    width:100%;padding:12px;background:#4f86f7;color:#fff;border:none;border-radius:8px;
+    font-size:.95rem;font-weight:700;cursor:pointer;transition:background .2s;margin-top:4px;
+  }
+  .btn:hover{background:#3b73e5}
+  .btn:disabled{background:#93c5fd;cursor:not-allowed}
+  .err{
+    display:none;background:#fef2f2;border:1px solid #fca5a5;color:#dc2626;
+    border-radius:8px;padding:10px 14px;font-size:.83rem;margin-top:14px;text-align:center;
+  }
+  .err.show{display:block}
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="logo">
+    <img src="/logo.png" alt="אפקון" onerror="this.style.display='none'">
+    <span class="logo-text">אפקון</span>
+  </div>
+  <h1>כניסה למערכת</h1>
+  <form id="form" onsubmit="doLogin(event)">
+    <div class="field">
+      <label for="u">שם משתמש</label>
+      <input id="u" name="username" type="text" autocomplete="username" required autofocus>
+    </div>
+    <div class="field">
+      <label for="p">סיסמה</label>
+      <input id="p" name="password" type="password" autocomplete="current-password" required>
+    </div>
+    <button class="btn" type="submit" id="btn">כניסה</button>
+    <div class="err" id="err"></div>
+  </form>
+</div>
+<script>
+async function doLogin(e){
+  e.preventDefault();
+  const btn=document.getElementById('btn');
+  const err=document.getElementById('err');
+  err.classList.remove('show');
+  btn.disabled=true; btn.textContent='מתחבר...';
+  try{
+    const res=await fetch('/api/auth/login',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({
+        username:document.getElementById('u').value.trim(),
+        password:document.getElementById('p').value
+      })
+    });
+    const data=await res.json();
+    if(res.ok){
+      window.location.href='/';
+    } else {
+      err.textContent=data.error||'שגיאה בכניסה';
+      err.classList.add('show');
+      btn.disabled=false; btn.textContent='כניסה';
+    }
+  } catch{
+    err.textContent='שגיאת רשת — נסה שנית';
+    err.classList.add('show');
+    btn.disabled=false; btn.textContent='כניסה';
+  }
+}
+</script>
+</body>
+</html>

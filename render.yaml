@@ -1,0 +1,24 @@
+services:
+  - type: web
+    name: afkon-dashboard
+    runtime: node
+    plan: starter        # $7/month — no sleep, persistent disk
+    buildCommand: npm install
+    startCommand: node server.js
+    disk:
+      name: data
+      mountPath: /data
+      sizeGB: 1           # 175MB PDFs + SQLite DB — 1GB is enough
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: JWT_SECRET
+        generateValue: true   # Render auto-generates a secure random value
+      - key: ADMIN_USER
+        value: admin
+      - key: ADMIN_PASSWORD
+        sync: false           # Set this manually in the Render dashboard
+      - key: DB_PATH
+        value: /data/db.sqlite
+      - key: DS_PATH
+        value: /data/ds

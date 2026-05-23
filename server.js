@@ -1,0 +1,278 @@
+require('dotenv').config();
+const express      = require('express');
+const cookieParser = require('cookie-parser');
+const helmet       = require('helmet');
+const rateLimit    = require('express-rate-limit');
+const jwt          = require('jsonwebtoken');
+const bcrypt       = require('bcryptjs');
+const path         = require('path');
+const fs           = require('fs');
+
+const db = require('./db');
+
+const app  = express();
+const PORT = process.env.PORT || 3000;
+const JWT_SECRET = process.env.JWT_SECRET || 'dev-secret-change-in-production';
+const DS_PATH    = process.env.DS_PATH    || path.join(__dirname, 'ds');
+const STATIC_DIR = process.env.STATIC_DIR || __dirname;
+
+// ── Middleware ────────────────────────────────────────────────────────────────
+
+app.use(helmet({
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      scriptSrc:  ["'self'", "'unsafe-inline'", 'cdn.jsdelivr.net', 'cdnjs.cloudflare.com'],
+      styleSrc:   ["'self'", "'unsafe-inline'", 'cdn.jsdelivr.net', 'fonts.googleapis.com'],
+      fontSrc:    ["'self'", 'fonts.gstatic.com'],
+      imgSrc:     ["'self'", 'data:'],
+      frameSrc:   ["'self'"],   // allow same-origin iframes (PDF preview)
+      connectSrc: ["'self'"],
+    }
+  }
+}));
+app.use(express.json());
+app.use(cookieParser());
+app.set('trust proxy', 1);
+
+// ── Helpers ───────────────────────────────────────────────────────────────────
+
+function signToken(user) {
+  return jwt.sign(
+    { id: user.id, username: user.username, role: user.role },
+    JWT_SECRET,
+    { expiresIn: '8h' }
+  );
+}
+
+function verifyToken(token) {
+  try { return jwt.verify(token, JWT_SECRET); }
+  catch { return null; }
+}
+
+function getClientIp(req) {
+  return (req.headers['x-forwarded-for'] || req.socket.remoteAddress || '').split(',')[0].trim();
+}
+
+// ── Auth middleware ───────────────────────────────────────────────────────────
+
+function requireAuth(req, res, next) {
+  const token = req.cookies?.token;
+  const payload = verifyToken(token);
+  if (!payload) {
+    if (req.path.startsWith('/api/')) return res.status(401).json({ error: 'Unauthorized' });
+    return res.redirect('/login');
+  }
+  const user = db.getUserById(payload.id);
+  if (!user || !user.active) {
+    res.clearCookie('token');
+    if (req.path.startsWith('/api/')) return res.status(401).json({ error: 'Account disabled' });
+    return res.redirect('/login');
+  }
+  req.user = { id: user.id, username: user.username, role: user.role };
+  next();
+}
+
+function requireAdmin(req, res, next) {
+  requireAuth(req, res, () => {
+    if (req.user.role !== 'admin') {
+      if (req.path.startsWith('/api/')) return res.status(403).json({ error: 'Forbidden' });
+      return res.status(403).send('<h1>403 Forbidden</h1>');
+    }
+    next();
+  });
+}
+
+// ── Rate limiting ─────────────────────────────────────────────────────────────
+
+const loginLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,  // 15 minutes
+  max: 10,
+  message: { error: 'Too many login attempts, please try again later' },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+// ── Auth routes ───────────────────────────────────────────────────────────────
+
+app.get('/login', (req, res) => {
+  const token = req.cookies?.token;
+  if (verifyToken(token)) return res.redirect('/');
+  res.sendFile(path.join(STATIC_DIR, 'login.html'));
+});
+
+app.post('/api/auth/login', loginLimiter, (req, res) => {
+  const { username, password } = req.body;
+  const ip = getClientIp(req);
+  const ua = req.headers['user-agent'] || '';
+
+  if (!username || !password) {
+    return res.status(400).json({ error: 'Username and password required' });
+  }
+
+  const user = db.getUserByUsername(username);
+
+  if (!user || !bcrypt.compareSync(password, user.password_hash)) {
+    db.logAudit(user?.id, username, 'login_fail', 'Wrong credentials', ip, ua);
+    return res.status(401).json({ error: 'Invalid username or password' });
+  }
+
+  if (!user.active) {
+    db.logAudit(user.id, user.username, 'login_fail', 'Account disabled', ip, ua);
+    return res.status(401).json({ error: 'Account is disabled' });
+  }
+
+  db.updateLastLogin(user.id);
+  db.logAudit(user.id, user.username, 'login', null, ip, ua);
+
+  const token = signToken(user);
+  res.cookie('token', token, {
+    httpOnly: true,
+    secure:   process.env.NODE_ENV === 'production',
+    sameSite: 'strict',
+    maxAge:   8 * 60 * 60 * 1000,   // 8 hours
+  });
+  res.json({ ok: true, role: user.role });
+});
+
+app.post('/api/auth/logout', requireAuth, (req, res) => {
+  const ip = getClientIp(req);
+  const ua = req.headers['user-agent'] || '';
+  db.logAudit(req.user.id, req.user.username, 'logout', null, ip, ua);
+  res.clearCookie('token');
+  res.json({ ok: true });
+});
+
+app.get('/api/auth/me', requireAuth, (req, res) => {
+  res.json({ id: req.user.id, username: req.user.username, role: req.user.role });
+});
+
+// ── Audit event from client ───────────────────────────────────────────────────
+
+app.post('/api/audit/event', requireAuth, (req, res) => {
+  const { action, detail } = req.body;
+  const allowed = ['view_ds', 'search', 'edit', 'export'];
+  if (!allowed.includes(action)) return res.status(400).json({ error: 'Invalid action' });
+  const ip = getClientIp(req);
+  const ua = req.headers['user-agent'] || '';
+  db.logAudit(req.user.id, req.user.username, action, detail, ip, ua);
+  res.json({ ok: true });
+});
+
+// ── User management (admin only) ──────────────────────────────────────────────
+
+app.get('/api/users', requireAdmin, (req, res) => {
+  res.json(db.listUsers());
+});
+
+app.post('/api/users', requireAdmin, (req, res) => {
+  const { username, password, role = 'viewer' } = req.body;
+  if (!username || !password) return res.status(400).json({ error: 'username and password required' });
+  if (!['admin', 'viewer'].includes(role)) return res.status(400).json({ error: 'Invalid role' });
+  if (password.length < 6) return res.status(400).json({ error: 'Password must be at least 6 characters' });
+  try {
+    const result = db.createUser(username, password, role);
+    db.logAudit(req.user.id, req.user.username, 'create_user', `Created user: ${username} (${role})`, getClientIp(req), '');
+    res.json({ ok: true, id: result.lastInsertRowid });
+  } catch (e) {
+    if (e.message.includes('UNIQUE')) return res.status(409).json({ error: 'Username already exists' });
+    throw e;
+  }
+});
+
+app.put('/api/users/:id', requireAdmin, (req, res) => {
+  const id = parseInt(req.params.id);
+  const { active, role } = req.body;
+  if (active !== undefined) {
+    db.setActive(id, active);
+    db.logAudit(req.user.id, req.user.username, 'update_user', `Set active=${active} for user id=${id}`, getClientIp(req), '');
+  }
+  if (role !== undefined) {
+    if (!['admin', 'viewer'].includes(role)) return res.status(400).json({ error: 'Invalid role' });
+    db.setRole(id, role);
+    db.logAudit(req.user.id, req.user.username, 'update_user', `Set role=${role} for user id=${id}`, getClientIp(req), '');
+  }
+  res.json({ ok: true });
+});
+
+app.post('/api/users/:id/reset-password', requireAdmin, (req, res) => {
+  const id = parseInt(req.params.id);
+  const { password } = req.body;
+  if (!password || password.length < 6) return res.status(400).json({ error: 'Password must be at least 6 characters' });
+  db.setPassword(id, password);
+  db.logAudit(req.user.id, req.user.username, 'reset_password', `Reset password for user id=${id}`, getClientIp(req), '');
+  res.json({ ok: true });
+});
+
+// ── Audit log (admin only) ────────────────────────────────────────────────────
+
+app.get('/api/audit', requireAdmin, (req, res) => {
+  const { username, action, from, to, limit = 100, offset = 0 } = req.query;
+  const result = db.listAudit({
+    username: username || null,
+    action:   action   || null,
+    from:     from     || null,
+    to:       to       || null,
+    limit:    Math.min(parseInt(limit) || 100, 500),
+    offset:   parseInt(offset) || 0,
+  });
+  res.json(result);
+});
+
+// ── Static files (auth protected) ────────────────────────────────────────────
+
+app.get('/', requireAuth, (req, res) => {
+  res.sendFile(path.join(STATIC_DIR, 'dashboard.html'));
+});
+
+app.get('/admin', requireAdmin, (req, res) => {
+  res.sendFile(path.join(STATIC_DIR, 'admin.html'));
+});
+
+// Serve PDFs — auth required
+app.get('/ds/*', requireAuth, (req, res) => {
+  const ip = getClientIp(req);
+  const ua = req.headers['user-agent'] || '';
+
+  // Prevent path traversal
+  const relPath = req.params[0];
+  if (relPath.includes('..') || relPath.includes('\0')) {
+    return res.status(400).send('Invalid path');
+  }
+
+  const filePath = path.join(DS_PATH, relPath);
+
+  // Ensure file is inside DS_PATH
+  if (!filePath.startsWith(DS_PATH)) return res.status(400).send('Invalid path');
+
+  if (!fs.existsSync(filePath)) return res.status(404).send('Not found');
+
+  // Log only PDF opens
+  if (filePath.endsWith('.pdf')) {
+    db.logAudit(req.user.id, req.user.username, 'view_ds', relPath, ip, ua);
+  }
+
+  res.sendFile(filePath);
+});
+
+// Static assets (logo, etc.) — auth required
+app.use(requireAuth, express.static(STATIC_DIR, {
+  index: false,
+  dotfiles: 'deny',
+  extensions: ['png', 'jpg', 'ico', 'svg'],
+}));
+
+// ── Error handler ─────────────────────────────────────────────────────────────
+
+app.use((err, req, res, _next) => {
+  console.error(err);
+  res.status(500).json({ error: 'Internal server error' });
+});
+
+// ── Start ─────────────────────────────────────────────────────────────────────
+
+app.listen(PORT, () => {
+  console.log(`[server] Running on http://localhost:${PORT}`);
+  console.log(`[server] DS_PATH: ${DS_PATH}`);
+  console.log(`[server] DB_PATH: ${process.env.DB_PATH || 'data/db.sqlite'}`);
+});
