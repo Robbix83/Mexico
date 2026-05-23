@@ -463,17 +463,76 @@ kbd{background:#edf2f7;border:1px solid #cbd5e0;border-radius:4px;padding:1px 5p
 .pl-mfr-logo svg{display:block;direction:ltr}
 .pl-mfr-badge-logo{display:inline-flex;align-items:center;vertical-align:middle;line-height:1}
 .pl-mfr-badge-logo svg{display:block;direction:ltr}
-.pl-controls{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-right:auto}
+.pl-controls{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-right:auto}
 .pl-controls label{font-size:.76rem;color:#718096;font-weight:600}
-.pl-controls input[type=number]{width:66px;padding:4px 7px;border:1.5px solid #e2e8f0;border-radius:7px;
+.pl-controls input[type=number]{width:60px;padding:4px 7px;border:1.5px solid #e2e8f0;border-radius:7px;
   font-size:.82rem;font-family:inherit;text-align:center;direction:ltr}
 .pl-controls input[type=number]:focus{outline:none;border-color:var(--blue)}
+/* live rate badges */
+.pl-rates{display:flex;align-items:center;gap:7px;flex-wrap:wrap}
+.pl-rate-badge{display:inline-flex;align-items:center;gap:3px;background:#f0fdf4;color:#166534;
+  border:1.5px solid #bbf7d0;border-radius:8px;padding:3px 9px;font-size:.76rem;font-weight:700;white-space:nowrap}
+.pl-rate-badge span{font-variant-numeric:tabular-nums;min-width:3.5ch;display:inline-block;text-align:left}
+.pl-rate-status{font-size:.68rem;color:#94a3b8;white-space:nowrap}
+.pl-rate-manual{font-size:.74rem;color:#718096}
+.pl-rate-manual summary{cursor:pointer;outline:none;user-select:none;list-style:none;padding:2px 6px;
+  border-radius:6px;border:1px solid #e2e8f0;background:#f8fafc;white-space:nowrap}
+.pl-rate-manual summary::-webkit-details-marker{display:none}
+.pl-rate-manual-row{display:flex;align-items:center;gap:5px;margin-top:5px;flex-wrap:wrap}
+.pl-rate-manual-row label{font-size:.72rem;color:#718096;font-weight:600;white-space:nowrap}
+.pl-rate-manual-row input{width:62px;padding:3px 6px;border:1.5px solid #e2e8f0;border-radius:6px;
+  font-size:.78rem;font-family:inherit;text-align:center;direction:ltr}
+/* per-manufacturer discount grid */
+.pl-mfr-discounts{display:flex;align-items:center;gap:7px;flex-wrap:wrap;padding-right:10px;
+  border-right:2px solid #e2e8f0}
+.pl-mfr-disc-label{font-size:.74rem;color:#718096;font-weight:700;white-space:nowrap}
+.pl-disc-item{display:flex;align-items:center;gap:3px}
+.pl-disc-item label{font-size:.72rem;color:#4a5568;font-weight:600;white-space:nowrap}
+.pl-disc-item input{width:52px;padding:3px 5px;border:1.5px solid #e2e8f0;border-radius:6px;
+  font-size:.78rem;font-family:inherit;text-align:center;direction:ltr;transition:.15s}
+.pl-disc-item input:focus{outline:none;border-color:var(--blue)}
+.pl-disc-item input.disc-active{border-color:#f59e0b;background:#fffbeb;color:#92400e;font-weight:700}
+.pl-disc-pct{font-size:.7rem;color:#718096}
 .pl-search-wrap{position:relative;flex:1;min-width:160px}
 .pl-search-wrap input{width:100%;padding:6px 10px 6px 32px;border:1.5px solid #e2e8f0;border-radius:8px;
   font-size:.82rem;font-family:inherit;box-sizing:border-box}
 .pl-search-wrap::before{content:'🔍';position:absolute;right:8px;top:50%;transform:translateY(-50%);font-size:.8rem}
 .pl-discount-badge{background:#fff7ed;color:#c05621;border:1.5px solid #fed7aa;border-radius:8px;
   padding:3px 10px;font-size:.76rem;font-weight:700;white-space:nowrap}
+/* price list import modal */
+.pl-import-overlay{display:none;position:fixed;inset:0;z-index:1200;background:rgba(0,0,0,.45);
+  align-items:center;justify-content:center}
+.pl-import-overlay.open{display:flex}
+.pl-import-modal{background:#fff;border-radius:14px;padding:28px 26px 22px;width:min(94vw,520px);
+  max-height:90vh;overflow-y:auto;box-shadow:0 12px 48px rgba(0,0,0,.22);direction:rtl}
+.pl-import-modal h3{font-size:1rem;font-weight:800;margin-bottom:16px;color:#1a1a2e}
+.pl-import-step{display:none}.pl-import-step.active{display:block}
+.pl-import-drop{border:2.5px dashed #cbd5e0;border-radius:10px;padding:26px;text-align:center;
+  cursor:pointer;transition:.15s;color:#64748b;font-size:.84rem;margin-bottom:12px}
+.pl-import-drop:hover,.pl-import-drop.over{border-color:var(--blue);background:#eff6ff;color:var(--blue)}
+.pl-import-preview{background:#f8fafc;border-radius:8px;padding:10px 12px;margin-top:10px;
+  font-size:.78rem;color:#4a5568;max-height:140px;overflow-y:auto;direction:ltr}
+.pl-import-preview table{width:100%;border-collapse:collapse}
+.pl-import-preview th,.pl-import-preview td{padding:3px 8px;text-align:left;border-bottom:1px solid #e2e8f0}
+.pl-import-preview th{font-weight:700;color:#374151;background:#f1f5f9}
+.pl-map-grid{display:grid;grid-template-columns:auto 1fr;gap:8px 12px;align-items:center;margin-bottom:14px}
+.pl-map-grid label{font-size:.78rem;font-weight:700;color:#374151;white-space:nowrap}
+.pl-map-grid select{padding:5px 8px;border:1.5px solid #e2e8f0;border-radius:7px;
+  font-size:.8rem;font-family:inherit;outline:none}
+.pl-map-grid select:focus{border-color:var(--blue)}
+.pl-import-name-row{display:flex;align-items:center;gap:10px;margin-bottom:16px}
+.pl-import-name-row label{font-size:.78rem;font-weight:700;color:#374151;white-space:nowrap}
+.pl-import-name-row input{flex:1;padding:6px 10px;border:1.5px solid #e2e8f0;border-radius:8px;
+  font-size:.84rem;font-family:inherit;outline:none}
+.pl-import-name-row input:focus{border-color:var(--blue)}
+.pl-import-summary{background:#f0fdf4;border:1.5px solid #bbf7d0;border-radius:8px;
+  padding:10px 14px;font-size:.8rem;color:#166534;margin-bottom:14px}
+.pl-import-foot{display:flex;justify-content:flex-end;gap:9px;margin-top:14px}
+.pl-import-btn-cancel{padding:8px 18px;border-radius:8px;border:1.5px solid #e2e8f0;
+  background:#f8fafc;color:#4a5568;font-size:.82rem;font-weight:700;cursor:pointer}
+.pl-import-btn-next{padding:8px 20px;border-radius:8px;border:none;
+  background:var(--blue);color:#fff;font-size:.82rem;font-weight:700;cursor:pointer}
+.pl-import-btn-next:disabled{opacity:.45;cursor:not-allowed}
 .pl-table{width:100%;border-collapse:collapse;font-size:.82rem;table-layout:fixed}
 .pl-table thead th{background:#f8fafc;border-bottom:2px solid #e2e8f0;padding:8px 10px;
   text-align:right;font-weight:700;color:#4a5568;white-space:nowrap;position:sticky;top:0;z-index:2;overflow:hidden}
@@ -879,13 +938,34 @@ tr:hover .pl-edit-btn{opacity:.65}
     <div class="pl-toolbar">
       <div class="pl-mfr-pills" id="pl-mfr-pills"></div>
       <div class="pl-controls">
-        <label>שע"ח EUR→ILS:</label>
-        <input type="number" id="pl-eur-rate" value="4.0" min="1" max="10" step="0.01"
-               oninput="plEurRate=+this.value||4;renderPriceList()"/>
-        <label style="margin-right:6px">הנחה %:</label>
-        <input type="number" id="pl-discount" value="0" min="0" max="100" step="1"
-               oninput="plDiscountPct=+this.value||0;renderPriceList();_updatePlDiscBadge()"/>
-        <span id="pl-disc-badge" class="pl-discount-badge" style="display:none"></span>
+        <div class="pl-rates">
+          <span class="pl-rate-badge">🇪🇺 EUR <span id="pl-eur-val">4.00</span> ₪</span>
+          <span class="pl-rate-badge">🇺🇸 USD <span id="pl-usd-val">3.60</span> ₪</span>
+          <span id="pl-rate-status" class="pl-rate-status"></span>
+          <details class="pl-rate-manual">
+            <summary>✏️ ידני</summary>
+            <div class="pl-rate-manual-row">
+              <label>EUR</label>
+              <input type="number" id="pl-eur-rate" value="4.0" min="1" max="25" step="0.01"
+                oninput="plEurRate=+this.value||4;document.getElementById('pl-eur-val').textContent=plEurRate.toFixed(2);renderPriceList()"/>
+              <label>USD</label>
+              <input type="number" id="pl-usd-rate" value="3.6" min="1" max="25" step="0.01"
+                oninput="plUsdRate=+this.value||3.6;document.getElementById('pl-usd-val').textContent=plUsdRate.toFixed(2);renderPriceList()"/>
+            </div>
+          </details>
+        </div>
+        <div class="pl-mfr-discounts">
+          <span class="pl-mfr-disc-label">✂️ הנחות:</span>
+          <div id="pl-disc-inputs" style="display:flex;gap:6px;flex-wrap:wrap"></div>
+        </div>
+        <button class="btn-cat" onclick="openPlImportModal()"
+          style="background:#eef4ff;color:var(--blue);border-color:#bfdbfe;white-space:nowrap">
+          📥 ייבוא מחירון
+        </button>
+        <button id="pl-clear-imported-btn" class="btn-cat" onclick="clearPlImported()"
+          style="background:#fff5f5;color:#e53e3e;border-color:#fed7d7;display:none;white-space:nowrap">
+          🗑️ נקה ייבוא
+        </button>
       </div>
       <div class="pl-search-wrap">
         <input type="search" id="pl-search-inp" placeholder="חיפוש מוצר, דגם..."
@@ -928,6 +1008,66 @@ tr:hover .pl-edit-btn{opacity:.65}
     </div>
     <div class="pl-cart-bar" id="pl-cart-bar"></div>
   </section>
+
+  <!-- ══ PRICE LIST IMPORT MODAL ══ -->
+  <div id="pl-import-overlay" class="pl-import-overlay" onclick="if(event.target===this)closePlImportModal()">
+    <div class="pl-import-modal">
+      <h3>📥 ייבוא מחירון מ-Excel</h3>
+      <!-- Step 1: file upload -->
+      <div id="pli-step-1" class="pl-import-step active">
+        <div class="pl-import-drop" id="pli-drop-zone"
+          ondragover="event.preventDefault();this.classList.add('over')"
+          ondragleave="this.classList.remove('over')"
+          ondrop="this.classList.remove('over');handlePlImportDrop(event)">
+          <div style="font-size:2rem;margin-bottom:8px">📊</div>
+          <div style="font-weight:700;margin-bottom:4px">גרור קובץ Excel לכאן</div>
+          <div style="font-size:.75rem;color:#94a3b8;margin-bottom:12px">או לחץ לבחירת קובץ</div>
+          <button class="pl-import-btn-next" onclick="document.getElementById('pli-file-inp').click()">בחר קובץ</button>
+          <input type="file" id="pli-file-inp" accept=".xlsx,.xls,.csv" style="display:none"
+            onchange="handlePlImportFile(this.files[0])"/>
+        </div>
+        <div style="font-size:.73rem;color:#94a3b8">תומך בקבצי Excel (.xlsx, .xls) ו-CSV</div>
+        <div class="pl-import-foot">
+          <button class="pl-import-btn-cancel" onclick="closePlImportModal()">ביטול</button>
+        </div>
+      </div>
+      <!-- Step 2: column mapping -->
+      <div id="pli-step-2" class="pl-import-step">
+        <div style="font-size:.78rem;color:#64748b;margin-bottom:12px">
+          שייך עמודות מהקובץ לשדות המחירון:
+        </div>
+        <div class="pl-map-grid">
+          <label>דגם / Model *</label>
+          <select id="pli-map-model" onchange="_buildPliPreview()"></select>
+          <label>תיאור</label>
+          <select id="pli-map-desc" onchange="_buildPliPreview()"></select>
+          <label>מחיר *</label>
+          <select id="pli-map-price" onchange="_buildPliPreview()"></select>
+          <label>מטבע</label>
+          <select id="pli-map-cur" onchange="_buildPliPreview()"></select>
+          <label>קטגוריה</label>
+          <select id="pli-map-cat" onchange="_buildPliPreview()"></select>
+        </div>
+        <div id="pli-preview" class="pl-import-preview" style="display:none"></div>
+        <div class="pl-import-foot">
+          <button class="pl-import-btn-cancel" onclick="showPliStep(1)">← חזור</button>
+          <button class="pl-import-btn-next" onclick="showPliStep(3)">הבא →</button>
+        </div>
+      </div>
+      <!-- Step 3: name + confirm -->
+      <div id="pli-step-3" class="pl-import-step">
+        <div class="pl-import-name-row">
+          <label>שם ספק / יצרן:</label>
+          <input type="text" id="pli-mfr-name" placeholder="לדוגמה: ספק X" dir="rtl"/>
+        </div>
+        <div id="pli-confirm-summary" class="pl-import-summary"></div>
+        <div class="pl-import-foot">
+          <button class="pl-import-btn-cancel" onclick="showPliStep(2)">← חזור</button>
+          <button class="pl-import-btn-next" id="pli-import-btn" onclick="doPlImport()">📥 ייבא</button>
+        </div>
+      </div>
+    </div>
+  </div>
 
   <section id="sec-done"
     ondragover="doneSectionDragOver(event)"
@@ -3844,10 +3984,23 @@ document.addEventListener('mouseleave',e=>{
 },true);
 
 // ─── PRICE LIST ─────────────────────────────────────────────
-let plMfrFilter='all', plDiscountPct=0, plEurRate=4.0;
+let plMfrFilter='all', plEurRate=4.0, plUsdRate=3.6;
+let plMfrDiscounts=JSON.parse(localStorage.getItem('afkon_pl_mfr_discounts')||'{}');
+let plImported=JSON.parse(localStorage.getItem('afkon_pl_imported')||'[]');
 let plSortCol='', plSortDir=-1;
 let plColFilters={cat:new Set(),model:new Set(),desc:new Set()};
 let _plFilterCol='';
+
+// ── Helpers ─────────────────────────────────────────────────
+function getAllPlData(){ return [...PRICE_LIST_DATA,...plImported]; }
+function _plDisc(mfr){ return (plMfrDiscounts[mfr]||0)/100; }
+function savePlMfrDiscounts(){ localStorage.setItem('afkon_pl_mfr_discounts',JSON.stringify(plMfrDiscounts)); }
+function _toIls(p){
+  if(!p||p.price==null) return 0;
+  if(p.cur==='EUR') return p.price*plEurRate;
+  if(p.cur==='USD') return p.price*plUsdRate;
+  return p.price;
+}
 
 // ── Column filter functions ─────────────────────────────────
 function openPlColFilter(col,btn){
@@ -3857,7 +4010,7 @@ function openPlColFilter(col,btn){
   }
   _plFilterCol=col;
   const labelMap={cat:'קטגוריה',model:'דגם',desc:'תיאור'};
-  const srcRows=PRICE_LIST_DATA.filter(p=>plMfrFilter==='all'||p.mfr===plMfrFilter).map(getPlEffective);
+  const srcRows=getAllPlData().filter(p=>plMfrFilter==='all'||p.mfr===plMfrFilter).map(getPlEffective);
   const allVals=[...new Set(srcRows.map(p=>(col==='cat'?_inferCat(p):p[col])||'').filter(Boolean))].sort((a,b)=>a.localeCompare(b,'he'));
   const activeSet=plColFilters[col];
   panel._allVals=allVals; panel._activeSet=activeSet;
@@ -3982,11 +4135,11 @@ function _updatePlSubCell(key){
   const subCell=document.getElementById('pl-sub-'+sid);
   const savCell=document.getElementById('pl-sav-'+sid);
   const qty=plQty(key);
-  const p=PRICE_LIST_DATA.find(x=>_plKey(x.mfr,x.model)===key);
+  const p=getAllPlData().find(x=>_plKey(x.mfr,x.model)===key);
   const ep=p?getPlEffective(p):null;
   const hasPrice=ep&&ep.price!=null;
-  const disc=plDiscountPct/100;
-  const baseIls=hasPrice?(ep.cur==='EUR'?ep.price*plEurRate:ep.price):0;
+  const disc=_plDisc(ep?.mfr);
+  const baseIls=hasPrice?_toIls(ep):0;
   const finalIls=Math.round(baseIls*(1-disc));
   const listIls=Math.round(baseIls);
   const unitSaved=listIls-finalIls;
@@ -4006,15 +4159,15 @@ function _updatePlSubCell(key){
 function _updatePlCartBar(){
   const bar=document.getElementById('pl-cart-bar');
   if(!bar) return;
-  const disc=plDiscountPct/100;
   let totalUnits=0,totalFinal=0,totalList=0;
-  PRICE_LIST_DATA.forEach(p=>{
+  getAllPlData().forEach(p=>{
     const key=_plKey(p.mfr,p.model);
     const qty=plQty(key);
     if(qty<=0) return;
     const ep=getPlEffective(p);
     if(ep.price==null) return;
-    const baseIls=ep.cur==='EUR'?ep.price*plEurRate:ep.price;
+    const disc=_plDisc(p.mfr);
+    const baseIls=_toIls(ep);
     totalUnits+=qty;
     totalFinal+=qty*Math.round(baseIls*(1-disc));
     totalList+=qty*Math.round(baseIls);
@@ -4095,7 +4248,7 @@ let _pleKey='', _pleDsMode='url', _pleNewFile=null;
 function openPlEdit(mfr,model){
   _pleKey=_plKey(mfr,model);
   _pleNewFile=null;
-  const base=PRICE_LIST_DATA.find(p=>p.mfr===mfr&&p.model===model);
+  const base=getAllPlData().find(p=>p.mfr===mfr&&p.model===model);
   if(!base) return;
   const ep=getPlEffective(base);
   const ov=plOverrides[_pleKey]||{};
@@ -4158,7 +4311,7 @@ function pleClearFile(){
 }
 function savePlEdit(){
   if(!_pleKey) return;
-  const base=PRICE_LIST_DATA.find(p=>_plKey(p.mfr,p.model)===_pleKey);
+  const base=getAllPlData().find(p=>_plKey(p.mfr,p.model)===_pleKey);
   if(!base) return;
   const ov={...(plOverrides[_pleKey]||{})};
   const cat=document.getElementById('ple-cat').value.trim();
@@ -4201,15 +4354,17 @@ function plSort(col){
 }
 
 function _plSortKey(p,col){
-  const baseIls=p.price==null?0:(p.cur==='EUR'?p.price*plEurRate:p.price);
+  const ep=getPlEffective(p);
+  const baseIls=_toIls(ep);
+  const disc=_plDisc(p.mfr);
   switch(col){
     case 'mfr':     return p.mfr||'';
-    case 'cat':     return _inferCat(p)||'';
-    case 'model':   return p.model||'';
-    case 'desc':    return p.desc||'';
+    case 'cat':     return _inferCat(ep)||'';
+    case 'model':   return ep.model||'';
+    case 'desc':    return ep.desc||'';
     case 'price':   return baseIls;
-    case 'final':   return Math.round(baseIls*(1-plDiscountPct/100));
-    case 'savings': return Math.round(baseIls*plDiscountPct/100);
+    case 'final':   return Math.round(baseIls*(1-disc));
+    case 'savings': return Math.round(baseIls*disc);
     default:        return 0;
   }
 }
@@ -4374,11 +4529,25 @@ const PRICE_LIST_DATA=[
   {mfr:'Uniview',cat:'אביזר',model:'TR-UP06-C-IN-V2',price:40,cur:'ILS',desc:'חבק לעמוד למצלמות צינור',compat:['IPC2124LB-ADF28KM-H','IPC2124LB-ADF40KM-H','IPC2B14SS-ADF28KMC-I1','IPC2B18SS-ADF28KMC-I1','IPC2K24SE-ADF40KMC-WL-I0','IPC2K28SE-ADF40KMC-WL-I0'], ds:'ds/Uniview/TR-UP06-C-IN-V2.pdf'},
 ];
 
-function _updatePlDiscBadge(){
-  const badge=document.getElementById('pl-disc-badge');
-  if(!badge) return;
-  if(plDiscountPct>0){badge.style.display='';badge.textContent='הנחה '+plDiscountPct+'%';}
-  else badge.style.display='none';
+function _updatePlDiscBadge(){} // kept for call-site compatibility; inputs are live
+
+function _buildPlDiscInputs(){
+  const wrap=document.getElementById('pl-disc-inputs');
+  if(!wrap) return;
+  const mfrs=getAllPlData().reduce((acc,p)=>{if(p.mfr&&!acc.includes(p.mfr))acc.push(p.mfr);return acc;},[]);
+  wrap.innerHTML=mfrs.map(mfr=>{
+    const val=plMfrDiscounts[mfr]||0;
+    return `<div class="pl-disc-item">
+      <label>${mfr}</label>
+      <input type="number" min="0" max="100" step="1" value="${val}"
+        class="disc-inp${val>0?' disc-active':''}"
+        data-mfr="${mfr}"
+        oninput="plMfrDiscounts['${mfr}']=+this.value||0;savePlMfrDiscounts();
+          this.classList.toggle('disc-active',+this.value>0);renderPriceList()"
+        placeholder="0"/>
+      <span class="pl-disc-pct">%</span>
+    </div>`;
+  }).join('');
 }
 
 function _buildPlMfrPills(){
@@ -4396,17 +4565,28 @@ function _buildPlMfrPills(){
       <span class="pl-mfr-logo">${m.logoSvg}</span>
     </button>`;
   }).join('');
-  c.innerHTML=allBtn+pills;
+  // Extra pills for imported manufacturers
+  const knownMfrs=new Set(PRICE_LIST_MFR.map(m=>m.id));
+  const importedMfrs=[...new Set(plImported.map(p=>p.mfr).filter(Boolean))].filter(id=>!knownMfrs.has(id));
+  const importedPills=importedMfrs.map(id=>{
+    const act=plMfrFilter===id;
+    return `<button class="pl-mfr-btn${act?' active':''}"
+      style="color:#5a67d8;background:#ebf4ff;border-color:${act?'#5a67d8':'transparent'}"
+      onclick="plMfrFilter='${id}';renderPriceList()">${id}</button>`;
+  }).join('');
+  c.innerHTML=allBtn+pills+importedPills;
 }
 
 function renderPriceList(){
   _buildPlMfrPills();
-  _updatePlDiscBadge();
+  _buildPlDiscInputs();
+  // show/hide clear-import button
+  const clearBtn=document.getElementById('pl-clear-imported-btn');
+  if(clearBtn) clearBtn.style.display=plImported.length?'':'none';
   const q=(document.getElementById('pl-search-inp')?.value||'').trim().toLowerCase();
-  const disc=plDiscountPct/100;
 
   const hasColFilter=Object.values(plColFilters).some(s=>s.size>0);
-  const rows=PRICE_LIST_DATA.filter(p=>{
+  const rows=getAllPlData().filter(p=>{
     if(plMfrFilter!=='all'&&p.mfr!==plMfrFilter) return false;
     const ep=hasColFilter||q?getPlEffective(p):null;
     if(q){
@@ -4460,17 +4640,20 @@ function renderPriceList(){
       const ep=getPlEffective(p);
       const key=_plKey(p.mfr,p.model);
       const hasOverride=!!plOverrides[key];
-      const mfr=PRICE_LIST_MFR.find(m=>m.id===ep.mfr)||{color:'#4a5568',bg:'#f8fafc',logo:ep.mfr,logoSvg:ep.mfr};
+      const disc=_plDisc(p.mfr);
+      const mfr=PRICE_LIST_MFR.find(m=>m.id===ep.mfr)||{color:'#5a67d8',bg:'#ebf4ff',logo:ep.mfr,logoSvg:`<span style="font-weight:800;font-size:.78rem;color:#5a67d8">${ep.mfr}</span>`};
       let priceCell='<span style="color:#a0aec0">—</span>';
       let finalCell='<span style="color:#a0aec0">—</span>';
       let savingsCell='';
       let finalIls=0, listIls=0;
       if(ep.price!=null){
-        const baseIls=ep.cur==='EUR'?ep.price*plEurRate:ep.price;
+        const baseIls=_toIls(ep);
         finalIls=Math.round(baseIls*(1-disc));
         listIls=Math.round(baseIls);
         if(ep.cur==='EUR'){
           priceCell=`<span style="color:#718096;font-size:.73rem">€${ep.price.toLocaleString()}</span><br><span>₪${listIls.toLocaleString()}</span>`;
+        } else if(ep.cur==='USD'){
+          priceCell=`<span style="color:#718096;font-size:.73rem">$${ep.price.toLocaleString()}</span><br><span>₪${listIls.toLocaleString()}</span>`;
         } else {
           priceCell=`₪${listIls.toLocaleString()}`;
         }
@@ -4532,7 +4715,9 @@ function renderPriceList(){
     const parts=[`<span>${rows.length} מוצרים</span>`];
     if(plMfrFilter!=='all') parts.push(`<span>יצרן: <b>${plMfrFilter}</b></span>`);
     if(q) parts.push(`<span>חיפוש: "<b>${q}</b>"</span>`);
-    if(plDiscountPct>0) parts.push(`<span style="color:#c05621;font-weight:700">✂️ הנחה ${plDiscountPct}% פעילה</span>`);
+    const activeDiscs=Object.entries(plMfrDiscounts).filter(([,v])=>v>0);
+    if(activeDiscs.length) parts.push(`<span style="color:#c05621;font-weight:700">✂️ הנחות: ${activeDiscs.map(([k,v])=>k+' '+v+'%').join(', ')}</span>`);
+    if(plImported.length) parts.push(`<span style="color:#5a67d8;font-weight:600">📥 ${plImported.length} מוצרים מיובאים</span>`);
     if(plSortCol) parts.push(`<span style="color:#4a5568">ממוין לפי: <b>${_thCols[plSortCol]}</b> ${plSortDir===1?'↑':'↓'}</span>`);
     Object.entries(plColFilters).forEach(([col,s])=>{
       if(s.size>0) parts.push(`<span style="color:#e67e22;font-weight:600">🔽 ${_thCols[col]}: ${[...s].join(', ')}</span>`);
@@ -4540,6 +4725,164 @@ function renderPriceList(){
     sum.innerHTML=parts.join('<span style="color:#cbd5e0"> | </span>');
   }
   _updatePlCartBar();
+}
+
+// ─── LIVE EXCHANGE RATES ────────────────────────────────────
+async function _fetchRates(){
+  try{
+    const r=await fetch('/api/rates');
+    if(!r.ok) return;
+    const d=await r.json();
+    if(d.EUR){
+      plEurRate=+d.EUR;
+      const ev=document.getElementById('pl-eur-val');
+      if(ev) ev.textContent=plEurRate.toFixed(2);
+      const ei=document.getElementById('pl-eur-rate');
+      if(ei) ei.value=plEurRate.toFixed(2);
+    }
+    if(d.USD){
+      plUsdRate=+d.USD;
+      const uv=document.getElementById('pl-usd-val');
+      if(uv) uv.textContent=plUsdRate.toFixed(2);
+      const ui=document.getElementById('pl-usd-rate');
+      if(ui) ui.value=plUsdRate.toFixed(2);
+    }
+    const st=document.getElementById('pl-rate-status');
+    if(st){
+      const now=new Date();
+      st.textContent='עודכן '+now.toLocaleTimeString('he-IL',{hour:'2-digit',minute:'2-digit'});
+    }
+    renderPriceList();
+  }catch(e){}
+}
+_fetchRates();
+setInterval(_fetchRates,60*60*1000);
+
+// ─── PRICE LIST IMPORT ──────────────────────────────────────
+let _pliData=[], _pliHeaders=[];
+
+function openPlImportModal(){
+  _pliData=[]; _pliHeaders=[];
+  document.getElementById('pli-file-inp').value='';
+  showPliStep(1);
+  document.getElementById('pl-import-overlay').classList.add('open');
+}
+function closePlImportModal(){
+  document.getElementById('pl-import-overlay').classList.remove('open');
+}
+function showPliStep(n){
+  [1,2,3].forEach(i=>{
+    const el=document.getElementById('pli-step-'+i);
+    if(el) el.classList.toggle('active',i===n);
+  });
+  if(n===2) _buildPliMapping();
+  if(n===3) _buildPliConfirm();
+}
+function handlePlImportDrop(e){
+  e.preventDefault();
+  const f=e.dataTransfer.files[0];
+  if(f) handlePlImportFile(f);
+}
+function handlePlImportFile(file){
+  if(!file) return;
+  const reader=new FileReader();
+  reader.onload=ev=>{
+    try{
+      const wb=XLSX.read(ev.target.result,{type:'binary'});
+      const ws=wb.Sheets[wb.SheetNames[0]];
+      const raw=XLSX.utils.sheet_to_json(ws,{header:1,defval:''});
+      if(!raw.length){alert('הקובץ ריק');return;}
+      _pliHeaders=raw[0].map(String);
+      _pliData=raw.slice(1).filter(r=>r.some(c=>String(c).trim()));
+      showPliStep(2);
+    }catch(err){alert('שגיאה בקריאת הקובץ:\n'+err.message);}
+  };
+  reader.readAsBinaryString(file);
+}
+function _guessPlCol(headers,kws){
+  for(const kw of kws){
+    const i=headers.findIndex(h=>h.toLowerCase().includes(kw.toLowerCase()));
+    if(i>=0) return i;
+  }
+  return -1;
+}
+function _buildPliMapping(){
+  const h=_pliHeaders;
+  const none='<option value="-1">— לא רלוונטי —</option>';
+  const opts=h.map((n,i)=>`<option value="${i}">${n||'עמודה '+(i+1)}</option>`).join('');
+  const modelI =_guessPlCol(h,['model','דגם','מוצר','item','part','code','קוד','מספר']);
+  const descI  =_guessPlCol(h,['desc','תיאור','שם','name','product','description']);
+  const priceI =_guessPlCol(h,['price','מחיר','עלות','cost','rate','תמחיר']);
+  const curI   =_guessPlCol(h,['cur','currency','מטבע','coin']);
+  const catI   =_guessPlCol(h,['cat','קטגוריה','category','type','סוג','קבוצה']);
+  document.getElementById('pli-map-model').innerHTML=opts;
+  document.getElementById('pli-map-desc').innerHTML=none+opts;
+  document.getElementById('pli-map-price').innerHTML=opts;
+  document.getElementById('pli-map-cur').innerHTML=none+opts;
+  document.getElementById('pli-map-cat').innerHTML=none+opts;
+  if(modelI >=0) document.getElementById('pli-map-model').value=modelI;
+  if(descI  >=0) document.getElementById('pli-map-desc').value=descI;
+  if(priceI >=0) document.getElementById('pli-map-price').value=priceI;
+  if(curI   >=0) document.getElementById('pli-map-cur').value=curI;
+  if(catI   >=0) document.getElementById('pli-map-cat').value=catI;
+  _buildPliPreview();
+}
+function _getPliMapped(){
+  const modelC=parseInt(document.getElementById('pli-map-model').value);
+  const descC =parseInt(document.getElementById('pli-map-desc').value);
+  const priceC=parseInt(document.getElementById('pli-map-price').value);
+  const curC  =parseInt(document.getElementById('pli-map-cur').value);
+  const catC  =parseInt(document.getElementById('pli-map-cat').value);
+  return _pliData.map(r=>({
+    model:String(r[modelC]||'').trim(),
+    desc: descC >=0?String(r[descC] ||'').trim():'',
+    price:parseFloat(String(r[priceC]||'').replace(/[^\d.]/g,'')),
+    cur:  curC  >=0?String(r[curC]  ||'').trim().toUpperCase():'ILS',
+    cat:  catC  >=0?String(r[catC]  ||'').trim():''
+  })).filter(r=>r.model&&!isNaN(r.price)&&r.price>0);
+}
+function _buildPliPreview(){
+  const rows=_getPliMapped().slice(0,5);
+  const prev=document.getElementById('pli-preview');
+  if(!prev) return;
+  if(!rows.length){prev.style.display='none';return;}
+  prev.style.display='';
+  prev.innerHTML=`<table><thead><tr><th>דגם</th><th>מחיר</th><th>מטבע</th><th>תיאור</th></tr></thead><tbody>
+    ${rows.map(r=>`<tr><td>${r.model}</td><td>${r.price}</td><td>${r.cur||'ILS'}</td><td>${r.desc||'—'}</td></tr>`).join('')}
+  </tbody></table>`;
+}
+function _buildPliConfirm(){
+  const rows=_getPliMapped();
+  const sum=document.getElementById('pli-confirm-summary');
+  if(sum) sum.textContent=`${rows.length} מוצרים יתווספו למחירון`;
+  const btn=document.getElementById('pli-import-btn');
+  if(btn) btn.disabled=!rows.length;
+}
+function doPlImport(){
+  const rows=_getPliMapped();
+  const mfrName=(document.getElementById('pli-mfr-name')?.value||'').trim()||'ייבוא';
+  const newItems=rows.map(r=>({
+    mfr:mfrName, model:r.model, desc:r.desc, cat:r.cat,
+    price:r.price, cur:(['EUR','USD','ILS'].includes(r.cur)?r.cur:'ILS')
+  }));
+  // Merge: replace rows with same mfr+model, append new
+  const existingKeys=new Set(newItems.map(x=>_plKey(x.mfr,x.model)));
+  plImported=plImported.filter(x=>!existingKeys.has(_plKey(x.mfr,x.model)));
+  plImported.push(...newItems);
+  localStorage.setItem('afkon_pl_imported',JSON.stringify(plImported));
+  closePlImportModal();
+  renderPriceList();
+  const toast=document.createElement('div');
+  toast.style.cssText='position:fixed;bottom:28px;left:50%;transform:translateX(-50%);background:#276749;color:#fff;padding:10px 24px;border-radius:20px;font-size:.88rem;font-weight:700;z-index:9999;box-shadow:0 4px 20px rgba(0,0,0,.18);direction:rtl';
+  toast.textContent=`📥 יובאו ${newItems.length} מוצרים בהצלחה`;
+  document.body.appendChild(toast);
+  setTimeout(()=>toast.remove(),3000);
+}
+function clearPlImported(){
+  if(!confirm('למחוק את כל המוצרים המיובאים מהמחירון?')) return;
+  plImported=[];
+  localStorage.removeItem('afkon_pl_imported');
+  renderPriceList();
 }
 </script>
 <div id="ds-preview-popup"></div>
@@ -4571,6 +4914,7 @@ function renderPriceList(){
           <input type="number" id="ple-price" min="0" step="0.01" placeholder="0"/>
           <select id="ple-cur">
             <option value="EUR">EUR €</option>
+            <option value="USD">USD $</option>
             <option value="ILS">ILS ₪</option>
           </select>
         </div>

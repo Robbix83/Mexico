@@ -205,6 +205,36 @@ app.post('/api/users/:id/reset-password', requireAdmin, (req, res) => {
   res.json({ ok: true });
 });
 
+// ── Exchange rates (Bank of Israel) ──────────────────────────────────────────
+
+let _ratesCache = null, _ratesFetchedAt = 0;
+
+app.get('/api/rates', requireAuth, async (req, res) => {
+  if (_ratesCache && Date.now() - _ratesFetchedAt < 60 * 60 * 1000) {
+    return res.json(_ratesCache);
+  }
+  try {
+    const r = await fetch(
+      'https://edge.boi.gov.il/FusionEdge/skewers/api/v1/exchangerates/latest' +
+      '?rateType=01&currencyCodes=USD,EUR'
+    );
+    const j = await r.json();
+    const rates = {};
+    for (const item of (j.exchangeRates || [])) {
+      rates[item.key] = item.currentExchangeRate;
+    }
+    if (Object.keys(rates).length) {
+      _ratesCache = rates;
+      _ratesFetchedAt = Date.now();
+    }
+    res.json(rates);
+  } catch (e) {
+    console.error('[rates]', e.message);
+    if (_ratesCache) return res.json(_ratesCache); // serve stale cache on error
+    res.status(502).json({ error: 'rates unavailable' });
+  }
+});
+
 // ── Audit log (admin only) ────────────────────────────────────────────────────
 
 app.get('/api/audit', requireAdmin, (req, res) => {
