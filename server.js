@@ -214,14 +214,13 @@ app.get('/api/rates', requireAuth, async (req, res) => {
     return res.json(_ratesCache);
   }
   try {
-    const r = await fetch(
-      'https://edge.boi.gov.il/FusionEdge/skewers/api/v1/exchangerates/latest' +
-      '?rateType=01&currencyCodes=USD,EUR'
-    );
+    const r = await fetch('https://boi.org.il/PublicApi/GetExchangeRates');
     const j = await r.json();
     const rates = {};
     for (const item of (j.exchangeRates || [])) {
-      rates[item.key] = item.currentExchangeRate;
+      if (['USD', 'EUR'].includes(item.key)) {
+        rates[item.key] = item.currentExchangeRate;
+      }
     }
     if (Object.keys(rates).length) {
       _ratesCache = rates;
