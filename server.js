@@ -13,7 +13,7 @@ const db = require('./db');
 const app  = express();
 const PORT = process.env.PORT || 3000;
 const JWT_SECRET = process.env.JWT_SECRET || 'dev-secret-change-in-production';
-const DS_PATH    = process.env.DS_PATH    || path.join(__dirname, 'ds');
+const DS_PATH    = path.resolve(process.env.DS_PATH    || path.join(__dirname, 'ds'));
 const STATIC_DIR = process.env.STATIC_DIR || __dirname;
 
 // ── Middleware ────────────────────────────────────────────────────────────────
