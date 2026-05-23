@@ -533,6 +533,21 @@ kbd{background:#edf2f7;border:1px solid #cbd5e0;border-radius:4px;padding:1px 5p
 .pl-import-btn-next{padding:8px 20px;border-radius:8px;border:none;
   background:var(--blue);color:#fff;font-size:.82rem;font-weight:700;cursor:pointer}
 .pl-import-btn-next:disabled{opacity:.45;cursor:not-allowed}
+.pli-new-box{background:#f0fdf4;border:1.5px solid #bbf7d0;border-radius:8px;
+  padding:8px 14px;font-size:.8rem;color:#166534;font-weight:700;margin-bottom:8px}
+.pli-dupe-box{background:#fffbeb;border:1.5px solid #fde68a;border-radius:8px;
+  padding:8px 14px;font-size:.8rem;color:#92400e;font-weight:700;margin-bottom:8px}
+.pli-dupe-wrap{max-height:200px;overflow-y:auto;margin-top:6px;border-radius:7px;border:1px solid #e2e8f0}
+.pli-dupe-table{width:100%;border-collapse:collapse;font-size:.74rem}
+.pli-dupe-table th{background:#fef9c3;font-weight:700;padding:4px 8px;text-align:right;
+  position:sticky;top:0;border-bottom:1px solid #e2e8f0}
+.pli-dupe-table td{padding:4px 8px;border-bottom:1px solid #f1f5f9;text-align:right;vertical-align:middle}
+.pli-dupe-table tr:last-child td{border-bottom:none}
+.pli-dupe-btns{display:flex;gap:4px;justify-content:flex-end}
+.pli-dupe-btn{padding:2px 9px;border-radius:5px;border:1.5px solid #e2e8f0;
+  font-size:.7rem;font-weight:700;cursor:pointer;background:#f8fafc;color:#4a5568;transition:.12s}
+.pli-dupe-btn.active-update{background:#dbeafe;border-color:#93c5fd;color:#1d4ed8}
+.pli-dupe-btn.active-skip{background:#fee2e2;border-color:#fca5a5;color:#b91c1c}
 .pl-table{width:100%;border-collapse:collapse;font-size:.82rem;table-layout:fixed}
 .pl-table thead th{background:#f8fafc;border-bottom:2px solid #e2e8f0;padding:8px 10px;
   text-align:right;font-weight:700;color:#4a5568;white-space:nowrap;position:sticky;top:0;z-index:2;overflow:hidden}
@@ -4770,9 +4785,10 @@ setInterval(_fetchRates,60*60*1000);
 
 // ─── PRICE LIST IMPORT ──────────────────────────────────────
 let _pliData=[], _pliHeaders=[];
+let _pliDupeChoices=new Map(); // model → 'update' | 'skip'
 
 function openPlImportModal(){
-  _pliData=[]; _pliHeaders=[];
+  _pliData=[]; _pliHeaders=[]; _pliDupeChoices=new Map();
   document.getElementById('pli-file-inp').value='';
   showPliStep(1);
   document.getElementById('pl-import-overlay').classList.add('open');
@@ -4843,13 +4859,20 @@ function _getPliMapped(){
   const priceC=parseInt(document.getElementById('pli-map-price').value);
   const curC  =parseInt(document.getElementById('pli-map-cur').value);
   const catC  =parseInt(document.getElementById('pli-map-cat').value);
-  return _pliData.map(r=>({
+  const mapped=_pliData.map(r=>({
     model:String(r[modelC]||'').trim(),
     desc: descC >=0?String(r[descC] ||'').trim():'',
     price:parseFloat(String(r[priceC]||'').replace(/[^\d.]/g,'')),
     cur:  curC  >=0?String(r[curC]  ||'').trim().toUpperCase():'ILS',
     cat:  catC  >=0?String(r[catC]  ||'').trim():''
   })).filter(r=>r.model&&!isNaN(r.price)&&r.price>0);
+  // Dedup within file — keep first occurrence of each model
+  const seen=new Set();
+  return mapped.filter(r=>{
+    const k=r.model.toLowerCase();
+    if(seen.has(k)) return false;
+    seen.add(k); return true;
+  });
 }
 function _buildPliPreview(){
   const rows=_getPliMapped().slice(0,5);
@@ -4863,30 +4886,84 @@ function _buildPliPreview(){
 }
 function _buildPliConfirm(){
   const rows=_getPliMapped();
+  const mfrName=(document.getElementById('pli-mfr-name')?.value||'').trim()||'ייבוא';
+  const existingKeys=new Set(getAllPlData().map(p=>_plKey(p.mfr,p.model)));
+  const newItems =rows.filter(r=>!existingKeys.has(_plKey(mfrName,r.model)));
+  const dupeItems=rows.filter(r=> existingKeys.has(_plKey(mfrName,r.model)));
+
+  // Init dupe choices to 'update' for any not yet set
+  dupeItems.forEach(r=>{ if(!_pliDupeChoices.has(r.model)) _pliDupeChoices.set(r.model,'update'); });
+
   const sum=document.getElementById('pli-confirm-summary');
-  if(sum) sum.textContent=`${rows.length} מוצרים יתווספו למחירון`;
+  if(sum){
+    let html='';
+    html+=`<div class="pli-new-box">✅ ${newItems.length} פריטים חדשים — יתווספו</div>`;
+    if(dupeItems.length){
+      html+=`<div class="pli-dupe-box">⚠️ ${dupeItems.length} פריטים כבר קיימים במחירון — בחר פעולה לכל אחד:</div>`;
+      html+=`<div class="pli-dupe-wrap"><table class="pli-dupe-table">
+        <thead><tr><th>דגם</th><th>מחיר קיים</th><th>מחיר חדש</th><th>פעולה</th></tr></thead>
+        <tbody>${dupeItems.map(r=>{
+          const existing=getAllPlData().find(p=>_plKey(p.mfr,p.model)===_plKey(mfrName,r.model));
+          const ep=existing?getPlEffective(existing):null;
+          const oldIls=ep?Math.round(_toIls(ep)):null;
+          const newIls=Math.round(r.cur==='EUR'?r.price*plEurRate:r.cur==='USD'?r.price*plUsdRate:r.price);
+          const choice=_pliDupeChoices.get(r.model)||'update';
+          const safeModel=r.model.replace(/'/g,"\\'");
+          return `<tr>
+            <td style="font-family:monospace;font-weight:700;font-size:.72rem">${r.model}</td>
+            <td style="color:#4a5568">${oldIls!=null?'₪'+oldIls.toLocaleString():'—'}</td>
+            <td style="color:#166534;font-weight:700">₪${newIls.toLocaleString()}</td>
+            <td><div class="pli-dupe-btns">
+              <button class="pli-dupe-btn${choice==='update'?' active-update':''}"
+                onclick="_pliSetChoice('${safeModel}','update',this)">✅ עדכן</button>
+              <button class="pli-dupe-btn${choice==='skip'?' active-skip':''}"
+                onclick="_pliSetChoice('${safeModel}','skip',this)">⬜ דלג</button>
+            </div></td>
+          </tr>`;
+        }).join('')}</tbody>
+      </table></div>`;
+    }
+    sum.innerHTML=html;
+  }
   const btn=document.getElementById('pli-import-btn');
   if(btn) btn.disabled=!rows.length;
+}
+function _pliSetChoice(model,choice,btn){
+  _pliDupeChoices.set(model,choice);
+  const row=btn.closest('tr');
+  row.querySelectorAll('.pli-dupe-btn').forEach(b=>{
+    b.classList.remove('active-update','active-skip');
+  });
+  btn.classList.add(choice==='update'?'active-update':'active-skip');
 }
 function doPlImport(){
   const rows=_getPliMapped();
   const mfrName=(document.getElementById('pli-mfr-name')?.value||'').trim()||'ייבוא';
-  const newItems=rows.map(r=>({
+  const existingKeys=new Set(getAllPlData().map(p=>_plKey(p.mfr,p.model)));
+
+  // Filter: always include new items; for duplicates respect per-row choice
+  const toImport=rows.filter(r=>{
+    const key=_plKey(mfrName,r.model);
+    if(!existingKeys.has(key)) return true;                          // new
+    return (_pliDupeChoices.get(r.model)||'update')==='update';      // dupe → user choice
+  });
+
+  const importedKeys=new Set(toImport.map(r=>_plKey(mfrName,r.model)));
+  // Remove old entries for keys we're updating
+  plImported=plImported.filter(x=>!importedKeys.has(_plKey(x.mfr,x.model)));
+  plImported.push(...toImport.map(r=>({
     mfr:mfrName, model:r.model, desc:r.desc, cat:r.cat,
     price:r.price, cur:(['EUR','USD','ILS'].includes(r.cur)?r.cur:'ILS')
-  }));
-  // Merge: replace rows with same mfr+model, append new
-  const existingKeys=new Set(newItems.map(x=>_plKey(x.mfr,x.model)));
-  plImported=plImported.filter(x=>!existingKeys.has(_plKey(x.mfr,x.model)));
-  plImported.push(...newItems);
+  })));
   localStorage.setItem('afkon_pl_imported',JSON.stringify(plImported));
   closePlImportModal();
   renderPriceList();
+  const skipped=rows.length-toImport.length;
   const toast=document.createElement('div');
   toast.style.cssText='position:fixed;bottom:28px;left:50%;transform:translateX(-50%);background:#276749;color:#fff;padding:10px 24px;border-radius:20px;font-size:.88rem;font-weight:700;z-index:9999;box-shadow:0 4px 20px rgba(0,0,0,.18);direction:rtl';
-  toast.textContent=`📥 יובאו ${newItems.length} מוצרים בהצלחה`;
+  toast.textContent=`📥 יובאו ${toImport.length} מוצרים`+(skipped?` (${skipped} דולגו)`:'');
   document.body.appendChild(toast);
-  setTimeout(()=>toast.remove(),3000);
+  setTimeout(()=>toast.remove(),3500);
 }
 function clearPlImported(){
   if(!confirm('למחוק את כל המוצרים המיובאים מהמחירון?')) return;
