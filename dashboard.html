@@ -12,19 +12,20 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:var(--bg);color:var(--te
 
 /* viewer-mode: hide all edit/delete/add controls */
 body.viewer-mode .btn-add,
-body.viewer-mode .task-edit-btn,
-body.viewer-mode .task-delete-btn,
-body.viewer-mode .task-clone-btn,
-body.viewer-mode [onclick*="openModal(null"],
-body.viewer-mode [onclick*="deleteTask"],
-body.viewer-mode [onclick*="openModal(task"],
-body.viewer-mode .pl-edit-btn,
+body.viewer-mode .edit-btn,
+body.viewer-mode .kbtn,
+body.viewer-mode [onclick*="askDelete"],
+body.viewer-mode [onclick*="quickUploadFor"],
+body.viewer-mode [onclick*="markDone"],
+body.viewer-mode [onclick*="openCatManager"],
+body.viewer-mode [onclick*="openProjManager"],
+body.viewer-mode [onclick*="openCityManager"],
 body.viewer-mode [onclick*="openPlEdit"],
 body.viewer-mode [onclick*="savePlEdit"],
 body.viewer-mode .btn-csv
 { display:none !important }
-body.viewer-mode select.status-sel,
-body.viewer-mode select.pri-sel
+body.viewer-mode select.sel-status,
+body.viewer-mode select.sel-pri
 { pointer-events:none; opacity:.6 }
 
 /* header */
