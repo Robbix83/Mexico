@@ -4535,6 +4535,8 @@ function _updatePlDiscBadge(){} // kept for call-site compatibility; inputs are 
 function _buildPlDiscInputs(){
   const wrap=document.getElementById('pl-disc-inputs');
   if(!wrap) return;
+  // If a discount input is currently focused, don't rebuild — it would destroy the active field
+  if(document.activeElement && wrap.contains(document.activeElement)) return;
   const mfrs=getAllPlData().reduce((acc,p)=>{if(p.mfr&&!acc.includes(p.mfr))acc.push(p.mfr);return acc;},[]);
   wrap.innerHTML=mfrs.map(mfr=>{
     const val=plMfrDiscounts[mfr]||0;
