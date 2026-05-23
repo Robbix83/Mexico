@@ -3874,7 +3874,7 @@ function _getDsPreviewSrc(link,cb){
       for(let i=0;i<bytes.length;i++) arr[i]=bytes.charCodeAt(i);
       if(_dsBlobUrl) URL.revokeObjectURL(_dsBlobUrl);
       _dsBlobUrl=URL.createObjectURL(new Blob([arr],{type:'application/pdf'}));
-      cb(_dsBlobUrl,'application/pdf');
+      cb(_dsBlobUrl,'application/pdf',ov.file.name);
       return;
     }
   }
@@ -3894,14 +3894,14 @@ function _getDsPreviewSrc(link,cb){
     if(href&&href!=='#') cb(href,'application/pdf');
   }
 }
-function _showDsPopup(el,src){
+function _showDsPopup(el,src,nameOverride){
   const pop=document.getElementById('ds-preview-popup');
   const isBlob=src.startsWith('blob:');
   const isLocal=isBlob||(!src.startsWith('http://')&&!src.startsWith('https://'));
   // For URLs ending with '/', get the last meaningful path segment as display name
   const pathParts=src.replace(/\/+$/,'').split('/');
   const lastSeg=pathParts[pathParts.length-1]||'';
-  const fname=lastSeg.split('?')[0]||'datasheet.pdf';
+  const fname=nameOverride||(lastSeg.split('?')[0]||'datasheet.pdf');
   const isPdf=fname.toLowerCase().endsWith('.pdf');
   const displayName=(()=>{try{return decodeURIComponent(fname);}catch(e){return fname;}})();
   let body;
@@ -3985,7 +3985,7 @@ document.addEventListener('mouseover',e=>{
   if(!link) return;
   clearTimeout(_dsTimer);
   _dsTimer=setTimeout(()=>{
-    _getDsPreviewSrc(link,(src)=>_showDsPopup(link,src));
+    _getDsPreviewSrc(link,(src,_,name)=>_showDsPopup(link,src,name));
   },1500);
 });
 document.addEventListener('mouseout',e=>{
@@ -4313,10 +4313,14 @@ function _pleDsTabUpdate(){
 }
 function pleFileChange(inp){
   const f=inp.files[0]; if(!f) return;
+  // Name the file after the model for consistency (e.g. IPS-HC264@HDX4-IR-I1.pdf)
+  const model=_pleKey.split('|')[1]||'';
+  const ext=f.name.match(/\.[^.]+$/)?.[0]||'.pdf';
+  const canonName=(model||f.name.replace(/\.[^.]+$/,''))+ext;
   const reader=new FileReader();
   reader.onload=e=>{
-    _pleNewFile={b64:e.target.result.split(',')[1],name:f.name};
-    document.getElementById('ple-file-name').textContent=f.name;
+    _pleNewFile={b64:e.target.result.split(',')[1],name:canonName};
+    document.getElementById('ple-file-name').textContent=canonName;
     document.getElementById('ple-file-status').style.display='flex';
   };
   reader.readAsDataURL(f);
