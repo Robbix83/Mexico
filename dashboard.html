@@ -939,9 +939,13 @@ tr:hover .pl-edit-btn{opacity:.65}
       <div class="pl-mfr-pills" id="pl-mfr-pills"></div>
       <div class="pl-controls">
         <div class="pl-rates">
-          <span class="pl-rate-badge">🇪🇺 EUR <span id="pl-eur-val">4.00</span> ₪</span>
-          <span class="pl-rate-badge">🇺🇸 USD <span id="pl-usd-val">3.60</span> ₪</span>
-          <span id="pl-rate-status" class="pl-rate-status"></span>
+          <div style="display:flex;flex-direction:column;gap:3px">
+            <div style="display:flex;gap:6px">
+              <span class="pl-rate-badge">🇪🇺 EUR <span id="pl-eur-val">4.00</span> ₪</span>
+              <span class="pl-rate-badge">🇺🇸 USD <span id="pl-usd-val">3.60</span> ₪</span>
+            </div>
+            <span id="pl-rate-status" class="pl-rate-status" style="text-align:center"></span>
+          </div>
           <details class="pl-rate-manual">
             <summary>✏️ ידני</summary>
             <div class="pl-rate-manual-row">
@@ -4754,7 +4758,9 @@ async function _fetchRates(){
     const st=document.getElementById('pl-rate-status');
     if(st){
       const now=new Date();
-      st.textContent='עודכן '+now.toLocaleTimeString('he-IL',{hour:'2-digit',minute:'2-digit'});
+      st.textContent='עודכן '
+        +now.toLocaleDateString('he-IL',{day:'2-digit',month:'2-digit',year:'2-digit'})
+        +' '+now.toLocaleTimeString('he-IL',{hour:'2-digit',minute:'2-digit'});
     }
     renderPriceList();
   }catch(e){}
