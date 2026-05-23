@@ -4148,12 +4148,13 @@ function _updatePlSubCell(key){
     if(qty===0||!hasPrice) subCell.innerHTML='<span class="pl-sub-dash">—</span>';
     else subCell.innerHTML=`<span class="pl-sub-total">₪${(qty*finalIls).toLocaleString()}</span>`;
   }
-  // חיסכון — scales with qty
-  if(savCell&&disc>0&&hasPrice){
-    const totalSaved=qty>0?qty*unitSaved:unitSaved;
-    savCell.innerHTML=qty>0
-      ?`<span class="pl-price-savings">₪${totalSaved.toLocaleString()}</span><br><span style="font-size:.66rem;color:#9ca3af;font-weight:500">${qty}×₪${unitSaved.toLocaleString()}</span>`
-      :`<span class="pl-price-savings">₪${unitSaved.toLocaleString()}</span>`;
+  // חיסכון — only when qty > 0 AND discount active
+  if(savCell){
+    if(disc>0&&qty>0&&hasPrice){
+      savCell.innerHTML=`<span class="pl-price-savings">₪${(qty*unitSaved).toLocaleString()}</span><br><span style="font-size:.66rem;color:#9ca3af;font-weight:500">${qty}×₪${unitSaved.toLocaleString()}</span>`;
+    } else {
+      savCell.innerHTML='';
+    }
   }
 }
 function _updatePlCartBar(){
@@ -4678,13 +4679,10 @@ function renderPriceList(){
         const sub=qty*finalIls;
         subContent=`<span class="pl-sub-total">₪${sub.toLocaleString()}</span>`;
       }
-      // חיסכון column — scales with quantity when qty > 0
-      if(disc>0&&ep.price!=null){
+      // חיסכון column — only when qty > 0 AND discount active
+      if(disc>0&&qty>0&&ep.price!=null){
         const unitSaved=listIls-finalIls;
-        const totalSaved=qty>0 ? qty*unitSaved : unitSaved;
-        savingsCell=qty>0
-          ?`<span class="pl-price-savings">₪${totalSaved.toLocaleString()}</span><br><span style="font-size:.66rem;color:#9ca3af;font-weight:500">${qty}×₪${unitSaved.toLocaleString()}</span>`
-          :`<span class="pl-price-savings">₪${unitSaved.toLocaleString()}</span>`;
+        savingsCell=`<span class="pl-price-savings">₪${(qty*unitSaved).toLocaleString()}</span><br><span style="font-size:.66rem;color:#9ca3af;font-weight:500">${qty}×₪${unitSaved.toLocaleString()}</span>`;
       }
       return `<tr class="${hasOverride?'pl-row-modified':''}${qty>0?' pl-row-in-cart':''}">
         <td><span class="pl-mfr-badge-logo">${mfr.logoSvg}</span></td>
