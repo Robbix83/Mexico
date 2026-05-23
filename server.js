@@ -14,6 +14,7 @@ const app  = express();
 const PORT = process.env.PORT || 3000;
 const JWT_SECRET = process.env.JWT_SECRET || 'dev-secret-change-in-production';
 const DS_PATH    = path.resolve(process.env.DS_PATH    || path.join(__dirname, 'ds'));
+const DS_FALLBACK = path.join(__dirname, 'ds'); // git-committed PDFs — used when DS_PATH is empty
 const STATIC_DIR = process.env.STATIC_DIR || __dirname;
 
 // ── Middleware ────────────────────────────────────────────────────────────────
@@ -270,12 +271,20 @@ app.get('/ds/*', requireAuth, (req, res) => {
     return res.status(400).send('Invalid path');
   }
 
-  const filePath = path.join(DS_PATH, relPath);
+  let filePath = path.join(DS_PATH, relPath);
 
   // Ensure file is inside DS_PATH
   if (!filePath.startsWith(DS_PATH)) return res.status(400).send('Invalid path');
 
-  if (!fs.existsSync(filePath)) return res.status(404).send('Not found');
+  // If not found in DS_PATH, fall back to the git-committed ./ds/ folder
+  if (!fs.existsSync(filePath)) {
+    const fallback = path.join(DS_FALLBACK, relPath);
+    if (DS_FALLBACK !== DS_PATH && fallback.startsWith(DS_FALLBACK) && fs.existsSync(fallback)) {
+      filePath = fallback;
+    } else {
+      return res.status(404).send('Not found');
+    }
+  }
 
   // Log only PDF opens
   if (filePath.endsWith('.pdf')) {
@@ -297,6 +306,15 @@ app.use(requireAuth, express.static(STATIC_DIR, {
 app.use((err, req, res, _next) => {
   console.error(err);
   res.status(500).json({ error: 'Internal server error' });
+});
+
+// ── Process-level safety ──────────────────────────────────────────────────────
+
+process.on('unhandledRejection', (reason) => {
+  console.error('[unhandledRejection]', reason);
+});
+process.on('uncaughtException', (err) => {
+  console.error('[uncaughtException]', err);
 });
 
 // ── Start ─────────────────────────────────────────────────────────────────────
