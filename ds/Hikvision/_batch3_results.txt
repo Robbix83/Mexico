@@ -1,0 +1,93 @@
+Hikvision Datasheet Download - Batch 3 Results
+Generated: 2026-05-24
+=================================================
+
+Input: 25 model entries (23 unique models after deduplication of lens variants)
+Found: 18 unique models
+Not Found: 5 unique models
+
+Note: "DS-2CD3566G2T-IZS 2.7-13" and "DS-2CD3566G2T-IZS 7-35" share the same base model → one PDF.
+      "DS-2CD3666G2T-IZS 2.7-13.5" and "DS-2CD3666G2T-IZS 7-35" share the same base model → one PDF.
+
+=== FOUND (18 unique) ===
+
+FOUND | DS-2CD2387G2H-LISU/SL2 -> DS-2CD2387G2H-LISU-SL.pdf (1109 KB)
+  Source: https://assets.hikvision.com/prd/public/all/doc/sm000062547/DS-2CD2387G2H-LISU_SL_Datasheet_20230907.pdf
+
+FOUND | DS-2CD2T23G2-4I(4mm) -> DS-2CD2T23G2-4I.pdf (974 KB)
+  Source: https://www.hikvision.com/content/dam/hikvision/products/.../DS-2CD2T23G2-2I_4I_Datasheet_V5.5.102_20200925.pdf
+
+FOUND | DS-2CD2T47G2-L(4mm) -> DS-2CD2T47G2-L.pdf (948 KB)
+  Source: https://assets.hikvision.com/prd/public/all/doc/sm000058342/DS-2CD2T47G2-L-C_Datasheet_V5.5.112_20230418.pdf
+
+FOUND | DS-2CD2T47G2H-L(4mm) -> DS-2CD2T47G2H-L.pdf (919 KB)
+  Source: https://www.hikvision.com/content/dam/.../DS-2CD2T47G2H-LI_Datasheet_20230719.pdf
+
+FOUND | DS-2CD2T87G2-L(4mm) -> DS-2CD2T87G2-L.pdf (1033 KB)
+  Source: https://www.hikvision.com/content/dam/.../DS-2CD2T87G2-L-C_Datasheet_V5.5.115_20230418.pdf
+
+FOUND | DS-2CD2T87G2H-L(4mm) -> DS-2CD2T87G2H-L.pdf (916 KB)
+  Source: https://www.hikvision.com/content/dam/.../DS-2CD2T87G2H-LI_Datasheet_20230719.pdf
+
+FOUND | DS-2CD3347G2-LU(2.8mm) -> DS-2CD3347G2-LU.pdf (1198 KB)
+  Source: https://www.hikvision.com/content/dam/.../DS-2CD3347G2-LSU-C_Datasheet_V5.5.112_20230302.pdf
+  Note: Closest match is DS-2CD3347G2-LS(U); no DS-2CD3347G2-LU exact datasheet found
+
+FOUND | DS-2CD3386G2-ISU/SL(2.8 -> DS-2CD3386G2-ISU-SL.pdf (913 KB)
+  Source: https://www.hikvision.com/content/dam/.../DS-2CD3386G2-ISU-H_Datasheet_V5.7.50_20230213.pdf
+
+FOUND | DS-2CD3566G2T-IZS 2.7-13 -> DS-2CD3566G2T-IZS.pdf (1352 KB)
+FOUND | DS-2CD3566G2T-IZS 7-35   -> DS-2CD3566G2T-IZS.pdf (same file)
+  Source: https://www.hikvision.com/content/dam/.../DS-2CD3656G2T-IZS-C_Datasheet_V5.5.112_20230214.pdf
+  Note: Model DS-2CD3566G2T-IZS not found; used closest 5MP AcuSense DS-2CD3656G2T-IZS datasheet
+
+FOUND | DS-2CD3623G2-IZS(2.8-12 -> DS-2CD3623G2-IZS.pdf (949 KB)
+  Source: https://download.discomp.cz/hikvision/datasheets/DS-2CD3623G2-IZS.pdf
+
+FOUND | DS-2CD3643G2-IZS(2.8-12 -> DS-2CD3643G2-IZS.pdf (952 KB)
+  Source: https://www.hikvision.com/content/dam/.../DS-2CD3643G2-IZS_Datasheet_V5.5.115_20230302.pdf
+
+FOUND | DS-2CD3643G2-LZS(2.8-12 -> DS-2CD3643G2-LZS.pdf (680 KB)
+  Source: https://www.hikvision.com/content/dam/.../DS-2CD3643G2-IZS_Datasheet_20231218.pdf
+  Note: No DS-2CD3643G2-LZS exact datasheet found; used DS-2CD3643G2-IZS (same family, different illuminator)
+
+FOUND | DS-2CD3645G0-IZS(2.8-12 -> DS-2CD3645G0-IZS.pdf (855 KB)
+  Source: https://www.hikvision.com/content/dam/hikvision/en/support/regional-materials/bangladesh-/DS-2CD3645G0-IZS_Datasheet_V5.5.60_20180820(2).pdf
+
+FOUND | DS-2CD3647G2-LZS(2.8-12 -> DS-2CD3647G2-LZS.pdf (1157 KB)
+  Source: https://www.hikvision.com/content/dam/hikvision/usa/products/network-camera/colorvu-series/ds-2cd2647g2t-lzs/DS-2CD2647G2T-LZS-C_Datasheet_20230912.pdf
+  Note: No DS-2CD3647G2-LZS exact datasheet found; used DS-2CD2647G2T-LZS (closest 4MP ColorVu varifocal)
+
+FOUND | DS-2CD3663G2-IZS(2.8-12 -> DS-2CD3663G2-IZS.pdf (911 KB)
+  Source: https://www.hikvision.com/content/dam/hikvision/en/support/regional-materials/pakistan-/DS-2CD3663G2-IZSPA_Datasheet_202501015.pdf
+
+FOUND | DS-2CD3666G2T-IZS 2.7-13.5 -> DS-2CD3666G2T-IZS.pdf (1046 KB)
+FOUND | DS-2CD3666G2T-IZS 7-35     -> DS-2CD3666G2T-IZS.pdf (same file)
+  Source: https://www.hikvision.com/content/dam/hikvision/mena/support/sira/admcc-2023-oliver/DS-2CD3666G2T-IZSYH_SNMP_Datasheet_20230912.pdf
+
+FOUND | DS-2CD4A24FWD-IZS(2.8-12 -> DS-2CD4A24FWD-IZS.pdf (892 KB)
+  Source: https://www.hikvision.com/content/dam/.../DS-2CD4A24FWD-IZHST_Datshseet_V5.5.80_20181026.pdf
+
+FOUND | DS-2XS6A47G1-LS/C36S80 -> DS-2XS6A47G1-LS-C36S80.pdf (830 KB)
+  Source: https://assets.hikvision.com/prd/public/all/doc/m000059106/DS-2XS6A47G1-LS_4G_Datasheet_20250416.pdf
+  Note: Used the 4G variant datasheet; C36S80 solar kit variant not directly downloadable
+
+=== NOT FOUND (5 unique) ===
+
+NOT FOUND | DS-2CD3343G2-LI2U(2.8m -> DS-2CD3343G2-LI2U.pdf
+  Reason: Model not found on Hikvision website or any public source; possibly regional/OEM variant
+
+NOT FOUND | DS-2CD3383G2-LI2U(2.8m -> DS-2CD3383G2-LI2U.pdf
+  Reason: Model not found; DS-2CD3383G2 series exists as ISU/LIU-SL variants but not LI2U
+
+NOT FOUND | DS-2CD3543G2-LI2U(2.8m -> DS-2CD3543G2-LI2U.pdf
+  Reason: Model not found; DS-2CD3543G2 exists as IS variant but not LI2U
+
+NOT FOUND | DS-2CD3583G2-ISU/SL(2.8 -> DS-2CD3583G2-ISU-SL.pdf
+  Reason: Model not found; DS-2CD3583G2 series not publicly documented
+
+NOT FOUND | DS-2CD3587G2T-LPSE(4mm) -> DS-2CD3587G2T-LPSE.pdf
+  Reason: Model not found in any public source; possibly specialized/regional LPR variant
+
+=================================================
+Summary: 18 found / 5 not found out of 23 unique models (25 entries including lens-size duplicates)

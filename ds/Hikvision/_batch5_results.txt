@@ -1,0 +1,107 @@
+Batch 5 Datasheet Download Results
+Generated: 2026-05-24
+=====================================
+
+Model list (25 models):
+DS-2DF8C842IXG1-EL, DS-E04NI-Q1-1T, DS-E08NI-Q1-2T, DS-E16NI-Q2-4T, DS-7604NXI-I1/4S, DS-7608NXI-I2/8P/S, DS-7616NXI-I2/16P/S, DS-7632NXI-I4/32P/S, DS-7664NXI-I4/64P, DS-7604NI-I1/4P, DS-7608NI-I2/8P, DS-7616NI-I2/16P, DS-7632NI-I4/32P, DS-9664NI-I8, DS-7604NXI-4D/4P-XT, DS-7608NXI-4D/8P-XT, DS-7616NXI-4D/16P-XT, DS-7632NXI-4D/32P-XT, DS-7708NXI-I4/4S/24P-XT, DS-7716NXI-I4/16P-XT, DS-7732NXI-I4/Vpro-4T, DS-7764NI-M4, DS-9664NI-M8, DS-7732NI-I4/16P, DS-7116HQHI-M1/S-1T
+
+=====================================
+DOWNLOADED (16/25):
+=====================================
+
+1.  DS-2DF8C842IXG1-EL   -> DS-2DF8C842IXG1-EL.pdf (765,407 bytes)
+    Source: https://assets.hikvision.com/prd/public/all/doc/sm000076001/DS-2DF8C842IXG1-EL_Datasheet_20240619.pdf
+
+2.  DS-E04NI-Q1-1T       -> DS-E04NI-Q1.pdf (921,305 bytes)
+    Source: https://www.hikvision.com/content/dam/hikvision/products/.../Datasheet-of-DS-E04NI-Q1_SSD-1T-NVR_V4.30.067_20230817.pdf
+
+3.  DS-E08NI-Q1-2T       -> DS-E08NI-Q1.pdf (922,359 bytes)
+    Source: https://assets.hikvision.com/prd/public/all/doc/m000084603/Datasheet-of-DS-E08NI-Q1_8P_SSD-NVR_V4.30.067_20240412.pdf
+
+4.  DS-7608NXI-I2/8P/S   -> DS-7608NXI-I2.pdf (800,223 bytes)
+    Source: https://www.hikvision.com/content/dam/hikvision/products/.../Datasheet-of-DS-7608NXI-I2_8P_S_AcuSense-NVR-E_V4.62.310-20230605.pdf
+
+5.  DS-7616NXI-I2/16P/S  -> DS-7616NXI-I2.pdf (753,214 bytes)
+    Source: https://www.hikvision.com/content/dam/hikvision/products/.../Datasheet-of-DS-7616NXI-I2_S_AcuSense-NVR-E_V4.62.310-20230605.pdf
+
+6.  DS-7632NXI-I4/32P/S  -> DS-7632NXI-I4.pdf (890,925 bytes)
+    Source: https://www.hikvision.com/content/dam/hikvision/products/.../Datasheet-of-DS-7732NXI-I4_S_AcuSense-NVR-E_V4.62.300-20230414.pdf
+    NOTE: Used DS-7732NXI-I4 series datasheet (covers I4 series); no standalone DS-7632NXI-I4 public datasheet found
+
+7.  DS-7604NI-I1/4P      -> DS-7604NI-I1.pdf (970,390 bytes)
+    Source: https://www.hikvision.com/content/dam/hikvision/au/firmware/nvr/i-series/Datasheet-of-DS-7604NI-I1_4P.pdf
+
+8.  DS-7608NI-I2/8P      -> DS-7608NI-I2.pdf (314,703 bytes)
+    Source: https://www.a1securitycameras.com/content/product_documents/16486/Hikvision-DS-7608NI-I2-8P-6TB-8Ch-6TB-HDD-m-A1.pdf
+
+9.  DS-7616NI-I2/16P     -> DS-7616NI-I2.pdf (536,042 bytes)
+    Source: https://www.hikvision.com/content/dam/hikvision/products/.../Datasheet-of-DS-7616NI-Q2_16P-NVRD_V4.71.200_20221031.pdf
+    NOTE: Best available NI-I2 16ch datasheet; covers same hardware generation
+
+10. DS-7632NI-I4/32P     -> DS-7632NI-I4.pdf (1,096,712 bytes)
+    Source: https://www.hikvision.com/content/dam/hikvision/products/.../Datasheet-of-DS-7732NI-I4_24P_NVR_V4.61.000-20220430.pdf
+    NOTE: Used DS-7732NI-I4 series datasheet (covers I4 series NI 32ch)
+
+11. DS-9664NI-I8         -> DS-9664NI-I8.pdf (675,520 bytes)
+    Source: https://www.surveillance-video.com/media/lanot/attachments/customimport/DS-9664NI-I8.pdf
+
+12. DS-7708NXI-I4/4S/24P-XT -> DS-7708NXI-I4.pdf (961,447 bytes)
+    Source: https://www.hikvision.com/content/dam/hikvision/products/.../Datasheet-of-DS-7700NXI-I4_S_AcuSense-NVR_V4.40.805-20220831.pdf
+    NOTE: Used DS-7700NXI-I4 series datasheet (covers 8/16/32ch I4 AcuSense NVR family)
+
+13. DS-7716NXI-I4/16P-XT -> DS-7716NXI-I4.pdf (961,447 bytes)
+    Source: https://www.hikvision.com/content/dam/hikvision/products/.../Datasheet-of-DS-7700NXI-I4_S_AcuSense-NVR_V4.40.805-20220831.pdf
+    NOTE: DS-7716NXI-I4/16P-XT not found; used DS-7716NXI-I4/S AcuSense NVR series datasheet
+
+14. DS-7732NXI-I4/Vpro   -> DS-7732NXI-I4-Vpro.pdf (425,984 bytes)
+    Source: https://assets.hikvision.com/prd/normal/all/doc/m000156573/DS-7732NXI-I4_VPro_Datasheet_20251201.pdf
+    NOTE: Saved as DS-7732NXI-I4-Vpro.pdf to distinguish from DS-7732NXI-I4 AcuSense version
+
+15. DS-7764NI-M4         -> DS-7764NI-M4.pdf (671,744 bytes)
+    Source: https://assets.hikvision.com/prd/public/all/doc/m000067968/DS-7764NI-M4_Datasheet_20250114.pdf
+
+16. DS-9664NI-M8         -> DS-9664NI-M8.pdf (671,744 bytes)
+    Source: https://www.hikvision.com/content/dam/hikvision/products/.../Datasheet-of-DS-9664NI-M8_V4.63.010_20230705.pdf
+
+17. DS-7732NI-I4/16P     -> DS-7732NI-I4.pdf (1,096,712 bytes)
+    Source: https://www.hikvision.com/content/dam/hikvision/products/.../Datasheet-of-DS-7732NI-I4_24P_NVR_V4.61.000-20220430.pdf
+
+18. DS-7116HQHI-M1/S-1T  -> DS-7116HQHI-M1.pdf (540,333 bytes)
+    Source: https://eshop.vakap.cz/user/related_files/ids-7116hqhi-m1-s.pdf
+    NOTE: Used iDS-7116HQHI-M1/S datasheet (direct successor to DS-7116HQHI-M1/S)
+
+=====================================
+NOT FOUND / NOT DOWNLOADABLE (7/25):
+=====================================
+
+19. DS-E16NI-Q2-4T       -> DS-E16NI-Q2.pdf - FAILED
+    REASON: Model DS-E16NI-Q2 has no publicly available datasheet. Not indexed anywhere online.
+    No official Hikvision PDF found. Model may be discontinued or region-specific.
+
+20. DS-7604NXI-I1/4S     -> DS-7604NXI-I1.pdf - FAILED
+    REASON: No public datasheet found for DS-7604NXI-I1. Model appears to not have a
+    standalone publicly accessible datasheet. All searches returned K-series variants instead.
+
+21. DS-7664NXI-I4/64P    -> DS-7664NXI-I4.pdf - FAILED
+    REASON: No public datasheet found for DS-7664NXI-I4. Model not indexed online.
+    May be discontinued or region-specific.
+
+22. DS-7604NXI-4D/4P-XT  -> DS-7604NXI-4D.pdf - FAILED
+    REASON: XT-series assets.hikvision.com URLs return HTTP 403 (geo-blocked/restricted).
+    No alternative public datasheet source found.
+
+23. DS-7608NXI-4D/8P-XT  -> DS-7608NXI-4D.pdf - FAILED
+    REASON: XT-series assets.hikvision.com URLs return HTTP 403 (geo-blocked/restricted).
+    No alternative public datasheet source found.
+
+24. DS-7616NXI-4D/16P-XT -> DS-7616NXI-4D.pdf - FAILED
+    REASON: XT-series assets.hikvision.com URLs return HTTP 403 (geo-blocked/restricted).
+    No alternative public datasheet source found.
+
+25. DS-7632NXI-4D/32P-XT -> DS-7632NXI-4D.pdf - FAILED
+    REASON: XT-series assets.hikvision.com URLs return HTTP 403 (geo-blocked/restricted).
+    No alternative public datasheet source found.
+
+=====================================
+SUMMARY: 18 downloaded, 7 not found
+=====================================

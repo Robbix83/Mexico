@@ -1,0 +1,81 @@
+Batch 1 Results - Hikvision Datasheet Downloads
+================================================
+Processed: 25 models
+Found: 24 files (models #22 and #23 both map to DS-2CD2047G2H-LIU)
+
+FOUND: DS-2CD1021-I(2.8mm) → DS-2CD1021-I.pdf
+  Source: assets.hikvision.com (DS-2CD1021-I-F_Datasheet_20240801.pdf)
+
+FOUND: DS-2CD1027G2-LUF → DS-2CD1027G2-LUF.pdf
+  Source: assets.hikvision.com (DS-2CD1027G2-LUF_Datasheet_V5.7.1_20230512.pdf)
+
+FOUND: DS-2CD1043G2-LIU2.8 → DS-2CD1043G2-LIU2.8.pdf
+  Source: assets.hikvision.com (DS-2CD1043G2-LIUF_Datasheet_20230914.pdf, sm000091779)
+
+FOUND: DS-2CD1043G2-LIU2.8BLA → DS-2CD1043G2-LIU2.8BLA.pdf
+  Source: assets.hikvision.com (DS-2CD1043G2-LIUF_Datasheet_20230914.pdf, sm000042445)
+
+FOUND: DS-2CD1047G2-LUF → DS-2CD1047G2-LUF.pdf
+  Source: assets.hikvision.com (DS-2CD1047G2-LUF_Datasheet_V5.7.1_20221216.pdf)
+
+FOUND: DS-2CD1053G0-I → DS-2CD1053G0-I.pdf
+  Source: assets.hikvision.com (DS-2CD1053G0-IUF_Datasheet_20240626.pdf)
+
+FOUND: DS-2CD1643G0-IZ → DS-2CD1643G0-IZ.pdf
+  Source: assets.hikvision.com (DS-2CD1643G0-IZ-C_Datasheet_V5.5.122_20220517.pdf)
+
+FOUND: DS-2CD1653G0-IZ → DS-2CD1653G0-IZ.pdf
+  Source: giganet.com.gt (DS-2CD1653G0-IZ.pdf - official Hikvision datasheet)
+
+FOUND: DS-2CD1327G2-L → DS-2CD1327G2-L.pdf
+  Source: assets.hikvision.com (DS-2CD1327G2-LUF_Datasheet_20240828.pdf)
+
+FOUND: DS-2CD1343G2-LIU(2.8m → DS-2CD1343G2-LIU.pdf
+  Source: assets.hikvision.com (DS-2CD1343G2-LIUF_Datasheet_20230914.pdf, sm000042441)
+
+FOUND: DS-2CD1343G2-I(2.8)BLA → DS-2CD1343G2-I.pdf
+  Source: assets.hikvision.com (DS-2CD1143G2-I datasheet via sm000041020 path)
+
+FOUND: DS-2CD1353G0-I → DS-2CD1353G0-I.pdf
+  Source: assets.hikvision.com (DS-2CD1353G0-IUF-C_Datasheet_20240808.pdf)
+
+FOUND: DS-2CD1121-I(2.8mm) → DS-2CD1121-I.pdf
+  Source: emimikos.gr (DS-2CD1121-I-F_Datasheet_V5.5.120_20220125.pdf)
+
+FOUND: DS-2CD1123G2-LIUF → DS-2CD1123G2-LIUF.pdf
+  Source: assets.hikvision.com (DS-2CD1123G2-LIUF_Datasheet_20230914.pdf)
+
+FOUND: DS-2CD1143G2-LIUF → DS-2CD1143G2-LIUF.pdf
+  Source: assets.hikvision.com (DS-2CD1143G2-LIUF_Datasheet_20230914.pdf)
+
+FOUND: DS-2CD1143G2-I(2.8)BLA → DS-2CD1143G2-I.pdf
+  Source: megateh.eu (ds-2cd1143g2-i_datasheet_v5.7.1_20221216.pdf)
+
+FOUND: DS-2CD1743G0-IZ → DS-2CD1743G0-IZ.pdf
+  Source: assets.hikvision.com (DS-2CD1743G0-IZ-C_Datasheet_V5.5.122_20220517.pdf)
+
+FOUND: DS-2CD1153G0-I → DS-2CD1153G0-I.pdf
+  Source: assets.hikvision.com (DS-2CD1153G0-IUF-C_Datasheet_20240801.pdf)
+
+FOUND: DS-2CD1753G0-IZ → DS-2CD1753G0-IZ.pdf
+  Source: giganet.com.gt (DS-2CD1753G0-IZ.pdf - official Hikvision datasheet)
+
+FOUND: DS-2CD2043G2-IU(2.8mm) → DS-2CD2043G2-IU.pdf
+  Source: usacompua.com (DS-2CD2043G2-IU_Datasheet_V5.5.113_20230303.pdf)
+
+FOUND: DS-2CD2043G2-LI2U(2.8m → DS-2CD2043G2-LI2U.pdf
+  Source: assets.hikvision.com (DS-2CD2043G2-LI2U_Datasheet_20250211.pdf)
+
+FOUND: DS-2CD2047G2H-LIU/SL(2 → DS-2CD2047G2H-LIU.pdf
+  Source: assets.hikvision.com (DS-2CD2047G2H-LIU_Datasheet_20230719.pdf, sm000051119)
+
+FOUND: DS-2CD2047G2H-LIU/SLB → DS-2CD2047G2H-LIU.pdf (same file, both truncate to DS-2CD2047G2H-LIU)
+  Source: assets.hikvision.com (DS-2CD2047G2H-LIU_Datasheet_20230719.pdf, sm000051120)
+
+FOUND: DS-2CD2085G1-I → DS-2CD2085G1-I.pdf
+  Source: assets.hikvision.com (DS-2CD2085G1-I_Datasheet_V5.6.0_20220609.pdf, sm000058763)
+
+FOUND: DS-2CD2083G2-LI2U → DS-2CD2083G2-LI2U.pdf
+  Source: assets.hikvision.com (DS-2CD2083G2-LI2U_Datasheet_20250211.pdf)
+
+NOT_FOUND: (none - all models found)

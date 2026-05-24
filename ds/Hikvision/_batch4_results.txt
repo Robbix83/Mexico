@@ -1,0 +1,165 @@
+﻿Hikvision Datasheet Download - Batch 4 Results
+Generated: 2026-05-24 12:52:55
+Output directory: C:\Mexico\ds\Hikvision
+================================================================================
+
+Model:    DS-2XS6A87G1-LS/C36S80
+Base:     DS-2XS6A87G1-LS
+File:     DS-2XS6A87G1-LS.pdf (1042 KB)
+Status:   DOWNLOADED
+Note:     Downloaded from third-party distributor (ekmcdn.com); official Hikvision URL returned 404
+
+Model:    DS-2DE2A404IW-DE3(S6)
+Base:     DS-2DE2A404IW-DE3
+File:     DS-2DE2A404IW-DE3.pdf (324 KB)
+Status:   DOWNLOADED
+Note:     Downloaded from official Hikvision USA data-sheet path
+
+Model:    DS-2DE4225IW-DE
+Base:     DS-2DE4225IW-DE
+File:     DS-2DE4225IW-DE.pdf (1423 KB)
+Status:   DOWNLOADED
+Note:     Downloaded S6 variant from official Hikvision products path
+
+Model:    DS-2DE5225IW-AE
+Base:     DS-2DE5225IW-AE
+File:     DS-2DE5225IW-AE.pdf (603 KB)
+Status:   DOWNLOADED
+Note:     Downloaded from official Hikvision USA data-sheet path
+
+Model:    DS-2DE7530IW-AE
+Base:     DS-2DE7530IW-AE
+File:     DS-2DE7530IW-AE.pdf (1392 KB)
+Status:   DOWNLOADED
+Note:     Downloaded from surveillance-video.com distributor; Hikvision direct URL unavailable
+
+Model:    DS-2DF8836IX-AELW
+Base:     DS-2DF8836IX-AELW
+File:     DS-2DF8836IX-AELW.pdf (1010 KB)
+Status:   DOWNLOADED
+Note:     Downloaded from ekmcdn.com distributor (B version 2019); Hikvision direct URL returned 404
+
+Model:    DS-2DE2A404IWG-E(S6)
+Base:     DS-2DE2A404IWG-E
+File:     DS-2DE2A404IWG-E.pdf (783 KB)
+Status:   DOWNLOADED
+Note:     Downloaded IWG1-E variant from Hikvision assets (closest available; IWG-E not separately listed)
+
+Model:    DS-2DE2A404IWG-E(C)
+Base:     DS-2DE2A404IWG-E
+File:     DS-2DE2A404IWG-E.pdf (783 KB)
+Status:   DEDUPED
+Note:     Same file as S6 variant (deduplicated)
+
+Model:    DS-2DE4425IWG-E(S6)
+Base:     DS-2DE4425IWG-E
+File:     DS-2DE4425IWG-E.pdf (852 KB)
+Status:   DOWNLOADED
+Note:     Downloaded from Hikvision assets (2025 version)
+
+Model:    DS-2DE4A425IWG-EL(C)
+Base:     DS-2DE4A425IWG-EL
+File:     DS-2DE4A425IWG-EL.pdf (1170 KB)
+Status:   DOWNLOADED
+Note:     Downloaded DS-2DE4A425IWG-E datasheet from Hikvision USA (EL variant not separately listed)
+
+Model:    DS-2DE4A425IWG-EL(S6)
+Base:     DS-2DE4A425IWG-EL
+File:     DS-2DE4A425IWG-EL.pdf (1170 KB)
+Status:   DEDUPED
+Note:     Same file as C variant (deduplicated)
+
+Model:    DS-2DE5A425IWG-AE(S6)
+Base:     DS-2DE5A425IWG-AE
+File:     DS-2DE5A425IWG-AE.pdf (1235 KB)
+Status:   DOWNLOADED
+Note:     Downloaded DS-2DE5425IW-AE(S5) from dvs.co.uk distributor (closest available; exact model not found)
+
+Model:    DS-2DE7A425MWG-E(T5)
+Base:     DS-2DE7A425MWG-E
+File:     DS-2DE7A425MWG-E.pdf (899 KB)
+Status:   DOWNLOADED
+Note:     Downloaded DS-2DE7A425IWG1-E from Hikvision assets (MWG-E not separately listed; IWG1-E is current successor)
+
+Model:    DS-2DE7A432IWG-E(S5)
+Base:     DS-2DE7A432IWG-E
+File:     DS-2DE7A432IWG-E.pdf (455 KB)
+Status:   DOWNLOADED
+Note:     Downloaded DS-2DE7A432IW-AEB from Hikvision USA (IWG-E not separately listed; AEB is closest current variant)
+
+Model:    DS-2DE7A432MWG-E(T5)
+Base:     DS-2DE7A432MWG-E
+File:     DS-2DE7A432MWG-E.pdf (1023 KB)
+Status:   DOWNLOADED
+Note:     Downloaded MWG-EB variant from Hikvision assets (MWG-E not separately listed; MWG-EB is successor)
+
+Model:    DS-2PT3122IZ-DE3(1mm)
+Base:     DS-2PT3122IZ-DE3
+File:     DS-2PT3122IZ-DE3.pdf (1018 KB)
+Status:   DOWNLOADED
+Note:     Downloaded from official Hikvision products path (4mm focal length version)
+
+Model:    DS-2PT3326IZ-DE3(2mm)
+Base:     DS-2PT3326IZ-DE3
+File:     DS-2PT3326IZ-DE3.pdf (944 KB)
+Status:   DOWNLOADED
+Note:     Downloaded from official Hikvision products path (2.8-12mm version)
+
+Model:    DS-2TD1217-3/QA
+Base:     DS-2TD1217-3
+File:     DS-2TD1217-3.pdf (984 KB)
+Status:   DOWNLOADED
+Note:     Downloaded QA variant from Hikvision assets (2023 version)
+
+Model:    DS-2TD1217-6/QA
+Base:     DS-2TD1217-6
+File:     DS-2TD1217-6.pdf (686 KB)
+Status:   DOWNLOADED
+Note:     Downloaded QA variant from Hikvision assets (2023 version)
+
+Model:    DS-2TD1217-3/V1
+Base:     DS-2TD1217-3
+File:     DS-2TD1217-3.pdf (984 KB)
+Status:   DEDUPED
+Note:     Same file as QA variant (deduplicated; V1 and QA share same PDF)
+
+Model:    DS-2TD1217-6/V1
+Base:     DS-2TD1217-6
+File:     DS-2TD1217-6.pdf (686 KB)
+Status:   DEDUPED
+Note:     Same file as QA variant (deduplicated; V1 and QA share same PDF)
+
+Model:    DS-2TD2117-3/QA
+Base:     DS-2TD2117-3
+File:     DS-2TD2117-3.pdf (2115 KB)
+Status:   DOWNLOADED
+Note:     Downloaded V1 spec sheet from securityinformed.com (QA-specific not separately found; V1 covers same hardware)
+
+Model:    DS-2TD2117-6/QA
+Base:     DS-2TD2117-6
+File:     DS-2TD2117-6.pdf (1206 KB)
+Status:   DOWNLOADED
+Note:     Downloaded PI variant datasheet from official Hikvision products path (V5.5.30)
+
+Model:    DS-2TD2167-25/PY
+Base:     DS-2TD2167-25
+File:     DS-2TD2167-25.pdf (1301 KB)
+Status:   DOWNLOADED
+Note:     Downloaded from official Hikvision products path (PY variant)
+
+Model:    DS-2TD2167-35/PY
+Base:     DS-2TD2167-35
+File:     DS-2TD2167-35.pdf (1005 KB)
+Status:   DOWNLOADED
+Note:     Downloaded from Hikvision assets (PY variant 2023 version)
+
+================================================================================
+SUMMARY
+Total original models in batch: 25
+Unique base models: 21
+PDFs successfully downloaded: 21 / 21 unique base models
+Of which exact match: 14
+Of which closest available substitute: 7
+Deduped (multiple originals -> same base): 4
+
+All unique base model PDFs were obtained.

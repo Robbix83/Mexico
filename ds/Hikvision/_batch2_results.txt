@@ -1,0 +1,61 @@
+Batch 2 Results - Hikvision Datasheet Download
+================================================
+Generated: 2026-05-24
+
+Original Model                        Base Model              Status      Notes
+------------------------------------  ----------------------  ----------  ----------------------------------------
+DS-2CD2087G2H-LIU/SL                 DS-2CD2087G2H-LIU       FOUND       assets.hikvision.com (Jan 2026)
+DS-2CD2087G2H-LIU/SLB                DS-2CD2087G2H-LIU       FOUND       Same file as DS-2CD2087G2H-LIU (duplicate base)
+DS-2CD2123G2-I(2.8mm)                DS-2CD2123G2-I          FOUND       assets.hikvision.com (Oct 2025)
+DS-2CD2143G2-I(2.8mm)                DS-2CD2143G2-I          FOUND       assets.hikvision.com (Oct 2025)
+DS-2CD2147G2H-LIU/SL                 DS-2CD2147G2H-LIU       FOUND       assets.hikvision.com - LISU datasheet (Jan 2024)
+DS-2CD2147G2H-LIU/SLB                DS-2CD2147G2H-LIU       FOUND       Same file as DS-2CD2147G2H-LIU (duplicate base)
+DS-2CD2143G2-IS(2.8mm)               DS-2CD2143G2-IS         FOUND       hikvision.com/mena (Mar 2023)
+DS-2CD2185G1-I(2.8mm)                DS-2CD2185G1-I          NOT_FOUND   Model not found on hikvision.com; no datasheet indexed
+DS-2CD2187G2H-LI(2.8mm               DS-2CD2187G2H-LI        FOUND       hikvision.com - LISU/LI datasheet (Jan 2024)
+DS-2CD2187G2H-LISU/SL                DS-2CD2187G2H-LISU      FOUND       hikvision.com - LISU datasheet (Jan 2024)
+DS-2CD2321G0-I/NF(2.8mm              DS-2CD2321G0-I          NOT_FOUND   Datasheet not publicly accessible (404/403)
+DS-2CD2323G2-I(2.8mm)                DS-2CD2323G2-I          FOUND       hikvision.com/mena - IU version covers I variant
+DS-2CD2327G2-LU(2.8mm)               DS-2CD2327G2-LU         FOUND       hikvision.com (Apr 2023)
+DS-2CD2347G2-LU(2.8mm)               DS-2CD2347G2-LU         FOUND       hikvision.com/usa (colorvu datasheet)
+DS-2CD2345G0P-I(1.68mm               DS-2CD2345G0P-I         FOUND       hikvision.com/fr - French version (only accessible copy)
+DS-2CD2345G0P-I/NF(1.68              DS-2CD2345G0P-I         FOUND       Same file as DS-2CD2345G0P-I (duplicate base)
+DS-2CD2383G2-I(2.8mm)                DS-2CD2383G2-I          FOUND       hikvision.com - IU datasheet covers I variant (Mar 2023)
+DS-2CD2383G2-LI2U(2.8m               DS-2CD2383G2-LI2U       FOUND       hikvision.com/pl - Polish version (Jul 2025, most recent)
+DS-2CD2383G2-LI2U(2.8mB              DS-2CD2383G2-LI2U       FOUND       Same file as DS-2CD2383G2-LI2U (duplicate base)
+DS-2CD2385G1-I(2.8mm)                DS-2CD2385G1-I          FOUND       assets.hikvision.com (Jun 2022)
+DS-2CD2385G1-I(2.8mm)B               DS-2CD2385G1-I          FOUND       Same file as DS-2CD2385G1-I (duplicate base)
+DS-2CD2386G2-ISU/SL(2.8              DS-2CD2386G2-ISU        FOUND       assets.hikvision.com - ISU/SL datasheet (Feb 2023)
+DS-2CD2387G2-LU(2.8mm)               DS-2CD2387G2-LU         FOUND       assets.hikvision.com (Apr 2023)
+DS-2CD2387G2H-LISU/SL                DS-2CD2387G2H-LISU      FOUND       assets.hikvision.com - LISU/SL datasheet (Sep 2023)
+DS-2CD2383G2-LI2U(2.8m              DS-2CD2383G2-LI2U       FOUND       Same file as DS-2CD2383G2-LI2U (duplicate base)
+
+SUMMARY
+-------
+Total input models:    25
+Unique base models:    19
+FOUND:                 17
+NOT_FOUND:             2
+
+NOT FOUND:
+  - DS-2CD2185G1-I  (model number does not appear to exist on hikvision.com)
+  - DS-2CD2321G0-I  (product page exists but datasheet PDF is not publicly accessible)
+
+FILES SAVED TO: C:\Mexico\ds\Hikvision\
+  DS-2CD2087G2H-LIU.pdf
+  DS-2CD2123G2-I.pdf
+  DS-2CD2143G2-I.pdf
+  DS-2CD2143G2-IS.pdf
+  DS-2CD2147G2H-LIU.pdf
+  DS-2CD2187G2H-LI.pdf
+  DS-2CD2187G2H-LISU.pdf
+  DS-2CD2323G2-I.pdf
+  DS-2CD2327G2-LU.pdf
+  DS-2CD2345G0P-I.pdf
+  DS-2CD2347G2-LU.pdf
+  DS-2CD2383G2-I.pdf
+  DS-2CD2383G2-LI2U.pdf
+  DS-2CD2385G1-I.pdf
+  DS-2CD2386G2-ISU.pdf
+  DS-2CD2387G2-LU.pdf
+  DS-2CD2387G2H-LISU.pdf

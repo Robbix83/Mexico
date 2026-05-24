@@ -1,0 +1,28 @@
+﻿Hikvision Datasheet Download Results
+=====================================
+Date: 2026-05-24 15:04
+
+FOUND   | DS-2DF8C842IXG1-ELW -> DS-2DF8C842IXG1-ELW.pdf [864226 bytes, valid PDF] | Source: assets.hikvision.com (DS-2DF8C842IXG1-ELW_Datasheet_20250313)
+FOUND   | DS-2DF9C848LXG1-LW -> DS-2DF9C848LXG1-LW.pdf [618596 bytes, valid PDF] | Source: hikvision.com content/dam (closest: DS-2DF9C848LXG-LW datasheet)
+FOUND   | DS-2DF9C453LXG1-LW -> DS-2DF9C453LXG1-LW.pdf [618772 bytes, valid PDF] | Source: hikvision.com content/dam (closest: DS-2DF9C453LXG-LW datasheet)
+FOUND   | DS-7604NXI-K1 -> DS-7604NXI-K1.pdf [624587 bytes, valid PDF] | Source: hikvision.com content/dam
+FOUND   | DS-7608NXI-K2 -> DS-7608NXI-K2.pdf [678821 bytes, valid PDF] | Source: hikvision.com content/dam
+FOUND   | DS-7616NXI-K2 -> DS-7616NXI-K2.pdf [678589 bytes, valid PDF] | Source: hikvision.com content/dam
+FOUND   | DS-7632NXI-K2 -> DS-7632NXI-K2.pdf [679513 bytes, valid PDF] | Source: hikvision.com content/dam
+FOUND   | DS-7632NI-M2 -> DS-7632NI-M2.pdf [551725 bytes, valid PDF] | Source: hikvision.com content/dam
+FOUND   | DS-7716NI-M4 -> DS-7716NI-M4.pdf [851508 bytes, valid PDF] | Source: assets.hikvision.com (DS-7716NI-M4_Datasheet_20250117)
+FOUND   | DS-7732NI-M4 -> DS-7732NI-M4.pdf [598221 bytes, valid PDF] | Source: hikvision.com content/dam
+FOUND   | iDS-7732NXI-M4 -> iDS-7732NXI-M4.pdf [849850 bytes, valid PDF] | Source: assets.hikvision.com (iDS-7732NXI-M4_X_Datasheet_20250117)
+FOUND   | DS-8664NXI-I8 -> DS-8664NXI-I8.pdf [882545 bytes, valid PDF] | Source: assets.hikvision.com (DS-8664NXI-I8/S AcuSense NVR E)
+FOUND   | DS-9632NI-M8 -> DS-9632NI-M8.pdf [686983 bytes, valid PDF] | Source: assets.hikvision.com
+FOUND   | DS-9632NI-M16 -> DS-9632NI-M16.pdf [712124 bytes, valid PDF] | Source: hikvision.com mena/support
+FOUND   | DS-9664NXI-I8 -> DS-9664NXI-I8.pdf [888813 bytes, valid PDF] | Source: hikvision.com content/dam (DS-9664NXI-I8/S E AcuSense NVR)
+FOUND   | DS-9664NI-M16 -> DS-9664NI-M16.pdf [658725 bytes, valid PDF] | Source: hikvision.com usa/data-sheet
+FOUND   | DS-96128NI-I16 -> DS-96128NI-I16.pdf [650660 bytes, valid PDF] | Source: hikvision.com content/dam (DS-96000NI-I16 series datasheet - covers I16 family)
+FOUND   | DS-96256NI-I16 -> DS-96256NI-I16.pdf [650660 bytes, valid PDF] | Source: hikvision.com content/dam (DS-96000NI-I16 series datasheet - covers I16 family)
+FOUND   | DS-2AE7232TI-A -> DS-2AE7232TI-A.pdf [354121 bytes, valid PDF] | Source: hikvision.com usa/data-sheet
+FOUND   | DS-2AE7232ITG -> DS-2AE7232ITG.pdf [982137 bytes, valid PDF] | Source: specsheets.dvs.co.uk (UK Hikvision distributor)
+
+Summary:
+  FOUND: 20 / 20
+  NOT FOUND: 0 / 20
