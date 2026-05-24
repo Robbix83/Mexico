@@ -1,0 +1,56 @@
+﻿Hikvision Datasheet Download Results - Batch 8
+Generated: 2026-05-24 16:25
+======================================================================
+OK    DS-PS1-I-WB-Red -> DS-PS1-I-WB-Red.pdf (730KB)
+       Source: assets.hikvision.com DS-PS1-I-WB datasheet (red is a color variant, same spec)
+OK    DS-PS1-E-WB-red -> DS-PS1-E-WB-red.pdf (728KB)
+       Source: assets.hikvision.com DS-PS1-E-WB datasheet (red is a color variant, same spec)
+OK    DS-PDMCS-EG2-WB -> DS-PDMCS-EG2-WB.pdf (784KB)
+       Source: assets.hikvision.com official datasheet
+OK    DS-PM2-G -> DS-PM2-G.pdf (670KB)
+       Source: assets.hikvision.com m000057367 DS-PM2-G GPRS module datasheet
+OK    DS-PM2-S(EU) -> DS-PM2-SEU.pdf (687KB)
+       Source: assets.hikvision.com DS-PM2-S(AU) datasheet used - same product family, EU variant bands differ
+OK    DS-PM2-P -> DS-PM2-P.pdf (666KB)
+       Source: hikvision.com content/dam official datasheet
+OK    DS-PDP18-EG2 -> DS-PDP18-EG2.pdf (750KB)
+       Source: assets.hikvision.com DS-PDP18-EG2(B) datasheet
+OK    DS-PDD15AM-EG2 -> DS-PDD15AM-EG2.pdf (807KB)
+       Source: hikvision.com content/dam official datasheet
+OK    DS-PDPG12P-EG2 -> DS-PDPG12P-EG2.pdf (1295KB)
+       Source: hikvision.com content/dam official datasheet
+OK    DS-PDD12P-EG2 -> DS-PDD12P-EG2.pdf (1222KB)
+       Source: megateh.eu datasheet (hikvision.com returned 404, assets.hikvision.com returned 403)
+OK    DS-PDD12-EG2 -> DS-PDD12-EG2.pdf (832KB)
+       Source: hikvision.com content/dam official datasheet
+OK    DS-PDPC12P-EG2 -> DS-PDPC12P-EG2.pdf (919KB)
+       Source: download.discomp.cz distributor datasheet (DS-PDPC12P-EG2-WE, same platform)
+OK    DS-PDTT15AM-LM -> DS-PDTT15AM-LM.pdf (767KB)
+       Source: hikvision.com content/dam official datasheet
+OK    DS-PS1-B -> DS-PS1-B.pdf (785KB)
+       Source: hikvision.com content/dam official datasheet
+OK    DS-PS1-R -> DS-PS1-R.pdf (785KB)
+       Source: hikvision.com content/dam official datasheet (downloaded in earlier run)
+OK    DS-PS1-I -> DS-PS1-I.pdf (588KB)
+       Source: assets.hikvision.com DS-PS1-I-WE datasheet (wired DS-PS1-I not found; closest match used)
+OK    DS-PS1-E -> DS-PS1-E.pdf (445KB)
+       Source: assets.hikvision.com DS-PS1-E-WE datasheet (wired DS-PS1-E not found; closest match used)
+OK    DS-QAZ1325G1T-EY -> DS-QAZ1325G1T-EY.pdf (606KB)
+       Source: assets.hikvision.com DS-QAZ1325G1T base model datasheet (-EY is anti-corrosion variant, same specs)
+OK    DS-QAZ1307G1T-E -> DS-QAZ1307G1T-E.pdf (551KB)
+       Source: hikvision.com content/dam official datasheet
+OK    DS-QAZ1203G1-BE -> DS-QAZ1203G1-BE.pdf (546KB)
+       Source: hikvision.com content/dam official datasheet
+OK    DS-QAZ0203G1-S -> DS-QAZ0203G1-S.pdf (515KB)
+       Source: assets.hikvision.com official datasheet
+OK    DS-QAZ1206G1-BE -> DS-QAZ1206G1-BE.pdf (540KB)
+       Source: hikvision.com content/dam official datasheet
+FAIL  DS-QAZ1206G1T-E -> NOT DOWNLOADED
+       Reason: NOT FOUND - no product page or datasheet exists on hikvision.com; model may be incorrect
+OK    DS-QAZ0206G1-S -> DS-QAZ0206G1-S.pdf (510KB)
+       Source: hikvision.com content/dam official datasheet (already existed)
+FAIL  DS-QAZ0212G1-S -> NOT DOWNLOADED
+       Reason: NOT FOUND - no product page or datasheet exists on hikvision.com; model may be incorrect
+
+======================================================================
+SUMMARY: 23 downloaded/found, 0 skipped, 2 failed

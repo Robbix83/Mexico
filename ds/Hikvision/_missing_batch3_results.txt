@@ -1,0 +1,56 @@
+Hikvision Missing Batch 3 - Download Results
+======================================================================
+Generated: 2026-05-24
+Source JSON: hik_missing_batch_3.json
+
+Legend: OK=downloaded now, EXISTS=was already present, SKIP=same base filename as prior entry
+----------------------------------------------------------------------
+
+EXISTS     DS-KD-ACF2            -> DS-KD-ACF2.pdf            [already present]
+EXISTS     DS-KD-ACF2/S          -> DS-KD-ACF2-S.pdf          [already present]
+EXISTS     DS-KD-ACF3            -> DS-KD-ACF3.pdf            [already present]
+EXISTS     DS-KD-ACF3/S          -> DS-KD-ACF3-S.pdf          [already present - verified %PDF, 4pp, correct product]
+EXISTS     DS-KD-KK/S            -> DS-KD-KK-S.pdf            [already present]
+OK_892KB   DS-KD-TDE/S(*)        -> DS-KD-TDE.pdf             [assets.hikvision.com/prd/public/all/doc/m000041786/]
+OK_1172KB  DS-2DE4A425IWG-E      -> DS-2DE4A425IWG-E.pdf      [hikvision.com/content/dam/.../usa/data-sheet/value-ip-ptz/]
+EXISTS     DS-2SE4C425MWG-E      -> DS-2SE4C425MWG-E.pdf      [already present]
+OK_320KB   DS-2DE5232W-AE(S6)    -> DS-2DE5232W-AE.pdf        [hikvision.com/content/dam/.../ca/product/datasheet/ - (S6) suffix stripped]
+OK_1464KB  DS-2DE5425IW-AE(S6)   -> DS-2DE5425IW-AE.pdf       [hikvision.com/content/dam/.../Data_Sheet/Datasheet-of-DS-2DE5425IW-AES6_V5.6.11_20220714.pdf]
+OK_1072KB  DS-2DE5432IWG-E       -> DS-2DE5432IWG-E.pdf       [hikvision.com/content/dam/.../usa/data-sheet/value-ip-ptz/]
+OK_640KB   DS-2DT5432MWG-T(O-(PA)-> DS-2DT5432MWG-T.pdf       [hikvision.com - (O-(PA) suffix stripped, PA variant covers base model]
+OK_608KB   DS-2DE5425IWG-K/4G    -> DS-2DE5425IWG-K.pdf       [hikvision.com/.../Data_Sheet/DS-2DE5425IWG-K_4G_Datasheet_20230531.pdf]
+OK_396KB   DS-2DE7A432IW-AEB(T5) -> DS-2DE7A432IW-AEB.pdf     [hikvision.com/content/dam/.../ca/product/datasheet/]
+OK_1012KB  DS-2SE7C432MWG-EB/26(F)-> DS-2SE7C432MWG-EB.pdf   [hikvision.com/content/dam/.../usa/data-sheet/value-ip-ptz/]
+OK_1224KB  DS-2DF7C445IXR-AEL(T5)-> DS-2DF7C445IXR-AEL.pdf   [hikvision.com/content/dam/.../regional-materials/peru/]
+OK_372KB   DS-2DE7A825IW-AEB(T5) -> DS-2DE7A825IW-AEB.pdf     [hikvision.com/content/dam/.../usa/data-sheet/value-ip-ptz/]
+OK_788KB   DS-2DE7A812MCG-EB     -> DS-2DE7A812MCG-EB.pdf     [hikvision.com/content/dam/.../usa/data-sheet/manually-upload/camera/]
+OK_812KB   DS-2DF8242IX-AEL(T5)  -> DS-2DF8242IX-AEL.pdf      [hikvision.com/content/dam/.../es-la/datasheet/ptz-cameras/ultra-series/]
+OK_1300KB  DS-2DF8242IX-AELW(T5) -> DS-2DF8242IX-AELW.pdf     [hikvision.com/content/dam/.../usa/data-sheet/smart-pro-ptz/]
+OK_808KB   DS-2DF8C260I5XG1-ELW  -> DS-2DF8C260I5XG1-ELW.pdf  [casmarglobal.com - authorized Hikvision distributor]
+OK_1104KB  DS-2DF8C442IXG1-EL(+PS)-> DS-2DF8C442IXG1-EL.pdf  [hikvision.com/content/dam/.../regional-materials/nepal/]
+OK_764KB   DS-2SF8C442MXG1-EL/14 -> DS-2SF8C442MXG1-EL.pdf    [assets.hikvision.com/prd/public/all/doc/sm000074483/]
+OK_1048KB  DS-2SF8C442MXG1-ELW/14(F1)(O-STD)-> DS-2SF8C442MXG1-ELW.pdf  [hikvision.com/.../regional-materials/peru/]
+SKIP_DUPE  DS-2SF8C442MXG1-EL/26 -> DS-2SF8C442MXG1-EL.pdf    [same base filename as /14 entry; /26 = lens variant, same datasheet]
+
+----------------------------------------------------------------------
+NOTES:
+
+(*) DS-KD-TDE/S: JSON entry is "DS-KD-TDE/S". The /S suffix denotes the
+    stainless steel bracket variant of the DS-KD-TDE touch display module.
+    No separate /S-specific datasheet exists; Hikvision publishes one
+    datasheet for the DS-KD-TDE covering all bracket variants. Saved as
+    DS-KD-TDE.pdf (892KB, verified %PDF).
+
+Filename derivation rules applied:
+  - Storage suffix (-1T/-2T/-4T) stripped where present
+  - /variant suffix stripped (e.g. /4G, /14, /26, /S)
+  - (parenthetical) suffix stripped (e.g. (T5), (S6), (O-(PA), (+PS), (F1)(O-STD))
+  - Resulting base model used as filename
+
+SUMMARY:
+  Already existed (skipped) : 6
+  Downloaded successfully   : 19
+  Skipped (duplicate base)  : 1
+  Total models in JSON      : 25
+----------------------------------------------------------------------
+Completed.

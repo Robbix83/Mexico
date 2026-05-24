@@ -1,0 +1,64 @@
+﻿Hikvision Wireless Alarm Sensor Datasheet Download Results
+Run date: 2026-05-24 16:37
+======================================================================
+
+NOT FOUND               | DS-PDCO-1A-WB | DS-PDCO-1A-WB.pdf | No PDF available online
+NOT FOUND               | DS-PDCO-1A-WB/G | DS-PDCO-1A-WBG.pdf | No PDF available online
+NOT FOUND               | DS-PDCO-1G-WE | DS-PDCO-1G-WE.pdf | No PDF available online
+NOT FOUND               | DS-PDCO-1G-WE/G | DS-PDCO-1G-WEG.pdf | No PDF available online
+NOT FOUND               | DS-PDCO-1G-WB | DS-PDCO-1G-WB.pdf | No PDF available online
+NOT FOUND               | DS-PDCO-1G-WB/G | DS-PDCO-1G-WBG.pdf | No PDF available online
+DOWNLOADED              | DS-PDWL-E-WB | DS-PDWL-E-WB.pdf | 782819 bytes
+NOT FOUND               | DS-PDWL-G-WB | DS-PDWL-G-WB.pdf | No PDF available online
+DOWNLOADED              | DS-PDWL-E-WE | DS-PDWL-E-WE.pdf | 460031 bytes
+NOT FOUND               | DS-PDWL-G-WE | DS-PDWL-G-WE.pdf | No PDF available online
+SKIPPED (pre-existing)  | DS-PDPG12P-EG2 | DS-PDPG12P-EG2.pdf | 1326097 bytes
+SKIPPED (pre-existing)  | DS-PDD12P-EG2 | DS-PDD12P-EG2.pdf | 1251744 bytes
+SKIPPED (pre-existing)  | DS-PDD12-EG2 | DS-PDD12-EG2.pdf | 852436 bytes
+SKIPPED (pre-existing)  | DS-PDPC12P-EG2 | DS-PDPC12P-EG2.pdf | 940803 bytes
+SKIPPED (pre-existing)  | DS-PDTT15AM-LM | DS-PDTT15AM-LM.pdf | 785761 bytes
+SKIPPED (pre-existing)  | DS-PS1-B | DS-PS1-B.pdf | 803342 bytes
+SKIPPED (pre-existing)  | DS-PS1-R | DS-PS1-R.pdf | 804131 bytes
+SKIPPED (pre-existing)  | DS-PS1-I | DS-PS1-I.pdf | 602365 bytes
+SKIPPED (pre-existing)  | DS-PS1-E | DS-PS1-E.pdf | 456148 bytes
+NOT FOUND               | DS-PGM-WB | DS-PGM-WB.pdf | No PDF available online
+NOT FOUND               | DS-PDMR-EG2-WB | DS-PDMR-EG2-WB.pdf | No PDF available online
+NOT FOUND               | DS-PDMR-EG2B-WB | DS-PDMR-EG2B-WB.pdf | No PDF available online
+SKIPPED (pre-existing)  | DS-PDSMK-EG2 | DS-PDSMK-EG2.pdf | 749428 bytes
+SKIPPED (pre-existing)  | DS-PDMC-G2-WB | DS-PDMC-G2-WB.pdf | 817777 bytes
+SKIPPED (pre-existing)  | DS-PDMCS-EG2-WB | DS-PDMCS-EG2-WB.pdf | 802341 bytes
+
+======================================================================
+SUMMARY:
+  Pre-existing (skipped):    12
+  Downloaded this session:   2
+  Not found online:          11
+  Total targets:             25
+
+NOT FOUND models - no datasheet PDF located anywhere online:
+  - DS-PDCO-1A-WB
+  - DS-PDCO-1A-WB/G
+  - DS-PDCO-1G-WE
+  - DS-PDCO-1G-WE/G
+  - DS-PDCO-1G-WB
+  - DS-PDCO-1G-WB/G
+  - DS-PDWL-G-WB
+  - DS-PDWL-G-WE
+  - DS-PGM-WB
+  - DS-PDMR-EG2-WB
+  - DS-PDMR-EG2B-WB
+
+Sources used for downloads:
+  DS-PDWL-E-WB: ftp3.syscom.mx (Syscom Mexico distributor) - verified %PDF header, 782819 bytes
+  DS-PDWL-E-WE: hikvision.com/content/dam M000039138 - verified %PDF header, 460031 bytes
+
+Note on NOT FOUND models:
+  DS-PDCO-1A-WB, DS-PDCO-1A-WB/G, DS-PDCO-1G-WE, DS-PDCO-1G-WE/G,
+  DS-PDCO-1G-WB, DS-PDCO-1G-WB/G: No results on hikvision.com or any distributor.
+  Known CO detectors use -E-WB/-E-WE suffix, not -1A-/-1G- designations.
+  DS-PDWL-G-WB, DS-PDWL-G-WE: Not listed on hikvision.com. Known PDWL models
+  use -E-WB/-E-WE suffix. G-variant may be unreleased or region-specific.
+  DS-PGM-WB: No hikvision.com product page found. PGM may denote programmable
+  output on other modules (e.g. DS-PM1-I1-WB), not a standalone SKU.
+  DS-PDMR-EG2-WB, DS-PDMR-EG2B-WB: Not indexed on hikvision.com or distributors.
+  Closest EG2 magnet detector line uses -PDMC-/-PDMCS-/-PDMCK- prefixes.

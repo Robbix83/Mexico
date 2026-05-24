@@ -1,0 +1,29 @@
+Hikvision Batch 7 Download Results
+============================================================
+[MISSING] no PDF found for DS-1604ZJ-box-pole
+[SKIPPED] already exists: DS-1604ZJ-P.pdf
+[SKIPPED] already exists: DS-1604ZJ-Pole.pdf
+[SKIPPED] already exists: DS-PS1-I-WB-Red.pdf
+[SKIPPED] already exists: DS-PS1-E-WB-red.pdf
+[SKIPPED] already exists: DS-PDMCS-EG2-WB.pdf
+[MISSING] no PDF found for DS-PDMC-G2-WB
+[MISSING] no PDF found for DS-PDMR-EG2-WB
+[MISSING] no PDF found for DS-PDMR-EG2B-WB
+[MISSING] no PDF found for DS-PGM-WB
+[MISSING] no PDF found for DS-PDPC15P-EG2
+[MISSING] no PDF found for DS-PDPT15P-EG2
+[MISSING] no PDF found for DS-PDOT15P-EG2
+[MISSING] no PDF found for DS-PDIR15P-EG2
+[MISSING] no PDF found for DS-PDIR15P-LG2
+[MISSING] no PDF found for DS-PDSMK-EG2
+[MISSING] no PDF found for DS-PDCO-1A-WE
+[MISSING] no PDF found for DS-PDCO-1A-WE/G
+[MISSING] no PDF found for DS-PDCO-1A-WB
+[MISSING] no PDF found for DS-PDCO-1A-WB/G
+[MISSING] no PDF found for DS-PDCO-1G-WE
+[MISSING] no PDF found for DS-PDCO-1G-WE/G
+[MISSING] no PDF found for DS-PDCO-1G-WB
+[MISSING] no PDF found for DS-PDCO-1G-WB/G
+[MISSING] no PDF found for DS-PDWL-E-WB
+============================================================
+Summary: 0 downloaded, 5 skipped, 20 missing

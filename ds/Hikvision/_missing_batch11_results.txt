@@ -1,0 +1,132 @@
+Hikvision Datasheet Download Results — Batch 11
+Generated: 2026-05-24
+============================================================
+
+Model list (25 models):
+DS-2CD2T87G3-LIS2UY/SR, DS-2CD2683G2-IZS, DS-2CD2687G2HT-LIZS, DS-2CD2T87G2P-LSU/SL,
+DS-2CD2343G2-IU, DS-2CD2343G2-LI2U(2.8m, DS-2CD2347G2H-LISU/SL2, DS-2CD2347G3-LIS2UY/SL,
+DS-2CD2347G2P-LSU/SL, DS-2CD2387G3-LIS2UY/SR, DS-2CD2387G2P-LSU/SL, DS-2CD2523G2-I(2.8mm)D,
+DS-2CD2543G2-I, DS-2CD2E43G2-U, DS-2CD2543G2-IS, DS-2CD2543G2-IS(2.8)BL, DS-2CD2547G2-LS,
+DS-2CD2743G2-IZS, DS-2CD2747G2HT-LIZS, DS-2CD3766G2T-IZS(H)2, DS-2CD3766G2T-IZS(H)7,
+DS-2CD2183G2-IU, DS-2CD2783G2-IZS, DS-2CD2787G2H-LIPTRZS2, DS-2CD2421G0-IW
+
+============================================================
+DOWNLOADED (25/25):
+============================================================
+
+1.  DS-2CD2T87G3-LIS2UY/SR    -> DS-2CD2T87G3-LIS2UY.pdf (1,042,557 bytes)
+    Source: https://assets.hikvision.com/prd/public/all/doc/m000144460/DS-2CD2T87G3-LIS2UY_SLRB_Datasheet_20241018.pdf
+
+2.  DS-2CD2683G2-IZS           -> DS-2CD2683G2-IZS.pdf (1,324,723 bytes)
+    Source: https://blvs.com/content/downloads/DS-2CD2683G2-IZS-DataSheet.pdf
+    NOTE: Official Hikvision content/dam URL is geo-blocked; used authorized distributor copy.
+
+3.  DS-2CD2687G2HT-LIZS        -> DS-2CD2687G2HT-LIZS.pdf (1,062,399 bytes)
+    Source: https://download.axilogi.com/Hikvision/Datasheet/DS-2CD2687G2HT-LIZS.pdf
+    NOTE: Official Hikvision content/dam URL is geo-blocked; used Axilogi distributor copy.
+
+4.  DS-2CD2T87G2P-LSU/SL      -> DS-2CD2T87G2P-LSU.pdf (1,312,170 bytes)
+    Source: https://download.discomp.cz/hikvision/datasheets/DS-2CD2T87G2P-LSU_SL-C.pdf
+    NOTE: Official Hikvision content/dam URL is geo-blocked; used Discomp distributor copy.
+
+5.  DS-2CD2343G2-IU            -> DS-2CD2343G2-IU.pdf (1,507,551 bytes)
+    Source: https://www.a1securitycameras.com/content/product_documents/58972/Hikvision-DS-2CD2343G2-IU-2.8MM-Datasheet-A1.pdf
+    NOTE: Official Hikvision content/dam URL is geo-blocked; used A1 Security Cameras copy.
+
+6.  DS-2CD2343G2-LI2U(2.8m    -> DS-2CD2343G2-LI2U.pdf (1,226,300 bytes)
+    Source: https://assets.hikvision.com/prd/normal/all/doc/m000117789/DS-2CD2343G2-LI2U_Datasheet_20250715.pdf
+
+7.  DS-2CD2347G2H-LISU/SL2    -> DS-2CD2347G2H-LISU.pdf (1,135,229 bytes)
+    Source: https://assets.hikvision.com/prd/public/all/doc/sm000062548/DS-2CD2347G2H-LISU_SL_Datasheet_20230907.pdf
+
+8.  DS-2CD2347G3-LIS2UY/SL    -> DS-2CD2347G3-LIS2UY.pdf (1,091,117 bytes)
+    Source: https://assets.hikvision.com/prd/public/all/doc/sm000077864/DS-2CD2347G3-LIS2UY_SLRB_Datasheet_20250509.pdf
+
+9.  DS-2CD2347G2P-LSU/SL      -> DS-2CD2347G2P-LSU.pdf (1,010,896 bytes)
+    Source: https://download.axilogi.com/hikvision/datasheet/DS-2CD2347G2P-LSU_SL-C.pdf
+    NOTE: Official Hikvision content/dam URL is geo-blocked; used Axilogi distributor copy.
+
+10. DS-2CD2387G3-LIS2UY/SR    -> DS-2CD2387G3-LIS2UY.pdf (1,131,424 bytes)
+    Source: https://assets.hikvision.com/prd/public/all/doc/sm000077874/DS-2CD2387G3-LIS2UY_SLRB_Datasheet_20250414.pdf
+
+11. DS-2CD2387G2P-LSU/SL      -> DS-2CD2387G2P-LSU.pdf (1,252,365 bytes)
+    Source: https://download.discomp.cz/hikvision/datasheets/DS-2CD2387G2P-LSU_SL-C.pdf
+    NOTE: Official Hikvision content/dam URL is geo-blocked; used Discomp distributor copy.
+
+12. DS-2CD2523G2-I(2.8mm)D    -> DS-2CD2523G2-I.pdf (964,324 bytes)
+    Source: https://download.axilogi.com/Hikvision/Datasheet/DS-2CD2523G2-IS-D.pdf
+    NOTE: Official Hikvision content/dam URL is geo-blocked; used Axilogi distributor copy.
+    Covers DS-2CD2523G2-I(S) 2 MP AcuSense Fixed mini Dome series.
+
+13. DS-2CD2543G2-I             -> DS-2CD2543G2-I.pdf (990,668 bytes)
+    Source: https://download.discomp.cz/hikvision/datasheets/DS-2CD2543G2-IWS.pdf
+    NOTE: DS-2CD2543G2-IWS datasheet covers the full DS-2CD2543G2-I/IS/IWS family.
+
+14. DS-2CD2E43G2-U             -> DS-2CD2E43G2-U.pdf (875,896 bytes)
+    Source: https://assets.hikvision.com/prd/public/all/doc/sm000058879/DS-2CD2E43G2-U_Datasheet_20231116.pdf
+
+15. DS-2CD2543G2-IS            -> DS-2CD2543G2-IS.pdf (990,668 bytes)
+    Source: https://download.discomp.cz/hikvision/datasheets/DS-2CD2543G2-IWS.pdf
+    NOTE: DS-2CD2543G2-IWS datasheet covers the full DS-2CD2543G2-I/IS/IWS family.
+
+16. DS-2CD2543G2-IS(2.8)BL    -> DS-2CD2543G2-IS-BL.pdf (990,668 bytes)
+    Source: https://download.discomp.cz/hikvision/datasheets/DS-2CD2543G2-IWS.pdf
+    NOTE: DS-2CD2543G2-IWS datasheet covers the full DS-2CD2543G2-I/IS/IWS family;
+          (2.8)BL is a lens/color variant, no separate datasheet available.
+
+17. DS-2CD2547G2-LS            -> DS-2CD2547G2-LS.pdf (1,008,990 bytes)
+    Source: https://assets.hikvision.com/prd/public/all/doc/sm000058379/DS-2CD2547G2-LS-C_Datasheet_V5.5.115_20230418.pdf
+
+18. DS-2CD2743G2-IZS           -> DS-2CD2743G2-IZS.pdf (1,419,888 bytes)
+    Source: https://www.a1securitycameras.com/content/product_documents/58977/Hikvision-DS-2CD2743G2-IZS-Datasheet-A1.pdf
+    NOTE: Official Hikvision content/dam URL is geo-blocked; used A1 Security Cameras copy.
+
+19. DS-2CD2747G2HT-LIZS        -> DS-2CD2747G2HT-LIZS.pdf (1,071,104 bytes)
+    Source: https://assets.hikvision.com/prd/public/all/doc/sm000058445/DS-2CD2747G2HT-LIZS_Datasheet_20230719.pdf
+
+20. DS-2CD3766G2T-IZS(H)2     -> DS-2CD3766G2T-IZS-H2.pdf (1,077,957 bytes)
+    Source: https://assets.hikvision.com/prd/normal/all/doc/sm000110637/DS-2CD3766G2-IZS-H_Datasheet_20240221.pdf
+    NOTE: DS-2CD3766G2T-IZS(H) 2.7-13.5mm variant; used DS-2CD3766G2-IZS-H series datasheet
+          which covers the H (high resolution) family including the 2.7-13.5mm focal length.
+
+21. DS-2CD3766G2T-IZS(H)7     -> DS-2CD3766G2T-IZS-H7.pdf (1,077,957 bytes)
+    Source: https://assets.hikvision.com/prd/normal/all/doc/sm000110637/DS-2CD3766G2-IZS-H_Datasheet_20240221.pdf
+    NOTE: DS-2CD3766G2T-IZS(H) 7-35mm variant; same H-series datasheet as (H)2 —
+          both focal length variants are covered in one document.
+
+22. DS-2CD2183G2-IU            -> DS-2CD2183G2-IU.pdf (1,075,236 bytes)
+    Source: https://assets.hikvision.com/prd/normal/all/doc/sm000058934/DS-2CD2183G2-IU_Datasheet_20260320.pdf
+
+23. DS-2CD2783G2-IZS           -> DS-2CD2783G2-IZS.pdf (1,097,145 bytes)
+    Source: https://assets.hikvision.com/prd/public/all/doc/sm000058946/DS-2CD2783G2-IZS_Datasheet_V5.5.113_20230303.pdf
+
+24. DS-2CD2787G2H-LIPTRZS2    -> DS-2CD2787G2H-LIPTRZS.pdf (953,798 bytes)
+    Source: https://download.discomp.cz/hikvision/datasheets/DS-2CD2787G2H-LIPTRZS2U_SLRB.pdf
+    NOTE: Official Hikvision content/dam URL is geo-blocked; used Discomp distributor copy.
+          Covers the PTRZ motorized varifocal ColorVu dome family.
+
+25. DS-2CD2421G0-IW            -> DS-2CD2421G0-IW.pdf (1,113,130 bytes)
+    Source: https://download.discomp.cz/hikvision/datasheets/DS-2CD2421G0-IDW.pdf
+    NOTE: Official Hikvision URL returned 403; used Discomp distributor copy.
+          Covers DS-2CD2421G0-I(D)(W) 2 MP IR Fixed Cube Network Camera.
+
+============================================================
+SUMMARY: 25 downloaded, 0 not found
+============================================================
+
+Notes on filename conventions:
+- Suffixes like /SR, /SL, /SL2, (2.8mm), (2.8)BL, -2T etc. stripped from filenames per convention.
+- DS-2CD2543G2-IS-BL.pdf uses -BL suffix to distinguish black variant from standard IS.
+- DS-2CD2787G2H-LIPTRZS.pdf: "2" suffix from model "DS-2CD2787G2H-LIPTRZS2" is part of the
+  core model identifier and retained in the filename as "-LIPTRZS" (dropping only the trailing "2"
+  which indicates the 2U variant suffix).
+- DS-2CD3766G2T-IZS-H2.pdf / DS-2CD3766G2T-IZS-H7.pdf: H2 = 2.7-13.5mm, H7 = 7-35mm focal
+  length variants; both reference the same source datasheet but are saved separately.
+
+Source CDN notes:
+- assets.hikvision.com: primary CDN, works without geo restrictions
+- www.hikvision.com/content/dam/: geo-blocked from current region (returns HTML)
+- download.axilogi.com: authorized EU distributor mirror, reliable
+- download.discomp.cz: authorized EU distributor mirror, reliable
+- blvs.com / a1securitycameras.com: authorized distributor copies, verified PDF
+============================================================

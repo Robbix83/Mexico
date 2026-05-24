@@ -1,0 +1,85 @@
+Hikvision Datasheet Download Results - Batch 12b
+============================================================
+
+SKIPPED (already existed): DS-2CD2D25G1-D/NF
+  -> DS-2CD2D25G1-DNF.pdf (924,350 bytes, valid PDF: True)
+
+SKIPPED (already existed): DS-2CD2955G0-ISU
+  -> DS-2CD2955G0-ISU.pdf (1,206,198 bytes, valid PDF: True)
+
+SKIPPED (already existed): DS-2CD3T23G1-I/4G
+  -> DS-2CD3T23G1-I4G.pdf (905,287 bytes, valid PDF: True)
+
+SKIPPED (already existed): DS-2CD3646G2/P-IZS
+  -> DS-2CD3646G2P-IZS.pdf (923,143 bytes, valid PDF: True)
+
+SKIPPED (already existed): DS-2CD3666G2T-IZS-2713
+  -> DS-2CD3666G2T-IZS-2.7-13.5.pdf (1,136,658 bytes, valid PDF: True)
+
+SKIPPED (already existed): DS-2CD3666G2T-IZS-735
+  -> DS-2CD3666G2T-IZS-7-35.pdf (945,683 bytes, valid PDF: True)
+
+SKIPPED (already existed): DS-2XC3646G0H-LIZSU
+  -> DS-2XC3646G0H-LIZSUPA.pdf (981,077 bytes, valid PDF: True)
+
+SKIPPED (already existed): DS-2CD3843G0-AP
+  -> DS-2CD3843G0-AP.pdf (1,363,455 bytes, valid PDF: True)
+
+SKIPPED (already existed): DS-2XC6047G0-LS
+  -> DS-2XC6047G0-LS.pdf (973,749 bytes, valid PDF: True)
+
+SKIPPED (already existed): DS-2CD6825G0-IVS
+  -> DS-2CD6825G0C-IVS.pdf (985,057 bytes, valid PDF: True)
+
+SKIPPED (already existed): DS-2CD6425G1-20
+  -> DS-2CD6425G1-202.82m.pdf (825,563 bytes, valid PDF: True)
+
+SKIPPED (already existed): DS-2CD6445G1-30
+  -> DS-2CD6445G1-302.8M.pdf (1,037,609 bytes, valid PDF: True)
+
+SKIPPED (already existed): DS-2CD6365G1-IVS
+  -> DS-2CD6365G1-IVS.pdf (1,011,242 bytes, valid PDF: True)
+
+SKIPPED (already existed): DS-2CD63C5G1-IVS
+  -> DS-2CD63C5G1-IVS.pdf (393,697 bytes, valid PDF: True)
+
+SKIPPED (already existed): iDS-2CD7A46G2-IZHSY
+  -> iDS-2CD7A46G2-IZHSY2.8-12.pdf (893,953 bytes, valid PDF: True)
+
+SKIPPED (already existed): iDS-2CD7A45G0-IZS
+  -> iDS-2CD7A45G0-IZS.pdf (1,164,991 bytes, valid PDF: True)
+
+SKIPPED (already existed): iDS-2CD7A46G0-IZHS
+  -> iDS-2CD7A46G0-IZHS8-32.pdf (1,249,441 bytes, valid PDF: True)
+
+SKIPPED (already existed): iDS-2CD7A86G2-IZHSY
+  -> iDS-2CD7A86G2-IZHSY2.8-12.pdf (1,037,165 bytes, valid PDF: True)
+
+SKIPPED (already existed): iDS-2CD7A46G2V-XZHSY
+  -> iDS-2CD7A86G2V-XZHSY2.8-12.pdf (863,797 bytes, valid PDF: True)
+
+SKIPPED (already existed): iDS-2CD7146G0-IZHS
+  -> iDS-2CD7146G0-IZHSY.pdf (1,099,242 bytes, valid PDF: True)
+
+DOWNLOADED: iDS-2CD7586G0-IZHS
+  -> iDS-2CD7586G0-IZHS.pdf (1,607,111 bytes, valid PDF: True)
+  Source: https://www.hikvision.com/content/dam/hikvision/ca-en/product-documents/iDS-2CD7586G0-IZHSYR_Datasheet_V5.5.121.pdf
+
+SKIPPED (already existed): DS-2CD2047G3-LI2UY
+  -> DS-2CD2047G3-LI2UY_S_L__RB_.pdf (784,898 bytes, valid PDF: True)
+
+SKIPPED (already existed): DS-2CD2087G3-LI2UY
+  -> DS-2CD2087G3-LI2UY_SL.pdf (827,342 bytes, valid PDF: True)
+
+SKIPPED (already existed): DS-2CD2T47G2P-LSU
+  -> DS-2CD2T47G2P-LSU_SL.pdf (963,709 bytes, valid PDF: True)
+
+SKIPPED (already existed): DS-2CD2T47G3-LIS2UY
+  -> DS-2CD2T47G3-LIS2UY_SL.pdf (866,315 bytes, valid PDF: True)
+
+
+Summary:
+  Total models: 25
+  Already existed (skipped): 24
+  Downloaded: 1 (iDS-2CD7586G0-IZHS)
+  Failed: 0

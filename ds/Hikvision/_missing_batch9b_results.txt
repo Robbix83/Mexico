@@ -1,0 +1,76 @@
+Hikvision Datasheet Download Results - Batch 9b
+Generated: 2026-05-24
+================================================
+
+DOWNLOADED (1 new this batch):
+-------------------------------
+DS-PM2-S.pdf   [688 KB, valid PDF]
+  Source: https://assets.hikvision.com/prd/public/all/doc/m000057366/DS-PM2-SEU_datasheet.doc.pdf
+  Note: EU variant (DS-PM2-S(EU)) — 3G/4G communication module for AX Hybrid Pro
+
+ALREADY EXISTED (skipped — 16 models):
+---------------------------------------
+DS-PWA96-M-WB.pdf   [580 KB]
+DS-PK1-E-WB.pdf     [792 KB]
+DS-PR1-WB.pdf       [763 KB]
+DS-PKF1-WB.pdf      [736 KB]
+DS-PM2-G.pdf        [669 KB]
+DS-PM2-P.pdf        [666 KB]
+DS-PDP18-EG2.pdf    [749 KB]
+DS-PDD15AM-EG2.pdf  [806 KB]
+DS-PD1-MC-RS.pdf    [799 KB]
+DS-PD1-EB-PF.pdf    [327 KB]
+DS-PD1-EB.pdf       [318 KB]
+DS-QAZ1325G1T-EY.pdf [605 KB]
+DS-QAZ1307G1T-E.pdf  [551 KB]
+DS-QAZ1203G1-BE.pdf  [546 KB]
+DS-QAZ0203G1-S.pdf   [515 KB]
+DS-QAZ1206G1-BE.pdf  [540 KB]
+
+NOT FOUND / NO PUBLIC DATASHEET (8 models):
+--------------------------------------------
+DS-PWA64-M-WB
+  - No datasheet found on hikvision.com or assets.hikvision.com
+  - Model does not appear in Hikvision's public product catalog
+  - The 64-zone AX PRO panel only has L (DS-PWA64-L-WB) and Kit variants publicly;
+    the M designation is used on the 96-zone panel (DS-PWA96-M-WB, already downloaded)
+  - Possible that this model number does not exist or is region-locked
+
+DS-PD2-D2-WE
+  - No datasheet found anywhere online
+  - Model not listed on hikvision.com product pages or assets server
+  - May be discontinued, pre-release, or region-specific
+
+DS-PD2-G2-WE
+  - No datasheet found anywhere online
+  - Same situation as DS-PD2-D2-WE
+
+DS-PD2-D2-WB
+  - No datasheet found anywhere online
+  - Model not listed on hikvision.com or assets.hikvision.com
+  - May be discontinued, pre-release, or region-specific
+
+DS-PD2-G2-WB
+  - No datasheet found anywhere online
+  - Same situation as DS-PD2-D2-WB
+
+DS-PD-WH1
+  - No datasheet found anywhere online
+  - Model does not appear in any Hikvision product catalog or distributor listing
+
+DS-PD-WH2
+  - No datasheet found anywhere online
+  - Same situation as DS-PD-WH1
+
+DS-QAZ0212G1-S
+  - No datasheet found anywhere online
+  - Model not listed on hikvision.com audio products pages
+  - Adjacent models (DS-QAZ0203G1-S 3W, DS-QAZ0606G1-S 6W, DS-QAZ0610G1-S 10W) exist
+    but this 12W variant has no public documentation
+
+SUMMARY:
+--------
+Total requested:  25
+Already existed:  16 (skipped)
+Downloaded new:    1 (DS-PM2-S)
+Not found:         8

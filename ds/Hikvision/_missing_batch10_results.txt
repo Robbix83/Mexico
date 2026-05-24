@@ -1,0 +1,33 @@
+Hikvision Batch 10 Download Results
+Generated: 2026-05-24 16:07
+============================================================
+
+FOUND   | DS-PD1-MC-RS -> DS-PD1-MC-RS.pdf [819,158 bytes] | https://www.hikvision.com/content/dam/hikvision/products/S000000001/S000000601/S000000937/S000000934/OFR000943/M000004980/Data_Sheet/DS-PD1-MC-RS.pdf
+FOUND   | DS-PD1-EB-PF -> DS-PD1-EB-PF.pdf [335,273 bytes] | https://www.hikvision.com/content/dam/hikvision/products/S000000001/S000000601/S000000937/S000000934/OFR000944/M000004982/Data_Sheet/Treadle-Panic-Button-DS-PD1-EB-PF.pdf
+FOUND   | DS-PD1-EB -> DS-PD1-EB.pdf [325,977 bytes] | https://www.hikvision.com/content/dam/hikvision/products/S000000001/S000000601/S000000933/S000000934/OFR000944/M000004981/Data_Sheet/Panic-Button-DS-PD1-EB.pdf
+FOUND   | DS-PDBG8-EG2 -> DS-PDBG8-EG2.pdf [1,282,680 bytes] | https://www.hikvision.com/content/dam/hikvision/products/S000000001/S000000601/S000000937/S000000934/OFR001801/M000044201/Data_Sheet/DS-PDBG8-EG2_Datasheet_V1.0_202201.pdf
+FOUND   | DS-PDC5NC-EG2 -> DS-PDC5NC-EG2.pdf [1,172,035 bytes] | https://www.hikvision.com/content/dam/hikvision/products/S000000001/S000000601/S000000937/S000000934/OFR000955/M000055916/Data_Sheet/DS-PDC5NC-EG2_Datasheet_V1.0_202110.pdf
+FOUND   | DS-2DY5225IX-AE(T5) -> DS-2DY5225IX-AE_T5_.pdf [1,055,159 bytes] | https://www.hikvision.com/content/dam/hikvision/products/S000000001/S000000002/S000000011/S000000013/OFR000059/M000051465/Data_Sheet/Datasheet-of-DS-2DY5225IX-DMT5_V5.7.1_20220704.pdf
+FOUND   | DS-2DY7236IX-A(T5) -> DS-2DY7236IX-A_T5_.pdf [982,308 bytes] | https://www.hikvision.com/content/dam/hikvision/products/S000000001/S000000002/S000000011/S000000013/OFR000059/M000051463/Data_Sheet/Datasheet-of-DS-2DY7236IX-AT5_V5.7.1_20220704.pdf
+FOUND   | DS-2DY9240IX-A(T5) -> DS-2DY9240IX-A_T5_.pdf [716,201 bytes] | https://www.hikvision.com/content/dam/hikvision/es-la/fichas-tecnicas/Datasheet-of-DS-2DY9240IX-AT5_V5.7.1_20220729.pdf
+FOUND   | DS-2DY9250IAX-A(T5) -> DS-2DY9250IAX-A_T5_.pdf [930,657 bytes] | https://www.hikvision.com/content/dam/hikvision/products/S000000001/S000000002/S000000011/S000000013/OFR000059/M000045318/Data_Sheet/Datasheet-of-DS-2DY9250IAX-AT5_V5.7.0_20220729.pdf
+FOUND   | DS-2DYH2A0LXG-LW/12 -> DS-2DYH2A0LXG-LW_12.pdf [963,923 bytes] | https://assets.hikvision.com/prd/public/all/doc/m000043795/Datasheet-of-DS-2DYH2A0IXS-DT2_V5.5.45_20220704.pdf
+FOUND   | DS-2CD2047G3-LI2UY/S(L)(RB) -> DS-2CD2047G3-LI2UY_S_L__RB_.pdf [784,898 bytes] | https://assets.hikvision.com/prd/public/all/doc/sm000077839/DS-2CD2047G3-LI2UY_SLRB_Datasheet_20250414.pdf
+FOUND   | DS-2CD2087G3-LI2UY/SL -> DS-2CD2087G3-LI2UY_SL.pdf [827,342 bytes] | https://assets.hikvision.com/prd/normal/all/doc/sm000077852/DS-2CD2087G3-LI2UY_Datasheet_20260105.pdf
+FOUND   | DS-2CD2T47G2P-LSU/SL -> DS-2CD2T47G2P-LSU_SL.pdf [963,709 bytes] | https://www.hikvision.com/content/dam/hikvision/pl/firmware/DS-2CD2T47G2P-LSU_SL-C_Datasheet_20240731_PL.pdf
+FOUND   | DS-2CD2T43G2-2I -> DS-2CD2T43G2-2I.pdf [951,235 bytes] | https://assets.hikvision.com/prd/public/all/doc/sm000058875/DS-2CD2T43G2-2I_4I_Datasheet_V5.5.113_20230303.pdf
+FOUND   | DS-2CD2T43G2-2LI2U(2.8 -> DS-2CD2T43G2-2LI2U_2.8.pdf [786,074 bytes] | https://assets.hikvision.com/prd/public/all/doc/sm000064851/DS-2CD2T43G2-2LI2U_4LI2U_Datasheet_20250208.pdf
+FOUND   | DS-2CD2T47G2H-LISU/SL2 -> DS-2CD2T47G2H-LISU_SL2.pdf [1,001,530 bytes] | https://www.hikvision.com/content/dam/hikvision/en/support/regional-materials/pakistan-/DS-2CD2T47G2H-LISU_SL_Datasheet_20231207.pdf
+FOUND   | DS-2CD2T47G3-LIS2UY/SL -> DS-2CD2T47G3-LIS2UY_SL.pdf [866,315 bytes] | https://assets.hikvision.com/prd/public/all/doc/sm000077915/DS-2CD2T47G3-LIS2UY_SLRB_Datasheet_20250411.pdf
+FOUND   | DS-2CD2643G2-IZS -> DS-2CD2643G2-IZS.pdf [1,359,845 bytes] | https://www.hikvision.com/content/dam/hikvision/pt-br/data-sheets/DS-2CD2643G2-IZS_Datasheet.pdf
+FOUND   | DS-2CD2646G2-IZS -> DS-2CD2646G2-IZS.pdf [1,067,310 bytes] | https://assets.hikvision.com/prd/public/all/doc/sm000059181/DS-2CD2646G2-IZS-C_Datasheet_20240819.pdf
+FOUND   | DS-2CD2646G2-IZSU/SL -> DS-2CD2646G2-IZSU_SL.pdf [1,041,944 bytes] | https://www.hikvision.com/content/dam/hikvision/mena/support/sira/admcc-2023-oliver/DS-2CD2646G2-IZSU_SLC_Datasheet_20231116.pdf
+FOUND   | DS-2CD2647G2HT-LIZS -> DS-2CD2647G2HT-LIZS.pdf [1,056,305 bytes] | https://assets.hikvision.com/prd/public/all/doc/sm000058448/DS-2CD2647G2HT-LIZS_Datasheet_20230720.pdf
+FOUND   | DS-2CD2T83G2-2I -> DS-2CD2T83G2-2I.pdf [942,295 bytes] | https://www.hikvision.com/content/dam/hikvision/products/S000000001/S000000002/S000000003/S000000025/OFR007888/M000037911/SM000058840/Data_Sheet/DS-2CD2T83G2-2I_4I_Datasheet_V5.5.113_20230303.pdf
+FOUND   | DS-2CD2T83G2-2LI2U(2.8 -> DS-2CD2T83G2-2LI2U_2.8.pdf [815,489 bytes] | https://assets.hikvision.com/prd/public/all/doc/sm000064857/DS-2CD2T83G2-2LI2U_4LI2U_Datasheet_20250715.pdf
+FOUND   | DS-2CD2T86G2-2I -> DS-2CD2T86G2-2I.pdf [1,031,908 bytes] | https://www.hikvision.com/content/dam/hikvision/products/S000000001/S000000002/S000000003/S000000025/OFR000041/M000008196/Data_Sheet/DS-2CD2T86G2-2I_4I-C_Datasheet_20240806.pdf
+FOUND   | DS-2CD2T87G2H-LISU/SL2 -> DS-2CD2T87G2H-LISU_SL2.pdf [904,725 bytes] | https://www.hikvision.com/content/dam/hikvision/products/S000000001/S000000002/S000000003/S000000025/OFR007893/M000078499/SM000058449/Data_Sheet/DS-2CD2T87G2H-LISU_SL_Datasheet_20230907.pdf
+
+============================================================
+Summary: 25 found, 0 skipped, 0 not found
+============================================================

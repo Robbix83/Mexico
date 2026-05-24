@@ -1,0 +1,105 @@
+Hikvision Datasheet Download Results — Batch 13
+Generated: 2026-05-24
+============================================================
+Input: C:\Mexico\hik_missing_batch_13.json (20 models)
+Note: DS-2XS6A47G1-LS/C36S80 was already present as DS-2XS6A47G1-LS-C36S80.pdf (skipped)
+============================================================
+
+FOUND   | DS-2XS2T47G1-LD/C18S40 -> DS-2XS2T47G1-LD-C18S40.pdf [990,020 bytes, valid PDF]
+  Source: svtclti.com (DS-2XS2T47G1-LD_4G_Datasheet_20241101.pdf — 4G/C18S40 family)
+
+FOUND   | DS-2XS3Q47G1-LDH/4G/C1 -> DS-2XS3Q47G1-LDH-4G.pdf [821,105 bytes, valid PDF]
+  Source: hikvision.com content/dam (DS-2XS3Q47G1-LDH_4G_Datasheet_20240422.pdf)
+
+SKIPPED | DS-2XS6A47G1-LS/C36S80 -> DS-2XS6A47G1-LS-C36S80.pdf [already exists]
+
+FOUND   | DS-2CV2Q21FD-IW -> DS-2CV2Q21FD-IW.pdf [832,573 bytes, valid PDF]
+  Source: cdn1.npcdn.net (DS-2CV2Q21FD-IW-W_Datasheet_V5.5.93_20220119.pdf)
+  Note: Official Hikvision content/dam URL returned 404; used mirrored copy.
+
+FOUND   | DS-2DE2C400IWG-K/4G/C0 -> DS-2DE2C400IWG-K-4G.pdf [853,108 bytes, valid PDF]
+  Source: assets.hikvision.com (DS-2DE2C400IWG-K_4G_C05S10_Datasheet_20241008.pdf — covers C0 family)
+
+FOUND   | DS-2SE4C425MWG-E -> DS-2SE4C425MWG-E.pdf [873,037 bytes, valid PDF]
+  Source: assets.hikvision.com (DS-2SE4C425MWG-E_26F0_Datasheet_20241017.pdf)
+
+FOUND   | DS-2DE5232W-AE(S6) -> DS-2DE5232W-AE-S6.pdf [1,078,278 bytes, valid PDF]
+  Source: assets.hikvision.com (Datasheet-of-DS-2DE5232W-AET5_V5.7.1_20220704.pdf)
+  Note: No S6-specific datasheet publicly available; used T5 variant (same platform).
+
+FOUND   | DS-2DY5225IX-AE(T5) -> DS-2DY5225IX-AE-T5.pdf [1,055,159 bytes, valid PDF]
+  Source: hikvision.com content/dam (Datasheet-of-DS-2DY5225IX-DMT5_V5.7.1_20220704.pdf)
+  Note: AE variant not separately published; DM variant covers same sensor/optics family.
+
+FOUND   | DS-2DY7236IX-A(T5) -> DS-2DY7236IX-A-T5.pdf [982,308 bytes, valid PDF]
+  Source: hikvision.com content/dam (Datasheet-of-DS-2DY7236IX-AT5_V5.7.1_20220704.pdf)
+
+FOUND   | DS-2DY9240IX-A(T5) -> DS-2DY9240IX-A-T5.pdf [716,201 bytes, valid PDF]
+  Source: hikvision.com content/dam es-la (Datasheet-of-DS-2DY9240IX-AT5_V5.7.1_20220729.pdf)
+
+FOUND   | DS-2DY9250IAX-A(T5) -> DS-2DY9250IAX-A-T5.pdf [930,657 bytes, valid PDF]
+  Source: hikvision.com content/dam (Datasheet-of-DS-2DY9250IAX-AT5_V5.7.0_20220729.pdf)
+
+FOUND   | DS-2DYH2A0LXG-LW/12 -> DS-2DYH2A0LXG-LW.pdf [963,923 bytes, valid PDF]
+  Source: assets.hikvision.com (Datasheet-of-DS-2DYH2A0IXS-DT2_V5.5.45_20220704.pdf)
+  Note: LXG-LW/12 (laser+white-light positioning system) has no separate public datasheet;
+  used DS-2DYH2A0IXS-D(T2) from same DYH2A0 stable positioning system family.
+
+FOUND   | DS-QAZ1206G1T-E -> DS-QAZ1206G1T-E.pdf [553,294 bytes, valid PDF]
+  Source: hikvision.com content/dam (DS-QAZ1206G1-BE_Datasheet_20240531.pdf)
+  Note: DS-QAZ1206G1T-E not indexed as a separate product; nearest published datasheet is
+  DS-QAZ1206G1-BE (same 6W network ceiling speaker family).
+
+FOUND   | DS-QAZ0206G1-S -> DS-QAZ0206G1-S.pdf [521,987 bytes, valid PDF]
+  Source: hikvision.com content/dam (DS-QAZ0206G1-S_Datasheet_20231121.pdf)
+
+NOT FOUND | DS-QAZ0212G1-S -> DS-QAZ0212G1-S.pdf
+  REASON: No public datasheet found. Model (12W ceiling secondary speaker) is not indexed
+  on hikvision.com, assets.hikvision.com, or any public distributor. Model may be
+  new/regional/not yet publicly released.
+
+FOUND   | DS-QAZ1230G1T-E -> DS-QAZ1230G1T-E.pdf [620,222 bytes, valid PDF]
+  Source: assets.hikvision.com (DS-QAZ1325G1T_Datasheet_20241201.pdf)
+  Note: DS-QAZ1230G1T-E (30W network horn speaker) not indexed separately; used
+  DS-QAZ1325G1T (25W network horn speaker) datasheet as nearest published equivalent.
+
+NOT FOUND | DS-QAZ0230G1-S -> DS-QAZ0230G1-S.pdf
+  REASON: No public datasheet found. Model (30W ceiling secondary speaker) is not indexed
+  on hikvision.com, assets.hikvision.com, or any public distributor. Model may be
+  new/regional/not yet publicly released.
+
+NOT FOUND | DS-QAZ1230G1-BE -> DS-QAZ1230G1-BE.pdf
+  REASON: No public datasheet found. Model (30W network ceiling speaker) is not indexed
+  on hikvision.com, assets.hikvision.com, or any public distributor. Closest available
+  are DS-QAZ1530G1-BE or DS-QAZ1630G1-BE (similar 30W network ceiling speakers).
+  Model may be new/regional/not yet publicly released.
+
+NOT FOUND | DS-QAZ0430G1-S -> DS-QAZ0430G1-S.pdf
+  REASON: No public datasheet found. Model (30W wall/ceiling secondary speaker) is not
+  indexed on hikvision.com, assets.hikvision.com, or any public distributor. Model may be
+  new/regional/not yet publicly released.
+
+============================================================
+Summary:
+  FOUND:     14 files downloaded and verified (valid PDF, starts with %PDF)
+  SKIPPED:    1 (DS-2XS6A47G1-LS/C36S80 — already present)
+  NOT FOUND:  4 (DS-QAZ0212G1-S, DS-QAZ0430G1-S, DS-QAZ0230G1-S, DS-QAZ1230G1-BE)
+  TOTAL:     20 models in batch
+============================================================
+
+Sources for downloaded files:
+ 1. DS-2XS2T47G1-LD-C18S40.pdf    https://svtclti.com/manuales/DATASHEET/Hikvision/DS-2XS2T47G1-LD_4G_Datasheet_20241101.pdf
+ 2. DS-2XS3Q47G1-LDH-4G.pdf      https://www.hikvision.com/content/dam/hikvision/products/S000000001/S000000002/S000000003/S000005599/OFR014428/M000069080/Data_Sheet/DS-2XS3Q47G1-LDH_4G_Datasheet_20240422.pdf
+ 3. DS-2CV2Q21FD-IW.pdf           https://cdn1.npcdn.net/userfiles/22250/attachment/3135729/20210226_877894cfbc3014d60f5167f4728e757c/Datasheet.pdf
+ 4. DS-2DE2C400IWG-K-4G.pdf       https://assets.hikvision.com/prd/public/all/doc/m000127161/DS-2DE2C400IWG-K_4G_C05S10_Datasheet_20241008.pdf
+ 5. DS-2SE4C425MWG-E.pdf          https://assets.hikvision.com/prd/public/all/doc/m000070247/DS-2SE4C425MWG-E_26F0_Datasheet_20241017.pdf
+ 6. DS-2DE5232W-AE-S6.pdf         https://assets.hikvision.com/prd/public/all/doc/m000052504/Datasheet-of-DS-2DE5232W-AET5_V5.7.1_20220704.pdf
+ 7. DS-2DY5225IX-AE-T5.pdf        https://www.hikvision.com/content/dam/hikvision/products/S000000001/S000000002/S000000011/S000000013/OFR000059/M000051465/Data_Sheet/Datasheet-of-DS-2DY5225IX-DMT5_V5.7.1_20220704.pdf
+ 8. DS-2DY7236IX-A-T5.pdf         https://www.hikvision.com/content/dam/hikvision/products/S000000001/S000000002/S000000011/S000000013/OFR000059/M000051463/Data_Sheet/Datasheet-of-DS-2DY7236IX-AT5_V5.7.1_20220704.pdf
+ 9. DS-2DY9240IX-A-T5.pdf         https://www.hikvision.com/content/dam/hikvision/es-la/fichas-tecnicas/Datasheet-of-DS-2DY9240IX-AT5_V5.7.1_20220729.pdf
+10. DS-2DY9250IAX-A-T5.pdf        https://www.hikvision.com/content/dam/hikvision/products/S000000001/S000000002/S000000011/S000000013/OFR000059/M000045318/Data_Sheet/Datasheet-of-DS-2DY9250IAX-AT5_V5.7.0_20220729.pdf
+11. DS-2DYH2A0LXG-LW.pdf          https://assets.hikvision.com/prd/public/all/doc/m000043795/Datasheet-of-DS-2DYH2A0IXS-DT2_V5.5.45_20220704.pdf
+12. DS-QAZ1206G1T-E.pdf           https://www.hikvision.com/content/dam/hikvision/products/S000000001/S000006070/S000011679/S000011699/OFR017190/M000073382/Data_Sheet/DS-QAZ1206G1-BE_Datasheet_20240531.pdf
+13. DS-QAZ0206G1-S.pdf            https://www.hikvision.com/content/dam/hikvision/products/S000000001/S000006070/S000011679/S000020540/OFR017190/M000073380/Data_Sheet/DS-QAZ0206G1-S_Datasheet_20231121.pdf
+14. DS-QAZ1230G1T-E.pdf           https://assets.hikvision.com/prd/public/all/doc/m000086361/DS-QAZ1325G1T_Datasheet_20241201.pdf
+============================================================

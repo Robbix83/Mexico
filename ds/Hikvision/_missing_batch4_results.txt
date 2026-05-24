@@ -1,0 +1,40 @@
+﻿Hikvision Missing Batch 4 - Download Results
+Date: 2026-05-24 16:03:59
+Models from: C:\Mexico\hik_missing_batch_4.json
+============================================================
+
+DOWNLOADED (25/25 models — all succeeded):
+  OK  DS-2DT8C442MXG-LWT        -> DS-2DT8C442MXG-LWT.pdf              [662727 bytes] via hikvision.com/content/dam
+  OK  DS-1227ZJ                 -> DS-1227ZJ.pdf                       [393743 bytes] via download.axilogi.com
+  OK  DS-1240ZJ                 -> DS-1240ZJ.pdf                       [305997 bytes] via download.axilogi.com
+  OK  DS-1253ZJ-M               -> DS-1253ZJ-M.pdf                     [320373 bytes] via download.axilogi.com
+  OK  DS-1258ZJ                 -> DS-1258ZJ.pdf                       [277283 bytes] via hikvision.com/content/dam (DS-1258ZJBlack datasheet)
+  OK  DS-1259ZJ                 -> DS-1259ZJ.pdf                       [353032 bytes] via kamery-hikvision.cz
+  OK  DS-1260ZJ                 -> DS-1260ZJ.pdf                       [342929 bytes] via hikvision.com/content/dam
+  OK  DS-1271ZJ-110             -> DS-1271ZJ-110.pdf                   [978101 bytes] via download.axilogi.com
+  OK  DS-1271ZJ-DM25            -> DS-1271ZJ-DM25.pdf                  [324885 bytes] via download.axilogi.com
+  OK  DS-1272ZJ-110             -> DS-1272ZJ-110.pdf                   [511912 bytes] via download.axilogi.com
+  OK  DS-1272ZJ-110B            -> DS-1272ZJ-110B.pdf                  [793189 bytes] via download.axilogi.com
+  OK  DS-1272ZJ-110-TRS         -> DS-1272ZJ-110-TRS.pdf               [522210 bytes] via hikvision.com/content/dam
+  OK  DS-1272ZJ-120             -> DS-1272ZJ-120.pdf                   [1062568 bytes] via download.axilogi.com
+  OK  DS-1273ZJ-130-TRL         -> DS-1273ZJ-130-TRL.pdf               [676969 bytes] via download.axilogi.com
+  OK  DS-1273ZJ-135             -> DS-1273ZJ-135.pdf                   [280703 bytes] via assets.hikvision.com (DS-1273ZJ-135Black datasheet)
+  OK  DS-1273ZJ-135B            -> DS-1273ZJ-135B.pdf                  [280703 bytes] via assets.hikvision.com (DS-1273ZJ-135Black datasheet)
+  OK  DS-1273ZJ-140             -> DS-1273ZJ-140.pdf                   [234749 bytes] via hikvision.com/content/dam
+  OK  DS-1273ZJ-160             -> DS-1273ZJ-160.pdf                   [646117 bytes] via hikvision.com/content/dam (usa)
+  OK  DS-1273ZJ-DM25            -> DS-1273ZJ-DM25.pdf                  [545308 bytes] via hikvision.com/content/dam (fr, DM25M1 datasheet)
+  OK  DS-1273ZJ-DM26-B          -> DS-1273ZJ-DM26-B.pdf                [182125 bytes] via download.axilogi.com (DS-1273ZJ-DM26)
+  OK  DS-1275ZJ                 -> DS-1275ZJ.pdf                       [401035 bytes] via hikvision.com/content/dam
+  OK  DS-1275ZJ/HWB             -> DS-1275ZJ-HWB.pdf                   [401035 bytes] via hikvision.com/content/dam (shared with DS-1275ZJ)
+  OK  DS-1275ZJ-S-SUS           -> DS-1275ZJ-S-SUS.pdf                 [271210 bytes] via hikvision.com/content/dam (pakistan)
+  OK  DS-1275ZJ-SUS             -> DS-1275ZJ-SUS.pdf                   [498003 bytes] via hikvision.com/content/dam (it)
+  OK  DS-1673ZJ-P               -> DS-1673ZJ-P.pdf                     [284456 bytes] via hikvision.com/content/dam (vn)
+
+============================================================
+NOTES:
+  - DS-1273ZJ-135 and DS-1273ZJ-135B use the same source PDF (DS-1273ZJ-135Black datasheet)
+  - DS-1275ZJ/HWB uses the same source PDF as DS-1275ZJ (no dedicated HWB datasheet found)
+  - DS-1273ZJ-DM25 uses DS-1271ZJ-DM25(M1) datasheet as closest available match from Hikvision FR
+  - DS-1258ZJ source is the Black variant datasheet (covers same specs)
+  - DS-1259ZJ sourced from kamery-hikvision.cz (hikvision.com link returned 404)
+

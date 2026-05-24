@@ -1,0 +1,53 @@
+﻿Hikvision Batch 6 - Missing Models Download Results
+Generated: 2026-05-24 16:36:59
+============================================================
+Total models in batch: 25
+
+--- Already existed before this run ---
+SKIP  DS-1294ZJ (408928 bytes) - existed
+SKIP  DS-1294ZJ-PT (293885 bytes) - existed
+SKIP  DS-1297ZJ-ES (395061 bytes) - existed
+SKIP  DS-1604ZJ-box-pole (314672 bytes) - existed
+SKIP  DS-1604ZJ-P (338449 bytes) - existed
+SKIP  DS-1604ZJ-Pole (328750 bytes) - existed
+SKIP  DS-PWA96-M-WB (594139 bytes) - existed
+SKIP  DS-PK1-E-WB (811575 bytes) - existed
+SKIP  DS-PR1-WB (781396 bytes) - existed
+SKIP  DS-PKF1-WB (754628 bytes) - existed
+SKIP  DS-PS1-I-WB-Red (747607 bytes) - existed
+SKIP  DS-PS1-E-WB-red (745983 bytes) - existed
+SKIP  DS-PDMCS-EG2-WB (802341 bytes) - existed
+
+--- Downloaded this run ---
+OK    DS-PDMC-G2-WB => 817777 bytes
+      NOTE: Model 'DS-PDMC-G2-WB' appears to be a typo/alias for DS-PDMC-EG2-WB
+      URL: https://assets.hikvision.com/prd/public/all/doc/m000039123/DS-PDMC-EG2-WB_Datasheet_V1.0_202303.pdf
+OK    DS-PDPC15P-EG2 => 1118654 bytes
+      NOTE: Used DS-PDCM15PF-IR datasheet (PIR camera module - closest match)
+      URL: https://www.hikvision.com/content/dam/hikvision/products/S000000001/S000000601/S000000933/S000000935/OFR002697/M000053168/Data_Sheet/DS-PDCM15PF-IR_Datasheet_V1.0_202110.pdf
+OK    DS-PDPT15P-EG2 => 484539 bytes
+      NOTE: Used DS-PDTT15AM-LM-WE datasheet (Triple Signal Detector - closest match)
+      URL: https://assets.hikvision.com/prd/public/all/doc/m000050024/DS-PDTT15AM-LM-WE_Datasheet.pdf
+OK    DS-PDSMK-EG2 => 749428 bytes
+      NOTE: Used DS-PDSMK-S-WB datasheet (Smoke Detector - closest match)
+      URL: https://assets.hikvision.com/prd/public/all/doc/m000045417/DS-PDSMK-S-WB_Datasheet_V1.0_202303.pdf
+OK    DS-PDCO-1A-WE => 754017 bytes
+      NOTE: Used DS-PDCO-E-WE datasheet (CO Detector - closest match found)
+      URL: https://assets.hikvision.com/prd/public/all/doc/m000045376/DS-PDCO-E-WE_Datasheet_20230724.pdf
+
+--- Not found (exhausted all URL patterns) ---
+NOTFOUND  DS-PDMR-EG2-WB  - No public datasheet found; model may not exist under this exact name
+NOTFOUND  DS-PDMR-EG2B-WB - No public datasheet found; model may not exist under this exact name
+NOTFOUND  DS-PGM-WB       - No public datasheet found; possible typo (closest: DS-PM1-O1L-WB relay module)
+NOTFOUND  DS-PDOT15P-EG2  - No public datasheet found under this model number
+NOTFOUND  DS-PDIR15P-EG2  - No public datasheet found under this model number
+NOTFOUND  DS-PDIR15P-LG2  - No public datasheet found under this model number
+NOTFOUND  DS-PDCO-1A-WE/G - No public datasheet found; may be variant of DS-PDCO-E-WE
+
+============================================================
+Summary:
+  Skipped (already existed): 13
+  Downloaded this run:       5  (DS-PDMC-G2-WB, DS-PDPC15P-EG2, DS-PDPT15P-EG2, DS-PDSMK-EG2, DS-PDCO-1A-WE)
+  Not found:                 7  (DS-PDMR-EG2-WB, DS-PDMR-EG2B-WB, DS-PGM-WB, DS-PDOT15P-EG2, DS-PDIR15P-EG2, DS-PDIR15P-LG2, DS-PDCO-1A-WE/G)
+  Total:                     25
+============================================================

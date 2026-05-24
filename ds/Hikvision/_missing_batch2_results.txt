@@ -1,0 +1,37 @@
+﻿Hikvision Batch 2 Datasheet Download Results
+Generated: 2026-05-24 16:08:26
+================================================================================
+
+OK      | DS-KD-KP             | DS-KD-KP.pdf              | 1040580 bytes
+OK      | DS-KD-DIS            | DS-KD-DIS.pdf             | 1029068 bytes
+OK      | DS-KD-KK             | DS-KD-KK.pdf              | 1023794 bytes
+OK      | DS-KD-K12            | DS-KD-K12.pdf             | 877470 bytes
+OK      | DS-KD-IN             | DS-KD-IN.pdf              | 1023868 bytes
+OK      | DS-KD-E              | DS-KD-E.pdf               | 1625986 bytes
+OK      | DS-KD-M              | DS-KD-M.pdf               | 1023291 bytes
+OK      | DS-KD-MFB            | DS-KD-MFB.pdf             | 695010 bytes
+OK      | DS-KD-BK             | DS-KD-BK.pdf              | 983049 bytes
+OK      | DS-KH6000-E1         | DS-KH6000-E1.pdf          | 867655 bytes
+OK      | DS-KH7000EY-E2       | DS-KH7000EY-E2.pdf        | 640803 bytes
+OK      | DS-KD-ACF1           | DS-KD-ACF1.pdf            | 685061 bytes
+OK      | DS-KD-ACF1/S         | DS-KD-ACF1-S.pdf          | 824658 bytes
+OK      | DS-KD-ACF2           | DS-KD-ACF2.pdf            | 683915 bytes
+OK      | DS-KD-ACF2/S         | DS-KD-ACF2-S.pdf          | 901562 bytes
+OK      | DS-KD-ACF3           | DS-KD-ACF3.pdf            | 681843 bytes
+OK      | DS-KD-ACF3/S         | DS-KD-ACF3-S.pdf          | 1048719 bytes
+OK      | DS-KD-KK/S           | DS-KD-KK-S.pdf            | 1024990 bytes
+OK      | DS-KD-KP/S           | DS-KD-KP-S.pdf            | 999192 bytes
+MISSING | DS-KD-IN/S           | DS-KD-IN-S.pdf            | No PDF found on Hikvision servers
+MISSING | DS-KD-BK/S           | DS-KD-BK-S.pdf            | No PDF found on Hikvision servers
+MISSING | DS-KD-E/S            | DS-KD-E-S.pdf             | No PDF found on Hikvision servers
+MISSING | DS-KD-M/S            | DS-KD-M-S.pdf             | No PDF found on Hikvision servers
+OK      | DS-KD-MFB/S          | DS-KD-MFB-S.pdf           | 807545 bytes
+OK      | DS-KD-TDM/S          | DS-KD-TDM-S.pdf           | 881567 bytes
+
+================================================================================
+TOTAL: 25 models | OK: 21 | MISSING/NOT FOUND: 4
+
+Notes on missing models:
+- DS-KD-IN/S, DS-KD-BK/S, DS-KD-E/S, DS-KD-M/S: No separate datasheet PDF found on hikvision.com
+  These /S (stainless steel) variants appear to share documentation with the base model
+  or have not been published as separate PDF datasheets by Hikvision.

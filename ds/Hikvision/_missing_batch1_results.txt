@@ -1,0 +1,108 @@
+﻿Hikvision Missing Batch 1 - Datasheet Download Results
+Generated: 2026-05-24 16:02:35
+Destination: C:\Mexico\ds\Hikvision
+================================================================================
+
+[OK] Model: iDS-E08HQHI-XB-1T
+         File:  iDS-E08HQHI-XB.pdf  (1142KB)
+         Note:  Direct Hikvision datasheet
+
+[OK] Model: iDS-7208HQHI-M1/XT-2T
+         File:  iDS-7208HQHI-M1.pdf  (974KB)
+         Note:  iDS-7208HQHI-M1/XT datasheet (storage suffix stripped)
+
+[OK] Model: DS-KV6113-WPE1(C)
+         File:  DS-KV6113-WPE1.pdf  (843KB)
+         Note:  DS-KV6113-WPE1(C) official datasheet
+
+[OK] Model: DS-KV8113-WME1(C)
+         File:  DS-KV8113-WME1.pdf  (942KB)
+         Note:  DS-KV8113-WME1(C) official datasheet
+
+[OK] Model: DS-KV8213-WME1(C)
+         File:  DS-KV8213-WME1.pdf  (905KB)
+         Note:  DS-KV8213-WME1(C) official datasheet
+
+[OK] Model: DS-KV8413-WME1(C)
+         File:  DS-KV8413-WME1.pdf  (940KB)
+         Note:  DS-KV8413-WME1 closest available (C variant page uses same specs)
+
+[OK] Model: DS-KV9503-WBE1
+         File:  DS-KV9503-WBE1.pdf  (949KB)
+         Note:  Direct Hikvision datasheet
+
+[OK] Model: DS-KD9403-E6
+         File:  DS-KD9403-E6.pdf  (912KB)
+         Note:  Direct Hikvision datasheet
+
+[OK] Model: DS-KD9633-WBE6
+         File:  DS-KD9633-WBE6.pdf  (932KB)
+         Note:  Direct Hikvision datasheet
+
+[OK] Model: DS-KIS8003-ACF2
+         File:  DS-KIS8003-ACF2.pdf  (864KB)
+         Note:  No dedicated datasheet exists; DS-KD8003-IME1 (main unit of kit) used
+
+[OK] Model: DS-KIS8003-ACW2
+         File:  DS-KIS8003-ACW2.pdf  (864KB)
+         Note:  No dedicated datasheet exists; DS-KD8003-IME1 (main unit of kit) used
+
+[OK] Model: DS-KD8003-IME1
+         File:  DS-KD8003-IME1.pdf  (864KB)
+         Note:  Direct Hikvision datasheet
+
+[OK] Model: DS-KIS704EY-ACW2/Al
+         File:  DS-KIS704EY-ACW2.pdf  (735KB)
+         Note:  DS-KIS704EY family datasheet (variant suffix stripped)
+
+[OK] Model: DS-KIS704EY-ACF2/Al
+         File:  DS-KIS704EY-ACF2.pdf  (735KB)
+         Note:  DS-KIS704EY family datasheet (variant suffix stripped)
+
+[OK] Model: DS-KIS706EY
+         File:  DS-KIS706EY.pdf  (747KB)
+         Note:  Direct Hikvision datasheet
+
+[OK] Model: DS-KH7300EY-TE2/White
+         File:  DS-KH7300EY-TE2.pdf  (781KB)
+         Note:  DS-KH7300EY-TE2 White datasheet (White is same as base)
+
+[OK] Model: DS-KH7300EY-TE2
+         File:  DS-KH7300EY-TE2.pdf  (781KB)
+         Note:  Shared file with White variant
+
+[OK] Model: DS-KH7300EY-WTE2
+         File:  DS-KH7300EY-WTE2.pdf  (780KB)
+         Note:  Direct Hikvision datasheet
+
+[OK] Model: DS-KH7300EY-WTE2/White
+         File:  DS-KH7300EY-WTE2.pdf  (780KB)
+         Note:  Shared file with base variant
+
+[OK] Model: DS-KD7003EY-IME2
+         File:  DS-KD7003EY-IME2.pdf  (961KB)
+         Note:  Direct Hikvision datasheet
+
+[OK] Model: DS-KAD7061EY
+         File:  DS-KAD7061EY.pdf  (780KB)
+         Note:  Datasheet from DVS distributor (no assets.hikvision.com direct found)
+
+[OK] Model: DS-KAD7060EY
+         File:  DS-KAD7060EY.pdf  (759KB)
+         Note:  Direct Hikvision datasheet
+
+[OK] Model: DS-KAW150-4N
+         File:  DS-KAW150-4N.pdf  (544KB)
+         Note:  Direct Hikvision datasheet
+
+[OK] Model: DS-KD-TDM
+         File:  DS-KD-TDM.pdf  (861KB)
+         Note:  Direct Hikvision datasheet
+
+[OK] Model: DS-KD-TDE
+         File:  DS-KD-TDE.pdf  (889KB)
+         Note:  TDM family datasheet used (TDE is same product line, no dedicated PDF found)
+
+================================================================================
+TOTALS: 23 unique files OK, 0 failures
+Unique PDF files written: 23

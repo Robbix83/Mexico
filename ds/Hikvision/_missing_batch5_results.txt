@@ -1,0 +1,340 @@
+﻿
+=== Hikvision Batch 5 - 5/24/2026 4:04:05 PM ===
+
+  TRY: https://assets.hikvision.com/prd/public/all/doc/m000126261/DS-2115ZJ-P_Datasheet_20240418.pdf
+  FAILED: Exception calling "DownloadFile" with "2" argument(s): "The remote server returned an error: (403) Forbidden."
+  TRY: https://www.axilogi.com/Hikvision/Datasheet/DS-2115ZJ-P.pdf
+  FAILED: Exception calling "DownloadFile" with "2" argument(s): "The remote server returned an error: (404) Not Found."
+FAIL: DS-2115ZJ-P.pdf
+  TRY: https://www.hikvision.com/content/dam/hikvision/products/S000000001/S000000139/S000000140/S000000149/OFR000192/M000002045/Data_Sheet/Datasheet-of-DS-1276ZJ-SUS_20171201.pdf
+  FAILED: Exception calling "DownloadFile" with "2" argument(s): "The remote server returned an error: (404) Not Found."
+  TRY: https://www.axilogi.com/Hikvision/Datasheet/DS-1276ZJ.pdf
+  FAILED: Exception calling "DownloadFile" with "2" argument(s): "The remote server returned an error: (404) Not Found."
+  TRY: https://www.axilogi.com/Hikvision/Datasheet/DS-1276ZJ-SUS.pdf
+  FAILED: Exception calling "DownloadFile" with "2" argument(s): "The remote server returned an error: (404) Not Found."
+FAIL: DS-1276ZJ.pdf
+  TRY: https://www.axilogi.com/Hikvision/Datasheet/DS-1276ZJ-P.pdf
+  FAILED: Exception calling "DownloadFile" with "2" argument(s): "The remote server returned an error: (404) Not Found."
+  TRY: https://www.hikvision.com/content/dam/hikvision/products/S000000001/S000000139/S000000140/S000000149/OFR000192/M000002046/Data_Sheet/DS-1276ZJ-P_Datasheet.pdf
+  FAILED: Exception calling "DownloadFile" with "2" argument(s): "The remote server returned an error: (404) Not Found."
+FAIL: DS-1276ZJ-P.pdf
+  TRY: https://www.axilogi.com/Hikvision/Datasheet/DS-1278ZJ.pdf
+  FAILED: Exception calling "DownloadFile" with "2" argument(s): "The remote server returned an error: (404) Not Found."
+  TRY: https://www.hikvision.com/content/dam/hikvision/en/support/regional-materials/pakistan-/DatasheetofDS-1278ZJ.pdf
+  FAILED: Exception calling "DownloadFile" with "2" argument(s): "The remote server returned an error: (404) Not Found."
+  TRY: https://www.hikvision.com/content/dam/hikvision/vn/product-datasheet/DS-1278ZJ.pdf
+  FAILED: Exception calling "DownloadFile" with "2" argument(s): "The remote server returned an error: (404) Not Found."
+FAIL: DS-1278ZJ.pdf
+  TRY: https://www.hikvision.com/content/dam/hikvision/fr/02-2023-datasheet/DS-1279ZJ.pdf
+OK: DS-1279ZJ.pdf
+  TRY: https://www.axilogi.com/Hikvision/Datasheet/DS-1280ZJ-M.pdf
+  FAILED: Exception calling "DownloadFile" with "2" argument(s): "The remote server returned an error: (404) Not Found."
+  TRY: https://www.hikvision.com/content/dam/hikvision/products/S000000001/S000000139/S000000140/S000000155/OFR000222/M000002079/Data_Sheet/Datasheet-of-DS-1280ZJ-MSPTZ_20190401.pdf
+  FAILED: Exception calling "DownloadFile" with "2" argument(s): "The remote server returned an error: (404) Not Found."
+  TRY: https://www.axilogi.com/Hikvision/Datasheet/DS-1280ZJ-S.pdf
+  FAILED: Exception calling "DownloadFile" with "2" argument(s): "The remote server returned an error: (404) Not Found."
+FAIL: DS-1280ZJ.pdf
+  TRY: https://www.axilogi.com/Hikvision/Datasheet/DS-1281ZJ-M.pdf
+  FAILED: Exception calling "DownloadFile" with "2" argument(s): "The remote server returned an error: (404) Not Found."
+  TRY: https://www.hikvision.com/content/dam/hikvision/products/S000000001/S000000139/S000000140/S000000155/OFR000222/M000002082/Data_Sheet/DS-1281ZJ-M_Datasheet.pdf
+  FAILED: Exception calling "DownloadFile" with "2" argument(s): "The remote server returned an error: (404) Not Found."
+FAIL: DS-1281ZJ-M.pdf
+  TRY: https://www.axilogi.com/Hikvision/Datasheet/DS-1282ZJ-DM.pdf
+  FAILED: Exception calling "DownloadFile" with "2" argument(s): "The remote server returned an error: (404) Not Found."
+  TRY: https://www.axilogi.com/Hikvision/Datasheet/DS-1282ZJ-DM-mini.pdf
+  FAILED: Exception calling "DownloadFile" with "2" argument(s): "The remote server returned an error: (404) Not Found."
+FAIL: DS-1282ZJ-DM.pdf
+  TRY: https://www.axilogi.com/Hikvision/Datasheet/DS-1285ZJ.pdf
+  FAILED: Exception calling "DownloadFile" with "2" argument(s): "The remote server returned an error: (404) Not Found."
+  TRY: https://www.hikvision.com/content/dam/hikvision/vn/product-datasheet/DS-1285ZJ.pdf
+  FAILED: Exception calling "DownloadFile" with "2" argument(s): "The remote server returned an error: (404) Not Found."
+  TRY: https://www.hikvision.com/content/dam/hikvision/en/support/regional-materials/pakistan-/DatasheetofDS-1285ZJ.pdf
+  FAILED: Exception calling "DownloadFile" with "2" argument(s): "The remote server returned an error: (404) Not Found."
+FAIL: DS-1285ZJ.pdf
+  TRY: https://www.axilogi.com/Hikvision/Datasheet/DS-1286ZJ.pdf
+  FAILED: Exception calling "DownloadFile" with "2" argument(s): "The remote server returned an error: (404) Not Found."
+  TRY: https://www.hikvision.com/content/dam/hikvision/vn/product-datasheet/DS-1286ZJ.pdf
+  FAILED: Exception calling "DownloadFile" with "2" argument(s): "The remote server returned an error: (404) Not Found."
+  TRY: https://www.hikvision.com/content/dam/hikvision/en/support/regional-materials/pakistan-/DatasheetofDS-1286ZJ.pdf
+  FAILED: Exception calling "DownloadFile" with "2" argument(s): "The remote server returned an error: (404) Not Found."
+FAIL: DS-1286ZJ.pdf
+  TRY: https://www.axilogi.com/Hikvision/Datasheet/DS-1287ZJ.pdf
+  FAILED: Exception calling "DownloadFile" with "2" argument(s): "The remote server returned an error: (404) Not Found."
+  TRY: https://www.hikvision.com/content/dam/hikvision/vn/product-datasheet/DS-1287ZJ.pdf
+  FAILED: Exception calling "DownloadFile" with "2" argument(s): "The remote server returned an error: (404) Not Found."
+  TRY: https://www.hikvision.com/content/dam/hikvision/en/support/regional-materials/pakistan-/DatasheetofDS-1287ZJ.pdf
+  FAILED: Exception calling "DownloadFile" with "2" argument(s): "The remote server returned an error: (404) Not Found."
+FAIL: DS-1287ZJ.pdf
+  TRY: https://www.axilogi.com/Hikvision/Datasheet/DS-1288ZJ-E.pdf
+  FAILED: Exception calling "DownloadFile" with "2" argument(s): "The remote server returned an error: (404) Not Found."
+  TRY: https://www.hikvision.com/content/dam/hikvision/vn/product-datasheet/DS-1288ZJ-E.pdf
+  FAILED: Exception calling "DownloadFile" with "2" argument(s): "The remote server returned an error: (404) Not Found."
+  TRY: https://www.hikvision.com/content/dam/hikvision/en/support/regional-materials/pakistan-/DatasheetofDS-1288ZJ-E.pdf
+  FAILED: Exception calling "DownloadFile" with "2" argument(s): "The remote server returned an error: (404) Not Found."
+FAIL: DS-1288ZJ-E.pdf
+  TRY: https://www.axilogi.com/Hikvision/Datasheet/DS-1291ZJ-PT.pdf
+  FAILED: Exception calling "DownloadFile" with "2" argument(s): "The remote server returned an error: (404) Not Found."
+  TRY: https://www.hikvision.com/content/dam/hikvision/vn/product-datasheet/DS-1291ZJ-PT.pdf
+  FAILED: Exception calling "DownloadFile" with "2" argument(s): "The remote server returned an error: (404) Not Found."
+  TRY: https://www.hikvision.com/content/dam/hikvision/en/support/regional-materials/pakistan-/DatasheetofDS-1291ZJ-PT.pdf
+  FAILED: Exception calling "DownloadFile" with "2" argument(s): "The remote server returned an error: (404) Not Found."
+FAIL: DS-1291ZJ-PT.pdf
+  TRY: https://www.axilogi.com/Hikvision/Datasheet/DS-1291ZJ-S.pdf
+  FAILED: Exception calling "DownloadFile" with "2" argument(s): "The remote server returned an error: (404) Not Found."
+  TRY: https://www.hikvision.com/content/dam/hikvision/vn/product-datasheet/DS-1291ZJ-S.pdf
+  FAILED: Exception calling "DownloadFile" with "2" argument(s): "The remote server returned an error: (404) Not Found."
+  TRY: https://www.hikvision.com/content/dam/hikvision/en/support/regional-materials/pakistan-/DatasheetofDS-1291ZJ-S.pdf
+  FAILED: Exception calling "DownloadFile" with "2" argument(s): "The remote server returned an error: (404) Not Found."
+FAIL: DS-1291ZJ-S.pdf
+  TRY: https://www.axilogi.com/Hikvision/Datasheet/DS-1292ZJ.pdf
+  FAILED: Exception calling "DownloadFile" with "2" argument(s): "The remote server returned an error: (404) Not Found."
+  TRY: https://www.hikvision.com/content/dam/hikvision/vn/product-datasheet/DS-1292ZJ.pdf
+  FAILED: Exception calling "DownloadFile" with "2" argument(s): "The remote server returned an error: (404) Not Found."
+  TRY: https://www.hikvision.com/content/dam/hikvision/en/support/regional-materials/pakistan-/DatasheetofDS-1292ZJ.pdf
+  FAILED: Exception calling "DownloadFile" with "2" argument(s): "The remote server returned an error: (404) Not Found."
+FAIL: DS-1292ZJ.pdf
+  TRY: https://www.axilogi.com/Hikvision/Datasheet/DS-1293ZJ.pdf
+  FAILED: Exception calling "DownloadFile" with "2" argument(s): "The remote server returned an error: (404) Not Found."
+  TRY: https://www.hikvision.com/content/dam/hikvision/vn/product-datasheet/DS-1293ZJ.pdf
+OK: DS-1293ZJ.pdf
+SKIP (exists): DS-1294ZJ.pdf
+SKIP (exists): DS-1294ZJ-PT.pdf
+  TRY: https://www.axilogi.com/Hikvision/Datasheet/DS-1297ZJ-ES.pdf
+  FAILED: Exception calling "DownloadFile" with "2" argument(s): "The remote server returned an error: (404) Not Found."
+  TRY: https://www.hikvision.com/content/dam/hikvision/products/S000000001/S000000139/S000000140/S000000149/OFR000228/M000001988/Data_Sheet/DS-1297ZJ.pdf
+  FAILED: Exception calling "DownloadFile" with "2" argument(s): "The remote server returned an error: (404) Not Found."
+  TRY: https://www.hikvision.com/content/dam/hikvision/vn/product-datasheet/DS-1297ZJ-ES.pdf
+  FAILED: Exception calling "DownloadFile" with "2" argument(s): "The remote server returned an error: (404) Not Found."
+FAIL: DS-1297ZJ-ES.pdf
+  TRY: https://www.axilogi.com/Hikvision/Datasheet/DS-1604ZJ.pdf
+  FAILED: Exception calling "DownloadFile" with "2" argument(s): "The remote server returned an error: (404) Not Found."
+  TRY: https://www.hikvision.com/content/dam/hikvision/en/support/regional-materials/pakistan-/DatasheetofDS-1604ZJ.pdf
+  FAILED: Exception calling "DownloadFile" with "2" argument(s): "The remote server returned an error: (404) Not Found."
+FAIL: DS-1604ZJ.pdf
+  TRY: https://www.axilogi.com/Hikvision/Datasheet/DS-1604ZJ-BOX-CORNER.pdf
+  FAILED: Exception calling "DownloadFile" with "2" argument(s): "The remote server returned an error: (404) Not Found."
+  TRY: https://www.hikvision.com/content/dam/hikvision/en/support/regional-materials/pakistan-/DatasheetofDS-1604ZJ-BOX-CORNER.pdf
+  FAILED: Exception calling "DownloadFile" with "2" argument(s): "The remote server returned an error: (404) Not Found."
+FAIL: DS-1604ZJ-box-corner.pdf
+  TRY: https://www.axilogi.com/Hikvision/Datasheet/DS-1604ZJ-BOX-POLE.pdf
+  FAILED: Exception calling "DownloadFile" with "2" argument(s): "The remote server returned an error: (404) Not Found."
+  TRY: https://www.hikvision.com/content/dam/hikvision/en/support/regional-materials/pakistan-/DatasheetofDS-1604ZJ-BOX-POLE.pdf
+  FAILED: Exception calling "DownloadFile" with "2" argument(s): "The remote server returned an error: (404) Not Found."
+FAIL: DS-1604ZJ-box-pole.pdf
+  TRY: https://www.axilogi.com/Hikvision/Datasheet/DS-1604ZJ-corner.pdf
+  FAILED: Exception calling "DownloadFile" with "2" argument(s): "The remote server returned an error: (404) Not Found."
+  TRY: https://www.hikvision.com/content/dam/hikvision/en/support/regional-materials/pakistan-/DatasheetofDS-1604ZJ-corner.pdf
+  FAILED: Exception calling "DownloadFile" with "2" argument(s): "The remote server returned an error: (404) Not Found."
+FAIL: DS-1604ZJ-corner.pdf
+  TRY: https://www.axilogi.com/Hikvision/Datasheet/DS-1604ZJ-Pole-P.pdf
+  FAILED: Exception calling "DownloadFile" with "2" argument(s): "The remote server returned an error: (404) Not Found."
+  TRY: https://www.hikvision.com/content/dam/hikvision/en/support/regional-materials/pakistan-/DatasheetofDS-1604ZJ-Pole-P_20171120.pdf
+OK: DS-1604ZJ-P.pdf
+  TRY: https://www.axilogi.com/Hikvision/Datasheet/DS-1604ZJ-Pole.pdf
+  FAILED: Exception calling "DownloadFile" with "2" argument(s): "The remote server returned an error: (404) Not Found."
+  TRY: https://www.hikvision.com/content/dam/hikvision/en/support/regional-materials/pakistan-/DatasheetofDS-1604ZJ-Pole.pdf
+OK: DS-1604ZJ-Pole.pdf
+
+=== Done ===
+
+Downloaded: 4
+Skipped:    2
+Failed:     19
+
+=== Round 2 - additional URLs ===
+  TRY: https://assets.hikvision.com/prd/public/all/doc/m000126261/DS-2115ZJ-P_Datasheet_20240418.pdf
+  FAILED: Exception calling "DownloadFile" with "2" argument(s): "The remote server returned an error: (403) Forbidden."
+  TRY: https://assets.hikvision.com/prd/public/all/doc/m000126262/DS-2115ZJ-PSAC_Datasheet_20240418.pdf
+OK: DS-2115ZJ-P.pdf
+  TRY: https://download.axilogi.com/Hikvision/Datasheet/DS-1276ZJ-SUS.pdf
+OK: DS-1276ZJ.pdf
+  TRY: https://download.axilogi.com/Hikvision/Datasheet/DS-1276ZJ-P.pdf
+  FAILED: Exception calling "DownloadFile" with "2" argument(s): "The remote server returned an error: (404) Not Found."
+  TRY: https://files.eetgroup.com/Hikvision/Datasheets/302700379.pdf
+  FAILED: Exception calling "DownloadFile" with "2" argument(s): "Unable to connect to the remote server"
+FAIL: DS-1276ZJ-P.pdf
+  TRY: https://download.axilogi.com/Hikvision/Datasheet/DS-1278ZJ.pdf
+  FAILED: Exception calling "DownloadFile" with "2" argument(s): "The remote server returned an error: (404) Not Found."
+FAIL: DS-1278ZJ.pdf
+  TRY: https://assets.hikvision.com/prd/public/all/doc/m000002068/DS-1280ZJ-S_Datasheet_20250324.pdf
+OK: DS-1280ZJ.pdf
+  TRY: https://www.hikvision.com/content/dam/hikvision/products/S000000001/S000000139/S000000140/S000000155/OFR000218/M000002089/Data_Sheet/DS-1281ZJ-M.pdf
+  FAILED: Exception calling "DownloadFile" with "2" argument(s): "The remote server returned an error: (404) Not Found."
+  TRY: https://download.axilogi.com/Hikvision/Datasheet/DS-1281ZJ-M.pdf
+OK: DS-1281ZJ-M.pdf
+  TRY: https://download.axilogi.com/Hikvision/Datasheet/DS-1282ZJ-DM.pdf
+  FAILED: Exception calling "DownloadFile" with "2" argument(s): "The remote server returned an error: (404) Not Found."
+  TRY: https://download.axilogi.com/Hikvision/Datasheet/DS-1282ZJ-DM-mini.pdf
+  FAILED: Exception calling "DownloadFile" with "2" argument(s): "The remote server returned an error: (404) Not Found."
+FAIL: DS-1282ZJ-DM.pdf
+  TRY: https://download.axilogi.com/Hikvision/Datasheet/DS-1285ZJ.pdf
+  FAILED: Exception calling "DownloadFile" with "2" argument(s): "The remote server returned an error: (404) Not Found."
+FAIL: DS-1285ZJ.pdf
+  TRY: https://download.axilogi.com/Hikvision/Datasheet/DS-1286ZJ.pdf
+  FAILED: Exception calling "DownloadFile" with "2" argument(s): "The remote server returned an error: (404) Not Found."
+FAIL: DS-1286ZJ.pdf
+  TRY: https://download.axilogi.com/Hikvision/Datasheet/DS-1287ZJ.pdf
+  FAILED: Exception calling "DownloadFile" with "2" argument(s): "The remote server returned an error: (404) Not Found."
+FAIL: DS-1287ZJ.pdf
+  TRY: https://download.axilogi.com/Hikvision/Datasheet/DS-1288ZJ-E.pdf
+  FAILED: Exception calling "DownloadFile" with "2" argument(s): "The remote server returned an error: (404) Not Found."
+FAIL: DS-1288ZJ-E.pdf
+  TRY: https://download.axilogi.com/Hikvision/Datasheet/DS-1291ZJ-PT.pdf
+  FAILED: Exception calling "DownloadFile" with "2" argument(s): "The remote server returned an error: (404) Not Found."
+FAIL: DS-1291ZJ-PT.pdf
+  TRY: https://download.axilogi.com/Hikvision/Datasheet/DS-1291ZJ-S.pdf
+  FAILED: Exception calling "DownloadFile" with "2" argument(s): "The remote server returned an error: (404) Not Found."
+FAIL: DS-1291ZJ-S.pdf
+  TRY: https://download.axilogi.com/Hikvision/Datasheet/DS-1292ZJ.pdf
+  FAILED: Exception calling "DownloadFile" with "2" argument(s): "The remote server returned an error: (404) Not Found."
+FAIL: DS-1292ZJ.pdf
+SKIP (exists): DS-1297ZJ-ES.pdf
+SKIP (exists): DS-1604ZJ.pdf
+  TRY: https://www.hikvision.com/content/dam/hikvision/products/S000000001/S000000139/S000000140/S000000149/OFR000235/M000002031/Data_Sheet/Datasheet-of-DS-1604ZJ-BOX-POLE-P_20171208.pdf
+  FAILED: Exception calling "DownloadFile" with "2" argument(s): "The remote server returned an error: (404) Not Found."
+FAIL: DS-1604ZJ-box-corner.pdf
+  TRY: https://www.hikvision.com/content/dam/hikvision/pt-br/data-sheets/DS-1604ZJ-BOX-POLE.pdf
+OK: DS-1604ZJ-box-pole.pdf
+  TRY: https://www.hikvision.com/content/dam/hikvision/products/S000000001/S000000139/S000000140/S000000149/OFR000192/M000002048/Data_Sheet/Datasheet-of-DS-1604ZJ-Corner_20170207.pdf
+  FAILED: Exception calling "DownloadFile" with "2" argument(s): "The remote server returned an error: (404) Not Found."
+  TRY: https://download.axilogi.com/hikvision/datasheet/DS-1604ZJ-corner.pdf
+OK: DS-1604ZJ-corner.pdf
+
+=== Round 2 Done ===
+
+=== Round 3 ===
+  TRY: https://download.discomp.cz/hikvision/datasheets/DS-1276ZJ-SUS.pdf
+OK: DS-1276ZJ-P.pdf
+  TRY: https://specsheets.dvs.co.uk/DS-1278ZJ.PDF
+  FAILED: Exception calling "DownloadFile" with "2" argument(s): "The remote server returned an error: (404) Not Found."
+  TRY: https://download.discomp.cz/hikvision/datasheets/DS-1278ZJ.pdf
+  FAILED: Exception calling "DownloadFile" with "2" argument(s): "The remote server returned an error: (404) Not Found."
+FAIL: DS-1278ZJ.pdf
+  TRY: https://specsheets.dvs.co.uk/DS-1282ZJ-DM.PDF
+  FAILED: Exception calling "DownloadFile" with "2" argument(s): "The remote server returned an error: (404) Not Found."
+  TRY: https://download.discomp.cz/hikvision/datasheets/DS-1282ZJ-DM.pdf
+  FAILED: Exception calling "DownloadFile" with "2" argument(s): "The remote server returned an error: (404) Not Found."
+  TRY: https://www.hikvision.com/content/dam/hikvision/products/S000000001/S000000139/S000000140/S000000155/OFR000222/M000004848/Data_Sheet/DS-1282ZJ-DM-mini.pdf
+  FAILED: Exception calling "DownloadFile" with "2" argument(s): "The remote server returned an error: (404) Not Found."
+FAIL: DS-1282ZJ-DM.pdf
+  TRY: https://specsheets.dvs.co.uk/DS-1285ZJ.PDF
+  FAILED: Exception calling "DownloadFile" with "2" argument(s): "The remote server returned an error: (404) Not Found."
+  TRY: https://download.discomp.cz/hikvision/datasheets/DS-1285ZJ.pdf
+  FAILED: Exception calling "DownloadFile" with "2" argument(s): "The remote server returned an error: (404) Not Found."
+FAIL: DS-1285ZJ.pdf
+  TRY: https://specsheets.dvs.co.uk/DS-1286ZJ.PDF
+  FAILED: Exception calling "DownloadFile" with "2" argument(s): "The remote server returned an error: (404) Not Found."
+  TRY: https://download.discomp.cz/hikvision/datasheets/DS-1286ZJ.pdf
+  FAILED: Exception calling "DownloadFile" with "2" argument(s): "The remote server returned an error: (404) Not Found."
+FAIL: DS-1286ZJ.pdf
+  TRY: https://specsheets.dvs.co.uk/DS-1287ZJ.PDF
+  FAILED: Exception calling "DownloadFile" with "2" argument(s): "The remote server returned an error: (404) Not Found."
+  TRY: https://download.discomp.cz/hikvision/datasheets/DS-1287ZJ.pdf
+  FAILED: Exception calling "DownloadFile" with "2" argument(s): "The remote server returned an error: (404) Not Found."
+FAIL: DS-1287ZJ.pdf
+  TRY: https://specsheets.dvs.co.uk/DS-1288ZJ-E.PDF
+  FAILED: Exception calling "DownloadFile" with "2" argument(s): "The remote server returned an error: (404) Not Found."
+  TRY: https://download.discomp.cz/hikvision/datasheets/DS-1288ZJ-E.pdf
+  FAILED: Exception calling "DownloadFile" with "2" argument(s): "The remote server returned an error: (404) Not Found."
+FAIL: DS-1288ZJ-E.pdf
+  TRY: https://specsheets.dvs.co.uk/DS-1291ZJ-PT.PDF
+  FAILED: Exception calling "DownloadFile" with "2" argument(s): "The remote server returned an error: (404) Not Found."
+  TRY: https://download.discomp.cz/hikvision/datasheets/DS-1291ZJ-PT.pdf
+  FAILED: Exception calling "DownloadFile" with "2" argument(s): "The remote server returned an error: (404) Not Found."
+FAIL: DS-1291ZJ-PT.pdf
+  TRY: https://specsheets.dvs.co.uk/DS-1291ZJ-S.PDF
+  FAILED: Exception calling "DownloadFile" with "2" argument(s): "The remote server returned an error: (404) Not Found."
+  TRY: https://download.discomp.cz/hikvision/datasheets/DS-1291ZJ-S.pdf
+  FAILED: Exception calling "DownloadFile" with "2" argument(s): "The remote server returned an error: (404) Not Found."
+FAIL: DS-1291ZJ-S.pdf
+  TRY: https://www.sourcesecurity.com/datasheets/hikvision-ds-1292zj-cctv-camera-bracket/co-3425-ga/20141114022953508.PDF
+OK: DS-1292ZJ.pdf
+  TRY: https://download.axilogi.com/hikvision/datasheet/DS-1604ZJ-BOX-CORNER.pdf
+OK: DS-1604ZJ-box-corner.pdf
+
+=== Round 3 Done ===
+
+=== Round 4 - exhaustive URL guessing ===
+  TRY: https://www.hikvision.com/content/dam/hikvision/products/S000000001/S000000139/S000000140/S000000149/OFR000192/M000002047/Data_Sheet/DS-1278ZJ_Datasheet.pdf
+  FAILED: Exception calling "DownloadFile" with "2" argument(s): "The remote server return
+  TRY: https://assets.hikvision.com/prd/public/all/doc/m000002047/DS-1278ZJ_Datasheet.pdf
+  FAILED: Exception calling "DownloadFile" with "2" argument(s): "The remote server return
+  TRY: https://download.discomp.cz/hikvision/datasheets/DS-1278ZJ-HWB.pdf
+  FAILED: Exception calling "DownloadFile" with "2" argument(s): "The remote server return
+  TRY: https://specsheets.dvs.co.uk/DS-1278ZJ-HWB.PDF
+  FAILED: Exception calling "DownloadFile" with "2" argument(s): "The remote server return
+  TRY: https://manualzz.com/doc/61137944/hikvision-ds-1278zj-hwb-traffic-accessory-data-sheet
+  FAILED: Exception calling "DownloadFile" with "2" argument(s): "The remote server return
+FAIL: DS-1278ZJ.pdf
+  TRY: https://assets.hikvision.com/prd/public/all/doc/m000002090/DS-1282ZJ-DM_Datasheet.pdf
+  FAILED: Exception calling "DownloadFile" with "2" argument(s): "The remote server return
+  TRY: https://www.hikvision.com/content/dam/hikvision/products/S000000001/S000000139/S000000140/S000000155/OFR000222/M000002090/Data_Sheet/DS-1282ZJ-DM.pdf
+  FAILED: Exception calling "DownloadFile" with "2" argument(s): "The remote server return
+  TRY: https://assets.hikvision.com/prd/public/all/doc/m000002090/DS-1282ZJ-DM-mini_Datasheet.pdf
+  FAILED: Exception calling "DownloadFile" with "2" argument(s): "The remote server return
+FAIL: DS-1282ZJ-DM.pdf
+  TRY: https://assets.hikvision.com/prd/public/all/doc/m000002092/DS-1285ZJ_Datasheet.pdf
+  FAILED: Exception calling "DownloadFile" with "2" argument(s): "The remote server return
+  TRY: https://www.hikvision.com/content/dam/hikvision/products/S000000001/S000000139/S000000140/S000000155/OFR000222/M000002092/Data_Sheet/DS-1285ZJ.pdf
+  FAILED: Exception calling "DownloadFile" with "2" argument(s): "The remote server return
+  TRY: https://assets.hikvision.com/prd/public/all/doc/m000002091/DS-1285ZJ_Datasheet.pdf
+  FAILED: Exception calling "DownloadFile" with "2" argument(s): "The remote server return
+FAIL: DS-1285ZJ.pdf
+  TRY: https://assets.hikvision.com/prd/public/all/doc/m000002093/DS-1286ZJ_Datasheet.pdf
+  FAILED: Exception calling "DownloadFile" with "2" argument(s): "The remote server return
+  TRY: https://www.hikvision.com/content/dam/hikvision/products/S000000001/S000000139/S000000140/S000000155/OFR000222/M000002093/Data_Sheet/DS-1286ZJ.pdf
+  FAILED: Exception calling "DownloadFile" with "2" argument(s): "The remote server return
+FAIL: DS-1286ZJ.pdf
+  TRY: https://assets.hikvision.com/prd/public/all/doc/m000002094/DS-1287ZJ_Datasheet.pdf
+  FAILED: Exception calling "DownloadFile" with "2" argument(s): "The remote server return
+  TRY: https://www.hikvision.com/content/dam/hikvision/products/S000000001/S000000139/S000000140/S000000149/OFR000228/M000002094/Data_Sheet/DS-1287ZJ.pdf
+  FAILED: Exception calling "DownloadFile" with "2" argument(s): "The remote server return
+FAIL: DS-1287ZJ.pdf
+  TRY: https://assets.hikvision.com/prd/public/all/doc/m000002095/DS-1288ZJ-E_Datasheet.pdf
+  FAILED: Exception calling "DownloadFile" with "2" argument(s): "The remote server return
+  TRY: https://www.hikvision.com/content/dam/hikvision/products/S000000001/S000000139/S000000140/S000000149/OFR000228/M000002095/Data_Sheet/DS-1288ZJ-E.pdf
+  FAILED: Exception calling "DownloadFile" with "2" argument(s): "The remote server return
+FAIL: DS-1288ZJ-E.pdf
+  TRY: https://assets.hikvision.com/prd/public/all/doc/m000001941/DS-1291ZJ-PT_Datasheet.pdf
+  FAILED: Exception calling "DownloadFile" with "2" argument(s): "The remote server return
+  TRY: https://www.hikvision.com/content/dam/hikvision/products/S000000001/S000000139/S000000140/S000000149/OFR000237/M000001941/Data_Sheet/DS-1291ZJ-PT.pdf
+  FAILED: Exception calling "DownloadFile" with "2" argument(s): "The remote server return
+FAIL: DS-1291ZJ-PT.pdf
+  TRY: https://assets.hikvision.com/prd/public/all/doc/m000001942/DS-1291ZJ-S_Datasheet.pdf
+  FAILED: Exception calling "DownloadFile" with "2" argument(s): "The remote server return
+  TRY: https://www.hikvision.com/content/dam/hikvision/products/S000000001/S000000139/S000000140/S000000149/OFR000237/M000001942/Data_Sheet/DS-1291ZJ-S.pdf
+  FAILED: Exception calling "DownloadFile" with "2" argument(s): "The remote server return
+  TRY: https://www.hikvision.com/content/dam/hikvision/products/S000000001/S000000139/S000000140/S000000149/OFR000228/M000001989/Data_Sheet/DS-1291ZJ-S.pdf
+  FAILED: Exception calling "DownloadFile" with "2" argument(s): "The remote server return
+FAIL: DS-1291ZJ-S.pdf
+
+=== Round 4 Done ===
+
+=== FINAL SUMMARY ===
+DOWNLOADED: DS-2115ZJ-P (395292 bytes)
+DOWNLOADED: DS-1276ZJ (272946 bytes)
+DOWNLOADED: DS-1276ZJ-P (272946 bytes)
+NOT FOUND:  DS-1278ZJ
+DOWNLOADED: DS-1279ZJ (483993 bytes)
+DOWNLOADED: DS-1280ZJ (413869 bytes)
+DOWNLOADED: DS-1281ZJ-M (272854 bytes)
+NOT FOUND:  DS-1282ZJ-DM
+NOT FOUND:  DS-1285ZJ
+NOT FOUND:  DS-1286ZJ
+NOT FOUND:  DS-1287ZJ
+NOT FOUND:  DS-1288ZJ-E
+NOT FOUND:  DS-1291ZJ-PT
+NOT FOUND:  DS-1291ZJ-S
+DOWNLOADED: DS-1292ZJ (351710 bytes)
+DOWNLOADED: DS-1293ZJ (468670 bytes)
+DOWNLOADED: DS-1294ZJ (408928 bytes)
+DOWNLOADED: DS-1294ZJ-PT (293885 bytes)
+DOWNLOADED: DS-1297ZJ-ES (395061 bytes)
+DOWNLOADED: DS-1604ZJ (528778 bytes)
+DOWNLOADED: DS-1604ZJ-box-corner (329486 bytes)
+DOWNLOADED: DS-1604ZJ-box-pole (314672 bytes)
+DOWNLOADED: DS-1604ZJ-corner (303420 bytes)
+DOWNLOADED: DS-1604ZJ-P (338449 bytes)
+DOWNLOADED: DS-1604ZJ-Pole (328750 bytes)
+
+Total: 25 | Downloaded: 17 | Not found: 8
