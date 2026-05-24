@@ -154,7 +154,14 @@ app.post('/api/auth/logout', requireAuth, (req, res) => {
 });
 
 app.get('/api/auth/me', requireAuth, (req, res) => {
-  res.json({ id: req.user.id, username: req.user.username, role: req.user.role });
+  const user = db.getUserById(req.user.id);
+  if (!user) return res.status(404).json({ error: 'User not found' });
+  // sections: null = all access (admin), array = specific allowed views (viewer)
+  let sections = null;
+  if (user.role !== 'admin') {
+    sections = user.sections ? JSON.parse(user.sections) : [];
+  }
+  res.json({ id: user.id, username: user.username, role: user.role, sections });
 });
 
 app.post('/api/auth/change-password', requireAuth, (req, res) => {
@@ -231,6 +238,18 @@ app.post('/api/users/:id/reset-password', requireAdmin, (req, res) => {
   db.setPassword(id, password);
   db.setMustChangePassword(id, 1);
   db.logAudit(req.user.id, req.user.username, 'reset_password', `Reset password for user id=${id}`, getClientIp(req), '');
+  res.json({ ok: true });
+});
+
+app.put('/api/users/:id/sections', requireAdmin, (req, res) => {
+  const id = parseInt(req.params.id);
+  const { sections } = req.body;
+  const valid = ['list', 'kanban', 'catalog', 'pricelist'];
+  if (!Array.isArray(sections) || sections.some(s => !valid.includes(s)))
+    return res.status(400).json({ error: 'Invalid sections value' });
+  db.setSections(id, sections);
+  db.logAudit(req.user.id, req.user.username, 'update_user',
+    `Set sections for user id=${id}: [${sections.join(',')}]`, getClientIp(req), '');
   res.json({ ok: true });
 });
 

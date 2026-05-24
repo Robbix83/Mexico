@@ -177,6 +177,36 @@ tr:hover td{background:#f8fafc}
   </div>
 </div>
 
+<!-- ── PERMISSIONS MODAL ── -->
+<div class="modal-bg" id="modal-perms">
+  <div class="modal">
+    <h3>הרשאות גישה</h3>
+    <p id="perms-name-label" style="font-size:.85rem;color:#64748b;margin-bottom:14px"></p>
+    <div style="font-size:.8rem;color:#374151;margin-bottom:12px;line-height:1.8">
+      בחר אילו מסכים המשתמש יוכל לראות:
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px">
+      <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:.85rem">
+        <input type="checkbox" id="perm-list"> לוח משימות
+      </label>
+      <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:.85rem">
+        <input type="checkbox" id="perm-kanban"> קנבן
+      </label>
+      <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:.85rem">
+        <input type="checkbox" id="perm-catalog"> קטלוג מקטים
+      </label>
+      <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:.85rem">
+        <input type="checkbox" id="perm-pricelist"> מחירונים
+      </label>
+    </div>
+    <div class="err-msg" id="perms-err"></div>
+    <div class="modal-actions">
+      <button class="btn" onclick="closeModal('modal-perms')">ביטול</button>
+      <button class="btn btn-primary" onclick="submitPermissions()">שמור הרשאות</button>
+    </div>
+  </div>
+</div>
+
 <!-- ── RESET PASSWORD MODAL ── -->
 <div class="modal-bg" id="modal-reset">
   <div class="modal">
@@ -224,10 +254,22 @@ async function loadUsers() {
   renderUsers();
 }
 
+const SECTION_LABELS = {list:'לוח משימות',kanban:'קנבן',catalog:'קטלוג',pricelist:'מחירון'};
+
 function renderUsers() {
   const tbody = document.getElementById('users-tbody');
   if (!users.length) { tbody.innerHTML='<tr><td colspan="7" class="empty">אין משתמשים</td></tr>'; return; }
-  tbody.innerHTML = users.map(u => `
+  tbody.innerHTML = users.map(u => {
+    let sectionsBadges = '';
+    if (u.role === 'admin') {
+      sectionsBadges = '<span style="font-size:.72rem;color:#6b7280">הכל ✓</span>';
+    } else {
+      const secs = u.sections ? JSON.parse(u.sections) : [];
+      sectionsBadges = secs.length
+        ? secs.map(s=>`<span style="font-size:.68rem;background:#dbeafe;color:#1d4ed8;border-radius:4px;padding:1px 5px;margin:1px">${SECTION_LABELS[s]||s}</span>`).join('')
+        : '<span style="font-size:.72rem;color:#dc2626">אין גישה</span>';
+    }
+    return `
     <tr>
       <td><strong>${u.username}</strong></td>
       <td><span class="badge badge-${u.role}">${u.role==='admin'?'מנהל':'צופה'}</span></td>
@@ -237,13 +279,44 @@ function renderUsers() {
       <td>${u.last_login?fmtDate(u.last_login):'—'}</td>
       <td>
         <div class="btn-group">
+          ${u.role==='viewer'?`<button class="btn btn-sm" style="background:#eff6ff;color:#1d4ed8;border-color:#bfdbfe" onclick="openPermissions(${u.id},'${u.username}')">🔐 גישה</button>`:''}
           <button class="btn btn-warning btn-sm" onclick="openResetPassword(${u.id},'${u.username}')">איפוס סיסמה</button>
           <button class="btn btn-sm ${u.active?'btn-danger':''}" onclick="toggleActive(${u.id},${u.active})">${u.active?'השבת':'הפעל'}</button>
           <button class="btn btn-sm" onclick="toggleRole(${u.id},'${u.role}')">${u.role==='admin'?'הפוך לצופה':'הפוך למנהל'}</button>
         </div>
+        <div style="margin-top:4px">${sectionsBadges}</div>
       </td>
-    </tr>
-  `).join('');
+    </tr>`;
+  }).join('');
+}
+
+let permsUserId = null;
+function openPermissions(id, username) {
+  permsUserId = id;
+  document.getElementById('perms-name-label').textContent = `משתמש: ${username}`;
+  document.getElementById('perms-err').classList.remove('show');
+  const user = users.find(u => u.id === id);
+  const secs = (user && user.sections) ? JSON.parse(user.sections) : [];
+  ['list','kanban','catalog','pricelist'].forEach(s => {
+    document.getElementById('perm-'+s).checked = secs.includes(s);
+  });
+  document.getElementById('modal-perms').classList.add('open');
+}
+
+async function submitPermissions() {
+  const sections = ['list','kanban','catalog','pricelist'].filter(s =>
+    document.getElementById('perm-'+s).checked
+  );
+  const errEl = document.getElementById('perms-err');
+  errEl.classList.remove('show');
+  const res = await api('PUT', `/api/users/${permsUserId}/sections`, { sections });
+  if (res.ok) {
+    closeModal('modal-perms');
+    loadUsers();
+  } else {
+    errEl.textContent = res.error || 'שגיאה';
+    errEl.classList.add('show');
+  }
 }
 
 async function toggleActive(id, current) {

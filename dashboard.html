@@ -486,7 +486,7 @@ kbd{background:#edf2f7;border:1px solid #cbd5e0;border-radius:4px;padding:1px 5p
 .pl-mfr-discounts{display:flex;align-items:center;gap:7px;flex-wrap:wrap;padding-right:10px;
   border-right:2px solid #e2e8f0}
 .pl-mfr-disc-label{font-size:.74rem;color:#718096;font-weight:700;white-space:nowrap}
-.pl-disc-item{display:flex;align-items:center;gap:3px}
+.pl-disc-item{display:flex;align-items:center;gap:3px;direction:ltr}
 .pl-disc-item label{font-size:.72rem;color:#4a5568;font-weight:600;white-space:nowrap}
 .pl-disc-item input{width:52px;padding:3px 5px;border:1.5px solid #e2e8f0;border-radius:6px;
   font-size:.78rem;font-family:inherit;text-align:center;direction:ltr;transition:.15s}
@@ -2040,6 +2040,12 @@ function cityCell(t){
 
 // ─── VIEW ──────────────────────────────────────────────────
 function setView(v){
+  // Access check for non-admin users
+  if(_userSections!==null && !_userSections.includes(v)){
+    const first=_userSections[0];
+    if(first && first!==v) setView(first);
+    return;
+  }
   currentView=v;
   document.getElementById('vt-list').classList.toggle('active',v==='list');
   document.getElementById('vt-kanban').classList.toggle('active',v==='kanban');
@@ -3892,6 +3898,8 @@ async function submitChangePw(){
     btn.disabled=false; btn.textContent='שמור סיסמה';
   }
 }
+let _userSections=null; // null=admin(all), array=allowed sections for viewer
+
 (async function _initUser(){
   try{
     const r=await fetch('/api/auth/me');
@@ -3905,9 +3913,34 @@ async function submitChangePw(){
     }
     if(u.role==='viewer'){
       document.body.classList.add('viewer-mode');
+      _userSections = Array.isArray(u.sections) ? u.sections : [];
+      _applyViewPermissions();
+      // Route to first accessible section (or show empty state)
+      const first = _userSections[0] || null;
+      if(first) setView(first);
+      else _showNoAccessScreen();
     }
   }catch(e){}
 })();
+
+function _applyViewPermissions(){
+  if(_userSections===null) return; // admin — no restrictions
+  ['list','kanban','catalog','pricelist'].forEach(s=>{
+    const btn=document.getElementById('vt-'+s);
+    if(btn) btn.style.display=_userSections.includes(s)?'':'none';
+  });
+}
+
+function _showNoAccessScreen(){
+  // Hide view-bar, show a simple message
+  const vbar=document.querySelector('.view-bar');
+  if(vbar) vbar.style.display='none';
+  const body=document.querySelector('body');
+  const msg=document.createElement('div');
+  msg.style.cssText='position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:#f8fafc;z-index:50;flex-direction:column;gap:12px';
+  msg.innerHTML='<div style="font-size:2rem">🔒</div><div style="font-size:1.1rem;font-weight:700;color:#374151">אין לך גישה למערכת</div><div style="font-size:.85rem;color:#6b7280">פנה למנהל המערכת לקבלת הרשאות</div>';
+  body.appendChild(msg);
+}
 
 let _plSearchDebT=null;
 function _plSearchAudit(q){
@@ -5056,7 +5089,7 @@ function _buildPlDiscInputs(){
   wrap.innerHTML=mfrs.map(mfr=>{
     const val=plMfrDiscounts[mfr]||0;
     return `<div class="pl-disc-item">
-      <label>${mfr}</label>
+      <label>${mfr}:</label>
       <input type="number" min="0" max="100" step="1" value="${val}"
         class="disc-inp${val>0?' disc-active':''}"
         data-mfr="${mfr}"
