@@ -3946,7 +3946,7 @@ function _showNoAccessScreen(){
   const body=document.querySelector('body');
   const msg=document.createElement('div');
   msg.style.cssText='position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:#f8fafc;z-index:50;flex-direction:column;gap:16px;font-family:inherit';
-  msg.innerHTML='<div style="font-size:2.5rem">🔒</div><div style="font-size:1.1rem;font-weight:700;color:#374151">אין לך גישה למערכת</div><div style="font-size:.85rem;color:#6b7280">פנה למנהל המערכת לקבלת הרשאות</div><button onclick="fetch('/api/auth/logout',{method:'POST'}).then(()=>location.href='/login')" style="margin-top:8px;padding:10px 24px;background:#1a2a4a;color:#fff;border:none;border-radius:8px;font-size:.9rem;font-weight:600;cursor:pointer">יציאה → כניסה מחדש</button>';
+  msg.innerHTML='<div style="font-size:2.5rem">🔒</div><div style="font-size:1.1rem;font-weight:700;color:#374151">אין לך גישה למערכת</div><div style="font-size:.85rem;color:#6b7280">פנה למנהל המערכת לקבלת הרשאות</div><button onclick="fetch(\'/api/auth/logout\',{method:\'POST\'}).then(()=>location.href=\'/login\')" style="margin-top:8px;padding:10px 24px;background:#1a2a4a;color:#fff;border:none;border-radius:8px;font-size:.9rem;font-weight:600;cursor:pointer">יציאה → כניסה מחדש</button>';
   body.appendChild(msg);
 }
 
