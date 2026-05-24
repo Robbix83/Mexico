@@ -122,9 +122,26 @@ app.post('/api/auth/login', loginLimiter, (req, res) => {
 
   const user = db.getUserByUsername(username);
 
+  // Account locked after 5 failed attempts
+  if (user && user.login_attempts >= 5) {
+    db.logAudit(user.id, user.username, 'login_fail', 'Account locked', ip, ua);
+    return res.status(401).json({ error: 'החשבון חסום עקב ניסיונות כניסה שגויים. פנה למנהל מערכת לשחרור' });
+  }
+
   if (!user || !bcrypt.compareSync(password, user.password_hash)) {
-    db.logAudit(user?.id, username, 'login_fail', 'Wrong credentials', ip, ua);
-    return res.status(401).json({ error: 'Invalid username or password' });
+    if (user) {
+      db.incrementLoginAttempts(user.id);
+      const attempts = user.login_attempts + 1;
+      if (attempts >= 5) {
+        db.logAudit(user.id, user.username, 'login_fail', 'Account locked after too many attempts', ip, ua);
+        return res.status(401).json({ error: 'החשבון חסום עקב ניסיונות כניסה שגויים. פנה למנהל מערכת לשחרור' });
+      }
+      const remaining = 5 - attempts;
+      db.logAudit(user.id, user.username, 'login_fail', `Wrong credentials (${attempts}/5 attempts)`, ip, ua);
+      return res.status(401).json({ error: `שם משתמש או סיסמה שגויים (${remaining} ניסיונות נותרו לפני חסימה)` });
+    }
+    db.logAudit(null, username, 'login_fail', 'Wrong credentials', ip, ua);
+    return res.status(401).json({ error: 'שם משתמש או סיסמה שגויים' });
   }
 
   if (!user.active) {
@@ -132,6 +149,8 @@ app.post('/api/auth/login', loginLimiter, (req, res) => {
     return res.status(401).json({ error: 'Account is disabled' });
   }
 
+  // Successful login — reset attempt counter
+  db.resetLoginAttempts(user.id);
   db.updateLastLogin(user.id);
   db.logAudit(user.id, user.username, 'login', null, ip, ua);
 
@@ -251,6 +270,15 @@ app.delete('/api/users/:id', requireAdmin, (req, res) => {
     return res.status(400).json({ error: 'לא ניתן למחוק את מנהל המערכת האחרון' });
   db.deleteUser(id);
   db.logAudit(req.user.id, req.user.username, 'delete_user', `Deleted user: ${target.username}`, getClientIp(req), '');
+  res.json({ ok: true });
+});
+
+app.post('/api/users/:id/unlock', requireAdmin, (req, res) => {
+  const id = parseInt(req.params.id);
+  const target = db.getUserById(id);
+  if (!target) return res.status(404).json({ error: 'משתמש לא נמצא' });
+  db.resetLoginAttempts(id);
+  db.logAudit(req.user.id, req.user.username, 'unlock_user', `Unlocked user: ${target.username}`, getClientIp(req), '');
   res.json({ ok: true });
 });
 

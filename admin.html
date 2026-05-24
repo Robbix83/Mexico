@@ -42,6 +42,7 @@ tr:hover td{background:#f8fafc}
 .badge-viewer{background:#f0fdf4;color:#166534}
 .badge-on{background:#dcfce7;color:#166534}
 .badge-off{background:#fee2e2;color:#991b1b}
+.badge-locked{background:#fef3c7;color:#92400e}
 
 /* Buttons */
 .btn{padding:7px 14px;border:none;border-radius:6px;font-size:.8rem;font-weight:600;cursor:pointer;transition:background .15s}
@@ -135,6 +136,7 @@ tr:hover td{background:#f8fafc}
           <option value="reset_password">איפוס סיסמה</option>
           <option value="change_password">שינוי סיסמה</option>
           <option value="update_user">עדכון משתמש</option>
+          <option value="unlock_user">שחרור חסימה</option>
         </select>
       </div>
       <div><label>מתאריך</label><br><input id="f-from" type="date" onchange="loadAudit(1)"></div>
@@ -234,7 +236,8 @@ const ACTION_LABELS = {
   login:'כניסה', login_fail:'כניסה כושלת', logout:'יציאה',
   view_ds:'פתיחת דאטה-שיט', search:'חיפוש', edit:'עריכה',
   export:'ייצוא', create_user:'יצירת משתמש', reset_password:'איפוס סיסמה',
-  change_password:'שינוי סיסמה', update_user:'עדכון משתמש', delete_user:'מחיקת משתמש'
+  change_password:'שינוי סיסמה', update_user:'עדכון משתמש', delete_user:'מחיקת משתמש',
+  unlock_user:'שחרור חסימה'
 };
 
 // ── Tabs ───────────────────────────────────────────────────────────────────
@@ -273,13 +276,14 @@ function renderUsers() {
     <tr>
       <td><strong>${u.username}</strong></td>
       <td><span class="badge badge-${u.role}">${u.role==='admin'?'מנהל':'צופה'}</span></td>
-      <td><span class="badge ${u.active?'badge-on':'badge-off'}">${u.active?'פעיל':'מושבת'}</span></td>
+      <td>${u.login_attempts>=5?'<span class='badge badge-locked'>🔒 חסום</span> ':''}<span class="badge ${u.active?'badge-on':'badge-off'}">${u.active?'פעיל':'מושבת'}</span></td>
       <td style="text-align:center">${u.must_change_password?'<span style="color:#b45309;font-weight:700">⚠️ כן</span>':'<span style="color:#6b7280">—</span>'}</td>
       <td>${fmtDate(u.created_at)}</td>
       <td>${u.last_login?fmtDate(u.last_login):'—'}</td>
       <td>
         <div class="btn-group">
           ${u.role==='viewer'?`<button class="btn btn-sm" style="background:#eff6ff;color:#1d4ed8;border-color:#bfdbfe" onclick="openPermissions(${u.id},'${u.username}')">🔐 גישה</button>`:''}
+          ${u.login_attempts>=5?`<button class="btn btn-sm" style="background:#fef3c7;color:#92400e;border-color:#fde68a" onclick="unlockUser(${u.id},'${u.username}')">🔓 שחרר</button>`:''}
           <button class="btn btn-warning btn-sm" onclick="openResetPassword(${u.id},'${u.username}')">איפוס סיסמה</button>
           <button class="btn btn-sm ${u.active?'btn-danger':''}" onclick="toggleActive(${u.id},${u.active})">${u.active?'השבת':'הפעל'}</button>
           <button class="btn btn-sm" onclick="toggleRole(${u.id},'${u.role}')">${u.role==='admin'?'הפוך לצופה':'הפוך למנהל'}</button>
@@ -317,6 +321,16 @@ async function submitPermissions() {
   } else {
     errEl.textContent = res.error || 'שגיאה';
     errEl.classList.add('show');
+  }
+}
+
+async function unlockUser(id, username) {
+  if (!confirm(`לשחרר את החסימה של "${username}"?`)) return;
+  const res = await api('POST', `/api/users/${id}/unlock`);
+  if (res.ok) {
+    loadUsers();
+  } else {
+    alert(res.error || 'שגיאה בשחרור');
   }
 }
 

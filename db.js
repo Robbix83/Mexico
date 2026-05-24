@@ -53,6 +53,11 @@ try {
   db.exec("ALTER TABLE users ADD COLUMN sections TEXT");
 } catch(e) { /* column already exists — skip */ }
 
+// Migration: add login_attempts column for lockout tracking
+try {
+  db.exec("ALTER TABLE users ADD COLUMN login_attempts INTEGER NOT NULL DEFAULT 0");
+} catch(e) { /* column already exists — skip */ }
+
 // Seed admin user from env vars if no users exist
 const userCount = db.prepare('SELECT COUNT(*) as n FROM users').get().n;
 if (userCount === 0) {
@@ -70,7 +75,7 @@ if (userCount === 0) {
 const stmts = {
   getUserByUsername: db.prepare('SELECT * FROM users WHERE username = ? COLLATE NOCASE'),
   getUserById:       db.prepare('SELECT * FROM users WHERE id = ?'),
-  listUsers:         db.prepare('SELECT id,username,role,active,created_at,last_login,must_change_password FROM users ORDER BY created_at DESC'),
+  listUsers:         db.prepare('SELECT id,username,role,active,created_at,last_login,must_change_password,login_attempts FROM users ORDER BY created_at DESC'),
   createUser:        db.prepare('INSERT INTO users (username, password_hash, role) VALUES (?, ?, ?)'),
   setMustChangePassword: db.prepare('UPDATE users SET must_change_password = ? WHERE id = ?'),
   setSections:       db.prepare('UPDATE users SET sections = ? WHERE id = ?'),
@@ -80,6 +85,8 @@ const stmts = {
   setActive:         db.prepare('UPDATE users SET active = ? WHERE id = ?'),
   setPassword:       db.prepare('UPDATE users SET password_hash = ? WHERE id = ?'),
   setRole:           db.prepare('UPDATE users SET role = ? WHERE id = ?'),
+  incrementLoginAttempts: db.prepare('UPDATE users SET login_attempts = login_attempts + 1 WHERE id = ?'),
+  resetLoginAttempts:     db.prepare('UPDATE users SET login_attempts = 0 WHERE id = ?'),
 
   // Audit
   insertAudit: db.prepare(
@@ -132,6 +139,8 @@ module.exports = {
     return stmts.setPassword.run(hash, id);
   },
   setRole: (id, role) => stmts.setRole.run(role, id),
+  incrementLoginAttempts: (id) => stmts.incrementLoginAttempts.run(id),
+  resetLoginAttempts:     (id) => stmts.resetLoginAttempts.run(id),
 
   // Audit
   logAudit: (userId, username, action, detail, ip, ua) =>
