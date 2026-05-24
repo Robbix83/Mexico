@@ -792,6 +792,9 @@ tr:hover .pl-edit-btn{opacity:.65}
 </head>
 <body>
 
+<!-- Auth guard — covers page until permissions are verified, preventing flash -->
+<div id="page-guard" style="position:fixed;inset:0;background:#fff;z-index:9999"></div>
+
 <header>
   <div class="header-title">
     <h1>פרויקטים — ניהול משימות</h1>
@@ -3921,6 +3924,11 @@ let _userSections=null; // null=admin(all), array=allowed sections for viewer
       else _showNoAccessScreen();
     }
   }catch(e){}
+  finally{
+    // Always remove the guard — no flash regardless of outcome
+    const g=document.getElementById('page-guard');
+    if(g) g.remove();
+  }
 })();
 
 function _applyViewPermissions(){
