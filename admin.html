@@ -276,7 +276,7 @@ function renderUsers() {
     <tr>
       <td><strong>${u.username}</strong></td>
       <td><span class="badge badge-${u.role}">${u.role==='admin'?'מנהל':'צופה'}</span></td>
-      <td>${u.login_attempts>=5?'<span class='badge badge-locked'>🔒 חסום</span> ':''}<span class="badge ${u.active?'badge-on':'badge-off'}">${u.active?'פעיל':'מושבת'}</span></td>
+      <td>${u.login_attempts>=5?'<span class="badge badge-locked">🔒 חסום</span> ':''}<span class="badge ${u.active?'badge-on':'badge-off'}">${u.active?'פעיל':'מושבת'}</span></td>
       <td style="text-align:center">${u.must_change_password?'<span style="color:#b45309;font-weight:700">⚠️ כן</span>':'<span style="color:#6b7280">—</span>'}</td>
       <td>${fmtDate(u.created_at)}</td>
       <td>${u.last_login?fmtDate(u.last_login):'—'}</td>
