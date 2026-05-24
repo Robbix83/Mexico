@@ -241,6 +241,19 @@ app.post('/api/users/:id/reset-password', requireAdmin, (req, res) => {
   res.json({ ok: true });
 });
 
+app.delete('/api/users/:id', requireAdmin, (req, res) => {
+  const id = parseInt(req.params.id);
+  if (id === req.user.id)
+    return res.status(400).json({ error: 'לא ניתן למחוק את המשתמש שלך' });
+  const target = db.getUserById(id);
+  if (!target) return res.status(404).json({ error: 'משתמש לא נמצא' });
+  if (target.role === 'admin' && db.countAdmins() <= 1)
+    return res.status(400).json({ error: 'לא ניתן למחוק את מנהל המערכת האחרון' });
+  db.deleteUser(id);
+  db.logAudit(req.user.id, req.user.username, 'delete_user', `Deleted user: ${target.username}`, getClientIp(req), '');
+  res.json({ ok: true });
+});
+
 app.put('/api/users/:id/sections', requireAdmin, (req, res) => {
   const id = parseInt(req.params.id);
   const { sections } = req.body;

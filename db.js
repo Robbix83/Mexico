@@ -74,6 +74,8 @@ const stmts = {
   createUser:        db.prepare('INSERT INTO users (username, password_hash, role) VALUES (?, ?, ?)'),
   setMustChangePassword: db.prepare('UPDATE users SET must_change_password = ? WHERE id = ?'),
   setSections:       db.prepare('UPDATE users SET sections = ? WHERE id = ?'),
+  deleteUser:        db.prepare('DELETE FROM users WHERE id = ?'),
+  countAdmins:       db.prepare("SELECT COUNT(*) as n FROM users WHERE role='admin' AND active=1"),
   updateLastLogin:   db.prepare("UPDATE users SET last_login = datetime('now') WHERE id = ?"),
   setActive:         db.prepare('UPDATE users SET active = ? WHERE id = ?'),
   setPassword:       db.prepare('UPDATE users SET password_hash = ? WHERE id = ?'),
@@ -121,6 +123,8 @@ module.exports = {
   setSections: (id, sectionsArr) => stmts.setSections.run(
     sectionsArr !== null ? JSON.stringify(sectionsArr) : null, id
   ),
+  deleteUser:  (id) => stmts.deleteUser.run(id),
+  countAdmins: ()  => stmts.countAdmins.get().n,
   updateLastLogin: (id) => stmts.updateLastLogin.run(id),
   setActive:       (id, active) => stmts.setActive.run(active ? 1 : 0, id),
   setPassword: (id, plainPassword) => {

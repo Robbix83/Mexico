@@ -234,7 +234,7 @@ const ACTION_LABELS = {
   login:'כניסה', login_fail:'כניסה כושלת', logout:'יציאה',
   view_ds:'פתיחת דאטה-שיט', search:'חיפוש', edit:'עריכה',
   export:'ייצוא', create_user:'יצירת משתמש', reset_password:'איפוס סיסמה',
-  change_password:'שינוי סיסמה', update_user:'עדכון משתמש'
+  change_password:'שינוי סיסמה', update_user:'עדכון משתמש', delete_user:'מחיקת משתמש'
 };
 
 // ── Tabs ───────────────────────────────────────────────────────────────────
@@ -283,6 +283,7 @@ function renderUsers() {
           <button class="btn btn-warning btn-sm" onclick="openResetPassword(${u.id},'${u.username}')">איפוס סיסמה</button>
           <button class="btn btn-sm ${u.active?'btn-danger':''}" onclick="toggleActive(${u.id},${u.active})">${u.active?'השבת':'הפעל'}</button>
           <button class="btn btn-sm" onclick="toggleRole(${u.id},'${u.role}')">${u.role==='admin'?'הפוך לצופה':'הפוך למנהל'}</button>
+          <button class="btn btn-danger btn-sm" onclick="deleteUser(${u.id},'${u.username}')">🗑️ מחק</button>
         </div>
         <div style="margin-top:4px">${sectionsBadges}</div>
       </td>
@@ -316,6 +317,16 @@ async function submitPermissions() {
   } else {
     errEl.textContent = res.error || 'שגיאה';
     errEl.classList.add('show');
+  }
+}
+
+async function deleteUser(id, username) {
+  if (!confirm(`למחוק את המשתמש "${username}"?\nפעולה זו אינה הפיכה.`)) return;
+  const res = await api('DELETE', `/api/users/${id}`);
+  if (res.ok) {
+    loadUsers();
+  } else {
+    alert(res.error || 'שגיאה במחיקה');
   }
 }
 
