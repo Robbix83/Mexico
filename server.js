@@ -39,6 +39,14 @@ app.set('trust proxy', 1);
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
+function validatePassword(pw) {
+  if (!pw || pw.length < 8)  return 'הסיסמה חייבת להכיל לפחות 8 תווים';
+  if (!/[A-Z]/.test(pw))     return 'הסיסמה חייבת להכיל אות גדולה אחת לפחות';
+  if (!/[a-z]/.test(pw))     return 'הסיסמה חייבת להכיל אות קטנה אחת לפחות';
+  if (!/[0-9]/.test(pw))     return 'הסיסמה חייבת להכיל ספרה אחת לפחות';
+  return null; // valid
+}
+
 function signToken(user) {
   return jwt.sign(
     { id: user.id, username: user.username, role: user.role },
@@ -134,7 +142,7 @@ app.post('/api/auth/login', loginLimiter, (req, res) => {
     sameSite: 'strict',
     maxAge:   8 * 60 * 60 * 1000,   // 8 hours
   });
-  res.json({ ok: true, role: user.role });
+  res.json({ ok: true, role: user.role, must_change_password: !!user.must_change_password });
 });
 
 app.post('/api/auth/logout', requireAuth, (req, res) => {
@@ -147,6 +155,23 @@ app.post('/api/auth/logout', requireAuth, (req, res) => {
 
 app.get('/api/auth/me', requireAuth, (req, res) => {
   res.json({ id: req.user.id, username: req.user.username, role: req.user.role });
+});
+
+app.post('/api/auth/change-password', requireAuth, (req, res) => {
+  const { currentPassword, newPassword } = req.body;
+  const user = db.getUserById(req.user.id);
+  if (!user || !bcrypt.compareSync(currentPassword, user.password_hash))
+    return res.status(401).json({ error: 'הסיסמה הנוכחית שגויה' });
+  const pwErr = validatePassword(newPassword);
+  if (pwErr) return res.status(400).json({ error: pwErr });
+  if (currentPassword === newPassword)
+    return res.status(400).json({ error: 'הסיסמה החדשה זהה לישנה' });
+  db.setPassword(user.id, newPassword);
+  db.setMustChangePassword(user.id, 0);
+  const ip = getClientIp(req);
+  const ua = req.headers['user-agent'] || '';
+  db.logAudit(user.id, user.username, 'change_password', null, ip, ua);
+  res.json({ ok: true });
 });
 
 // ── Audit event from client ───────────────────────────────────────────────────
@@ -171,7 +196,8 @@ app.post('/api/users', requireAdmin, (req, res) => {
   const { username, password, role = 'viewer' } = req.body;
   if (!username || !password) return res.status(400).json({ error: 'username and password required' });
   if (!['admin', 'viewer'].includes(role)) return res.status(400).json({ error: 'Invalid role' });
-  if (password.length < 6) return res.status(400).json({ error: 'Password must be at least 6 characters' });
+  const pwErr = validatePassword(password);
+  if (pwErr) return res.status(400).json({ error: pwErr });
   try {
     const result = db.createUser(username, password, role);
     db.logAudit(req.user.id, req.user.username, 'create_user', `Created user: ${username} (${role})`, getClientIp(req), '');
@@ -200,8 +226,10 @@ app.put('/api/users/:id', requireAdmin, (req, res) => {
 app.post('/api/users/:id/reset-password', requireAdmin, (req, res) => {
   const id = parseInt(req.params.id);
   const { password } = req.body;
-  if (!password || password.length < 6) return res.status(400).json({ error: 'Password must be at least 6 characters' });
+  const pwErr2 = validatePassword(password);
+  if (pwErr2) return res.status(400).json({ error: pwErr2 });
   db.setPassword(id, password);
+  db.setMustChangePassword(id, 1);
   db.logAudit(req.user.id, req.user.username, 'reset_password', `Reset password for user id=${id}`, getClientIp(req), '');
   res.json({ ok: true });
 });

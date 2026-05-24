@@ -43,6 +43,11 @@ db.exec(`
   CREATE INDEX IF NOT EXISTS idx_audit_action    ON audit(action);
 `);
 
+// Migration: add must_change_password column to existing DBs
+try {
+  db.exec("ALTER TABLE users ADD COLUMN must_change_password INTEGER NOT NULL DEFAULT 0");
+} catch(e) { /* column already exists — skip */ }
+
 // Seed admin user from env vars if no users exist
 const userCount = db.prepare('SELECT COUNT(*) as n FROM users').get().n;
 if (userCount === 0) {
@@ -60,8 +65,9 @@ if (userCount === 0) {
 const stmts = {
   getUserByUsername: db.prepare('SELECT * FROM users WHERE username = ? COLLATE NOCASE'),
   getUserById:       db.prepare('SELECT * FROM users WHERE id = ?'),
-  listUsers:         db.prepare('SELECT id,username,role,active,created_at,last_login FROM users ORDER BY created_at DESC'),
+  listUsers:         db.prepare('SELECT id,username,role,active,created_at,last_login,must_change_password FROM users ORDER BY created_at DESC'),
   createUser:        db.prepare('INSERT INTO users (username, password_hash, role) VALUES (?, ?, ?)'),
+  setMustChangePassword: db.prepare('UPDATE users SET must_change_password = ? WHERE id = ?'),
   updateLastLogin:   db.prepare("UPDATE users SET last_login = datetime('now') WHERE id = ?"),
   setActive:         db.prepare('UPDATE users SET active = ? WHERE id = ?'),
   setPassword:       db.prepare('UPDATE users SET password_hash = ? WHERE id = ?'),
@@ -99,8 +105,11 @@ module.exports = {
   listUsers:         ()         => stmts.listUsers.all(),
   createUser: (username, plainPassword, role = 'viewer') => {
     const hash = bcrypt.hashSync(plainPassword, 12);
-    return stmts.createUser.run(username, hash, role);
+    const r = stmts.createUser.run(username, hash, role);
+    stmts.setMustChangePassword.run(1, r.lastInsertRowid);
+    return r;
   },
+  setMustChangePassword: (id, val) => stmts.setMustChangePassword.run(val ? 1 : 0, id),
   updateLastLogin: (id) => stmts.updateLastLogin.run(id),
   setActive:       (id, active) => stmts.setActive.run(active ? 1 : 0, id),
   setPassword: (id, plainPassword) => {

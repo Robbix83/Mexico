@@ -799,6 +799,7 @@ tr:hover .pl-edit-btn{opacity:.65}
   </div>
   <div class="header-actions">
     <button class="btn-header btn-admin" id="btn-admin" style="display:none" onclick="location.href='/admin'">⚙️ ניהול</button>
+    <button class="btn-header btn-logout" onclick="openChangePwModal()" style="background:rgba(255,255,255,.1);color:#cbd5e1" title="שינוי סיסמה">🔑 סיסמה</button>
     <button class="btn-header btn-logout" onclick="doLogout()">🚪 יציאה</button>
   </div>
   <div class="header-logo">
@@ -1205,6 +1206,30 @@ tr:hover .pl-edit-btn{opacity:.65}
     <div style="display:flex;gap:7px;align-items:center">
       <input class="add-cat-input" id="new-city-name" placeholder="שם העיר..."/>
       <button class="btn-primary" style="padding:7px 14px;font-size:.78rem;white-space:nowrap" onclick="addCity()">＋ הוסף</button>
+    </div>
+  </div>
+</div>
+
+<!-- Change password modal -->
+<div class="modal-overlay" id="change-pw-modal" onclick="if(event.target===this)closeChangePwModal()">
+  <div class="modal-card" style="max-width:400px">
+    <h3>🔑 שינוי סיסמה <button class="modal-close" onclick="closeChangePwModal()">✕</button></h3>
+    <div style="background:#eff6ff;border:1px solid #bfdbfe;color:#1d4ed8;border-radius:8px;padding:9px 12px;font-size:.77rem;margin-bottom:14px;line-height:1.6">
+      דרישות: 8+ תווים &nbsp;·&nbsp; אות גדולה &nbsp;·&nbsp; אות קטנה &nbsp;·&nbsp; ספרה
+    </div>
+    <div class="field"><label>סיסמה נוכחית</label>
+      <input type="password" id="cpw-current" autocomplete="current-password" placeholder="••••••••">
+    </div>
+    <div class="field"><label>סיסמה חדשה</label>
+      <input type="password" id="cpw-new" autocomplete="new-password" placeholder="לפחות 8 תווים...">
+    </div>
+    <div class="field"><label>אישור סיסמה חדשה</label>
+      <input type="password" id="cpw-confirm" autocomplete="new-password" placeholder="חזור על הסיסמה החדשה">
+    </div>
+    <div id="cpw-err" style="display:none;color:#dc2626;font-size:.8rem;margin-bottom:8px;background:#fef2f2;border:1px solid #fca5a5;border-radius:6px;padding:8px 10px"></div>
+    <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:4px">
+      <button class="btn-cat" onclick="closeChangePwModal()">ביטול</button>
+      <button class="btn-primary" id="cpw-btn" onclick="submitChangePw()" style="padding:8px 20px">שמור סיסמה</button>
     </div>
   </div>
 </div>
@@ -3824,6 +3849,48 @@ function logAuditEvent(action,detail){
 async function doLogout(){
   await fetch('/api/auth/logout',{method:'POST'}).catch(()=>{});
   location.href='/login';
+}
+
+function openChangePwModal(){
+  document.getElementById('cpw-current').value='';
+  document.getElementById('cpw-new').value='';
+  document.getElementById('cpw-confirm').value='';
+  const errEl=document.getElementById('cpw-err');
+  errEl.style.display='none'; errEl.textContent='';
+  document.getElementById('change-pw-modal').classList.add('open');
+  setTimeout(()=>document.getElementById('cpw-current').focus(),50);
+}
+function closeChangePwModal(){
+  document.getElementById('change-pw-modal').classList.remove('open');
+}
+async function submitChangePw(){
+  const cur=document.getElementById('cpw-current').value;
+  const nw=document.getElementById('cpw-new').value;
+  const cf=document.getElementById('cpw-confirm').value;
+  const errEl=document.getElementById('cpw-err');
+  errEl.style.display='none';
+  if(nw!==cf){errEl.textContent='הסיסמאות אינן תואמות';errEl.style.display='block';return;}
+  const btn=document.getElementById('cpw-btn');
+  btn.disabled=true; btn.textContent='שומר...';
+  try{
+    const res=await fetch('/api/auth/change-password',{
+      method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({currentPassword:cur,newPassword:nw})
+    });
+    const data=await res.json();
+    if(res.ok){
+      closeChangePwModal();
+      showToast('הסיסמה שונתה בהצלחה ✅');
+    } else {
+      errEl.textContent=data.error||'שגיאה בשינוי סיסמה';
+      errEl.style.display='block';
+    }
+  }catch{
+    errEl.textContent='שגיאת רשת — נסה שנית';
+    errEl.style.display='block';
+  }finally{
+    btn.disabled=false; btn.textContent='שמור סיסמה';
+  }
 }
 (async function _initUser(){
   try{

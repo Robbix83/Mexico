@@ -13,7 +13,7 @@
   }
   .card{
     background:#fff;border-radius:16px;padding:40px 36px;
-    width:360px;box-shadow:0 20px 60px rgba(0,0,0,.35);
+    width:380px;box-shadow:0 20px 60px rgba(0,0,0,.35);
   }
   .logo{display:flex;align-items:center;justify-content:center;margin-bottom:28px;gap:12px}
   .logo img{height:48px}
@@ -37,6 +37,17 @@
     border-radius:8px;padding:10px 14px;font-size:.83rem;margin-top:14px;text-align:center;
   }
   .err.show{display:block}
+  .hint{
+    background:#eff6ff;border:1px solid #bfdbfe;color:#1d4ed8;
+    border-radius:8px;padding:10px 14px;font-size:.78rem;margin-bottom:18px;line-height:1.6;
+  }
+  .step{display:none}
+  .step.active{display:block}
+  .change-title{font-size:1rem;font-weight:700;color:#b45309;text-align:center;margin-bottom:8px}
+  .change-sub{
+    font-size:.8rem;color:#92400e;text-align:center;margin-bottom:18px;
+    background:#fef3c7;border:1px solid #fde68a;border-radius:8px;padding:8px 12px;
+  }
 </style>
 </head>
 <body>
@@ -45,48 +56,122 @@
     <img src="/logo.png" alt="אפקון" onerror="this.style.display='none'">
     <span class="logo-text">אפקון</span>
   </div>
-  <h1>כניסה למערכת</h1>
-  <form id="form" onsubmit="doLogin(event)">
-    <div class="field">
-      <label for="u">שם משתמש</label>
-      <input id="u" name="username" type="text" autocomplete="username" required autofocus>
+
+  <!-- Step 1: Login -->
+  <div id="step-login" class="step active">
+    <h1>כניסה למערכת</h1>
+    <form id="form" onsubmit="doLogin(event)">
+      <div class="field">
+        <label for="u">שם משתמש</label>
+        <input id="u" name="username" type="text" autocomplete="username" required autofocus>
+      </div>
+      <div class="field">
+        <label for="p">סיסמה</label>
+        <input id="p" name="password" type="password" autocomplete="current-password" required>
+      </div>
+      <button class="btn" type="submit" id="btn">כניסה</button>
+      <div class="err" id="err"></div>
+    </form>
+  </div>
+
+  <!-- Step 2: Forced password change -->
+  <div id="step-change" class="step">
+    <p class="change-title">🔒 נדרש שינוי סיסמה</p>
+    <p class="change-sub">עליך להגדיר סיסמה חדשה לפני הכניסה למערכת</p>
+    <div class="hint">
+      דרישות סיסמה:<br>
+      ✓ לפחות 8 תווים &nbsp;·&nbsp; ✓ אות גדולה באנגלית<br>
+      ✓ אות קטנה באנגלית &nbsp;·&nbsp; ✓ ספרה אחת לפחות
     </div>
-    <div class="field">
-      <label for="p">סיסמה</label>
-      <input id="p" name="password" type="password" autocomplete="current-password" required>
-    </div>
-    <button class="btn" type="submit" id="btn">כניסה</button>
-    <div class="err" id="err"></div>
-  </form>
+    <form id="change-form" onsubmit="doChangePassword(event)">
+      <div class="field">
+        <label for="cp-new">סיסמה חדשה</label>
+        <input id="cp-new" type="password" autocomplete="new-password" required placeholder="לפחות 8 תווים...">
+      </div>
+      <div class="field">
+        <label for="cp-confirm">אישור סיסמה חדשה</label>
+        <input id="cp-confirm" type="password" autocomplete="new-password" required placeholder="חזור על הסיסמה החדשה">
+      </div>
+      <button class="btn" type="submit" id="cp-btn">שנה סיסמה וכנס</button>
+      <div class="err" id="cp-err"></div>
+    </form>
+  </div>
 </div>
+
 <script>
-async function doLogin(e){
+let _loginPassword = '';
+
+async function doLogin(e) {
   e.preventDefault();
-  const btn=document.getElementById('btn');
-  const err=document.getElementById('err');
+  const btn = document.getElementById('btn');
+  const err = document.getElementById('err');
   err.classList.remove('show');
-  btn.disabled=true; btn.textContent='מתחבר...';
-  try{
-    const res=await fetch('/api/auth/login',{
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({
-        username:document.getElementById('u').value.trim(),
-        password:document.getElementById('p').value
+  btn.disabled = true; btn.textContent = 'מתחבר...';
+  try {
+    const pw = document.getElementById('p').value;
+    const res = await fetch('/api/auth/login', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({
+        username: document.getElementById('u').value.trim(),
+        password: pw
       })
     });
-    const data=await res.json();
-    if(res.ok){
-      window.location.href='/';
+    const data = await res.json();
+    if (res.ok) {
+      if (data.must_change_password) {
+        _loginPassword = pw;
+        document.getElementById('step-login').classList.remove('active');
+        document.getElementById('step-change').classList.add('active');
+        setTimeout(() => document.getElementById('cp-new').focus(), 50);
+      } else {
+        window.location.href = '/';
+      }
     } else {
-      err.textContent=data.error||'שגיאה בכניסה';
+      err.textContent = data.error || 'שגיאה בכניסה';
       err.classList.add('show');
-      btn.disabled=false; btn.textContent='כניסה';
+      btn.disabled = false; btn.textContent = 'כניסה';
     }
-  } catch{
-    err.textContent='שגיאת רשת — נסה שנית';
+  } catch {
+    err.textContent = 'שגיאת רשת — נסה שנית';
     err.classList.add('show');
-    btn.disabled=false; btn.textContent='כניסה';
+    btn.disabled = false; btn.textContent = 'כניסה';
+  }
+}
+
+async function doChangePassword(e) {
+  e.preventDefault();
+  const btn    = document.getElementById('cp-btn');
+  const err    = document.getElementById('cp-err');
+  const newPw  = document.getElementById('cp-new').value;
+  const confPw = document.getElementById('cp-confirm').value;
+  err.classList.remove('show');
+
+  if (newPw !== confPw) {
+    err.textContent = 'הסיסמאות אינן תואמות';
+    err.classList.add('show');
+    return;
+  }
+
+  btn.disabled = true; btn.textContent = 'שומר...';
+  try {
+    const res = await fetch('/api/auth/change-password', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({ currentPassword: _loginPassword, newPassword: newPw })
+    });
+    const data = await res.json();
+    if (res.ok) {
+      window.location.href = '/';
+    } else {
+      err.textContent = data.error || 'שגיאה בשינוי סיסמה';
+      err.classList.add('show');
+      btn.disabled = false; btn.textContent = 'שנה סיסמה וכנס';
+    }
+  } catch {
+    err.textContent = 'שגיאת רשת — נסה שנית';
+    err.classList.add('show');
+    btn.disabled = false; btn.textContent = 'שנה סיסמה וכנס';
   }
 }
 </script>

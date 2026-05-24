@@ -108,9 +108,9 @@ tr:hover td{background:#f8fafc}
     <table id="users-table">
       <thead><tr>
         <th>שם משתמש</th><th>תפקיד</th><th>סטטוס</th>
-        <th>נוצר</th><th>כניסה אחרונה</th><th>פעולות</th>
+        <th>שינוי סיסמה?</th><th>נוצר</th><th>כניסה אחרונה</th><th>פעולות</th>
       </tr></thead>
-      <tbody id="users-tbody"><tr><td colspan="6" class="empty">טוען...</td></tr></tbody>
+      <tbody id="users-tbody"><tr><td colspan="7" class="empty">טוען...</td></tr></tbody>
     </table>
   </div>
 </div>
@@ -133,6 +133,7 @@ tr:hover td{background:#f8fafc}
           <option value="export">ייצוא</option>
           <option value="create_user">יצירת משתמש</option>
           <option value="reset_password">איפוס סיסמה</option>
+          <option value="change_password">שינוי סיסמה</option>
           <option value="update_user">עדכון משתמש</option>
         </select>
       </div>
@@ -159,8 +160,8 @@ tr:hover td{background:#f8fafc}
     <div class="field"><label>שם משתמש</label>
       <input id="nu-name" type="text" autocomplete="off" placeholder="username">
     </div>
-    <div class="field"><label>סיסמה (מינימום 6 תווים)</label>
-      <input id="nu-pass" type="password" placeholder="••••••">
+    <div class="field"><label>סיסמה (8+ תווים, אות גדולה, אות קטנה, ספרה)</label>
+      <input id="nu-pass" type="password" placeholder="לפחות 8 תווים...">
     </div>
     <div class="field"><label>תפקיד</label>
       <select id="nu-role">
@@ -181,8 +182,8 @@ tr:hover td{background:#f8fafc}
   <div class="modal">
     <h3>איפוס סיסמה</h3>
     <p id="reset-name-label" style="font-size:.85rem;color:#64748b;margin-bottom:14px"></p>
-    <div class="field"><label>סיסמה חדשה (מינימום 6 תווים)</label>
-      <input id="rp-pass" type="password" placeholder="••••••">
+    <div class="field"><label>סיסמה חדשה (8+ תווים, אות גדולה, אות קטנה, ספרה)</label>
+      <input id="rp-pass" type="password" placeholder="לפחות 8 תווים...">
     </div>
     <div class="err-msg" id="reset-err"></div>
     <div class="modal-actions">
@@ -203,7 +204,7 @@ const ACTION_LABELS = {
   login:'כניסה', login_fail:'כניסה כושלת', logout:'יציאה',
   view_ds:'פתיחת דאטה-שיט', search:'חיפוש', edit:'עריכה',
   export:'ייצוא', create_user:'יצירת משתמש', reset_password:'איפוס סיסמה',
-  update_user:'עדכון משתמש'
+  change_password:'שינוי סיסמה', update_user:'עדכון משתמש'
 };
 
 // ── Tabs ───────────────────────────────────────────────────────────────────
@@ -225,12 +226,13 @@ async function loadUsers() {
 
 function renderUsers() {
   const tbody = document.getElementById('users-tbody');
-  if (!users.length) { tbody.innerHTML='<tr><td colspan="6" class="empty">אין משתמשים</td></tr>'; return; }
+  if (!users.length) { tbody.innerHTML='<tr><td colspan="7" class="empty">אין משתמשים</td></tr>'; return; }
   tbody.innerHTML = users.map(u => `
     <tr>
       <td><strong>${u.username}</strong></td>
       <td><span class="badge badge-${u.role}">${u.role==='admin'?'מנהל':'צופה'}</span></td>
       <td><span class="badge ${u.active?'badge-on':'badge-off'}">${u.active?'פעיל':'מושבת'}</span></td>
+      <td style="text-align:center">${u.must_change_password?'<span style="color:#b45309;font-weight:700">⚠️ כן</span>':'<span style="color:#6b7280">—</span>'}</td>
       <td>${fmtDate(u.created_at)}</td>
       <td>${u.last_login?fmtDate(u.last_login):'—'}</td>
       <td>
