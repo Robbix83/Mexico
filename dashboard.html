@@ -548,6 +548,16 @@ kbd{background:#edf2f7;border:1px solid #cbd5e0;border-radius:4px;padding:1px 5p
   font-size:.7rem;font-weight:700;cursor:pointer;background:#f8fafc;color:#4a5568;transition:.12s}
 .pli-dupe-btn.active-update{background:#dbeafe;border-color:#93c5fd;color:#1d4ed8}
 .pli-dupe-btn.active-skip{background:#fee2e2;border-color:#fca5a5;color:#b91c1c}
+/* ── Warehouse inventory tab ── */
+.wh-toolbar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:14px}
+.wh-table{width:100%;border-collapse:collapse;font-size:.83rem}
+.wh-table th{background:#f7fafc;padding:8px 10px;text-align:right;font-weight:700;
+  color:#4a5568;border-bottom:2px solid #e2e8f0;position:sticky;top:0;z-index:2}
+.wh-table td{padding:7px 10px;border-bottom:1px solid #edf2f7;vertical-align:middle}
+.wh-table tr:hover td{background:#f7fafc}
+.wh-unit-badge{display:inline-block;padding:2px 8px;border-radius:10px;font-size:.72rem;font-weight:700}
+.wh-unit-badge.unit{background:#e2e8f0;color:#4a5568}
+.wh-unit-badge.meter{background:#dbeafe;color:#1d4ed8}
 .pl-table{width:100%;border-collapse:collapse;font-size:.82rem;table-layout:fixed}
 .pl-table thead th{background:#f8fafc;border-bottom:2px solid #e2e8f0;padding:8px 10px;
   text-align:right;font-weight:700;color:#4a5568;white-space:nowrap;position:sticky;top:0;z-index:2;overflow:hidden}
@@ -814,6 +824,7 @@ tr:hover .pl-edit-btn{opacity:.65}
   <button class="vt active" id="vt-list"      onclick="setView('list')">📋 רשימה</button>
   <button class="vt"        id="vt-kanban"    onclick="setView('kanban')">🗂️ קנבן</button>
   <button class="vt"        id="vt-catalog"   onclick="setView('catalog')">📦 קטלוג מקטים</button>
+  <button class="vt"        id="vt-warehouse" onclick="setView('warehouse')">🏭 מלאי מחסנים</button>
   <button class="vt"        id="vt-pricelist" onclick="setView('pricelist')">💲 מחירונים</button>
 </div>
 
@@ -951,6 +962,24 @@ tr:hover .pl-edit-btn{opacity:.65}
     <div id="catalog-grid"></div>
   </section>
 
+  <!-- ══ WAREHOUSE INVENTORY VIEW ══ -->
+  <section id="warehouse-view" style="display:none">
+    <h2>🏭 מלאי מחסנים</h2>
+    <div class="wh-toolbar">
+      <button class="btn-cat" onclick="openWhImportModal()"
+        style="background:#eef4ff;color:var(--blue);border-color:#bfdbfe">
+        📥 ייבוא מלאי מ-Excel
+      </button>
+      <div class="catalog-search-wrap">
+        <span class="catalog-search-ico">🔍</span>
+        <input class="catalog-search" id="wh-search" type="search"
+          placeholder="חיפוש לפי מק&quot;ט או תיאור..." oninput="renderWarehouse()" autocomplete="off"/>
+      </div>
+      <span id="wh-stats" style="font-size:.8rem;color:#718096"></span>
+    </div>
+    <div id="wh-grid"></div>
+  </section>
+
   <!-- ══ PRICE LIST VIEW ══ -->
   <section id="pricelist-view" style="display:none">
     <h2>💲 מחירונים</h2>
@@ -1031,6 +1060,24 @@ tr:hover .pl-edit-btn{opacity:.65}
     </div>
     <div class="pl-cart-bar" id="pl-cart-bar"></div>
   </section>
+
+  <!-- ══ WAREHOUSE IMPORT MODAL ══ -->
+  <div id="wh-import-overlay" class="pl-import-overlay" onclick="if(event.target===this)closeWhImport()">
+    <div class="pl-import-modal" style="max-width:480px">
+      <h3>📥 ייבוא מלאי מחסן מ-Excel</h3>
+      <p style="font-size:.85rem;color:#718096;margin-bottom:14px">
+        בחר קובץ ייצוא ממערכת ERP. הנתונים יחליפו את כל המלאי הקיים. שורות עם כמות 0 לא יכנסו.
+      </p>
+      <input type="file" id="wh-file-inp" accept=".xlsx,.xls"
+        onchange="handleWhFile(this.files[0])" style="margin-bottom:10px;width:100%"/>
+      <div id="wh-import-preview" style="font-size:.85rem;color:#2d7a4f;font-weight:600;min-height:22px"></div>
+      <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:18px">
+        <button class="pl-step-cancel" onclick="closeWhImport()">ביטול</button>
+        <button class="pl-step-next" id="wh-import-btn" onclick="doWhImport()" disabled
+          style="opacity:.5;cursor:not-allowed">ייבא</button>
+      </div>
+    </div>
+  </div>
 
   <!-- ══ PRICE LIST IMPORT MODAL ══ -->
   <div id="pl-import-overlay" class="pl-import-overlay" onclick="if(event.target===this)closePlImportModal()">
@@ -2053,18 +2100,21 @@ function setView(v){
   document.getElementById('vt-list').classList.toggle('active',v==='list');
   document.getElementById('vt-kanban').classList.toggle('active',v==='kanban');
   document.getElementById('vt-catalog').classList.toggle('active',v==='catalog');
+  document.getElementById('vt-warehouse').classList.toggle('active',v==='warehouse');
   document.getElementById('vt-pricelist').classList.toggle('active',v==='pricelist');
-  document.getElementById('list-view').style.display      =v==='list'?'':'none';
-  document.getElementById('kanban-view').style.display    =v==='kanban'?'':'none';
-  document.getElementById('catalog-view').style.display   =v==='catalog'?'':'none';
-  document.getElementById('pricelist-view').style.display =v==='pricelist'?'':'none';
-  const _hideExtra=v==='catalog'||v==='pricelist';
-  document.getElementById('sec-charts').style.display     =v==='list'?'':'none';
-  document.getElementById('sec-stats').style.display      =_hideExtra?'none':'';
-  document.getElementById('sec-done').style.display       =_hideExtra?'none':'';
-  document.getElementById('sec-deleted').style.display    =_hideExtra?'none':'';
+  document.getElementById('list-view').style.display       =v==='list'?'':'none';
+  document.getElementById('kanban-view').style.display     =v==='kanban'?'':'none';
+  document.getElementById('catalog-view').style.display    =v==='catalog'?'':'none';
+  document.getElementById('warehouse-view').style.display  =v==='warehouse'?'':'none';
+  document.getElementById('pricelist-view').style.display  =v==='pricelist'?'':'none';
+  const _hideExtra=v==='catalog'||v==='pricelist'||v==='warehouse';
+  document.getElementById('sec-charts').style.display      =v==='list'?'':'none';
+  document.getElementById('sec-stats').style.display       =_hideExtra?'none':'';
+  document.getElementById('sec-done').style.display        =_hideExtra?'none':'';
+  document.getElementById('sec-deleted').style.display     =_hideExtra?'none':'';
   if(v==='kanban') renderKanban();
   else if(v==='catalog'){renderCatalog();renderCatalogCatPills();}
+  else if(v==='warehouse') renderWarehouse();
   else if(v==='pricelist') renderPriceList();
   else renderList();
 }
@@ -4114,6 +4164,9 @@ document.addEventListener('mouseleave',e=>{
 let plMfrFilter='all', plEurRate=4.0, plUsdRate=3.6;
 let plMfrDiscounts=JSON.parse(localStorage.getItem('afkon_pl_mfr_discounts')||'{}');
 let plImported=JSON.parse(localStorage.getItem('afkon_pl_imported')||'[]');
+// ── Warehouse inventory state ──
+let whItems=JSON.parse(localStorage.getItem('afkon_warehouse_v1')||'[]');
+let _whParsed=[];
 let plSortCol='', plSortDir=-1;
 let plColFilters={cat:new Set(),model:new Set(),desc:new Set()};
 let _plFilterCol='';
@@ -5446,6 +5499,144 @@ function _buildPlMfrPills(){
   }).join('');
   c.innerHTML=allBtn+pills+importedPills;
 }
+
+// ════════════════════════════════════════════════════════════
+// WAREHOUSE INVENTORY
+// ════════════════════════════════════════════════════════════
+function openWhImportModal(){
+  _whParsed=[];
+  const fi=document.getElementById('wh-file-inp');
+  if(fi) fi.value='';
+  const prev=document.getElementById('wh-import-preview');
+  if(prev) prev.textContent='';
+  const btn=document.getElementById('wh-import-btn');
+  if(btn){btn.disabled=true;btn.style.opacity='.5';btn.style.cursor='not-allowed';}
+  document.getElementById('wh-import-overlay').style.display='flex';
+}
+function closeWhImport(){
+  document.getElementById('wh-import-overlay').style.display='none';
+}
+function handleWhFile(file){
+  if(!file) return;
+  const reader=new FileReader();
+  reader.onload=ev=>{
+    try{
+      const wb=XLSX.read(ev.target.result,{type:'binary',cellDates:true});
+      const ws=wb.Sheets[wb.SheetNames[0]];
+      const rows=XLSX.utils.sheet_to_json(ws,{header:1,defval:null});
+      _whParsed=[];
+      for(let i=3;i<rows.length;i++){          // data starts at Excel row 4 (index 3)
+        const r=rows[i];
+        if(!r) continue;
+        const qty=parseFloat(r[14])||0;        // col O: יתרה ביח' מפעל
+        if(qty<=0) continue;
+        const sku=String(r[1]||'').trim();
+        const desc=String(r[2]||'').trim();
+        if(!sku && !desc) continue;            // skip fully empty rows
+        const cost_ils=parseFloat(r[21])||0;  // col V: עלות ש"ח
+        const cost_cur=parseFloat(r[20])||0;  // col U: מחיר מטבע אחרון (USD fallback)
+        _whParsed.push({
+          sku,
+          desc,
+          qty,
+          unit: String(r[15]||"יח'").trim(),  // col P: יח' מפעל
+          cost: cost_ils>0 ? cost_ils : cost_cur,
+          cur:  cost_ils>0 ? 'ILS' : (cost_cur>0?'USD':'ILS')
+        });
+      }
+      const prev=document.getElementById('wh-import-preview');
+      if(prev) prev.textContent=`נמצאו ${_whParsed.length.toLocaleString('he-IL')} פריטים עם מלאי`;
+      const btn=document.getElementById('wh-import-btn');
+      if(btn){
+        btn.disabled=_whParsed.length===0;
+        btn.style.opacity=_whParsed.length===0?'.5':'1';
+        btn.style.cursor=_whParsed.length===0?'not-allowed':'pointer';
+      }
+    }catch(e){
+      const prev=document.getElementById('wh-import-preview');
+      if(prev) prev.textContent='שגיאה בקריאת הקובץ: '+e.message;
+    }
+  };
+  reader.readAsBinaryString(file);
+}
+function doWhImport(){
+  whItems=[..._whParsed];
+  localStorage.setItem('afkon_warehouse_v1',JSON.stringify(whItems));
+  localStorage.setItem('afkon_warehouse_meta_v1',JSON.stringify({
+    importedAt:new Date().toISOString(), count:whItems.length
+  }));
+  closeWhImport();
+  renderWarehouse();
+}
+function renderWarehouse(){
+  const q=(document.getElementById('wh-search')?.value||'').trim().toLowerCase();
+  const meta=JSON.parse(localStorage.getItem('afkon_warehouse_meta_v1')||'{}');
+  const items=q
+    ? whItems.filter(x=>
+        x.sku.toLowerCase().includes(q)||
+        x.desc.toLowerCase().includes(q))
+    : whItems;
+
+  const statsEl=document.getElementById('wh-stats');
+  if(statsEl){
+    const d=meta.importedAt?new Date(meta.importedAt):null;
+    const dateStr=d
+      ?d.toLocaleDateString('he-IL')+' '+d.toLocaleTimeString('he-IL',{hour:'2-digit',minute:'2-digit'})
+      :'';
+    statsEl.innerHTML=`<b>${items.length.toLocaleString('he-IL')}</b> פריטים`+
+      (q?` (מתוך ${whItems.length.toLocaleString('he-IL')})`:'')
+      +(dateStr?` · עודכן ${dateStr}`:'');
+  }
+
+  const grid=document.getElementById('wh-grid');
+  if(!grid) return;
+  if(whItems.length===0){
+    grid.innerHTML='<div style="text-align:center;padding:40px;color:#a0aec0;font-size:.9rem">'+
+      'טרם יובא מלאי. לחץ על "📥 ייבוא מלאי מ-Excel" כדי להתחיל.</div>';
+    return;
+  }
+  if(items.length===0){
+    grid.innerHTML='<div style="text-align:center;padding:40px;color:#a0aec0;font-size:.9rem">אין תוצאות עבור החיפוש.</div>';
+    return;
+  }
+
+  const tableRows=items.map(it=>{
+    const unitBadge=it.unit==='מטר'
+      ?`<span class="wh-unit-badge meter">מטר</span>`
+      :`<span class="wh-unit-badge unit">יח'</span>`;
+    let costCell;
+    if(it.cur==='USD'&&it.cost>0){
+      const ils=it.cost*plUsdRate;
+      costCell=`<span style="color:#718096;font-size:.75rem">$${it.cost.toFixed(2)}</span>`+
+               `<span style="color:#b0bec5;font-size:.65rem;display:block;line-height:1.1">×${plUsdRate.toFixed(2)}</span>`+
+               `<span>₪${ils.toLocaleString('he-IL',{minimumFractionDigits:2,maximumFractionDigits:2})}</span>`;
+    } else if(it.cost>0){
+      costCell=`₪${it.cost.toLocaleString('he-IL',{minimumFractionDigits:2,maximumFractionDigits:2})}`;
+    } else {
+      costCell='<span style="color:#a0aec0">—</span>';
+    }
+    const skuEsc=it.sku.replace(/'/g,"\\'");
+    return `<tr>
+      <td><span class="sku-badge" onclick="copySkuNum('${skuEsc}',this)">${it.sku||'—'}</span></td>
+      <td>${it.desc}</td>
+      <td style="text-align:center;font-weight:700">${it.qty.toLocaleString('he-IL')}</td>
+      <td style="text-align:center">${unitBadge}</td>
+      <td style="text-align:right">${costCell}</td>
+    </tr>`;
+  }).join('');
+
+  grid.innerHTML=`<table class="wh-table">
+    <thead><tr>
+      <th style="width:130px">מק"ט</th>
+      <th>תיאור</th>
+      <th style="text-align:center;width:80px">כמות</th>
+      <th style="text-align:center;width:80px">יחידה</th>
+      <th style="text-align:right;width:130px">עלות</th>
+    </tr></thead>
+    <tbody>${tableRows}</tbody>
+  </table>`;
+}
+// ════════════════════════════════════════════════════════════
 
 function renderPriceList(){
   _buildPlMfrPills();
