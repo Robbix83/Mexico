@@ -7,8 +7,11 @@ const jwt          = require('jsonwebtoken');
 const bcrypt       = require('bcryptjs');
 const path         = require('path');
 const fs           = require('fs');
+const multer       = require('multer');
+const { v4: uuidv4 } = require('uuid');
 
-const db = require('./db');
+const db      = require('./db');
+const docpack = require('./docpack');
 
 const app  = express();
 const PORT = process.env.PORT || 3000;
@@ -285,7 +288,7 @@ app.post('/api/users/:id/unlock', requireAdmin, (req, res) => {
 app.put('/api/users/:id/sections', requireAdmin, (req, res) => {
   const id = parseInt(req.params.id);
   const { sections } = req.body;
-  const valid = ['list', 'kanban', 'catalog', 'pricelist', 'warehouse'];
+  const valid = ['list', 'kanban', 'catalog', 'pricelist', 'warehouse', 'docpack'];
   if (!Array.isArray(sections) || sections.some(s => !valid.includes(s)))
     return res.status(400).json({ error: 'Invalid sections value' });
   db.setSections(id, sections);
@@ -315,6 +318,169 @@ app.put('/api/warehouse', requireAdmin, (req, res) => {
   db.logAudit(req.user.id, req.user.username, 'warehouse_import',
     `Imported ${items.length} warehouse items`, getClientIp(req), '');
   res.json({ ok: true, count: items.length });
+});
+
+// ── Doc packs (תיק תיעוד) ─────────────────────────────────────────────────────
+
+// Multer for file uploads — destination = a staging dir, we move files post-validation.
+const DOC_UPLOAD_STAGING = path.join(docpack.UPLOADS_DIR, '_staging');
+if (!fs.existsSync(DOC_UPLOAD_STAGING)) fs.mkdirSync(DOC_UPLOAD_STAGING, { recursive: true });
+
+const docPackUpload = multer({
+  dest: DOC_UPLOAD_STAGING,
+  limits: { fileSize: 20 * 1024 * 1024 }, // 20MB per file
+  fileFilter: (_req, file, cb) => {
+    if (/^image\/(jpe?g|png|webp|gif)$/i.test(file.mimetype)) return cb(null, true);
+    cb(new Error('Only image files allowed (jpg/png/webp/gif)'));
+  },
+});
+
+function sanitizeFilename(name) {
+  // Strip path traversal, keep extension; default to .docx for the export filename
+  const base = String(name || 'תיק תיעוד').replace(/[\\/:*?"<>|]+/g, '_').trim();
+  return base || 'תיק תיעוד';
+}
+
+app.get('/api/docpacks', requireAuth, (req, res) => {
+  res.json({ packs: db.listDocPacks() });
+});
+
+app.post('/api/docpacks', requireAdmin, (req, res) => {
+  const { name, type } = req.body || {};
+  if (!name || typeof name !== 'string' || !name.trim())
+    return res.status(400).json({ error: 'name is required' });
+  const r = db.createDocPack(name.trim(), type || 'cctv', '{}', req.user.id, req.user.username);
+  db.logAudit(req.user.id, req.user.username, 'create_user',
+    `Created doc pack: ${name.trim()}`, getClientIp(req), '');
+  res.json({ ok: true, id: r.lastInsertRowid });
+});
+
+app.get('/api/docpacks/:id', requireAuth, (req, res) => {
+  const id = parseInt(req.params.id);
+  const pack = db.getDocPack(id);
+  if (!pack) return res.status(404).json({ error: 'Pack not found' });
+  const files = db.listDocPackFiles(id).map(f => ({
+    id: f.id, kind: f.kind, original_name: f.original_name, mime: f.mime,
+    size: f.size, caption: f.caption, sort_order: f.sort_order,
+  }));
+  let data = {};
+  try { data = JSON.parse(pack.data || '{}'); } catch { data = {}; }
+  res.json({
+    pack: {
+      id: pack.id, name: pack.name, type: pack.type, data,
+      created_at: pack.created_at, updated_at: pack.updated_at,
+      created_by_username: pack.created_by_username,
+    },
+    files,
+  });
+});
+
+app.put('/api/docpacks/:id', requireAdmin, (req, res) => {
+  const id = parseInt(req.params.id);
+  const pack = db.getDocPack(id);
+  if (!pack) return res.status(404).json({ error: 'Pack not found' });
+  const { name, data } = req.body || {};
+  const finalName = (name && typeof name === 'string' && name.trim()) ? name.trim() : pack.name;
+  let dataJson = '{}';
+  if (data && typeof data === 'object') {
+    try { dataJson = JSON.stringify(data); } catch { return res.status(400).json({ error: 'invalid data' }); }
+  } else if (typeof data === 'string') {
+    dataJson = data;
+  }
+  db.updateDocPack(id, finalName, dataJson);
+  res.json({ ok: true });
+});
+
+app.delete('/api/docpacks/:id', requireAdmin, (req, res) => {
+  const id = parseInt(req.params.id);
+  const pack = db.getDocPack(id);
+  if (!pack) return res.status(404).json({ error: 'Pack not found' });
+  // Delete files from disk first
+  const files = db.listDocPackFiles(id);
+  for (const f of files) {
+    const p = docpack.fileDiskPath(id, f.filename);
+    try { fs.unlinkSync(p); } catch {/* missing file is fine */}
+  }
+  try { fs.rmdirSync(docpack.packDir(id)); } catch {/* dir non-empty or missing — fine */}
+  db.deleteDocPack(id); // ON DELETE CASCADE removes rows in doc_pack_files
+  db.logAudit(req.user.id, req.user.username, 'delete_user',
+    `Deleted doc pack: ${pack.name}`, getClientIp(req), '');
+  res.json({ ok: true });
+});
+
+app.post('/api/docpacks/:id/files', requireAdmin, docPackUpload.single('file'), (req, res) => {
+  const id = parseInt(req.params.id);
+  const pack = db.getDocPack(id);
+  if (!pack) { if (req.file) try { fs.unlinkSync(req.file.path); } catch {} return res.status(404).json({ error: 'Pack not found' }); }
+  if (!req.file) return res.status(400).json({ error: 'no file uploaded' });
+
+  const kind = ['photo','diagram','network_diagram','site_plan'].includes(req.body.kind) ? req.body.kind : 'photo';
+  const ext = (req.file.originalname.match(/\.([a-z0-9]{2,5})$/i) || [, 'jpg'])[1].toLowerCase();
+  const newName = `${uuidv4()}.${ext}`;
+  const destPath = docpack.fileDiskPath(id, newName);
+  try {
+    fs.renameSync(req.file.path, destPath);
+  } catch (e) {
+    try { fs.unlinkSync(req.file.path); } catch {}
+    return res.status(500).json({ error: 'failed to move uploaded file: ' + e.message });
+  }
+  const sortOrder = Date.now() % 1000000;
+  const r = db.addDocPackFile(id, kind, newName, req.file.originalname, req.file.mimetype, req.file.size, req.body.caption || '', sortOrder);
+  // touch pack updated_at
+  db.updateDocPack(id, pack.name, pack.data);
+  res.json({ ok: true, file: { id: r.lastInsertRowid, kind, filename: newName, original_name: req.file.originalname, size: req.file.size, mime: req.file.mimetype } });
+});
+
+app.get('/api/docpacks/:id/files/:fileId', requireAuth, (req, res) => {
+  const id = parseInt(req.params.id);
+  const fileId = parseInt(req.params.fileId);
+  const f = db.getDocPackFile(fileId);
+  if (!f || f.pack_id !== id) return res.status(404).send('Not found');
+  const p = docpack.fileDiskPath(id, f.filename);
+  if (!fs.existsSync(p)) return res.status(404).send('Missing on disk');
+  res.sendFile(p);
+});
+
+app.delete('/api/docpacks/:id/files/:fileId', requireAdmin, (req, res) => {
+  const id = parseInt(req.params.id);
+  const fileId = parseInt(req.params.fileId);
+  const f = db.getDocPackFile(fileId);
+  if (!f || f.pack_id !== id) return res.status(404).json({ error: 'Not found' });
+  try { fs.unlinkSync(docpack.fileDiskPath(id, f.filename)); } catch {}
+  db.deleteDocPackFile(fileId);
+  res.json({ ok: true });
+});
+
+app.patch('/api/docpacks/:id/files/:fileId', requireAdmin, (req, res) => {
+  const id = parseInt(req.params.id);
+  const fileId = parseInt(req.params.fileId);
+  const f = db.getDocPackFile(fileId);
+  if (!f || f.pack_id !== id) return res.status(404).json({ error: 'Not found' });
+  const caption   = req.body?.caption   ?? f.caption ?? '';
+  const sortOrder = req.body?.sort_order ?? f.sort_order ?? 0;
+  db.updateDocPackFileMeta(fileId, caption, sortOrder);
+  res.json({ ok: true });
+});
+
+app.post('/api/docpacks/:id/generate', requireAuth, (req, res) => {
+  const id = parseInt(req.params.id);
+  const pack = db.getDocPack(id);
+  if (!pack) return res.status(404).json({ error: 'Pack not found' });
+  try {
+    const buf = docpack.generateDocPack(id);
+    const filename = sanitizeFilename(pack.name) + '.docx';
+    res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document');
+    // Use RFC 5987 encoding for non-ASCII filenames (Hebrew)
+    res.setHeader('Content-Disposition',
+      `attachment; filename="docpack.docx"; filename*=UTF-8''${encodeURIComponent(filename)}`);
+    res.setHeader('Content-Length', buf.length);
+    db.logAudit(req.user.id, req.user.username, 'export',
+      `docpack:${pack.name}`, getClientIp(req), '');
+    res.end(buf);
+  } catch (e) {
+    console.error('[docpack] generate failed:', e.message, e.stack);
+    res.status(500).json({ error: e.message || 'Generation failed' });
+  }
 });
 
 // ── Exchange rates (Bank of Israel) ──────────────────────────────────────────
@@ -434,4 +600,5 @@ app.listen(PORT, () => {
   console.log(`[server] Running on http://localhost:${PORT}`);
   console.log(`[server] DS_PATH: ${DS_PATH}`);
   console.log(`[server] DB_PATH: ${process.env.DB_PATH || 'data/db.sqlite'}`);
+  try { docpack.dryRenderAllTemplates(); } catch (e) { console.error('[docpack] dry-render error:', e.message); }
 });

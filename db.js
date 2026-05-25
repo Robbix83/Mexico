@@ -49,6 +49,33 @@ db.exec(`
     count       INTEGER NOT NULL DEFAULT 0
   );
   INSERT OR IGNORE INTO warehouse_state (id, data, count) VALUES (1, '[]', 0);
+
+  -- Documentation portfolios ("תיק תיעוד") --
+  CREATE TABLE IF NOT EXISTS doc_packs (
+    id                  INTEGER PRIMARY KEY AUTOINCREMENT,
+    name                TEXT    NOT NULL,
+    type                TEXT    NOT NULL DEFAULT 'cctv',
+    data                TEXT    NOT NULL DEFAULT '{}',
+    created_at          TEXT    NOT NULL DEFAULT (datetime('now')),
+    updated_at          TEXT    NOT NULL DEFAULT (datetime('now')),
+    created_by_id       INTEGER,
+    created_by_username TEXT
+  );
+  CREATE INDEX IF NOT EXISTS idx_doc_packs_updated ON doc_packs(updated_at DESC);
+
+  CREATE TABLE IF NOT EXISTS doc_pack_files (
+    id            INTEGER PRIMARY KEY AUTOINCREMENT,
+    pack_id       INTEGER NOT NULL REFERENCES doc_packs(id) ON DELETE CASCADE,
+    kind          TEXT    NOT NULL DEFAULT 'photo',
+    filename      TEXT    NOT NULL,
+    original_name TEXT,
+    mime          TEXT,
+    size          INTEGER NOT NULL DEFAULT 0,
+    caption       TEXT,
+    sort_order    INTEGER NOT NULL DEFAULT 0,
+    created_at    TEXT    NOT NULL DEFAULT (datetime('now'))
+  );
+  CREATE INDEX IF NOT EXISTS idx_doc_pack_files_pack ON doc_pack_files(pack_id, sort_order);
 `);
 
 // Migration: add must_change_password column to existing DBs
@@ -121,6 +148,19 @@ const stmts = {
   // Warehouse
   getWarehouse: db.prepare('SELECT data, imported_at, count FROM warehouse_state WHERE id = 1'),
   setWarehouse: db.prepare("UPDATE warehouse_state SET data = ?, count = ?, imported_at = datetime('now') WHERE id = 1"),
+
+  // Doc packs
+  listDocPacks:   db.prepare('SELECT id, name, type, created_at, updated_at, created_by_username FROM doc_packs ORDER BY updated_at DESC'),
+  getDocPack:     db.prepare('SELECT * FROM doc_packs WHERE id = ?'),
+  createDocPack:  db.prepare("INSERT INTO doc_packs (name, type, data, created_by_id, created_by_username) VALUES (?, ?, ?, ?, ?)"),
+  updateDocPack:  db.prepare("UPDATE doc_packs SET name = ?, data = ?, updated_at = datetime('now') WHERE id = ?"),
+  deleteDocPack:  db.prepare('DELETE FROM doc_packs WHERE id = ?'),
+  // Files
+  addDocPackFile:    db.prepare('INSERT INTO doc_pack_files (pack_id, kind, filename, original_name, mime, size, caption, sort_order) VALUES (?, ?, ?, ?, ?, ?, ?, ?)'),
+  listDocPackFiles:  db.prepare('SELECT * FROM doc_pack_files WHERE pack_id = ? ORDER BY sort_order ASC, id ASC'),
+  getDocPackFile:    db.prepare('SELECT * FROM doc_pack_files WHERE id = ?'),
+  deleteDocPackFile: db.prepare('DELETE FROM doc_pack_files WHERE id = ?'),
+  updateDocPackFileMeta: db.prepare('UPDATE doc_pack_files SET caption = ?, sort_order = ? WHERE id = ?'),
 };
 
 module.exports = {
@@ -178,4 +218,21 @@ module.exports = {
   // Warehouse
   getWarehouse: () => stmts.getWarehouse.get(),
   setWarehouse: (dataJson, count) => stmts.setWarehouse.run(dataJson, count),
+
+  // Doc packs
+  listDocPacks: () => stmts.listDocPacks.all(),
+  getDocPack:   (id) => stmts.getDocPack.get(id),
+  createDocPack: (name, type, dataJson, userId, username) =>
+    stmts.createDocPack.run(name, type || 'cctv', dataJson || '{}', userId || null, username || null),
+  updateDocPack: (id, name, dataJson) => stmts.updateDocPack.run(name, dataJson, id),
+  deleteDocPack: (id) => stmts.deleteDocPack.run(id),
+
+  // Doc pack files
+  addDocPackFile: (packId, kind, filename, originalName, mime, size, caption, sortOrder) =>
+    stmts.addDocPackFile.run(packId, kind || 'photo', filename, originalName || null, mime || null, size || 0, caption || null, sortOrder || 0),
+  listDocPackFiles:  (packId) => stmts.listDocPackFiles.all(packId),
+  getDocPackFile:    (id)     => stmts.getDocPackFile.get(id),
+  deleteDocPackFile: (id)     => stmts.deleteDocPackFile.run(id),
+  updateDocPackFileMeta: (id, caption, sortOrder) =>
+    stmts.updateDocPackFileMeta.run(caption || null, sortOrder || 0, id),
 };

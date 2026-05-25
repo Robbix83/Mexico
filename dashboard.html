@@ -558,6 +558,65 @@ kbd{background:#edf2f7;border:1px solid #cbd5e0;border-radius:4px;padding:1px 5p
 .wh-unit-badge{display:inline-block;padding:2px 8px;border-radius:10px;font-size:.72rem;font-weight:700}
 .wh-unit-badge.unit{background:#e2e8f0;color:#4a5568}
 .wh-unit-badge.meter{background:#dbeafe;color:#1d4ed8}
+/* ─── DOC PACK (תיק תיעוד) ─── */
+.dp-shell{display:grid;grid-template-columns:260px 1fr;gap:18px;align-items:start}
+.dp-side{background:#fff;border:1px solid #e2e8f0;border-radius:10px;padding:12px;position:sticky;top:14px;max-height:calc(100vh - 130px);overflow-y:auto}
+.dp-main{background:#fff;border:1px solid #e2e8f0;border-radius:10px;padding:18px 20px;min-height:400px}
+.dp-list-item{padding:8px 10px;border-radius:7px;cursor:pointer;font-size:.85rem;display:flex;justify-content:space-between;align-items:center;gap:6px;border:1px solid transparent}
+.dp-list-item:hover{background:#f7fafc}
+.dp-list-item.active{background:#eef4ff;border-color:#bfdbfe;color:#1d4ed8;font-weight:700}
+.dp-list-item .dp-list-date{font-size:.7rem;color:#a0aec0;font-weight:400}
+.dp-section{margin-bottom:20px;border:1px solid #edf2f7;border-radius:8px;background:#fafbfc}
+.dp-section-head{padding:10px 14px;font-weight:700;color:#1a2a4a;font-size:.9rem;background:#f0f4fa;border-bottom:1px solid #e2e8f0;border-radius:8px 8px 0 0;cursor:pointer;user-select:none;display:flex;align-items:center;justify-content:space-between}
+.dp-section-head:hover{background:#e8eef7}
+.dp-section-body{padding:14px}
+.dp-section.collapsed .dp-section-body{display:none}
+.dp-section.collapsed .dp-section-head{border-radius:8px;border-bottom:none}
+.dp-grid-2{display:grid;grid-template-columns:1fr 1fr;gap:10px 14px}
+.dp-grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px 14px}
+.dp-field{display:flex;flex-direction:column;gap:3px}
+.dp-field label{font-size:.78rem;font-weight:600;color:#4a5568}
+.dp-field input,.dp-field textarea,.dp-field select{padding:7px 10px;border:1.5px solid #e2e8f0;border-radius:6px;font-size:.85rem;font-family:inherit;background:#fff}
+.dp-field input:focus,.dp-field textarea:focus{outline:none;border-color:#bfdbfe;box-shadow:0 0 0 3px rgba(59,130,246,.1)}
+.dp-field textarea{min-height:80px;resize:vertical}
+.dp-table{width:100%;border-collapse:collapse;font-size:.78rem;margin-top:6px}
+.dp-table th{background:#1a2a4a;color:#fff;padding:6px 8px;font-weight:600;text-align:right;font-size:.75rem}
+.dp-table td{padding:4px 6px;border:1px solid #e2e8f0}
+.dp-table input{width:100%;padding:5px 7px;border:1px solid transparent;border-radius:4px;font-size:.78rem;background:transparent;font-family:inherit}
+.dp-table input:focus{outline:none;border-color:#bfdbfe;background:#fff}
+.dp-row-del{background:none;border:none;color:#dc2626;cursor:pointer;font-size:.95rem;padding:2px 6px;border-radius:4px}
+.dp-row-del:hover{background:#fee2e2}
+.dp-add-row{margin-top:6px;padding:5px 12px;background:#eef4ff;color:#1d4ed8;border:1px dashed #bfdbfe;border-radius:6px;cursor:pointer;font-size:.78rem;font-weight:600}
+.dp-add-row:hover{background:#dbeafe}
+.dp-upload-box{border:2px dashed #cbd5e0;border-radius:8px;padding:18px;text-align:center;color:#718096;font-size:.85rem;cursor:pointer;transition:all .15s;background:#fafbfc}
+.dp-upload-box:hover,.dp-upload-box.drag-over{border-color:#3b82f6;background:#eef4ff;color:#1d4ed8}
+.dp-gallery{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px;margin-top:10px}
+.dp-photo{position:relative;border:1px solid #e2e8f0;border-radius:6px;overflow:hidden;background:#f7fafc}
+.dp-photo img{width:100%;height:120px;object-fit:cover;display:block}
+.dp-photo-del{position:absolute;top:4px;left:4px;background:rgba(0,0,0,.6);color:#fff;border:none;width:22px;height:22px;border-radius:50%;cursor:pointer;font-size:.75rem;line-height:1;font-weight:700}
+.dp-photo-del:hover{background:#dc2626}
+.dp-photo-caption{padding:4px 6px;font-size:.7rem;color:#4a5568;background:#fff;border-top:1px solid #edf2f7}
+.dp-photo-caption input{width:100%;border:none;background:transparent;font-size:.7rem;color:#4a5568;font-family:inherit;padding:0}
+.dp-photo-caption input:focus{outline:none}
+.dp-slot{display:flex;gap:14px;align-items:flex-start;margin-top:8px}
+.dp-slot-preview{width:160px;height:110px;border:1px solid #e2e8f0;border-radius:6px;background:#f7fafc center/contain no-repeat;display:flex;align-items:center;justify-content:center;color:#a0aec0;font-size:.75rem;flex-shrink:0}
+.dp-toolbar{display:flex;justify-content:space-between;align-items:center;padding-bottom:14px;margin-bottom:14px;border-bottom:1px solid #e2e8f0;gap:10px;flex-wrap:wrap}
+.dp-title{font-size:1.1rem;font-weight:700;color:#1a2a4a;flex:1;min-width:200px}
+.dp-title input{width:100%;padding:8px 12px;border:1.5px solid #e2e8f0;border-radius:7px;font-size:1.05rem;font-weight:700;color:#1a2a4a;background:#fff;font-family:inherit}
+.dp-title input:focus{outline:none;border-color:#bfdbfe;box-shadow:0 0 0 3px rgba(59,130,246,.1)}
+.dp-btn-export{background:#10b981;color:#fff;border:none;padding:8px 18px;border-radius:7px;font-size:.88rem;font-weight:700;cursor:pointer}
+.dp-btn-export:hover{background:#059669}
+.dp-btn-export:disabled{opacity:.5;cursor:not-allowed}
+.dp-btn-del{background:#fee2e2;color:#b91c1c;border:1px solid #fecaca;padding:6px 12px;border-radius:6px;font-size:.78rem;font-weight:600;cursor:pointer}
+.dp-btn-del:hover{background:#fca5a5}
+.dp-status{font-size:.75rem;color:#718096;margin-left:8px}
+.dp-status.saved{color:#059669}
+.dp-status.saving{color:#d97706}
+body.viewer-mode .dp-admin-only{display:none !important}
+body.viewer-mode .dp-table input,
+body.viewer-mode .dp-field input,
+body.viewer-mode .dp-field textarea,
+body.viewer-mode .dp-title input{pointer-events:none;background:#f7fafc}
 .pl-table{width:100%;border-collapse:collapse;font-size:.82rem;table-layout:fixed}
 .pl-table thead th{background:#f8fafc;border-bottom:2px solid #e2e8f0;padding:8px 10px;
   text-align:right;font-weight:700;color:#4a5568;white-space:nowrap;position:sticky;top:0;z-index:2;overflow:hidden}
@@ -825,6 +884,7 @@ tr:hover .pl-edit-btn{opacity:.65}
   <button class="vt"        id="vt-kanban"    onclick="setView('kanban')">🗂️ קנבן</button>
   <button class="vt"        id="vt-catalog"   onclick="setView('catalog')">📦 קטלוג מקטים</button>
   <button class="vt"        id="vt-warehouse" onclick="setView('warehouse')">🏭 מלאי מחסנים</button>
+  <button class="vt"        id="vt-docpack"   onclick="setView('docpack')">📁 תיק תיעוד</button>
   <button class="vt"        id="vt-pricelist" onclick="setView('pricelist')">💲 מחירונים</button>
 </div>
 
@@ -979,6 +1039,43 @@ tr:hover .pl-edit-btn{opacity:.65}
     </div>
     <div id="wh-grid"></div>
   </section>
+
+  <!-- ══ DOC PACK (תיק תיעוד) VIEW ══ -->
+  <section id="docpack-view" style="display:none">
+    <h2>📁 תיק תיעוד</h2>
+    <div class="dp-shell">
+      <aside class="dp-side">
+        <button class="btn-cat dp-admin-only" id="dp-new-btn"
+          onclick="dpCreatePack()"
+          style="background:#eef4ff;color:var(--blue);border-color:#bfdbfe;width:100%;margin-bottom:10px">
+          + פרויקט חדש
+        </button>
+        <div id="dp-list" style="display:flex;flex-direction:column;gap:6px"></div>
+      </aside>
+      <div class="dp-main" id="dp-main">
+        <div style="text-align:center;padding:60px 20px;color:#a0aec0;font-size:.9rem">
+          בחר פרויקט מהרשימה משמאל, או צור חדש.
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══ DOC PACK NEW MODAL ══ -->
+  <div id="dp-new-overlay" class="pl-import-overlay" onclick="if(event.target===this)dpCloseNewModal()">
+    <div class="pl-import-modal" style="max-width:420px">
+      <h3>📁 פרויקט תיעוד חדש</h3>
+      <p style="font-size:.85rem;color:#718096;margin-bottom:12px">
+        תן שם לפרויקט (יופיע גם בכותרת התיק):
+      </p>
+      <input type="text" id="dp-new-name" placeholder="לדוגמה: חוף סאנסט"
+        style="width:100%;padding:9px 12px;border:1.5px solid #e2e8f0;border-radius:7px;font-size:.95rem"/>
+      <div id="dp-new-err" style="color:#c53030;font-size:.8rem;margin-top:8px;min-height:18px"></div>
+      <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:14px">
+        <button class="pl-step-cancel" onclick="dpCloseNewModal()">ביטול</button>
+        <button class="pl-step-next" onclick="dpSubmitNew()">צור</button>
+      </div>
+    </div>
+  </div>
 
   <!-- ══ PRICE LIST VIEW ══ -->
   <section id="pricelist-view" style="display:none">
@@ -2102,13 +2199,15 @@ function setView(v){
   document.getElementById('vt-kanban').classList.toggle('active',v==='kanban');
   document.getElementById('vt-catalog').classList.toggle('active',v==='catalog');
   document.getElementById('vt-warehouse').classList.toggle('active',v==='warehouse');
+  document.getElementById('vt-docpack').classList.toggle('active',v==='docpack');
   document.getElementById('vt-pricelist').classList.toggle('active',v==='pricelist');
   document.getElementById('list-view').style.display       =v==='list'?'':'none';
   document.getElementById('kanban-view').style.display     =v==='kanban'?'':'none';
   document.getElementById('catalog-view').style.display    =v==='catalog'?'':'none';
   document.getElementById('warehouse-view').style.display  =v==='warehouse'?'':'none';
+  document.getElementById('docpack-view').style.display    =v==='docpack'?'':'none';
   document.getElementById('pricelist-view').style.display  =v==='pricelist'?'':'none';
-  const _hideExtra=v==='catalog'||v==='pricelist'||v==='warehouse';
+  const _hideExtra=v==='catalog'||v==='pricelist'||v==='warehouse'||v==='docpack';
   document.getElementById('sec-charts').style.display      =v==='list'?'':'none';
   document.getElementById('sec-stats').style.display       =_hideExtra?'none':'';
   document.getElementById('sec-done').style.display        =_hideExtra?'none':'';
@@ -2116,6 +2215,7 @@ function setView(v){
   if(v==='kanban') renderKanban();
   else if(v==='catalog'){renderCatalog();renderCatalogCatPills();}
   else if(v==='warehouse'){renderWarehouse();ensureWarehouseLoaded().then(()=>renderWarehouse());}
+  else if(v==='docpack'){renderDocPack();ensureDocPacksLoaded().then(()=>renderDocPack());}
   else if(v==='pricelist') renderPriceList();
   else renderList();
 }
@@ -3987,7 +4087,7 @@ let _userSections=null; // null=admin(all), array=allowed sections for viewer
 
 function _applyViewPermissions(){
   if(_userSections===null) return; // admin — no restrictions
-  ['list','kanban','catalog','pricelist','warehouse'].forEach(s=>{
+  ['list','kanban','catalog','pricelist','warehouse','docpack'].forEach(s=>{
     const btn=document.getElementById('vt-'+s);
     if(btn) btn.style.display=_userSections.includes(s)?'':'none';
   });
@@ -5688,6 +5788,475 @@ function renderWarehouse(){
     </tr></thead>
     <tbody>${tableRows}</tbody>
   </table>`;
+}
+// ════════════════════════════════════════════════════════════
+
+// ════════════════════════════════════════════════════════════
+// DOC PACK (תיק תיעוד) — server-backed, multi-project
+// ════════════════════════════════════════════════════════════
+let _docPacks=[];
+let _currentDocPackId=null;
+let _currentDocPack=null;   // {id,name,type,data,...}
+let _currentDocFiles=[];    // [{id,kind,filename,...}]
+let _docPacksLoaded=false;
+let _docPacksLoadingPromise=null;
+let _dpSaveTimer=null;
+let _dpSaveStatus='';  // '' | 'saving' | 'saved' | 'error'
+
+async function ensureDocPacksLoaded(force){
+  if(_docPacksLoaded && !force) return;
+  if(_docPacksLoadingPromise) return _docPacksLoadingPromise;
+  _docPacksLoadingPromise=(async()=>{
+    try{
+      const r=await fetch('/api/docpacks');
+      if(r.ok){
+        const j=await r.json();
+        _docPacks=Array.isArray(j.packs)?j.packs:[];
+        _docPacksLoaded=true;
+      }
+    }catch(e){/* leave empty */}
+    finally{_docPacksLoadingPromise=null;}
+  })();
+  return _docPacksLoadingPromise;
+}
+
+function dpCreatePack(){
+  document.getElementById('dp-new-name').value='';
+  document.getElementById('dp-new-err').textContent='';
+  document.getElementById('dp-new-overlay').style.display='flex';
+  setTimeout(()=>document.getElementById('dp-new-name').focus(),50);
+}
+function dpCloseNewModal(){
+  document.getElementById('dp-new-overlay').style.display='none';
+}
+async function dpSubmitNew(){
+  const name=(document.getElementById('dp-new-name').value||'').trim();
+  const err=document.getElementById('dp-new-err');
+  if(!name){err.textContent='נא להזין שם פרויקט';return;}
+  try{
+    const r=await fetch('/api/docpacks',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({name,type:'cctv'})
+    });
+    if(!r.ok){const j=await r.json().catch(()=>({}));throw new Error(j.error||'שגיאה ביצירה');}
+    const j=await r.json();
+    dpCloseNewModal();
+    await ensureDocPacksLoaded(true);
+    await dpSelectPack(j.id);
+    renderDocPack();
+  }catch(e){err.textContent=e.message;}
+}
+
+async function dpSelectPack(id){
+  _currentDocPackId=id;
+  _currentDocPack=null;_currentDocFiles=[];
+  try{
+    const r=await fetch('/api/docpacks/'+id);
+    if(r.ok){
+      const j=await r.json();
+      _currentDocPack=j.pack;
+      _currentDocFiles=j.files||[];
+    }
+  }catch(e){}
+  renderDocPack();
+}
+
+async function dpDeletePack(id,name){
+  if(!confirm(`למחוק את התיק "${name}"?\nפעולה זו בלתי הפיכה.`)) return;
+  try{
+    const r=await fetch('/api/docpacks/'+id,{method:'DELETE'});
+    if(!r.ok){const j=await r.json().catch(()=>({}));throw new Error(j.error||'שגיאה');}
+    if(_currentDocPackId===id){_currentDocPackId=null;_currentDocPack=null;_currentDocFiles=[];}
+    await ensureDocPacksLoaded(true);
+    renderDocPack();
+  }catch(e){alert('שגיאה במחיקה: '+e.message);}
+}
+
+function dpSetSaveStatus(s){
+  _dpSaveStatus=s;
+  const el=document.getElementById('dp-save-status');
+  if(!el) return;
+  if(s==='saving'){el.textContent='שומר…';el.className='dp-status saving';}
+  else if(s==='saved'){el.textContent='נשמר ✓';el.className='dp-status saved';}
+  else if(s==='error'){el.textContent='שגיאה בשמירה';el.className='dp-status';el.style.color='#dc2626';}
+  else{el.textContent='';el.className='dp-status';}
+}
+
+function dpScheduleSave(){
+  if(document.body.classList.contains('viewer-mode')) return;
+  if(!_currentDocPack) return;
+  dpSetSaveStatus('saving');
+  if(_dpSaveTimer) clearTimeout(_dpSaveTimer);
+  _dpSaveTimer=setTimeout(dpFlushSave,700);
+}
+async function dpFlushSave(){
+  if(!_currentDocPack) return;
+  const body={name:_currentDocPack.name,data:_currentDocPack.data||{}};
+  try{
+    const r=await fetch('/api/docpacks/'+_currentDocPack.id,{
+      method:'PUT',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify(body)
+    });
+    if(!r.ok) throw new Error('save failed');
+    dpSetSaveStatus('saved');
+    // Update side-list metadata
+    const idx=_docPacks.findIndex(p=>p.id===_currentDocPack.id);
+    if(idx>=0){_docPacks[idx].name=_currentDocPack.name;_docPacks[idx].updated_at=new Date().toISOString();}
+    setTimeout(()=>{if(_dpSaveStatus==='saved') dpSetSaveStatus('');},2000);
+  }catch(e){dpSetSaveStatus('error');}
+}
+
+// ── Field bindings ──
+function dpField(key){
+  if(!_currentDocPack) return '';
+  return (_currentDocPack.data&&_currentDocPack.data[key])||'';
+}
+function dpSetField(key,val){
+  if(!_currentDocPack) return;
+  if(!_currentDocPack.data) _currentDocPack.data={};
+  _currentDocPack.data[key]=val;
+  dpScheduleSave();
+}
+function dpSetTitle(val){
+  if(!_currentDocPack) return;
+  _currentDocPack.name=val;
+  dpScheduleSave();
+}
+
+// ── Equipment table helpers ──
+function dpRows(tableKey){
+  if(!_currentDocPack||!_currentDocPack.data) return [];
+  if(!Array.isArray(_currentDocPack.data[tableKey])) _currentDocPack.data[tableKey]=[];
+  return _currentDocPack.data[tableKey];
+}
+function dpAddRow(tableKey){
+  const rows=dpRows(tableKey);
+  rows.push({});
+  dpScheduleSave();
+  renderDocPackForm();
+}
+function dpDelRow(tableKey,idx){
+  const rows=dpRows(tableKey);
+  rows.splice(idx,1);
+  dpScheduleSave();
+  renderDocPackForm();
+}
+function dpRowField(tableKey,idx,field,val){
+  const rows=dpRows(tableKey);
+  if(!rows[idx]) rows[idx]={};
+  rows[idx][field]=val;
+  dpScheduleSave();
+}
+
+// ── Scope items (bullets) ──
+function dpScopeText(){
+  const arr=(_currentDocPack&&_currentDocPack.data&&_currentDocPack.data.scope_items)||[];
+  return arr.join('\n');
+}
+function dpSetScope(val){
+  if(!_currentDocPack) return;
+  if(!_currentDocPack.data) _currentDocPack.data={};
+  _currentDocPack.data.scope_items=(val||'').split('\n').map(s=>s.trim()).filter(Boolean);
+  dpScheduleSave();
+}
+
+// ── File uploads ──
+async function dpUploadFile(file,kind,inputEl){
+  if(!file||!_currentDocPack) return;
+  // Validate size client-side
+  if(file.size>20*1024*1024){alert('הקובץ גדול מדי (מקסימום 20MB)');return;}
+  const fd=new FormData();
+  fd.append('file',file);
+  fd.append('kind',kind);
+  try{
+    const r=await fetch('/api/docpacks/'+_currentDocPack.id+'/files',{method:'POST',body:fd});
+    if(!r.ok){const j=await r.json().catch(()=>({}));throw new Error(j.error||'העלאה נכשלה');}
+    const j=await r.json();
+    _currentDocFiles.push({...j.file,pack_id:_currentDocPack.id});
+    if(inputEl) inputEl.value='';
+    renderDocPackForm();
+  }catch(e){alert('שגיאה בהעלאה: '+e.message);if(inputEl) inputEl.value='';}
+}
+async function dpDeleteFile(fileId){
+  if(!_currentDocPack) return;
+  try{
+    const r=await fetch('/api/docpacks/'+_currentDocPack.id+'/files/'+fileId,{method:'DELETE'});
+    if(!r.ok) throw new Error('failed');
+    _currentDocFiles=_currentDocFiles.filter(f=>f.id!==fileId);
+    renderDocPackForm();
+  }catch(e){alert('שגיאה במחיקה: '+e.message);}
+}
+function dpFileUrl(fileId){
+  if(!_currentDocPack) return '';
+  return '/api/docpacks/'+_currentDocPack.id+'/files/'+fileId;
+}
+
+// ── Export ──
+async function dpExportWord(){
+  if(!_currentDocPack) return;
+  const btn=document.getElementById('dp-export-btn');
+  if(btn){btn.disabled=true;btn.textContent='מייצר…';}
+  // Flush any pending save first
+  if(_dpSaveTimer){clearTimeout(_dpSaveTimer);await dpFlushSave();}
+  try{
+    const r=await fetch('/api/docpacks/'+_currentDocPack.id+'/generate',{method:'POST'});
+    if(!r.ok){const j=await r.json().catch(()=>({}));throw new Error(j.error||'שגיאה בייצוא');}
+    const blob=await r.blob();
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement('a');
+    a.href=url;a.download=(_currentDocPack.name||'תיק תיעוד')+'.docx';
+    document.body.appendChild(a);a.click();a.remove();
+    setTimeout(()=>URL.revokeObjectURL(url),3000);
+  }catch(e){alert('שגיאה: '+e.message);}
+  finally{if(btn){btn.disabled=false;btn.textContent='⬇ ייצוא Word';}}
+}
+
+// ── Renderers ──
+function renderDocPack(){
+  renderDocPackList();
+  renderDocPackForm();
+}
+
+function renderDocPackList(){
+  const list=document.getElementById('dp-list');
+  if(!list) return;
+  if(!_docPacksLoaded){list.innerHTML='<div style="color:#a0aec0;font-size:.8rem;padding:8px">טוען…</div>';return;}
+  if(_docPacks.length===0){list.innerHTML='<div style="color:#a0aec0;font-size:.8rem;padding:8px">אין פרויקטים עדיין.</div>';return;}
+  const fmt=t=>{try{const d=new Date(t);return d.toLocaleDateString('he-IL');}catch{return '';}};
+  list.innerHTML=_docPacks.map(p=>{
+    const active=p.id===_currentDocPackId?'active':'';
+    return `<div class="dp-list-item ${active}" onclick="dpSelectPack(${p.id})">
+      <span>${_escDp(p.name)}</span>
+      <span class="dp-list-date">${fmt(p.updated_at)}</span>
+    </div>`;
+  }).join('');
+}
+
+function _escDp(s){return String(s||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+
+function renderDocPackForm(){
+  const main=document.getElementById('dp-main');
+  if(!main) return;
+  if(!_currentDocPack){
+    main.innerHTML='<div style="text-align:center;padding:60px 20px;color:#a0aec0;font-size:.9rem">בחר פרויקט מהרשימה משמאל, או צור חדש.</div>';
+    return;
+  }
+  const d=_currentDocPack.data||{};
+  const network=_currentDocFiles.find(f=>f.kind==='network_diagram');
+  const siteplan=_currentDocFiles.find(f=>f.kind==='site_plan');
+  const photos=_currentDocFiles.filter(f=>f.kind==='photo');
+
+  main.innerHTML=`
+    <div class="dp-toolbar">
+      <div class="dp-title">
+        <input type="text" value="${_escDp(_currentDocPack.name)}" oninput="dpSetTitle(this.value)"/>
+      </div>
+      <span id="dp-save-status" class="dp-status"></span>
+      <button class="dp-btn-export" id="dp-export-btn" onclick="dpExportWord()">⬇ ייצוא Word</button>
+      <button class="dp-btn-del dp-admin-only" onclick="dpDeletePack(${_currentDocPack.id},'${_escDp(_currentDocPack.name).replace(/'/g,"\\'")}')">🗑 מחק תיק</button>
+    </div>
+
+    <div class="dp-section">
+      <div class="dp-section-head" onclick="this.parentNode.classList.toggle('collapsed')">
+        <span>📋 פרטי פרויקט</span><span>▼</span>
+      </div>
+      <div class="dp-section-body">
+        <div class="dp-grid-2">
+          ${_dpInp('site_name','שם האתר')}
+          ${_dpInp('site_address','כתובת')}
+          ${_dpInp('site_subtitle','כיתוב משנה בעמוד פתיחה (אופציונלי)')}
+          ${_dpInp('submit_date','תאריך הגשה','date')}
+          ${_dpInp('update_date','תאריך עדכון','date')}
+        </div>
+      </div>
+    </div>
+
+    <div class="dp-section">
+      <div class="dp-section-head" onclick="this.parentNode.classList.toggle('collapsed')">
+        <span>👥 גורמים בפרויקט</span><span>▼</span>
+      </div>
+      <div class="dp-section-body">
+        <div class="dp-grid-2">
+          ${_dpInp('contractor_org','גורם מבצע — חברה')}
+          ${_dpInp('contractor_person','גורם מבצע — איש קשר')}
+          ${_dpInp('pm_org','גורם מוביל — חברה')}
+          ${_dpInp('pm_person','מנהל פרויקט')}
+          ${_dpInp('customer_org','לקוח סופי — ארגון')}
+          ${_dpInp('customer_person','לקוח סופי — איש קשר')}
+          ${_dpInp('consultant_org','יועץ טכנולוגי — חברה')}
+          ${_dpInp('consultant_person','יועץ טכנולוגי — איש קשר')}
+          ${_dpInp('engineer_org','מהנדס טכנולוגי — חברה')}
+          ${_dpInp('engineer_person','מהנדס טכנולוגי — איש קשר')}
+        </div>
+      </div>
+    </div>
+
+    <div class="dp-section">
+      <div class="dp-section-head" onclick="this.parentNode.classList.toggle('collapsed')">
+        <span>📝 הקדמה</span><span>▼</span>
+      </div>
+      <div class="dp-section-body">
+        <div class="dp-field">
+          <label>טקסט ההקדמה (פסקאות יישמרו)</label>
+          <textarea oninput="dpSetField('intro_text',this.value)" style="min-height:120px">${_escDp(d.intro_text||'')}</textarea>
+        </div>
+      </div>
+    </div>
+
+    <div class="dp-section">
+      <div class="dp-section-head" onclick="this.parentNode.classList.toggle('collapsed')">
+        <span>🎯 תכולת הפרויקט</span><span>▼</span>
+      </div>
+      <div class="dp-section-body">
+        <div class="dp-field">
+          <label>שורה אחת = bullet אחד</label>
+          <textarea oninput="dpSetScope(this.value)" style="min-height:120px"
+            placeholder="לדוגמה:&#10;6 מצלמות IP חיצוניות&#10;ארון תקשורת ראשי&#10;עורק 60GHz">${_escDp(dpScopeText())}</textarea>
+        </div>
+      </div>
+    </div>
+
+    <div class="dp-section">
+      <div class="dp-section-head" onclick="this.parentNode.classList.toggle('collapsed')">
+        <span>🌐 ארכיטקטורת רשת</span><span>▼</span>
+      </div>
+      <div class="dp-section-body">
+        <div class="dp-field">
+          <label>תיאור ארכיטקטורה</label>
+          <textarea oninput="dpSetField('network_arch_text',this.value)" style="min-height:100px">${_escDp(d.network_arch_text||'')}</textarea>
+        </div>
+        <div class="dp-field" style="margin-top:14px">
+          <label>דיאגרמת רשת</label>
+          ${_dpSlot('network_diagram',network)}
+        </div>
+      </div>
+    </div>
+
+    <div class="dp-section">
+      <div class="dp-section-head" onclick="this.parentNode.classList.toggle('collapsed')">
+        <span>🗺️ שרטוט AS-MADE</span><span>▼</span>
+      </div>
+      <div class="dp-section-body">
+        <div class="dp-field">
+          <label>תכנית האתר (תמונה אחת)</label>
+          ${_dpSlot('site_plan',siteplan)}
+        </div>
+        <div class="dp-field" style="margin-top:18px">
+          <label>תמונות מהשטח</label>
+          ${_dpUploadBox('photo')}
+          <div class="dp-gallery">
+            ${photos.map(p=>_dpPhotoCard(p)).join('')}
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="dp-section">
+      <div class="dp-section-head" onclick="this.parentNode.classList.toggle('collapsed')">
+        <span>📡 מצלמות</span><span>▼</span>
+      </div>
+      <div class="dp-section-body">
+        ${_dpTable('cameras',
+          ['מס"ד','ארון תקשורת','שם המצלמה','סוג מצלמה','פורט בפנל','כתובת IP','מיקום בתכנית'],
+          ['idx','cabinet','name','model','port','ip','location'])}
+        <button class="dp-add-row dp-admin-only" onclick="dpAddRow('cameras')">+ הוסף שורה</button>
+      </div>
+    </div>
+
+    <div class="dp-section">
+      <div class="dp-section-head" onclick="this.parentNode.classList.toggle('collapsed')">
+        <span>📶 עורקים</span><span>▼</span>
+      </div>
+      <div class="dp-section-body">
+        ${_dpTable('backhauls',
+          ['מס"ד','סוג עורק','מק"ט','יצרן','מיקום','כתובת IP'],
+          ['idx','type','mpn','vendor','location','ip'])}
+        <button class="dp-add-row dp-admin-only" onclick="dpAddRow('backhauls')">+ הוסף שורה</button>
+      </div>
+    </div>
+
+    <div class="dp-section">
+      <div class="dp-section-head" onclick="this.parentNode.classList.toggle('collapsed')">
+        <span>🔌 מתגים</span><span>▼</span>
+      </div>
+      <div class="dp-section-body">
+        ${_dpTable('switches',
+          ['מס"ד','מתגים','מק"ט','יצרן','כתובת IP'],
+          ['idx','name','mpn','vendor','ip'])}
+        <button class="dp-add-row dp-admin-only" onclick="dpAddRow('switches')">+ הוסף שורה</button>
+      </div>
+    </div>
+  `;
+}
+
+function _dpInp(key,label,type='text'){
+  const v=_currentDocPack && _currentDocPack.data ? (_currentDocPack.data[key]||'') : '';
+  return `<div class="dp-field">
+    <label>${label}</label>
+    <input type="${type}" value="${_escDp(v)}" oninput="dpSetField('${key}',this.value)"/>
+  </div>`;
+}
+
+function _dpTable(tableKey,headers,fields){
+  const rows=dpRows(tableKey);
+  const headHtml=`<tr>${headers.map(h=>`<th>${h}</th>`).join('')}<th style="width:32px"></th></tr>`;
+  const bodyHtml=rows.map((r,i)=>`<tr>
+    ${fields.map(f=>`<td><input type="text" value="${_escDp(r[f]||'')}" oninput="dpRowField('${tableKey}',${i},'${f}',this.value)"/></td>`).join('')}
+    <td><button class="dp-row-del dp-admin-only" title="מחק שורה" onclick="dpDelRow('${tableKey}',${i})">🗑</button></td>
+  </tr>`).join('');
+  return `<table class="dp-table"><thead>${headHtml}</thead><tbody>${bodyHtml||`<tr><td colspan="${headers.length+1}" style="text-align:center;color:#a0aec0;padding:10px">אין שורות עדיין</td></tr>`}</tbody></table>`;
+}
+
+function _dpUploadBox(kind){
+  return `<div class="dp-upload-box dp-admin-only"
+    onclick="document.getElementById('dp-upload-${kind}').click()"
+    ondragover="event.preventDefault();this.classList.add('drag-over')"
+    ondragleave="this.classList.remove('drag-over')"
+    ondrop="event.preventDefault();this.classList.remove('drag-over');dpUploadFile(event.dataTransfer.files[0],'${kind}')">
+    🖼 גרור תמונה לכאן או לחץ לבחירה
+    <input type="file" id="dp-upload-${kind}" accept="image/*" style="display:none"
+      onchange="dpUploadFile(this.files[0],'${kind}',this)"/>
+  </div>`;
+}
+
+function _dpSlot(kind,file){
+  if(!file){
+    return _dpUploadBox(kind);
+  }
+  return `<div class="dp-slot">
+    <div class="dp-slot-preview" style="background-image:url('${dpFileUrl(file.id)}')"></div>
+    <div style="flex:1">
+      <div style="font-size:.8rem;color:#4a5568">${_escDp(file.original_name||'')}</div>
+      <div style="font-size:.7rem;color:#a0aec0;margin-top:2px">${(file.size/1024).toFixed(0)} KB</div>
+      <button class="dp-btn-del dp-admin-only" style="margin-top:8px" onclick="dpDeleteFile(${file.id})">🗑 מחק</button>
+    </div>
+  </div>`;
+}
+
+function _dpPhotoCard(p){
+  return `<div class="dp-photo">
+    <button class="dp-photo-del dp-admin-only" title="מחק" onclick="dpDeleteFile(${p.id})">✕</button>
+    <img src="${dpFileUrl(p.id)}" alt=""/>
+    <div class="dp-photo-caption">
+      <input type="text" placeholder="כיתוב…" value="${_escDp(p.caption||'')}"
+        onchange="dpUpdatePhotoCaption(${p.id},this.value)"/>
+    </div>
+  </div>`;
+}
+
+async function dpUpdatePhotoCaption(fileId,caption){
+  const f=_currentDocFiles.find(x=>x.id===fileId);
+  if(f) f.caption=caption;
+  if(!_currentDocPack) return;
+  try{
+    await fetch('/api/docpacks/'+_currentDocPack.id+'/files/'+fileId,{
+      method:'PATCH',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({caption})
+    });
+  }catch(e){/* swallow */}
 }
 // ════════════════════════════════════════════════════════════
 
