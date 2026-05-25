@@ -22,3 +22,5 @@ services:
         value: /data/db.sqlite
       - key: DS_PATH
         value: /data/ds
+      - key: DOC_PACK_UPLOADS_DIR
+        value: /data/doc_packs
