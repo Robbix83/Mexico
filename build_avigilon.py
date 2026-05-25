@@ -32,6 +32,8 @@ DS_LENS     = 'https://www.avigilon.com/fs/documents/avigilon-h6x-box-camera-dat
 DS_VB400    = 'https://d8eqw8u9b6kgn.cloudfront.net/documents/avigilon_vb400_data-sheet.pdf'
 DS_RM7      = 'https://www.avigilon.com/fs/documents/avigilon-rm7-wks-datasheet-en.pdf'
 DS_NVR5     = 'https://www.avigilon.com/fs/documents/avigilon-nvr5-wks-datasheet-en.pdf'
+DS_H5AMOD   = 'https://www.avigilon.com/fs/documents/avigilon-h5a-line-camera-datasheet-en.pdf'
+DS_H4VI     = 'https://www.avigilon.com/fs/documents/avigilon-h4vi-datasheet-en.pdf'
 
 # ── Products ──────────────────────────────────────────────────────────────────
 # (cat, model, desc, price_usd, ds_url)
@@ -218,6 +220,15 @@ r('מצלמת גוף','VB-440-64-QR-N','VB400 Body-Worn Camera 64GB, Quick Relea
 r('מצלמת גוף','VB-440-64-VF-N','VB400 Body-Worn Camera 64GB, Close-Fit MOLLE Mount, 2MP 120deg FOV, IP67, GPS, Wi-Fi, MIL-STD-810G, NA', 640.00, DS_VB400)
 r('מצלמת גוף','VB-440-64-KF-N','VB400 Body-Worn Camera 64GB, Klick Fast Stud Mount, 2MP 120deg FOV, IP67, GPS, Wi-Fi, MIL-STD-810G, NA', 640.00, DS_VB400)
 r('מצלמת גוף','VT-100-N','VT100 Body-Worn Camera 16GB, 720p HD, 130deg FOV, IP54, Wi-Fi 802.11b/g/n, Lightweight Commercial BWC, NA', 370.00, '')
+
+# ── H5A Modular Cameras ───────────────────────────────────────────────────────
+r('מודולרי','3C-H5MOD-MB2','H5A 3MP Modular Micro Bullet Imager, 2.8mm, 1/2.8" CMOS, IP67, IK10, requires H5A-MOD-2P main unit, NA', 263.94, DS_H5AMOD)
+r('מודולרי','3C-H5MOD-RP4','H5A 3MP Modular Right Angle Pinhole Imager, 3.7mm, 1/2.8" CMOS, IP67, requires H5A-MOD-2P main unit, NA', 263.94, DS_H5AMOD)
+r('מודולרי','5C-H5MOD-MB2','H5A 5MP Modular Micro Bullet Imager, 2.8mm, 1/2.5" CMOS, IP67, IK10, requires H5A-MOD-2P main unit, NA', 369.94, DS_H5AMOD)
+r('מודולרי','H5A-MOD-2P','H5A 2-Port Modular Main Unit, connects up to 2 imager heads, PoE+, IP67, wall/ceiling mount, NA', 556.50, DS_H5AMOD)
+
+# ── H4 Video Intercom ─────────────────────────────────────────────────────────
+r('אינטרקום','3.0C-H4VI-RO1-IR','H4 Video Intercom 3MP, Recessed Mount, IR LED, 1.9mm fisheye, 180deg FOV, 2-way audio, PoE, NA', 1357.02, DS_H4VI)
 
 # ── Lenses ────────────────────────────────────────────────────────────────────
 r('עדשה','AG3Z2812KCS-MPWIR-MSI', 'CS Lens, 2.8-8.5mm f1.2, 1/2.8, 6MP',              230.00, DS_LENS)
