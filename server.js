@@ -33,7 +33,7 @@ app.use(helmet({
     }
   }
 }));
-app.use(express.json());
+app.use(express.json({ limit: '10mb' }));  // warehouse imports can be ~500KB+
 app.use(cookieParser());
 app.set('trust proxy', 1);
 
@@ -292,6 +292,29 @@ app.put('/api/users/:id/sections', requireAdmin, (req, res) => {
   db.logAudit(req.user.id, req.user.username, 'update_user',
     `Set sections for user id=${id}: [${sections.join(',')}]`, getClientIp(req), '');
   res.json({ ok: true });
+});
+
+// ── Warehouse inventory (shared across all users) ────────────────────────────
+
+app.get('/api/warehouse', requireAuth, (req, res) => {
+  const row = db.getWarehouse();
+  let items = [];
+  try { items = row ? JSON.parse(row.data) : []; } catch { items = []; }
+  res.json({
+    items,
+    importedAt: row?.imported_at || null,
+    count:      row?.count       || 0,
+  });
+});
+
+app.put('/api/warehouse', requireAdmin, (req, res) => {
+  const { items } = req.body;
+  if (!Array.isArray(items))
+    return res.status(400).json({ error: 'items must be an array' });
+  db.setWarehouse(JSON.stringify(items), items.length);
+  db.logAudit(req.user.id, req.user.username, 'warehouse_import',
+    `Imported ${items.length} warehouse items`, getClientIp(req), '');
+  res.json({ ok: true, count: items.length });
 });
 
 // ── Exchange rates (Bank of Israel) ──────────────────────────────────────────

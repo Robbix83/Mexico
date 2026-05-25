@@ -966,7 +966,7 @@ tr:hover .pl-edit-btn{opacity:.65}
   <section id="warehouse-view" style="display:none">
     <h2>🏭 מלאי מחסנים</h2>
     <div class="wh-toolbar">
-      <button class="btn-cat" onclick="openWhImportModal()"
+      <button class="btn-cat" id="wh-import-trigger-btn" onclick="openWhImportModal()"
         style="background:#eef4ff;color:var(--blue);border-color:#bfdbfe">
         📥 ייבוא מלאי מ-Excel
       </button>
@@ -2115,7 +2115,7 @@ function setView(v){
   document.getElementById('sec-deleted').style.display     =_hideExtra?'none':'';
   if(v==='kanban') renderKanban();
   else if(v==='catalog'){renderCatalog();renderCatalogCatPills();}
-  else if(v==='warehouse') renderWarehouse();
+  else if(v==='warehouse'){renderWarehouse();ensureWarehouseLoaded().then(()=>renderWarehouse());}
   else if(v==='pricelist') renderPriceList();
   else renderList();
 }
@@ -3968,6 +3968,9 @@ let _userSections=null; // null=admin(all), array=allowed sections for viewer
     if(u.role==='viewer'){
       document.body.classList.add('viewer-mode');
       _userSections = Array.isArray(u.sections) ? u.sections : [];
+      // Hide warehouse import button — only admins can replace the inventory
+      const whBtn=document.getElementById('wh-import-trigger-btn');
+      if(whBtn) whBtn.style.display='none';
       _applyViewPermissions();
       // Route to first accessible section (or show empty state)
       const first = _userSections[0] || null;
@@ -4165,9 +4168,29 @@ document.addEventListener('mouseleave',e=>{
 let plMfrFilter='all', plEurRate=4.0, plUsdRate=3.6;
 let plMfrDiscounts=JSON.parse(localStorage.getItem('afkon_pl_mfr_discounts')||'{}');
 let plImported=JSON.parse(localStorage.getItem('afkon_pl_imported')||'[]');
-// ── Warehouse inventory state ──
-let whItems=JSON.parse(localStorage.getItem('afkon_warehouse_v1')||'[]');
+// ── Warehouse inventory state (loaded from server, shared across users) ──
+let whItems=[];
+let _whMeta={importedAt:null,count:0};
+let _whLoaded=false;
+let _whLoadingPromise=null;
 let _whParsed=[];
+async function ensureWarehouseLoaded(force){
+  if(_whLoaded && !force) return;
+  if(_whLoadingPromise) return _whLoadingPromise;
+  _whLoadingPromise=(async()=>{
+    try{
+      const r=await fetch('/api/warehouse');
+      if(r.ok){
+        const j=await r.json();
+        whItems=Array.isArray(j.items)?j.items:[];
+        _whMeta={importedAt:j.importedAt||null,count:j.count||whItems.length};
+        _whLoaded=true;
+      }
+    }catch(e){/* keep empty */}
+    finally{_whLoadingPromise=null;}
+  })();
+  return _whLoadingPromise;
+}
 let plSortCol='', plSortDir=-1;
 let plColFilters={cat:new Set(),model:new Set(),desc:new Set()};
 let _plFilterCol='';
@@ -5560,22 +5583,39 @@ function handleWhFile(file){
   };
   reader.readAsBinaryString(file);
 }
-function doWhImport(){
-  whItems=[..._whParsed];
-  localStorage.setItem('afkon_warehouse_v1',JSON.stringify(whItems));
-  localStorage.setItem('afkon_warehouse_meta_v1',JSON.stringify({
-    importedAt:new Date().toISOString(), count:whItems.length
-  }));
+async function doWhImport(){
+  const items=[..._whParsed];
+  const btn=document.getElementById('wh-import-btn');
+  if(btn){btn.disabled=true;btn.textContent='שומר...';}
+  try{
+    const r=await fetch('/api/warehouse',{
+      method:'PUT',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({items})
+    });
+    if(!r.ok){
+      const j=await r.json().catch(()=>({}));
+      throw new Error(j.error||'שגיאה בשמירה לשרת');
+    }
+  }catch(e){
+    alert('שגיאה בייבוא: '+e.message);
+    if(btn){btn.disabled=false;btn.textContent='ייבא';}
+    return;
+  }
+  whItems=items;
+  _whMeta={importedAt:new Date().toISOString(),count:items.length};
+  _whLoaded=true;
   // Reset file input so the same file can be re-imported next time
   const fi=document.getElementById('wh-file-inp');
   if(fi) fi.value='';
   _whParsed=[];
+  if(btn) btn.textContent='ייבא';
   closeWhImport();
   renderWarehouse();
 }
 function renderWarehouse(){
   const q=(document.getElementById('wh-search')?.value||'').trim().toLowerCase();
-  const meta=JSON.parse(localStorage.getItem('afkon_warehouse_meta_v1')||'{}');
+  const meta=_whMeta||{};
   const items=q
     ? whItems.filter(x=>
         x.sku.toLowerCase().includes(q)||
@@ -5595,9 +5635,17 @@ function renderWarehouse(){
 
   const grid=document.getElementById('wh-grid');
   if(!grid) return;
+  if(!_whLoaded){
+    grid.innerHTML='<div style="text-align:center;padding:40px;color:#a0aec0;font-size:.9rem">טוען מלאי מהשרת...</div>';
+    return;
+  }
   if(whItems.length===0){
+    const isViewer=document.body.classList.contains('viewer-mode');
     grid.innerHTML='<div style="text-align:center;padding:40px;color:#a0aec0;font-size:.9rem">'+
-      'טרם יובא מלאי. לחץ על "📥 ייבוא מלאי מ-Excel" כדי להתחיל.</div>';
+      (isViewer
+        ? 'טרם יובא מלאי. פנה למנהל המערכת לייבוא ראשון.'
+        : 'טרם יובא מלאי. לחץ על "📥 ייבוא מלאי מ-Excel" כדי להתחיל.')+
+      '</div>';
     return;
   }
   if(items.length===0){

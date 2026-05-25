@@ -41,6 +41,14 @@ db.exec(`
   CREATE INDEX IF NOT EXISTS idx_audit_timestamp ON audit(timestamp DESC);
   CREATE INDEX IF NOT EXISTS idx_audit_user      ON audit(user_id);
   CREATE INDEX IF NOT EXISTS idx_audit_action    ON audit(action);
+
+  CREATE TABLE IF NOT EXISTS warehouse_state (
+    id          INTEGER PRIMARY KEY CHECK (id = 1),
+    data        TEXT    NOT NULL DEFAULT '[]',
+    imported_at TEXT,
+    count       INTEGER NOT NULL DEFAULT 0
+  );
+  INSERT OR IGNORE INTO warehouse_state (id, data, count) VALUES (1, '[]', 0);
 `);
 
 // Migration: add must_change_password column to existing DBs
@@ -109,6 +117,10 @@ const stmts = {
       AND (? IS NULL OR a.timestamp >= ?)
       AND (? IS NULL OR a.timestamp <= ?)
   `),
+
+  // Warehouse
+  getWarehouse: db.prepare('SELECT data, imported_at, count FROM warehouse_state WHERE id = 1'),
+  setWarehouse: db.prepare("UPDATE warehouse_state SET data = ?, count = ?, imported_at = datetime('now') WHERE id = 1"),
 };
 
 module.exports = {
@@ -162,4 +174,8 @@ module.exports = {
     ).n;
     return { rows, total };
   },
+
+  // Warehouse
+  getWarehouse: () => stmts.getWarehouse.get(),
+  setWarehouse: (dataJson, count) => stmts.setWarehouse.run(dataJson, count),
 };
