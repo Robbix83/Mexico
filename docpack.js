@@ -41,10 +41,16 @@
 
 const fs   = require('fs');
 const path = require('path');
+const crypto = require('crypto');
 const PizZip          = require('pizzip');
 const Docxtemplater   = require('docxtemplater');
 const ImageModule     = require('docxtemplater-image-module-free');
-const archiver        = require('archiver');
+// pdf-to-img is ESM-only; load it lazily via dynamic import on first use
+let _pdfToImg = null;
+async function _getPdfToImg() {
+  if (!_pdfToImg) _pdfToImg = (await import('pdf-to-img')).pdf;
+  return _pdfToImg;
+}
 const db = require('./db');
 
 const TEMPLATES_DIR = path.join(__dirname, 'templates');
@@ -68,6 +74,44 @@ function packDir(packId) {
 
 function fileDiskPath(packId, filename) {
   return path.join(packDir(packId), filename);
+}
+
+// ── PDF page rendering ─────────────────────────────────────────────────────
+// Each datasheet PDF is rendered to PNG pages at export time so they can be
+// inlined into the Word document. Rendered images are written to a temp dir
+// under UPLOADS_DIR/_pdfrender so the existing image module reads them off
+// disk just like uploaded photos. Caller is responsible for cleaning the dir.
+
+const PDF_RENDER_TEMP_DIR = path.join(UPLOADS_DIR, '_pdfrender');
+const PDF_RENDER_MAX_PAGES_PER_DOC   = 10;  // safety: don't blow up the docx
+const PDF_RENDER_MAX_PAGES_TOTAL     = 50;  // overall cap across all datasheets
+const PDF_RENDER_SCALE               = 1.5; // 1.0 = 72 DPI; 1.5 ≈ 108 DPI — good balance
+
+async function renderPdfToPngs(pdfPath, outDir, opts = {}) {
+  const maxPages = opts.maxPages || PDF_RENDER_MAX_PAGES_PER_DOC;
+  if (!fs.existsSync(outDir)) fs.mkdirSync(outDir, { recursive: true });
+  const pdf = await _getPdfToImg();
+  const doc = await pdf(pdfPath, { scale: PDF_RENDER_SCALE });
+  const out = [];
+  let i = 0;
+  for await (const pngBuffer of doc) {
+    i++;
+    if (i > maxPages) break;
+    const outPath = path.join(outDir, `${path.basename(pdfPath, '.pdf')}_${i}.png`);
+    fs.writeFileSync(outPath, pngBuffer);
+    out.push({ path: outPath, page: i });
+  }
+  return out;
+}
+
+function _cleanupRenderDir(dir) {
+  try {
+    if (!fs.existsSync(dir)) return;
+    for (const f of fs.readdirSync(dir)) {
+      try { fs.unlinkSync(path.join(dir, f)); } catch {}
+    }
+    fs.rmdirSync(dir);
+  } catch {/* best effort */}
 }
 
 // ─── Datasheet index ───────────────────────────────────────────────────────
@@ -169,7 +213,25 @@ function imageModuleOpts() {
       }
       return fs.readFileSync(tagValue);
     },
-    getSize(_img, _tagValue, tagName) {
+    getSize(_img, tagValue, tagName) {
+      // PDF-rendered datasheet pages: keep the actual rendered aspect ratio
+      // (pdf-to-img returns the original page proportions). Width fits the
+      // page area (approx 620px in Word at default margins), height auto-
+      // computed from the PNG dimensions.
+      if (tagName === 'page_img' || /pdf_/i.test(String(tagValue))) {
+        try {
+          // Read PNG width/height from the IHDR chunk (offsets 16-24)
+          const buf = fs.readFileSync(tagValue);
+          if (buf.length >= 24) {
+            const w = buf.readUInt32BE(16);
+            const h = buf.readUInt32BE(20);
+            const targetW = 620;
+            const targetH = Math.round(h * (targetW / w));
+            return [targetW, targetH];
+          }
+        } catch {}
+        return [620, 800];
+      }
       if (tagName && /diagram|plan/i.test(tagName)) return [620, 380];
       return [560, 380]; // default photo size
     },
@@ -177,10 +239,14 @@ function imageModuleOpts() {
 }
 
 /**
- * buildContext(pack, files) — produces the placeholder context for docxtemplater.
- * Defensive against missing fields so the template never throws on an empty pack.
+ * buildContext(pack, files, opts) — produces the placeholder context for
+ * docxtemplater. `opts.renderTempDir` is where PDF-rendered pages go (caller
+ * cleans up). If `opts.renderTempDir` is omitted, datasheets are listed by
+ * name only (no pages embedded) — used by dry-render at boot.
+ *
+ * Returns a Promise<context> because PDF rendering is async.
  */
-function buildContext(pack, files) {
+async function buildContext(pack, files, opts = {}) {
   let data = {};
   try { data = JSON.parse(pack.data || '{}'); } catch { data = {}; }
 
@@ -226,14 +292,44 @@ function buildContext(pack, files) {
     .filter(f => f.kind === 'photo')
     .sort((a, b) => (a.sort_order - b.sort_order) || (a.id - b.id));
 
-  // Appendix = every client-visible PDF (uploaded or auto-attached datasheet).
-  // The Word doc lists their names; the actual PDFs are packed in the ZIP alongside.
-  const appendixFiles = allFiles
-    .filter(f => f.kind === 'datasheet' || f.kind === 'pdf' || /\.pdf$/i.test(f.original_name || ''))
-    .map(f => ({
-      name: f.original_name || (f.external_path ? path.basename(f.external_path) : f.filename),
-      kind: f.kind === 'datasheet' ? 'דף מוצר' : 'מסמך',
-    }));
+  // Datasheets / PDFs: render every page to PNG and embed inline in Word
+  // so the client opens a single .docx and sees everything.
+  const pdfFiles = allFiles.filter(f =>
+    f.kind === 'datasheet' || f.kind === 'pdf' ||
+    /\.pdf$/i.test(f.original_name || '')
+  );
+  const datasheets = [];
+  let totalPagesRendered = 0;
+  if (opts.renderTempDir && pdfFiles.length) {
+    for (const f of pdfFiles) {
+      if (totalPagesRendered >= PDF_RENDER_MAX_PAGES_TOTAL) break;
+      const src = f.filename ? fileDiskPath(f.pack_id, f.filename) : f.external_path;
+      if (!src || !fs.existsSync(src)) continue;
+      let pages = [];
+      try {
+        const remaining = PDF_RENDER_MAX_PAGES_TOTAL - totalPagesRendered;
+        const maxPages = Math.min(PDF_RENDER_MAX_PAGES_PER_DOC, remaining);
+        pages = await renderPdfToPngs(src, opts.renderTempDir, { maxPages });
+        totalPagesRendered += pages.length;
+      } catch (e) {
+        console.warn('[docpack] PDF render failed for', src, e.message);
+      }
+      datasheets.push({
+        name: f.original_name || (f.external_path ? path.basename(f.external_path) : f.filename),
+        mfr:  f.caption || '',
+        pages: pages.map(p => ({ page_img: p.path, page_num: p.page })),
+      });
+    }
+  } else if (pdfFiles.length) {
+    // Dry-render / no-render path: just list names, no page images
+    for (const f of pdfFiles) {
+      datasheets.push({
+        name: f.original_name || (f.external_path ? path.basename(f.external_path) : f.filename),
+        mfr:  f.caption || '',
+        pages: [],
+      });
+    }
+  }
 
   return {
     site_name:        data.site_name        || pack.name || '',
@@ -264,7 +360,7 @@ function buildContext(pack, files) {
       img:     _imgSourcePath(p),
       caption: p.caption || '',
     })),
-    appendix_files: appendixFiles,
+    datasheets,
     // Useful flags for conditional sections inside the template
     has_cameras:   cameras.length     > 0,
     has_backhauls: backhauls.length   > 0,
@@ -272,7 +368,7 @@ function buildContext(pack, files) {
     has_photos:    photoRows.length   > 0,
     has_network_diagram: !!network,
     has_site_plan:       !!sitepl,
-    has_appendix:  appendixFiles.length > 0,
+    has_datasheets: datasheets.length > 0,
   };
 }
 
@@ -286,10 +382,11 @@ function _imgSourcePath(file) {
 }
 
 /**
- * renderDocx(packId) — renders just the .docx file (no ZIP), returns a Buffer.
- * Internal use by generateDocPack (and the dry-render check).
+ * generateDocPack(packId) — produces a single .docx file with all client-
+ * visible PDFs (datasheets) rendered as inline images in an appendix section.
+ * Returns a Promise<Buffer> containing the .docx bytes.
  */
-function renderDocx(packId) {
+async function generateDocPack(packId) {
   const pack = db.getDocPack(packId);
   if (!pack) {
     const e = new Error('Pack not found'); e.code = 'PACK_NOT_FOUND';
@@ -300,74 +397,26 @@ function renderDocx(packId) {
     const e = new Error(`Template missing: ${path.basename(tplPath)}`); e.code = 'TEMPLATE_MISSING';
     throw e;
   }
-  const files   = db.listDocPackFiles(packId);
-  const context = buildContext(pack, files);
+  const files = db.listDocPackFiles(packId);
 
-  const content = fs.readFileSync(tplPath, 'binary');
-  const zip = new PizZip(content);
-  const doc = new Docxtemplater(zip, {
-    paragraphLoop: true,
-    linebreaks: true,
-    modules: [new ImageModule(imageModuleOpts())],
-    errorLogging: 'json',
-  });
-  doc.render(context);
-  return doc.getZip().generate({ type: 'nodebuffer', compression: 'DEFLATE' });
-}
+  // Per-export temp dir for PDF-rendered PNGs; cleaned up after render
+  const renderTempDir = path.join(PDF_RENDER_TEMP_DIR, crypto.randomBytes(8).toString('hex'));
 
-/**
- * generateDocPack(packId) — produces the client-delivery ZIP containing:
- *   <pack name>.docx           — the Word document (filtered to client visibility)
- *   appendix/<datasheet>.pdf   — every client-visible PDF (uploaded + auto-attached)
- *
- * Returns a Promise<Buffer>. Streaming the archive into an in-memory buffer keeps
- * the response shape identical to before (single Buffer → res.end(buf)).
- */
-function generateDocPack(packId) {
-  return new Promise((resolve, reject) => {
-    let docxBuf;
-    try { docxBuf = renderDocx(packId); }
-    catch (e) { return reject(e); }
-
-    const pack  = db.getDocPack(packId);
-    const files = db.listDocPackFiles(packId)
-      .filter(f => (f.visibility || 'client') === 'client');
-
-    const archive = archiver('zip', { zlib: { level: 6 } });
-    const chunks = [];
-    archive.on('data', c => chunks.push(c));
-    archive.on('end',  () => resolve(Buffer.concat(chunks)));
-    archive.on('warning', w => { if (w.code !== 'ENOENT') console.warn('[docpack zip]', w); });
-    archive.on('error', err => reject(err));
-
-    const docName = (pack.name || 'תיק תיעוד') + '.docx';
-    archive.append(docxBuf, { name: docName });
-
-    const seen = new Set(); // dedupe by archive entry name
-    for (const f of files) {
-      // Only PDFs (or anything that looks like one) go into appendix/
-      const isPdf =
-        f.kind === 'datasheet' ||
-        f.kind === 'pdf' ||
-        (f.mime && /pdf/i.test(f.mime)) ||
-        /\.pdf$/i.test(f.original_name || '');
-      if (!isPdf) continue;
-
-      const src = f.filename ? fileDiskPath(f.pack_id, f.filename) : f.external_path;
-      if (!src || !fs.existsSync(src)) continue;
-
-      let entryName = 'appendix/' + (f.original_name || path.basename(src));
-      // Dedupe — same model may appear in multiple equipment rows
-      let n = 2;
-      const base = entryName.replace(/\.pdf$/i, '');
-      while (seen.has(entryName)) { entryName = `${base} (${n}).pdf`; n++; }
-      seen.add(entryName);
-
-      archive.file(src, { name: entryName });
-    }
-
-    archive.finalize();
-  });
+  try {
+    const context = await buildContext(pack, files, { renderTempDir });
+    const content = fs.readFileSync(tplPath, 'binary');
+    const zip = new PizZip(content);
+    const doc = new Docxtemplater(zip, {
+      paragraphLoop: true,
+      linebreaks: true,
+      modules: [new ImageModule(imageModuleOpts())],
+      errorLogging: 'json',
+    });
+    doc.render(context);
+    return doc.getZip().generate({ type: 'nodebuffer', compression: 'DEFLATE' });
+  } finally {
+    _cleanupRenderDir(renderTempDir);
+  }
 }
 
 /**
@@ -375,7 +424,7 @@ function generateDocPack(packId) {
  * in TEMPLATES_DIR with empty sample data so we catch malformed templates
  * before the first user request. Logs results; does not throw.
  */
-function dryRenderAllTemplates() {
+async function dryRenderAllTemplates() {
   if (!fs.existsSync(TEMPLATES_DIR)) {
     console.log('[docpack] templates/ dir not found — skipping dry-render');
     return;
@@ -395,7 +444,9 @@ function dryRenderAllTemplates() {
         linebreaks: true,
         modules: [new ImageModule(imageModuleOpts())],
       });
-      doc.render(buildContext(samplePack, []));
+      // No renderTempDir → datasheets list only, no PDFs rendered
+      const ctx = await buildContext(samplePack, []);
+      doc.render(ctx);
       console.log(`[docpack] ✓ template ${f} dry-renders OK`);
     } catch (e) {
       console.error(`[docpack] ✗ template ${f} FAILED dry-render:`, e.message);
@@ -411,7 +462,6 @@ function dryRenderAllTemplates() {
 module.exports = {
   buildContext,
   generateDocPack,
-  renderDocx,
   dryRenderAllTemplates,
   fileDiskPath,
   packDir,

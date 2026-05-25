@@ -297,22 +297,34 @@ def build():
         set_rtl(p); p.alignment = WD_ALIGN_PARAGRAPH.CENTER
         r = p.add_run(txt); r.font.name = 'Arial'; r.font.size = Pt(10)
 
-    # ═════════════════ 6. מסמכים נלווים (Appendix index) ═════════════════
-    # The Word lists which PDFs are bundled in the ZIP's appendix/ folder.
-    # The PDFs themselves live alongside the .docx in the ZIP.
+    # ═════════════════ 6. נספח — דפי מוצר ═════════════════
+    # Each datasheet PDF is rendered to PNG pages by the server at export time
+    # and inlined here. The outer loop iterates datasheets; the inner loop
+    # iterates pages within a datasheet. paragraphLoop:true (set in docpack.js)
+    # makes loops that wrap whole paragraphs repeat each contained paragraph.
     doc.add_page_break()
-    add_heading_rtl(doc, '6. מסמכים נלווים', level=1)
+    add_heading_rtl(doc, '6. נספח — דפי מוצר', level=1)
     p = add_para_rtl(doc,
-        'תיק זה כולל קבצי PDF נלווים (דפי מוצר ומסמכים נוספים) הנמצאים '
-        'בתיקייה appendix/ בתוך קובץ ה-ZIP. רשימת הקבצים:')
+        'דפי המוצר של כל הרכיבים בפרויקט. כל דאטה-שיט מופיע בעמוד נפרד.')
     p.runs[0].font.size = Pt(10.5)
     add_para_rtl(doc, '')
-    # Each bullet must be its OWN paragraph so {#loop}...{/loop} repeats per-item.
-    # docxtemplater with paragraphLoop:true (already set) treats a loop that fully
-    # contains a paragraph as repeating the paragraph for every item in the array.
-    add_para_rtl(doc, '{#appendix_files}')
-    add_bullet_rtl(doc, '{name} — {kind}')
-    add_para_rtl(doc, '{/appendix_files}')
+
+    # Outer loop: each datasheet starts with a heading + per-page images
+    add_para_rtl(doc, '{#datasheets}')
+    p = add_para_rtl(doc, '{name}', align=WD_ALIGN_PARAGRAPH.RIGHT)
+    p.runs[0].bold = True
+    p.runs[0].font.size = Pt(13)
+    p.runs[0].font.color.rgb = RGBColor(0x1a, 0x2a, 0x4a)
+    p = add_para_rtl(doc, '{mfr}', align=WD_ALIGN_PARAGRAPH.RIGHT)
+    p.runs[0].italic = True
+    p.runs[0].font.size = Pt(10)
+    p.runs[0].font.color.rgb = RGBColor(0x60, 0x70, 0x80)
+    # Inner loop: each page is one full-width image, centered
+    add_para_rtl(doc, '{#pages}')
+    add_para_rtl(doc, '{%page_img}', align=WD_ALIGN_PARAGRAPH.CENTER)
+    add_para_rtl(doc, '{/pages}')
+    add_para_rtl(doc, '')
+    add_para_rtl(doc, '{/datasheets}')
 
     # ── Footer ──
     add_para_rtl(doc, '')

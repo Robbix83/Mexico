@@ -6147,7 +6147,7 @@ function renderDocPackForm(){
       </div>
       <span id="dp-save-status" class="dp-status"></span>
       <span style="font-size:.72rem;color:#718096">📊 ${quotaHuman(quota.used)} / ${(quota.max/1024/1024/1024).toFixed(1)}GB ${quotaPct>=90?'⚠':''}</span>
-      <button class="dp-btn-export" id="dp-export-btn" onclick="dpExportWord()">⬇ ייצוא תיק (ZIP)</button>
+      <button class="dp-btn-export" id="dp-export-btn" onclick="dpExportWord()">⬇ ייצוא Word</button>
       <button class="dp-btn-share dp-admin-only" onclick="dpOpenShareModal()" style="background:#fbbf24;color:#1a2a4a;border:none;padding:8px 14px;border-radius:7px;font-size:.85rem;font-weight:700;cursor:pointer">🔗 קישור שיתוף</button>
       <button class="dp-btn-del dp-admin-only" onclick="dpDeletePack(${_currentDocPack.id},'${_escDp(_currentDocPack.name).replace(/'/g,"\\'")}')">🗑 מחק תיק</button>
     </div>
@@ -6667,12 +6667,12 @@ function dpCopyShareUrl(btn,url){
   });
 }
 
-// Override exportDocPackWord to download a .zip instead of .docx
-// (the server now returns a ZIP containing the .docx + appendix/ PDFs).
+// The server returns a single .docx with all client-visible PDFs embedded
+// inline as image pages. Renders take a few seconds for large datasheets.
 dpExportWord = async function(){
   if(!_currentDocPack) return;
   const btn=document.getElementById('dp-export-btn');
-  if(btn){btn.disabled=true;btn.textContent='מייצר…';}
+  if(btn){btn.disabled=true;btn.textContent='מייצר... (עשוי לקחת כמה שניות)';}
   if(_dpSaveTimer){clearTimeout(_dpSaveTimer);await dpFlushSave();}
   try{
     const r=await fetch('/api/docpacks/'+_currentDocPack.id+'/generate',{method:'POST'});
@@ -6680,11 +6680,11 @@ dpExportWord = async function(){
     const blob=await r.blob();
     const url=URL.createObjectURL(blob);
     const a=document.createElement('a');
-    a.href=url; a.download=(_currentDocPack.name||'תיק תיעוד')+'.zip';
+    a.href=url; a.download=(_currentDocPack.name||'תיק תיעוד')+'.docx';
     document.body.appendChild(a); a.click(); a.remove();
     setTimeout(()=>URL.revokeObjectURL(url),3000);
   }catch(e){alert('שגיאה: '+e.message);}
-  finally{if(btn){btn.disabled=false;btn.textContent='⬇ ייצוא תיק (ZIP)';}}
+  finally{if(btn){btn.disabled=false;btn.textContent='⬇ ייצוא Word';}}
 };
 // ════════════════════════════════════════════════════════════
 

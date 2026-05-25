@@ -645,10 +645,10 @@ app.post('/api/docpacks/:id/generate', requireAuth, async (req, res) => {
   if (!pack) return res.status(404).json({ error: 'Pack not found' });
   try {
     const buf = await docpack.generateDocPack(id);
-    const filename = sanitizeFilename(pack.name) + '.zip';
-    res.setHeader('Content-Type', 'application/zip');
+    const filename = sanitizeFilename(pack.name) + '.docx';
+    res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document');
     res.setHeader('Content-Disposition',
-      `attachment; filename="docpack.zip"; filename*=UTF-8''${encodeURIComponent(filename)}`);
+      `attachment; filename="docpack.docx"; filename*=UTF-8''${encodeURIComponent(filename)}`);
     res.setHeader('Content-Length', buf.length);
     db.logAudit(req.user.id, req.user.username, 'export',
       `docpack:${pack.name}`, getClientIp(req), '');
