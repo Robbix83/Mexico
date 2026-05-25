@@ -5982,7 +5982,15 @@ function dpRows(tableKey){
 }
 function dpAddRow(tableKey){
   const rows=dpRows(tableKey);
-  rows.push({});
+  // Pre-fill IP first 3 octets from previous row so the user only types the
+  // last octet for cameras on the same subnet.
+  const newRow={};
+  if(rows.length){
+    const prevIp=String(rows[rows.length-1].ip||'').trim();
+    const m=prevIp.match(/^(\d{1,3}\.\d{1,3}\.\d{1,3}\.)\d{0,3}$/);
+    if(m) newRow.ip=m[1];
+  }
+  rows.push(newRow);
   dpScheduleSave();
   renderDocPackForm();
 }
@@ -5997,6 +6005,38 @@ function dpRowField(tableKey,idx,field,val){
   if(!rows[idx]) rows[idx]={};
   rows[idx][field]=val;
   dpScheduleSave();
+}
+
+// IP address formatter: enforces NNN.NNN.NNN.NNN with auto-jump.
+// Called on `input` events; rewrites the field in place and saves.
+function dpIpInput(tableKey,idx,inputEl){
+  const cursorWasAtEnd=inputEl.selectionStart===inputEl.value.length;
+  // 1. Strip everything except digits and dots
+  let raw=(inputEl.value||'').replace(/[^\d.]/g,'');
+  // 2. Split into octets, clip each to max 3 digits and value 0-255
+  const parts=raw.split('.').slice(0,4); // at most 4 octets
+  const clean=[];
+  for(let p of parts){
+    p=p.slice(0,3);
+    if(p.length===3){
+      // Clamp to 255 when 3 digits typed
+      const n=parseInt(p,10);
+      if(n>255) p='255';
+    }
+    clean.push(p);
+  }
+  // 3. Reassemble — if octet hit 3 digits AND we don't yet have 4 octets,
+  //    auto-add a dot so the user can keep typing seamlessly.
+  let formatted=clean.join('.');
+  if(clean.length<4 && clean[clean.length-1] && clean[clean.length-1].length===3
+     && !raw.endsWith('.')){
+    formatted+='.';
+  }
+  inputEl.value=formatted;
+  // Save the formatted value (without trailing dot for storage cleanliness)
+  dpRowField(tableKey,idx,'ip',formatted.replace(/\.$/,''));
+  // Keep cursor at end (typical typing experience)
+  if(cursorWasAtEnd) inputEl.setSelectionRange(formatted.length,formatted.length);
 }
 
 // ── Scope items (bullets) ──
@@ -6287,6 +6327,12 @@ function _dpTable(tableKey,headers,fields,autocompleteField){
   const headHtml=`<tr>${headers.map(h=>`<th>${h}</th>`).join('')}<th style="width:32px"></th></tr>`;
   const bodyHtml=rows.map((r,i)=>`<tr>
     ${fields.map(f=>{
+      if(f==='ip'){
+        return `<td><input type="text" inputmode="numeric" maxlength="15"
+          placeholder="000.000.000.000" dir="ltr" style="text-align:left;font-family:monospace"
+          value="${_escDp(r[f]||'')}"
+          oninput="dpIpInput('${tableKey}',${i},this)"/></td>`;
+      }
       const extra=f===autocompleteField
         ? `list="dp-datasheet-options" oninput="dpModelInput('${tableKey}',${i},'${f}',this)"`
         : `oninput="dpRowField('${tableKey}',${i},'${f}',this.value)"`;
