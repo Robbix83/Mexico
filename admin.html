@@ -200,6 +200,9 @@ tr:hover td{background:#f8fafc}
       <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:.85rem">
         <input type="checkbox" id="perm-pricelist"> מחירונים
       </label>
+      <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:.85rem">
+        <input type="checkbox" id="perm-warehouse"> מלאי מחסנים
+      </label>
     </div>
     <div class="err-msg" id="perms-err"></div>
     <div class="modal-actions">
@@ -257,7 +260,7 @@ async function loadUsers() {
   renderUsers();
 }
 
-const SECTION_LABELS = {list:'לוח משימות',kanban:'קנבן',catalog:'קטלוג',pricelist:'מחירון'};
+const SECTION_LABELS = {list:'לוח משימות',kanban:'קנבן',catalog:'קטלוג',pricelist:'מחירון',warehouse:'מלאי מחסנים'};
 
 function renderUsers() {
   const tbody = document.getElementById('users-tbody');
@@ -302,14 +305,14 @@ function openPermissions(id, username) {
   document.getElementById('perms-err').classList.remove('show');
   const user = users.find(u => u.id === id);
   const secs = (user && user.sections) ? JSON.parse(user.sections) : [];
-  ['list','kanban','catalog','pricelist'].forEach(s => {
+  ['list','kanban','catalog','pricelist','warehouse'].forEach(s => {
     document.getElementById('perm-'+s).checked = secs.includes(s);
   });
   document.getElementById('modal-perms').classList.add('open');
 }
 
 async function submitPermissions() {
-  const sections = ['list','kanban','catalog','pricelist'].filter(s =>
+  const sections = ['list','kanban','catalog','pricelist','warehouse'].filter(s =>
     document.getElementById('perm-'+s).checked
   );
   const errEl = document.getElementById('perms-err');

@@ -285,7 +285,7 @@ app.post('/api/users/:id/unlock', requireAdmin, (req, res) => {
 app.put('/api/users/:id/sections', requireAdmin, (req, res) => {
   const id = parseInt(req.params.id);
   const { sections } = req.body;
-  const valid = ['list', 'kanban', 'catalog', 'pricelist'];
+  const valid = ['list', 'kanban', 'catalog', 'pricelist', 'warehouse'];
   if (!Array.isArray(sections) || sections.some(s => !valid.includes(s)))
     return res.status(400).json({ error: 'Invalid sections value' });
   db.setSections(id, sections);

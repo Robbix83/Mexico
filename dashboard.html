@@ -1069,7 +1069,7 @@ tr:hover .pl-edit-btn{opacity:.65}
         בחר קובץ ייצוא ממערכת ERP. הנתונים יחליפו את כל המלאי הקיים. שורות עם כמות 0 לא יכנסו.
       </p>
       <input type="file" id="wh-file-inp" accept=".xlsx,.xls"
-        onclick="this.value=null"
+        onclick="this.value=''"
         onchange="handleWhFile(this.files[0])" style="margin-bottom:10px;width:100%"/>
       <div id="wh-import-preview" style="font-size:.85rem;color:#2d7a4f;font-weight:600;min-height:22px"></div>
       <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:18px">
@@ -3984,7 +3984,7 @@ let _userSections=null; // null=admin(all), array=allowed sections for viewer
 
 function _applyViewPermissions(){
   if(_userSections===null) return; // admin — no restrictions
-  ['list','kanban','catalog','pricelist'].forEach(s=>{
+  ['list','kanban','catalog','pricelist','warehouse'].forEach(s=>{
     const btn=document.getElementById('vt-'+s);
     if(btn) btn.style.display=_userSections.includes(s)?'':'none';
   });
