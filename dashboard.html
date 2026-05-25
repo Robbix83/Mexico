@@ -1077,6 +1077,22 @@ tr:hover .pl-edit-btn{opacity:.65}
     </div>
   </div>
 
+  <!-- ══ DOC PACK SHARE MODAL ══ -->
+  <div id="dp-share-overlay" class="pl-import-overlay" onclick="if(event.target===this)dpCloseShareModal()">
+    <div class="pl-import-modal" style="max-width:560px">
+      <h3 id="dp-share-title">קישורי שיתוף</h3>
+      <p style="font-size:.82rem;color:#718096;margin-bottom:12px;line-height:1.5">
+        קישורים אלה מאפשרים לגורם חיצוני (קבלן, טכנאי בשטח) להוסיף ציוד ולעלות קבצים לתיק התיעוד ללא צורך בחשבון.
+        כל קישור פעיל עד שתבטל אותו.
+      </p>
+      <div id="dp-share-list"></div>
+      <div style="display:flex;gap:8px;justify-content:space-between;margin-top:14px">
+        <button onclick="dpCreateShare()" style="background:#1d4ed8;color:#fff;border:none;padding:8px 18px;border-radius:7px;font-size:.85rem;font-weight:700;cursor:pointer">+ צור קישור חדש</button>
+        <button class="pl-step-cancel" onclick="dpCloseShareModal()">סגור</button>
+      </div>
+    </div>
+  </div>
+
   <!-- ══ PRICE LIST VIEW ══ -->
   <section id="pricelist-view" style="display:none">
     <h2>💲 מחירונים</h2>
@@ -6081,13 +6097,18 @@ function renderDocPackForm(){
   const siteplan=_currentDocFiles.find(f=>f.kind==='site_plan');
   const photos=_currentDocFiles.filter(f=>f.kind==='photo');
 
+  const quota=_currentDocQuota||{used:0,max:0};
+  const quotaPct=quota.max?Math.min(100,Math.round(quota.used/quota.max*100)):0;
+  const quotaHuman=v=>v<1024*1024?`${(v/1024).toFixed(0)}KB`:`${(v/1024/1024).toFixed(1)}MB`;
   main.innerHTML=`
     <div class="dp-toolbar">
       <div class="dp-title">
         <input type="text" value="${_escDp(_currentDocPack.name)}" oninput="dpSetTitle(this.value)"/>
       </div>
       <span id="dp-save-status" class="dp-status"></span>
-      <button class="dp-btn-export" id="dp-export-btn" onclick="dpExportWord()">⬇ ייצוא Word</button>
+      <span style="font-size:.72rem;color:#718096">📊 ${quotaHuman(quota.used)} / ${(quota.max/1024/1024/1024).toFixed(1)}GB ${quotaPct>=90?'⚠':''}</span>
+      <button class="dp-btn-export" id="dp-export-btn" onclick="dpExportWord()">⬇ ייצוא תיק (ZIP)</button>
+      <button class="dp-btn-share dp-admin-only" onclick="dpOpenShareModal()" style="background:#fbbf24;color:#1a2a4a;border:none;padding:8px 14px;border-radius:7px;font-size:.85rem;font-weight:700;cursor:pointer">🔗 קישור שיתוף</button>
       <button class="dp-btn-del dp-admin-only" onclick="dpDeletePack(${_currentDocPack.id},'${_escDp(_currentDocPack.name).replace(/'/g,"\\'")}')">🗑 מחק תיק</button>
     </div>
 
@@ -6193,7 +6214,8 @@ function renderDocPackForm(){
       <div class="dp-section-body">
         ${_dpTable('cameras',
           ['מס"ד','ארון תקשורת','שם המצלמה','סוג מצלמה','פורט בפנל','כתובת IP','מיקום בתכנית'],
-          ['idx','cabinet','name','model','port','ip','location'])}
+          ['idx','cabinet','name','model','port','ip','location'],
+          'model')}
         <button class="dp-add-row dp-admin-only" onclick="dpAddRow('cameras')">+ הוסף שורה</button>
       </div>
     </div>
@@ -6205,7 +6227,8 @@ function renderDocPackForm(){
       <div class="dp-section-body">
         ${_dpTable('backhauls',
           ['מס"ד','סוג עורק','מק"ט','יצרן','מיקום','כתובת IP'],
-          ['idx','type','mpn','vendor','location','ip'])}
+          ['idx','type','mpn','vendor','location','ip'],
+          'mpn')}
         <button class="dp-add-row dp-admin-only" onclick="dpAddRow('backhauls')">+ הוסף שורה</button>
       </div>
     </div>
@@ -6217,10 +6240,37 @@ function renderDocPackForm(){
       <div class="dp-section-body">
         ${_dpTable('switches',
           ['מס"ד','מתגים','מק"ט','יצרן','כתובת IP'],
-          ['idx','name','mpn','vendor','ip'])}
+          ['idx','name','mpn','vendor','ip'],
+          'mpn')}
         <button class="dp-add-row dp-admin-only" onclick="dpAddRow('switches')">+ הוסף שורה</button>
       </div>
     </div>
+
+    <div class="dp-section">
+      <div class="dp-section-head" onclick="this.parentNode.classList.toggle('collapsed')">
+        <span>🕒 תיעוד מהלך הפרויקט (כל הקבצים)</span><span>▼</span>
+      </div>
+      <div class="dp-section-body">
+        <div class="dp-tl-filters" style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px">
+          ${_dpTimelineFilterBtn('all','הכל')}
+          ${_dpTimelineFilterBtn('photo','🖼 תמונות')}
+          ${_dpTimelineFilterBtn('video','🎥 וידאו')}
+          ${_dpTimelineFilterBtn('pdf','📕 PDF')}
+          ${_dpTimelineFilterBtn('datasheet','📘 דפי מוצר')}
+          ${_dpTimelineFilterBtn('excel','📊 אקסל')}
+          ${_dpTimelineFilterBtn('quote_contractor','💼 הצעות קבלן')}
+          ${_dpTimelineFilterBtn('quote_supplier','💼 הצעות ספק')}
+          ${_dpTimelineFilterBtn('general','📎 כללי')}
+        </div>
+        ${_dpGenericUploadBox()}
+        <div id="dp-timeline-list" style="margin-top:12px;display:flex;flex-direction:column;gap:8px">
+          ${_dpRenderTimelineRows()}
+        </div>
+      </div>
+    </div>
+
+    <!-- shared datalist used by all equipment-table "model" / "mpn" inputs -->
+    <datalist id="dp-datasheet-options"></datalist>
   `;
 }
 
@@ -6232,11 +6282,16 @@ function _dpInp(key,label,type='text'){
   </div>`;
 }
 
-function _dpTable(tableKey,headers,fields){
+function _dpTable(tableKey,headers,fields,autocompleteField){
   const rows=dpRows(tableKey);
   const headHtml=`<tr>${headers.map(h=>`<th>${h}</th>`).join('')}<th style="width:32px"></th></tr>`;
   const bodyHtml=rows.map((r,i)=>`<tr>
-    ${fields.map(f=>`<td><input type="text" value="${_escDp(r[f]||'')}" oninput="dpRowField('${tableKey}',${i},'${f}',this.value)"/></td>`).join('')}
+    ${fields.map(f=>{
+      const extra=f===autocompleteField
+        ? `list="dp-datasheet-options" oninput="dpModelInput('${tableKey}',${i},'${f}',this)"`
+        : `oninput="dpRowField('${tableKey}',${i},'${f}',this.value)"`;
+      return `<td><input type="text" value="${_escDp(r[f]||'')}" ${extra}/></td>`;
+    }).join('')}
     <td><button class="dp-row-del dp-admin-only" title="מחק שורה" onclick="dpDelRow('${tableKey}',${i})">🗑</button></td>
   </tr>`).join('');
   return `<table class="dp-table"><thead>${headHtml}</thead><tbody>${bodyHtml||`<tr><td colspan="${headers.length+1}" style="text-align:center;color:#a0aec0;padding:10px">אין שורות עדיין</td></tr>`}</tbody></table>`;
@@ -6291,6 +6346,300 @@ async function dpUpdatePhotoCaption(fileId,caption){
     });
   }catch(e){/* swallow */}
 }
+
+// ── Drop 2B additions: quota, timeline, autocomplete, generic upload, share modal ──
+
+let _currentDocQuota={used:0,max:0};
+let _dpTimelineFilter='all';
+let _dpDatasheetSearchT=null;
+
+const DP_KIND_ICON = {
+  photo:'🖼', diagram:'🗺', network_diagram:'🕸', site_plan:'📐',
+  video:'🎥', pdf:'📕', excel:'📊', datasheet:'📘',
+  quote_contractor:'💼', quote_supplier:'💼', general:'📎',
+};
+const DP_KIND_LABEL = {
+  photo:'תמונה', diagram:'דיאגרמה', network_diagram:'דיאגרמת רשת', site_plan:'תכנית אתר',
+  video:'וידאו', pdf:'PDF', excel:'אקסל', datasheet:'דף מוצר',
+  quote_contractor:'הצעת קבלן', quote_supplier:'הצעת ספק', general:'מסמך',
+};
+
+// Override the previous dpSelectPack so it also captures the quota field
+dpSelectPack = async function(id){
+  _currentDocPackId=id;
+  _currentDocPack=null; _currentDocFiles=[]; _currentDocQuota={used:0,max:0};
+  try{
+    const r=await fetch('/api/docpacks/'+id);
+    if(r.ok){
+      const j=await r.json();
+      _currentDocPack=j.pack;
+      _currentDocFiles=j.files||[];
+      _currentDocQuota=j.quota||{used:0,max:0};
+    }
+  }catch(e){}
+  renderDocPack();
+};
+
+function _dpTimelineFilterBtn(value,label){
+  const active=_dpTimelineFilter===value?'background:#1d4ed8;color:#fff;border-color:#1d4ed8':'background:#fff;color:#475569;border-color:#e2e8f0';
+  return `<button onclick="dpSetTimelineFilter('${value}')" style="font-size:.72rem;padding:5px 10px;border:1px solid;border-radius:14px;cursor:pointer;${active}">${label}</button>`;
+}
+function dpSetTimelineFilter(v){
+  _dpTimelineFilter=v;
+  // Cheap partial re-render — re-render only the timeline section
+  const list=document.getElementById('dp-timeline-list');
+  if(list) list.innerHTML=_dpRenderTimelineRows();
+  // Also re-render filter row
+  renderDocPackForm();
+}
+
+function _dpRenderTimelineRows(){
+  if(!_currentDocFiles.length) return '<div style="text-align:center;color:#a0aec0;font-size:.85rem;padding:30px 10px">עדיין לא הועלו קבצים. השתמש בתיבת ההעלאה למעלה כדי להתחיל.</div>';
+  const files=_currentDocFiles
+    .filter(f=>_dpTimelineFilter==='all'||f.kind===_dpTimelineFilter)
+    .slice()
+    .sort((a,b)=>(new Date(b.created_at)-new Date(a.created_at)));
+  if(!files.length) return '<div style="text-align:center;color:#a0aec0;font-size:.85rem;padding:20px 10px">אין קבצים בקטגוריה זו.</div>';
+  return files.map(f=>{
+    const isImg=f.kind==='photo'||f.kind==='diagram'||f.kind==='network_diagram'||f.kind==='site_plan';
+    const visBadge=f.visibility==='internal'
+      ? '<span style="font-size:.65rem;background:#fef3c7;color:#92400e;padding:2px 7px;border-radius:10px;font-weight:600">פנימי</span>'
+      : '<span style="font-size:.65rem;background:#d1fae5;color:#047857;padding:2px 7px;border-radius:10px;font-weight:600">ללקוח</span>';
+    const preview=isImg && !f.is_linked
+      ? `<img src="${dpFileUrl(f.id)}" style="width:54px;height:54px;object-fit:cover;border-radius:6px;flex-shrink:0" alt=""/>`
+      : `<div style="width:54px;height:54px;border-radius:6px;background:#f1f5f9;display:flex;align-items:center;justify-content:center;font-size:1.6rem;flex-shrink:0">${DP_KIND_ICON[f.kind]||'📎'}</div>`;
+    const dateStr=new Date(f.created_at).toLocaleDateString('he-IL')+' '+new Date(f.created_at).toLocaleTimeString('he-IL',{hour:'2-digit',minute:'2-digit'});
+    const linkedTag=f.is_linked?`<span style="font-size:.65rem;color:#1d4ed8;background:#dbeafe;padding:2px 7px;border-radius:10px;margin-right:4px">🔗 קישור</span>`:'';
+    return `<div style="display:flex;gap:10px;padding:10px;border:1px solid #edf2f7;border-radius:8px;background:#fcfcfd;align-items:flex-start">
+      ${preview}
+      <div style="flex:1;min-width:0">
+        <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
+          <span style="font-weight:600;color:#1a2a4a;font-size:.85rem">${_escDp(f.original_name||'(ללא שם)')}</span>
+          <span style="font-size:.7rem;color:#718096">${DP_KIND_LABEL[f.kind]||f.kind}</span>
+          ${visBadge}${linkedTag}
+        </div>
+        <div style="font-size:.72rem;color:#94a3b8;margin-top:2px">${dateStr} · ${(f.size/1024).toFixed(0)}KB${f.contributor?(' · '+_escDp(f.contributor)):''}</div>
+        ${f.note?`<div style="font-size:.78rem;color:#475569;margin-top:4px;font-style:italic">${_escDp(f.note)}</div>`:''}
+        <div class="dp-admin-only" style="display:flex;gap:6px;margin-top:6px;flex-wrap:wrap;font-size:.72rem">
+          <select onchange="dpFileSetKind(${f.id},this.value)" style="padding:3px 6px;border:1px solid #e2e8f0;border-radius:5px;font-size:.72rem">
+            ${Object.keys(DP_KIND_LABEL).map(k=>`<option value="${k}" ${k===f.kind?'selected':''}>${DP_KIND_LABEL[k]}</option>`).join('')}
+          </select>
+          <select onchange="dpFileSetVisibility(${f.id},this.value)" style="padding:3px 6px;border:1px solid #e2e8f0;border-radius:5px;font-size:.72rem">
+            <option value="client" ${f.visibility!=='internal'?'selected':''}>ללקוח</option>
+            <option value="internal" ${f.visibility==='internal'?'selected':''}>פנימי</option>
+          </select>
+          <input type="text" placeholder="הערה" value="${_escDp(f.note||'')}" onchange="dpFileSetNote(${f.id},this.value)" style="flex:1;min-width:120px;padding:3px 7px;border:1px solid #e2e8f0;border-radius:5px;font-size:.72rem"/>
+          <button onclick="dpDeleteFile(${f.id})" class="dp-row-del" title="מחק">🗑</button>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function _dpGenericUploadBox(){
+  return `<div class="dp-upload-box dp-admin-only" id="dp-upload-zone"
+    onclick="document.getElementById('dp-upload-any').click()"
+    ondragover="event.preventDefault();this.classList.add('drag-over')"
+    ondragleave="this.classList.remove('drag-over')"
+    ondrop="event.preventDefault();this.classList.remove('drag-over');dpUploadAny(event.dataTransfer.files)">
+    📎 גרור קבצים לכאן (תמונה / וידאו / PDF / אקסל) או לחץ לבחירה
+    <input type="file" id="dp-upload-any" multiple style="display:none"
+      onchange="dpUploadAny(this.files,this)"/>
+    <div style="margin-top:8px;font-size:.72rem;color:#94a3b8">
+      בחר קודם סוג:
+      <select id="dp-upload-kind" style="font-size:.72rem;padding:3px 6px;border:1px solid #e2e8f0;border-radius:4px;background:#fff" onclick="event.stopPropagation()">
+        <option value="">(אוטומטי לפי סיומת)</option>
+        ${Object.keys(DP_KIND_LABEL).map(k=>`<option value="${k}">${DP_KIND_LABEL[k]}</option>`).join('')}
+      </select>
+      וגלוי:
+      <select id="dp-upload-visibility" style="font-size:.72rem;padding:3px 6px;border:1px solid #e2e8f0;border-radius:4px;background:#fff" onclick="event.stopPropagation()">
+        <option value="">(אוטומטי)</option>
+        <option value="client">ללקוח</option>
+        <option value="internal">פנימי</option>
+      </select>
+      <input type="text" id="dp-upload-note" placeholder="הערה (אופציונלי)" onclick="event.stopPropagation()"
+        style="font-size:.72rem;padding:3px 7px;border:1px solid #e2e8f0;border-radius:4px;width:200px;margin-right:6px"/>
+    </div>
+    <div id="dp-upload-progress" style="margin-top:6px;font-size:.75rem;color:#1d4ed8"></div>
+  </div>`;
+}
+
+function _autoKindFromExt(name){
+  const lower=(name||'').toLowerCase();
+  if(/\.(jpe?g|png|webp|gif|bmp)$/.test(lower)) return 'photo';
+  if(/\.(mp4|mov|m4v|avi|mkv|webm)$/.test(lower)) return 'video';
+  if(/\.pdf$/.test(lower)) return 'pdf';
+  if(/\.(xlsx?|csv)$/.test(lower)) return 'excel';
+  return 'general';
+}
+
+async function dpUploadAny(filesList,inputEl){
+  if(!filesList||!filesList.length||!_currentDocPack) return;
+  const kindOverride=(document.getElementById('dp-upload-kind')?.value||'').trim();
+  const visOverride =(document.getElementById('dp-upload-visibility')?.value||'').trim();
+  const note        =(document.getElementById('dp-upload-note')?.value||'').trim();
+  const progress=document.getElementById('dp-upload-progress');
+  let ok=0,fail=0;
+  for(const file of Array.from(filesList)){
+    if(progress) progress.textContent=`מעלה: ${file.name} (${(file.size/1024/1024).toFixed(1)}MB)…`;
+    const kind=kindOverride||_autoKindFromExt(file.name);
+    const fd=new FormData();
+    fd.append('file',file); fd.append('kind',kind);
+    if(visOverride) fd.append('visibility',visOverride);
+    if(note) fd.append('note',note);
+    try{
+      const r=await fetch('/api/docpacks/'+_currentDocPack.id+'/files',{method:'POST',body:fd});
+      if(!r.ok){const j=await r.json().catch(()=>({}));throw new Error(j.error||'fail');}
+      const j=await r.json();
+      _currentDocFiles.unshift({...j.file,pack_id:_currentDocPack.id});
+      _currentDocQuota.used+=(j.file.size||0);
+      ok++;
+    }catch(e){
+      fail++;
+      console.warn('upload failed',file.name,e.message);
+    }
+  }
+  if(progress) progress.textContent=`✓ הועלו: ${ok}${fail?` · ✗ נכשלו: ${fail}`:''}`;
+  if(inputEl) inputEl.value='';
+  if(document.getElementById('dp-upload-note')) document.getElementById('dp-upload-note').value='';
+  renderDocPackForm();
+  setTimeout(()=>{if(progress) progress.textContent='';},5000);
+}
+
+async function dpFileSetKind(fileId,kind){
+  const f=_currentDocFiles.find(x=>x.id===fileId);
+  if(f) f.kind=kind;
+  try{
+    await fetch('/api/docpacks/'+_currentDocPack.id+'/files/'+fileId,{
+      method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({kind})});
+  }catch(e){}
+  renderDocPackForm();
+}
+async function dpFileSetVisibility(fileId,visibility){
+  const f=_currentDocFiles.find(x=>x.id===fileId);
+  if(f) f.visibility=visibility;
+  try{
+    await fetch('/api/docpacks/'+_currentDocPack.id+'/files/'+fileId,{
+      method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({visibility})});
+  }catch(e){}
+  // partial re-render of just the timeline:
+  const list=document.getElementById('dp-timeline-list');
+  if(list) list.innerHTML=_dpRenderTimelineRows();
+}
+async function dpFileSetNote(fileId,note){
+  const f=_currentDocFiles.find(x=>x.id===fileId);
+  if(f) f.note=note;
+  try{
+    await fetch('/api/docpacks/'+_currentDocPack.id+'/files/'+fileId,{
+      method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({note})});
+  }catch(e){}
+}
+
+// ── Datasheet autocomplete in equipment tables ──
+function dpModelInput(tableKey,idx,field,inputEl){
+  dpRowField(tableKey,idx,field,inputEl.value); // keep saving as before
+  // Throttle datasheet lookup
+  clearTimeout(_dpDatasheetSearchT);
+  const q=inputEl.value.trim();
+  if(q.length<2){return;}
+  _dpDatasheetSearchT=setTimeout(async()=>{
+    try{
+      const r=await fetch('/api/datasheets/search?q='+encodeURIComponent(q));
+      if(!r.ok) return;
+      const j=await r.json();
+      const dl=document.getElementById('dp-datasheet-options');
+      if(dl) dl.innerHTML=(j.matches||[]).map(m=>`<option value="${_escDp(m.model)}">${_escDp(m.mfr)}</option>`).join('');
+    }catch(e){}
+  },220);
+}
+
+// After the user finishes typing a model + tabs out, optionally invoke the server
+// to add the equipment row + auto-attach the datasheet. We keep the live row
+// editing as-is; this is just an extra "attach datasheet for current row" button
+// (kept inside dp-row-add for the future) — for now the auto-attach happens
+// when a contractor adds via the share link. Admins can also trigger by clicking
+// "attach datasheet" — TBD; skipped in this drop to keep diff minimal.
+
+// ── Share link modal ──
+async function dpOpenShareModal(){
+  if(!_currentDocPack) return;
+  document.getElementById('dp-share-overlay').style.display='flex';
+  document.getElementById('dp-share-title').textContent='קישורי שיתוף — '+_currentDocPack.name;
+  await dpReloadShares();
+}
+function dpCloseShareModal(){
+  document.getElementById('dp-share-overlay').style.display='none';
+}
+async function dpReloadShares(){
+  const body=document.getElementById('dp-share-list');
+  body.innerHTML='<div style="color:#a0aec0;font-size:.85rem;padding:14px;text-align:center">טוען…</div>';
+  try{
+    const r=await fetch('/api/docpacks/'+_currentDocPack.id+'/shares');
+    const j=await r.json();
+    const shares=(j.shares||[]).filter(s=>!s.revoked_at);
+    if(!shares.length){
+      body.innerHTML='<div style="color:#a0aec0;font-size:.85rem;padding:14px;text-align:center">אין קישורים פעילים. צור קישור חדש.</div>';
+      return;
+    }
+    const origin=window.location.origin;
+    body.innerHTML=shares.map(s=>{
+      const url=origin+'/public/docpack/'+s.token;
+      const date=s.created_at?new Date(s.created_at).toLocaleDateString('he-IL'):'';
+      const lastUsed=s.last_used_at?`שימוש אחרון ${new Date(s.last_used_at).toLocaleDateString('he-IL')}`:'לא נעשה בו שימוש';
+      return `<div style="border:1px solid #e2e8f0;border-radius:8px;padding:10px;margin-bottom:8px">
+        <div style="display:flex;gap:8px;align-items:center">
+          <input type="text" readonly value="${url}" onclick="this.select()"
+            style="flex:1;padding:6px 8px;border:1px solid #e2e8f0;border-radius:5px;font-size:.78rem;background:#f8fafc;font-family:monospace"/>
+          <button onclick="dpCopyShareUrl(this,'${url}')" style="background:#1d4ed8;color:#fff;border:none;padding:6px 12px;border-radius:5px;font-size:.78rem;cursor:pointer">העתק</button>
+          <button onclick="dpRevokeShare(${s.id})" style="background:#fee2e2;color:#b91c1c;border:1px solid #fecaca;padding:6px 10px;border-radius:5px;font-size:.78rem;cursor:pointer">בטל</button>
+        </div>
+        <div style="font-size:.7rem;color:#94a3b8;margin-top:6px">נוצר ${date} · ${lastUsed}</div>
+      </div>`;
+    }).join('');
+  }catch(e){
+    body.innerHTML='<div style="color:#c53030;font-size:.85rem;padding:14px;text-align:center">שגיאה בטעינה</div>';
+  }
+}
+async function dpCreateShare(){
+  try{
+    const r=await fetch('/api/docpacks/'+_currentDocPack.id+'/shares',{method:'POST',headers:{'Content-Type':'application/json'},body:'{}'});
+    if(!r.ok) throw new Error('fail');
+    await dpReloadShares();
+  }catch(e){alert('שגיאה ביצירת קישור');}
+}
+async function dpRevokeShare(id){
+  if(!confirm('לבטל את הקישור? לאחר ביטול הוא לא יעבוד יותר.')) return;
+  try{
+    await fetch('/api/docpacks/'+_currentDocPack.id+'/shares/'+id,{method:'DELETE'});
+    dpReloadShares();
+  }catch(e){alert('שגיאה');}
+}
+function dpCopyShareUrl(btn,url){
+  navigator.clipboard.writeText(url).then(()=>{
+    const orig=btn.textContent;btn.textContent='✓ הועתק';
+    setTimeout(()=>{btn.textContent=orig;},1500);
+  });
+}
+
+// Override exportDocPackWord to download a .zip instead of .docx
+// (the server now returns a ZIP containing the .docx + appendix/ PDFs).
+dpExportWord = async function(){
+  if(!_currentDocPack) return;
+  const btn=document.getElementById('dp-export-btn');
+  if(btn){btn.disabled=true;btn.textContent='מייצר…';}
+  if(_dpSaveTimer){clearTimeout(_dpSaveTimer);await dpFlushSave();}
+  try{
+    const r=await fetch('/api/docpacks/'+_currentDocPack.id+'/generate',{method:'POST'});
+    if(!r.ok){const j=await r.json().catch(()=>({}));throw new Error(j.error||'שגיאה בייצוא');}
+    const blob=await r.blob();
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement('a');
+    a.href=url; a.download=(_currentDocPack.name||'תיק תיעוד')+'.zip';
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(()=>URL.revokeObjectURL(url),3000);
+  }catch(e){alert('שגיאה: '+e.message);}
+  finally{if(btn){btn.disabled=false;btn.textContent='⬇ ייצוא תיק (ZIP)';}}
+};
 // ════════════════════════════════════════════════════════════
 
 function renderPriceList(){

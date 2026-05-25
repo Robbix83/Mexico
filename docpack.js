@@ -44,10 +44,14 @@ const path = require('path');
 const PizZip          = require('pizzip');
 const Docxtemplater   = require('docxtemplater');
 const ImageModule     = require('docxtemplater-image-module-free');
+const archiver        = require('archiver');
 const db = require('./db');
 
 const TEMPLATES_DIR = path.join(__dirname, 'templates');
 const UPLOADS_DIR   = process.env.DOC_PACK_UPLOADS_DIR || path.join(__dirname, 'data', 'doc_packs');
+// Datasheets live under DS_PATH (mirrored on Render's persistent disk).
+const DS_PATH       = path.resolve(process.env.DS_PATH || path.join(__dirname, 'ds'));
+const DS_FALLBACK   = path.join(__dirname, 'ds'); // git-committed PDFs if DS_PATH is empty
 
 // Ensure uploads dir exists at module load
 if (!fs.existsSync(UPLOADS_DIR)) fs.mkdirSync(UPLOADS_DIR, { recursive: true });
@@ -65,6 +69,84 @@ function packDir(packId) {
 function fileDiskPath(packId, filename) {
   return path.join(packDir(packId), filename);
 }
+
+// ─── Datasheet index ───────────────────────────────────────────────────────
+// On boot (and every 5 min), walk DS_PATH recursively and build a map:
+//   normalizedKey  →  { absPath, mfr, original }
+// The key is the filename without extension, uppercased, with spaces/dashes/
+// underscores stripped — so "DS-1272ZJ-110" and "DS 1272 ZJ 110" both match.
+let _dsIndex = new Map();
+let _dsIndexBuiltAt = 0;
+
+function _normalizeModel(s) {
+  return String(s || '').toUpperCase().replace(/[\s_\-\.\/\\]+/g, '');
+}
+
+function _walk(dir, out) {
+  let entries = [];
+  try { entries = fs.readdirSync(dir, { withFileTypes: true }); }
+  catch { return; }
+  for (const ent of entries) {
+    const full = path.join(dir, ent.name);
+    if (ent.isDirectory()) { _walk(full, out); continue; }
+    if (!ent.isFile()) continue;
+    if (!/\.pdf$/i.test(ent.name)) continue;
+    const stem = ent.name.replace(/\.pdf$/i, '');
+    const mfr  = path.basename(path.dirname(full)); // e.g. "Hikvision"
+    out.push({ key: _normalizeModel(stem), original: stem, mfr, absPath: full });
+  }
+}
+
+function buildDatasheetIndex() {
+  const list = [];
+  for (const root of [DS_PATH, DS_FALLBACK]) {
+    if (fs.existsSync(root)) _walk(root, list);
+  }
+  const map = new Map();
+  for (const item of list) {
+    // Keep the first occurrence (DS_PATH takes priority since we walk it first)
+    if (!map.has(item.key)) map.set(item.key, item);
+  }
+  _dsIndex = map;
+  _dsIndexBuiltAt = Date.now();
+  console.log(`[docpack] datasheet index built: ${map.size} entries`);
+  return map.size;
+}
+
+function ensureDsIndex() {
+  // Rebuild lazily if older than 5 minutes
+  if (!_dsIndex.size || Date.now() - _dsIndexBuiltAt > 5 * 60 * 1000) {
+    buildDatasheetIndex();
+  }
+}
+
+function lookupDatasheet(modelString) {
+  ensureDsIndex();
+  if (!modelString) return null;
+  const key = _normalizeModel(modelString);
+  return _dsIndex.get(key) || null;
+}
+
+function searchDatasheets(query, limit = 10) {
+  ensureDsIndex();
+  if (!query || !query.trim()) return [];
+  const q = _normalizeModel(query);
+  const hits = [];
+  for (const item of _dsIndex.values()) {
+    if (item.key === q) { hits.unshift({ ...item, exact: true }); }       // exact first
+    else if (item.key.includes(q) || q.includes(item.key)) hits.push({ ...item, exact: false });
+    if (hits.length >= limit * 2) break;
+  }
+  return hits.slice(0, limit).map(h => ({
+    model:    h.original,
+    mfr:      h.mfr,
+    relPath:  path.relative(path.dirname(h.absPath).split(path.sep).includes('ds') ? path.dirname(path.dirname(h.absPath)) : DS_PATH, h.absPath).split(path.sep).join('/'),
+    exact:    h.exact,
+  }));
+}
+
+// Re-index every 5 min so PDFs added later are discovered without a restart
+setInterval(() => { try { buildDatasheetIndex(); } catch (e) { /* swallow */ } }, 5 * 60 * 1000).unref?.();
 
 /**
  * imageModuleOpts() — returns options object for docxtemplater-image-module-free.
@@ -131,16 +213,27 @@ function buildContext(pack, files) {
     ip:     r.ip     || '',
   }));
 
-  // ── Images ──
-  // network_diagram_img & site_plan_img are single-file slots (kind='network_diagram'/'site_plan')
-  // photos[] is the gallery (kind='photo'), each with caption
-  const findFirst = (kind) => (files || []).find(f => f.kind === kind);
+  // ── Images / files ──
+  // Only client-visible files reach the rendered Word doc; internal artifacts
+  // (price quotes, working drafts) stay in the workspace but not in the deliverable.
+  const allFiles = (files || []).filter(f => (f.visibility || 'client') === 'client');
+
+  const findFirst = (kind) => allFiles.find(f => f.kind === kind);
   const network = findFirst('network_diagram');
   const sitepl  = findFirst('site_plan');
 
-  const photoRows = (files || [])
+  const photoRows = allFiles
     .filter(f => f.kind === 'photo')
     .sort((a, b) => (a.sort_order - b.sort_order) || (a.id - b.id));
+
+  // Appendix = every client-visible PDF (uploaded or auto-attached datasheet).
+  // The Word doc lists their names; the actual PDFs are packed in the ZIP alongside.
+  const appendixFiles = allFiles
+    .filter(f => f.kind === 'datasheet' || f.kind === 'pdf' || /\.pdf$/i.test(f.original_name || ''))
+    .map(f => ({
+      name: f.original_name || (f.external_path ? path.basename(f.external_path) : f.filename),
+      kind: f.kind === 'datasheet' ? 'דף מוצר' : 'מסמך',
+    }));
 
   return {
     site_name:        data.site_name        || pack.name || '',
@@ -165,27 +258,38 @@ function buildContext(pack, files) {
     backhauls,
     switches,
     // Image tag values are absolute paths; getImage() reads them
-    network_diagram_img: network ? fileDiskPath(network.pack_id, network.filename) : '',
-    site_plan_img:       sitepl  ? fileDiskPath(sitepl.pack_id,  sitepl.filename)  : '',
+    network_diagram_img: network ? _imgSourcePath(network) : '',
+    site_plan_img:       sitepl  ? _imgSourcePath(sitepl)  : '',
     photos: photoRows.map(p => ({
-      img:     fileDiskPath(p.pack_id, p.filename),
+      img:     _imgSourcePath(p),
       caption: p.caption || '',
     })),
+    appendix_files: appendixFiles,
     // Useful flags for conditional sections inside the template
-    has_cameras:   cameras.length   > 0,
-    has_backhauls: backhauls.length > 0,
-    has_switches:  switches.length  > 0,
-    has_photos:    photoRows.length > 0,
+    has_cameras:   cameras.length     > 0,
+    has_backhauls: backhauls.length   > 0,
+    has_switches:  switches.length    > 0,
+    has_photos:    photoRows.length   > 0,
     has_network_diagram: !!network,
     has_site_plan:       !!sitepl,
+    has_appendix:  appendixFiles.length > 0,
   };
 }
 
+// Image source: prefer uploaded file (under UPLOADS_DIR); fall back to external_path
+// (used for datasheets auto-linked from /data/ds/...). Used by image insertion AND
+// by the ZIP packager so both code paths read the same source.
+function _imgSourcePath(file) {
+  if (file.filename)      return fileDiskPath(file.pack_id, file.filename);
+  if (file.external_path) return file.external_path;
+  return '';
+}
+
 /**
- * generateDocPack(packId) — loads the pack + files, runs docxtemplater,
- * returns a Node Buffer containing the .docx bytes.
+ * renderDocx(packId) — renders just the .docx file (no ZIP), returns a Buffer.
+ * Internal use by generateDocPack (and the dry-render check).
  */
-function generateDocPack(packId) {
+function renderDocx(packId) {
   const pack = db.getDocPack(packId);
   if (!pack) {
     const e = new Error('Pack not found'); e.code = 'PACK_NOT_FOUND';
@@ -196,7 +300,7 @@ function generateDocPack(packId) {
     const e = new Error(`Template missing: ${path.basename(tplPath)}`); e.code = 'TEMPLATE_MISSING';
     throw e;
   }
-  const files = db.listDocPackFiles(packId);
+  const files   = db.listDocPackFiles(packId);
   const context = buildContext(pack, files);
 
   const content = fs.readFileSync(tplPath, 'binary');
@@ -209,6 +313,61 @@ function generateDocPack(packId) {
   });
   doc.render(context);
   return doc.getZip().generate({ type: 'nodebuffer', compression: 'DEFLATE' });
+}
+
+/**
+ * generateDocPack(packId) — produces the client-delivery ZIP containing:
+ *   <pack name>.docx           — the Word document (filtered to client visibility)
+ *   appendix/<datasheet>.pdf   — every client-visible PDF (uploaded + auto-attached)
+ *
+ * Returns a Promise<Buffer>. Streaming the archive into an in-memory buffer keeps
+ * the response shape identical to before (single Buffer → res.end(buf)).
+ */
+function generateDocPack(packId) {
+  return new Promise((resolve, reject) => {
+    let docxBuf;
+    try { docxBuf = renderDocx(packId); }
+    catch (e) { return reject(e); }
+
+    const pack  = db.getDocPack(packId);
+    const files = db.listDocPackFiles(packId)
+      .filter(f => (f.visibility || 'client') === 'client');
+
+    const archive = archiver('zip', { zlib: { level: 6 } });
+    const chunks = [];
+    archive.on('data', c => chunks.push(c));
+    archive.on('end',  () => resolve(Buffer.concat(chunks)));
+    archive.on('warning', w => { if (w.code !== 'ENOENT') console.warn('[docpack zip]', w); });
+    archive.on('error', err => reject(err));
+
+    const docName = (pack.name || 'תיק תיעוד') + '.docx';
+    archive.append(docxBuf, { name: docName });
+
+    const seen = new Set(); // dedupe by archive entry name
+    for (const f of files) {
+      // Only PDFs (or anything that looks like one) go into appendix/
+      const isPdf =
+        f.kind === 'datasheet' ||
+        f.kind === 'pdf' ||
+        (f.mime && /pdf/i.test(f.mime)) ||
+        /\.pdf$/i.test(f.original_name || '');
+      if (!isPdf) continue;
+
+      const src = f.filename ? fileDiskPath(f.pack_id, f.filename) : f.external_path;
+      if (!src || !fs.existsSync(src)) continue;
+
+      let entryName = 'appendix/' + (f.original_name || path.basename(src));
+      // Dedupe — same model may appear in multiple equipment rows
+      let n = 2;
+      const base = entryName.replace(/\.pdf$/i, '');
+      while (seen.has(entryName)) { entryName = `${base} (${n}).pdf`; n++; }
+      seen.add(entryName);
+
+      archive.file(src, { name: entryName });
+    }
+
+    archive.finalize();
+  });
 }
 
 /**
@@ -252,9 +411,14 @@ function dryRenderAllTemplates() {
 module.exports = {
   buildContext,
   generateDocPack,
+  renderDocx,
   dryRenderAllTemplates,
   fileDiskPath,
   packDir,
+  buildDatasheetIndex,
+  lookupDatasheet,
+  searchDatasheets,
   UPLOADS_DIR,
   TEMPLATES_DIR,
+  DS_PATH,
 };

@@ -67,7 +67,7 @@ db.exec(`
     id            INTEGER PRIMARY KEY AUTOINCREMENT,
     pack_id       INTEGER NOT NULL REFERENCES doc_packs(id) ON DELETE CASCADE,
     kind          TEXT    NOT NULL DEFAULT 'photo',
-    filename      TEXT    NOT NULL,
+    filename      TEXT,
     original_name TEXT,
     mime          TEXT,
     size          INTEGER NOT NULL DEFAULT 0,
@@ -75,8 +75,29 @@ db.exec(`
     sort_order    INTEGER NOT NULL DEFAULT 0,
     created_at    TEXT    NOT NULL DEFAULT (datetime('now'))
   );
-  CREATE INDEX IF NOT EXISTS idx_doc_pack_files_pack ON doc_pack_files(pack_id, sort_order);
+  CREATE INDEX IF NOT EXISTS idx_doc_pack_files_pack    ON doc_pack_files(pack_id, sort_order);
+  CREATE INDEX IF NOT EXISTS idx_doc_pack_files_created ON doc_pack_files(pack_id, created_at DESC);
+
+  CREATE TABLE IF NOT EXISTS doc_pack_shares (
+    id                  INTEGER PRIMARY KEY AUTOINCREMENT,
+    pack_id             INTEGER NOT NULL REFERENCES doc_packs(id) ON DELETE CASCADE,
+    token               TEXT    NOT NULL UNIQUE,
+    created_at          TEXT    NOT NULL DEFAULT (datetime('now')),
+    created_by_username TEXT,
+    expires_at          TEXT,
+    revoked_at          TEXT,
+    last_used_at        TEXT
+  );
+  CREATE INDEX IF NOT EXISTS idx_doc_pack_shares_pack  ON doc_pack_shares(pack_id);
+  CREATE INDEX IF NOT EXISTS idx_doc_pack_shares_token ON doc_pack_shares(token);
 `);
+
+// ── Migrations for Drop 2B (extra columns on doc_pack_files) ──
+// Each in its own try/catch since ALTER TABLE ADD COLUMN throws if it already exists.
+try { db.exec("ALTER TABLE doc_pack_files ADD COLUMN visibility TEXT NOT NULL DEFAULT 'client'"); } catch (_) {}
+try { db.exec("ALTER TABLE doc_pack_files ADD COLUMN note TEXT"); }                                catch (_) {}
+try { db.exec("ALTER TABLE doc_pack_files ADD COLUMN contributor TEXT"); }                         catch (_) {}
+try { db.exec("ALTER TABLE doc_pack_files ADD COLUMN external_path TEXT"); }                       catch (_) {}
 
 // Migration: add must_change_password column to existing DBs
 try {
@@ -156,11 +177,29 @@ const stmts = {
   updateDocPack:  db.prepare("UPDATE doc_packs SET name = ?, data = ?, updated_at = datetime('now') WHERE id = ?"),
   deleteDocPack:  db.prepare('DELETE FROM doc_packs WHERE id = ?'),
   // Files
-  addDocPackFile:    db.prepare('INSERT INTO doc_pack_files (pack_id, kind, filename, original_name, mime, size, caption, sort_order) VALUES (?, ?, ?, ?, ?, ?, ?, ?)'),
+  addDocPackFile: db.prepare(`INSERT INTO doc_pack_files
+    (pack_id, kind, filename, original_name, mime, size, caption, sort_order, visibility, note, contributor, external_path)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`),
   listDocPackFiles:  db.prepare('SELECT * FROM doc_pack_files WHERE pack_id = ? ORDER BY sort_order ASC, id ASC'),
+  listDocPackFilesByDate: db.prepare('SELECT * FROM doc_pack_files WHERE pack_id = ? ORDER BY created_at DESC, id DESC'),
   getDocPackFile:    db.prepare('SELECT * FROM doc_pack_files WHERE id = ?'),
   deleteDocPackFile: db.prepare('DELETE FROM doc_pack_files WHERE id = ?'),
-  updateDocPackFileMeta: db.prepare('UPDATE doc_pack_files SET caption = ?, sort_order = ? WHERE id = ?'),
+  updateDocPackFileMeta: db.prepare(`UPDATE doc_pack_files SET
+    caption    = COALESCE(?, caption),
+    sort_order = COALESCE(?, sort_order),
+    visibility = COALESCE(?, visibility),
+    note       = COALESCE(?, note),
+    kind       = COALESCE(?, kind)
+    WHERE id = ?`),
+  sumDocPackFileSize: db.prepare('SELECT COALESCE(SUM(size),0) AS total FROM doc_pack_files WHERE pack_id = ? AND filename IS NOT NULL'),
+
+  // Doc pack shares (public tokens)
+  createDocPackShare: db.prepare(`INSERT INTO doc_pack_shares
+    (pack_id, token, created_by_username, expires_at) VALUES (?, ?, ?, ?)`),
+  listDocPackShares:  db.prepare('SELECT id, token, created_at, created_by_username, expires_at, revoked_at, last_used_at FROM doc_pack_shares WHERE pack_id = ? ORDER BY created_at DESC'),
+  getDocPackShareByToken: db.prepare('SELECT * FROM doc_pack_shares WHERE token = ?'),
+  revokeDocPackShare:   db.prepare("UPDATE doc_pack_shares SET revoked_at = datetime('now') WHERE id = ?"),
+  touchDocPackShare:    db.prepare("UPDATE doc_pack_shares SET last_used_at = datetime('now') WHERE id = ?"),
 };
 
 module.exports = {
@@ -228,11 +267,39 @@ module.exports = {
   deleteDocPack: (id) => stmts.deleteDocPack.run(id),
 
   // Doc pack files
-  addDocPackFile: (packId, kind, filename, originalName, mime, size, caption, sortOrder) =>
-    stmts.addDocPackFile.run(packId, kind || 'photo', filename, originalName || null, mime || null, size || 0, caption || null, sortOrder || 0),
-  listDocPackFiles:  (packId) => stmts.listDocPackFiles.all(packId),
-  getDocPackFile:    (id)     => stmts.getDocPackFile.get(id),
-  deleteDocPackFile: (id)     => stmts.deleteDocPackFile.run(id),
-  updateDocPackFileMeta: (id, caption, sortOrder) =>
-    stmts.updateDocPackFileMeta.run(caption || null, sortOrder || 0, id),
+  addDocPackFile: (opts) => stmts.addDocPackFile.run(
+    opts.packId,
+    opts.kind || 'photo',
+    opts.filename || null,
+    opts.originalName || null,
+    opts.mime || null,
+    opts.size || 0,
+    opts.caption || null,
+    opts.sortOrder || 0,
+    opts.visibility || 'client',
+    opts.note || null,
+    opts.contributor || null,
+    opts.externalPath || null,
+  ),
+  listDocPackFiles:       (packId) => stmts.listDocPackFiles.all(packId),
+  listDocPackFilesByDate: (packId) => stmts.listDocPackFilesByDate.all(packId),
+  getDocPackFile:         (id)     => stmts.getDocPackFile.get(id),
+  deleteDocPackFile:      (id)     => stmts.deleteDocPackFile.run(id),
+  updateDocPackFileMeta: (id, fields = {}) => stmts.updateDocPackFileMeta.run(
+    fields.caption    ?? null,
+    fields.sortOrder  ?? null,
+    fields.visibility ?? null,
+    fields.note       ?? null,
+    fields.kind       ?? null,
+    id,
+  ),
+  sumDocPackFileSize: (packId) => stmts.sumDocPackFileSize.get(packId).total,
+
+  // Doc pack shares
+  createDocPackShare: (packId, token, username, expiresAt) =>
+    stmts.createDocPackShare.run(packId, token, username || null, expiresAt || null),
+  listDocPackShares:        (packId) => stmts.listDocPackShares.all(packId),
+  getDocPackShareByToken:   (token)  => stmts.getDocPackShareByToken.get(token),
+  revokeDocPackShare:       (id)     => stmts.revokeDocPackShare.run(id),
+  touchDocPackShare:        (id)     => stmts.touchDocPackShare.run(id),
 };

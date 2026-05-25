@@ -297,6 +297,23 @@ def build():
         set_rtl(p); p.alignment = WD_ALIGN_PARAGRAPH.CENTER
         r = p.add_run(txt); r.font.name = 'Arial'; r.font.size = Pt(10)
 
+    # ═════════════════ 6. מסמכים נלווים (Appendix index) ═════════════════
+    # The Word lists which PDFs are bundled in the ZIP's appendix/ folder.
+    # The PDFs themselves live alongside the .docx in the ZIP.
+    doc.add_page_break()
+    add_heading_rtl(doc, '6. מסמכים נלווים', level=1)
+    p = add_para_rtl(doc,
+        'תיק זה כולל קבצי PDF נלווים (דפי מוצר ומסמכים נוספים) הנמצאים '
+        'בתיקייה appendix/ בתוך קובץ ה-ZIP. רשימת הקבצים:')
+    p.runs[0].font.size = Pt(10.5)
+    add_para_rtl(doc, '')
+    # Each bullet must be its OWN paragraph so {#loop}...{/loop} repeats per-item.
+    # docxtemplater with paragraphLoop:true (already set) treats a loop that fully
+    # contains a paragraph as repeating the paragraph for every item in the array.
+    add_para_rtl(doc, '{#appendix_files}')
+    add_bullet_rtl(doc, '{name} — {kind}')
+    add_para_rtl(doc, '{/appendix_files}')
+
     # ── Footer ──
     add_para_rtl(doc, '')
     add_para_rtl(doc, '')

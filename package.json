@@ -8,6 +8,7 @@
     "dev": "node server.js"
   },
   "dependencies": {
+    "archiver": "^7.0.1",
     "bcryptjs": "^2.4.3",
     "dotenv": "^16.4.5",
     "better-sqlite3": "^9.4.3",

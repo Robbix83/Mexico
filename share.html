@@ -1,0 +1,295 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>תיק תיעוד — שיתוף</title>
+<style>
+  *{box-sizing:border-box}
+  body{margin:0;font-family:-apple-system,Segoe UI,Arial,sans-serif;background:#f5f7fa;color:#1a2a4a}
+  header{background:#1a2a4a;color:#fff;padding:16px 22px;display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+  header h1{margin:0;font-size:1.05rem;font-weight:700}
+  header .pack-name{font-size:.85rem;opacity:.85;font-weight:400}
+  main{max-width:960px;margin:18px auto;padding:0 14px}
+  .card{background:#fff;border-radius:10px;border:1px solid #e2e8f0;padding:18px 20px;margin-bottom:14px}
+  .card h2{margin:0 0 12px 0;font-size:1rem;color:#1a2a4a}
+  .field{display:flex;flex-direction:column;gap:4px;margin-bottom:10px}
+  .field label{font-size:.78rem;font-weight:600;color:#475569}
+  .field input,.field select,.field textarea{padding:8px 11px;border:1.5px solid #e2e8f0;border-radius:7px;font-size:.9rem;font-family:inherit;background:#fff}
+  .field input:focus,.field select:focus,.field textarea:focus{outline:none;border-color:#bfdbfe;box-shadow:0 0 0 3px rgba(59,130,246,.1)}
+  .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:10px 14px}
+  .btn{background:#1d4ed8;color:#fff;border:none;padding:9px 20px;border-radius:7px;font-size:.9rem;font-weight:700;cursor:pointer}
+  .btn:hover{background:#1e40af}
+  .btn:disabled{opacity:.5;cursor:not-allowed}
+  .btn-light{background:#f1f5f9;color:#1a2a4a;border:1px solid #e2e8f0}
+  .btn-light:hover{background:#e2e8f0}
+  .err{color:#c53030;font-size:.82rem;margin-top:6px;min-height:18px}
+  .ok{color:#059669;font-size:.82rem;margin-top:6px}
+  .upload-box{border:2px dashed #cbd5e0;border-radius:8px;padding:18px;text-align:center;color:#718096;cursor:pointer;background:#fafbfc;transition:all .15s}
+  .upload-box:hover,.upload-box.drag{border-color:#3b82f6;background:#eef4ff;color:#1d4ed8}
+  .timeline{display:flex;flex-direction:column;gap:8px;max-height:340px;overflow-y:auto}
+  .tl-item{display:flex;gap:10px;align-items:center;padding:8px 10px;border:1px solid #edf2f7;border-radius:7px;background:#fcfcfd}
+  .tl-ico{font-size:1.3rem;line-height:1;flex-shrink:0;width:32px;height:32px;display:flex;align-items:center;justify-content:center;background:#f1f5f9;border-radius:6px}
+  .tl-name{font-size:.85rem;font-weight:600;color:#1a2a4a;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .tl-meta{font-size:.7rem;color:#718096}
+  .equip-table{width:100%;border-collapse:collapse;font-size:.78rem;margin-top:8px}
+  .equip-table th{background:#1a2a4a;color:#fff;padding:5px 8px;font-weight:600;text-align:right}
+  .equip-table td{padding:5px 8px;border:1px solid #e2e8f0}
+  .equip-table .added{background:#ecfdf5}
+  .name-prompt{position:fixed;inset:0;background:rgba(15,23,42,.6);display:flex;align-items:center;justify-content:center;z-index:100}
+  .name-card{background:#fff;border-radius:12px;padding:24px;width:min(94vw,360px)}
+  .name-card h3{margin:0 0 10px 0;color:#1a2a4a}
+  .name-card p{margin:0 0 14px 0;font-size:.82rem;color:#475569;line-height:1.5}
+  .empty{text-align:center;color:#a0aec0;font-size:.85rem;padding:30px 10px}
+  .footer{font-size:.7rem;color:#94a3b8;text-align:center;padding:18px}
+</style>
+</head>
+<body>
+<header>
+  <span style="font-size:1.4rem">📁</span>
+  <h1>תיק תיעוד</h1>
+  <span class="pack-name" id="pack-name">…</span>
+</header>
+
+<main>
+  <div id="invalid" style="display:none" class="card">
+    <h2>הקישור אינו תקף</h2>
+    <p style="margin:0;color:#475569;font-size:.88rem">ייתכן שהוא בוטל או פג תוקפו. פנה למנהל הפרויקט לקישור חדש.</p>
+  </div>
+
+  <div id="content" style="display:none">
+
+    <div class="card">
+      <h2>➕ הוספת ציוד</h2>
+      <div class="field">
+        <label>סוג</label>
+        <select id="eq-table">
+          <option value="cameras">מצלמה</option>
+          <option value="backhauls">עורק</option>
+          <option value="switches">מתג</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>דגם (יחפש דף מוצר אוטומטית)</label>
+        <input type="text" id="eq-model" list="dl-models" autocomplete="off" placeholder="לדוגמה: DS-1272ZJ-110"/>
+        <datalist id="dl-models"></datalist>
+      </div>
+      <div class="grid-2">
+        <div class="field">
+          <label>שם / תיאור</label>
+          <input type="text" id="eq-name"/>
+        </div>
+        <div class="field">
+          <label>מיקום בתכנית</label>
+          <input type="text" id="eq-location"/>
+        </div>
+        <div class="field">
+          <label>כתובת IP</label>
+          <input type="text" id="eq-ip"/>
+        </div>
+        <div class="field">
+          <label>ארון תקשורת / פורט</label>
+          <input type="text" id="eq-cabinet"/>
+        </div>
+      </div>
+      <button class="btn" id="btn-add-eq" onclick="addEquipment()">הוסף ציוד</button>
+      <div class="err" id="eq-err"></div>
+      <div id="eq-recent"></div>
+    </div>
+
+    <div class="card">
+      <h2>📷 העלאת קבצים (תמונות, סרטונים, PDF…)</h2>
+      <div class="upload-box" id="drop-zone"
+        onclick="document.getElementById('file-inp').click()"
+        ondragover="event.preventDefault();this.classList.add('drag')"
+        ondragleave="this.classList.remove('drag')"
+        ondrop="event.preventDefault();this.classList.remove('drag');uploadFile(event.dataTransfer.files[0])">
+        🖼 גרור קובץ לכאן או לחץ לבחירה
+        <input type="file" id="file-inp" style="display:none" onchange="uploadFile(this.files[0])"/>
+      </div>
+      <div class="field" style="margin-top:10px">
+        <label>הערה (אופציונלית) — תוצמד לקובץ הבא שתעלה</label>
+        <input type="text" id="upload-note" placeholder="לדוגמה: מצלמה ראשית, מבט מהכניסה"/>
+      </div>
+      <div class="err" id="upload-err"></div>
+    </div>
+
+    <div class="card">
+      <h2>🕒 תרומות אחרונות לפרויקט</h2>
+      <div class="timeline" id="timeline">
+        <div class="empty">טוען…</div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="footer">תרומה דרך לינק שיתוף · אפקון</div>
+</main>
+
+<!-- Name prompt overlay (shown until contributor sets a name) -->
+<div class="name-prompt" id="name-prompt" style="display:none">
+  <div class="name-card">
+    <h3>איך לקרוא לך?</h3>
+    <p>שמך יוצג ליד הפריטים שאתה מוסיף לתיק התיעוד.</p>
+    <div class="field">
+      <input type="text" id="name-input" placeholder="לדוגמה: יוסי טכנאי" maxlength="60"/>
+    </div>
+    <button class="btn" onclick="saveName()">המשך</button>
+    <div class="err" id="name-err"></div>
+  </div>
+</div>
+
+<script>
+const TOKEN = '{{TOKEN}}';
+const STORAGE_KEY = 'docpack_share_name_' + TOKEN;
+
+function getName(){ return localStorage.getItem(STORAGE_KEY) || ''; }
+function saveName(){
+  const v = (document.getElementById('name-input').value || '').trim();
+  if(!v){ document.getElementById('name-err').textContent='נא להזין שם'; return; }
+  localStorage.setItem(STORAGE_KEY, v);
+  document.getElementById('name-prompt').style.display='none';
+  loadPack();
+}
+function esc(s){return String(s||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+
+const KIND_ICON = {
+  photo:'🖼', diagram:'🗺', network_diagram:'🕸', site_plan:'📐',
+  video:'🎥', pdf:'📕', excel:'📊', datasheet:'📘',
+  quote_contractor:'💼', quote_supplier:'💼', general:'📎',
+};
+
+async function api(method, path, body, isForm){
+  const opts = {method, headers:{'X-Contributor-Name': getName()}};
+  if(body && !isForm){opts.headers['Content-Type']='application/json'; opts.body = JSON.stringify(body);}
+  else if(body){opts.body = body;}
+  const r = await fetch(path, opts);
+  if(!r.ok){
+    let msg = 'שגיאה'; try { msg = (await r.json()).error || msg; } catch{}
+    throw new Error(msg);
+  }
+  return r.json();
+}
+
+async function loadPack(){
+  try{
+    const j = await api('GET', '/api/share/' + TOKEN);
+    document.getElementById('content').style.display='';
+    document.getElementById('pack-name').textContent = j.pack.name;
+    renderTimeline(j.files || []);
+  } catch(e){
+    document.getElementById('invalid').style.display='';
+  }
+}
+
+function renderTimeline(files){
+  const el = document.getElementById('timeline');
+  if(!files.length){ el.innerHTML = '<div class="empty">עדיין אין קבצים בתיק.</div>'; return; }
+  el.innerHTML = files.map(f => `
+    <div class="tl-item">
+      <div class="tl-ico">${KIND_ICON[f.kind] || '📎'}</div>
+      <div style="flex:1;min-width:0">
+        <div class="tl-name">${esc(f.original_name || 'ללא שם')}</div>
+        <div class="tl-meta">${esc(f.contributor || '')} · ${new Date(f.created_at).toLocaleDateString('he-IL')}</div>
+      </div>
+    </div>
+  `).join('');
+}
+
+let _dlT;
+document.getElementById('eq-model').addEventListener('input', e => {
+  clearTimeout(_dlT);
+  const q = e.target.value.trim();
+  if(q.length < 2){ document.getElementById('dl-models').innerHTML=''; return; }
+  _dlT = setTimeout(async () => {
+    try {
+      const r = await fetch('/api/share/' + TOKEN + '/equipment/_search_proxy', {method:'POST',headers:{'Content-Type':'application/json','X-Contributor-Name':getName()},body:JSON.stringify({q})}).catch(()=>null);
+      // Fall back to plain search proxy via equipment? Simpler: try direct datasheet endpoint (it requires auth → so we route through share)
+    } catch(_){}
+    // Use the share-aware search endpoint that we'll add server-side:
+    try {
+      const r = await fetch('/api/share/' + TOKEN + '/datasheets/search?q=' + encodeURIComponent(q));
+      if(r.ok){
+        const j = await r.json();
+        document.getElementById('dl-models').innerHTML = (j.matches||[]).map(m=>`<option value="${esc(m.model)}">${esc(m.mfr)}</option>`).join('');
+      }
+    } catch(_){}
+  }, 250);
+});
+
+async function addEquipment(){
+  document.getElementById('eq-err').textContent='';
+  const btn = document.getElementById('btn-add-eq');
+  btn.disabled = true;
+  const payload = {
+    table: document.getElementById('eq-table').value,
+    row: {
+      model:    document.getElementById('eq-model').value.trim(),
+      name:     document.getElementById('eq-name').value.trim(),
+      location: document.getElementById('eq-location').value.trim(),
+      ip:       document.getElementById('eq-ip').value.trim(),
+      cabinet:  document.getElementById('eq-cabinet').value.trim(),
+    },
+  };
+  if(!payload.row.model && !payload.row.name){
+    document.getElementById('eq-err').textContent='נא למלא לפחות דגם או שם';
+    btn.disabled = false; return;
+  }
+  try{
+    const j = await api('POST', '/api/share/' + TOKEN + '/equipment', payload);
+    const msg = j.attached_datasheet
+      ? `✓ נוסף בהצלחה — דף מוצר "${j.attached_datasheet.original_name}" צורף אוטומטית`
+      : '✓ נוסף בהצלחה — לא נמצא דף מוצר אוטומטי';
+    const div = document.createElement('div');
+    div.className='ok'; div.textContent = msg;
+    document.getElementById('eq-recent').prepend(div);
+    setTimeout(()=>div.remove(), 8000);
+    ['eq-model','eq-name','eq-location','eq-ip','eq-cabinet'].forEach(id => document.getElementById(id).value='');
+    loadPack(); // refresh timeline
+  } catch(e){
+    document.getElementById('eq-err').textContent = e.message;
+  } finally{
+    btn.disabled = false;
+  }
+}
+
+async function uploadFile(file){
+  if(!file) return;
+  if(file.size > 200 * 1024 * 1024){alert('הקובץ גדול מ-200MB'); return;}
+  const err = document.getElementById('upload-err');
+  err.textContent = '⏳ מעלה (' + (file.size/1024/1024).toFixed(1) + 'MB)…';
+  err.style.color = '#d97706';
+  const fd = new FormData();
+  fd.append('file', file);
+  // Pick a sensible kind from extension
+  const name = file.name.toLowerCase();
+  let kind = 'general';
+  if(/\.(jpe?g|png|webp|gif|bmp)$/.test(name)) kind = 'photo';
+  else if(/\.(mp4|mov|m4v|avi|mkv|webm)$/.test(name)) kind = 'video';
+  else if(/\.pdf$/.test(name)) kind = 'pdf';
+  else if(/\.(xlsx?|csv)$/.test(name)) kind = 'excel';
+  fd.append('kind', kind);
+  const note = document.getElementById('upload-note').value.trim();
+  if(note) fd.append('note', note);
+  try{
+    await api('POST', '/api/share/' + TOKEN + '/files', fd, true);
+    err.style.color = '#059669'; err.textContent = '✓ הועלה בהצלחה';
+    document.getElementById('upload-note').value='';
+    document.getElementById('file-inp').value='';
+    loadPack();
+    setTimeout(()=>{err.textContent='';}, 4000);
+  } catch(e){
+    err.style.color = '#c53030'; err.textContent = '✗ שגיאה: ' + e.message;
+  }
+}
+
+// Boot
+if(!getName()){
+  document.getElementById('name-prompt').style.display='flex';
+  setTimeout(()=>document.getElementById('name-input').focus(),100);
+} else {
+  loadPack();
+}
+</script>
+</body>
+</html>

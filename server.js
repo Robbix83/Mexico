@@ -326,19 +326,65 @@ app.put('/api/warehouse', requireAdmin, (req, res) => {
 const DOC_UPLOAD_STAGING = path.join(docpack.UPLOADS_DIR, '_staging');
 if (!fs.existsSync(DOC_UPLOAD_STAGING)) fs.mkdirSync(DOC_UPLOAD_STAGING, { recursive: true });
 
+// Allowed extensions — combined with mime-type sniffing on each upload.
+const ALLOWED_EXT = /\.(jpe?g|png|webp|gif|bmp|svg|tiff?|mp4|mov|m4v|avi|mkv|webm|pdf|xlsx?|csv|docx?|pptx?|txt|zip)$/i;
+const ALLOWED_KINDS = [
+  'photo', 'diagram', 'network_diagram', 'site_plan',
+  'video', 'pdf', 'excel', 'quote_contractor', 'quote_supplier',
+  'datasheet', 'general',
+];
+// Default visibility per kind. Internal artifacts (quotes, drafts) never reach
+// the client deliverable; they stay in the project workspace only.
+const KIND_DEFAULT_VISIBILITY = {
+  quote_contractor: 'internal',
+  quote_supplier:   'internal',
+  excel:            'internal',  // working files usually
+  general:          'internal',
+  // everything else → 'client' (photos, diagrams, datasheets, pdf, video)
+};
+const PER_PACK_QUOTA_BYTES = 2 * 1024 * 1024 * 1024; // 2GB
+const PER_FILE_MAX_BYTES   = 200 * 1024 * 1024;      // 200MB
+
 const docPackUpload = multer({
   dest: DOC_UPLOAD_STAGING,
-  limits: { fileSize: 20 * 1024 * 1024 }, // 20MB per file
+  limits: { fileSize: PER_FILE_MAX_BYTES },
   fileFilter: (_req, file, cb) => {
-    if (/^image\/(jpe?g|png|webp|gif)$/i.test(file.mimetype)) return cb(null, true);
-    cb(new Error('Only image files allowed (jpg/png/webp/gif)'));
+    // Accept by extension OR by mime type — the user uploads from many tools that
+    // report wrong/missing mimes. Either signal must pass.
+    const okExt  = ALLOWED_EXT.test(file.originalname || '');
+    const okMime = /^(image|video)\//i.test(file.mimetype || '') ||
+                   /pdf|excel|spreadsheet|word|presentation|zip|csv|octet-stream/i.test(file.mimetype || '');
+    if (okExt || okMime) return cb(null, true);
+    cb(new Error('סוג קובץ אסור: ' + (file.originalname || file.mimetype)));
   },
 });
 
 function sanitizeFilename(name) {
-  // Strip path traversal, keep extension; default to .docx for the export filename
+  // Strip path traversal; the result is used as the export-bundle filename.
   const base = String(name || 'תיק תיעוד').replace(/[\\/:*?"<>|]+/g, '_').trim();
   return base || 'תיק תיעוד';
+}
+
+function defaultVisibilityForKind(kind) {
+  return KIND_DEFAULT_VISIBILITY[kind] || 'client';
+}
+
+function publicFileShape(f) {
+  // Shape sent to clients (admin dashboard + share page).
+  return {
+    id:            f.id,
+    kind:          f.kind,
+    original_name: f.original_name,
+    mime:          f.mime,
+    size:          f.size,
+    caption:       f.caption,
+    note:          f.note || '',
+    visibility:    f.visibility || 'client',
+    contributor:   f.contributor || '',
+    sort_order:    f.sort_order,
+    created_at:    f.created_at,
+    is_linked:     !!f.external_path && !f.filename,
+  };
 }
 
 app.get('/api/docpacks', requireAuth, (req, res) => {
@@ -359,12 +405,11 @@ app.get('/api/docpacks/:id', requireAuth, (req, res) => {
   const id = parseInt(req.params.id);
   const pack = db.getDocPack(id);
   if (!pack) return res.status(404).json({ error: 'Pack not found' });
-  const files = db.listDocPackFiles(id).map(f => ({
-    id: f.id, kind: f.kind, original_name: f.original_name, mime: f.mime,
-    size: f.size, caption: f.caption, sort_order: f.sort_order,
-  }));
+  // Timeline view: newest-first
+  const files = db.listDocPackFilesByDate(id).map(publicFileShape);
   let data = {};
   try { data = JSON.parse(pack.data || '{}'); } catch { data = {}; }
+  const usedBytes = db.sumDocPackFileSize(id);
   res.json({
     pack: {
       id: pack.id, name: pack.name, type: pack.type, data,
@@ -372,6 +417,7 @@ app.get('/api/docpacks/:id', requireAuth, (req, res) => {
       created_by_username: pack.created_by_username,
     },
     files,
+    quota: { used: usedBytes, max: PER_PACK_QUOTA_BYTES },
   });
 });
 
@@ -395,9 +441,10 @@ app.delete('/api/docpacks/:id', requireAdmin, (req, res) => {
   const id = parseInt(req.params.id);
   const pack = db.getDocPack(id);
   if (!pack) return res.status(404).json({ error: 'Pack not found' });
-  // Delete files from disk first
+  // Delete uploaded files from disk (skip linked datasheets — they live under /data/ds)
   const files = db.listDocPackFiles(id);
   for (const f of files) {
+    if (!f.filename) continue; // linked-only (external_path), nothing to remove
     const p = docpack.fileDiskPath(id, f.filename);
     try { fs.unlinkSync(p); } catch {/* missing file is fine */}
   }
@@ -408,27 +455,64 @@ app.delete('/api/docpacks/:id', requireAdmin, (req, res) => {
   res.json({ ok: true });
 });
 
-app.post('/api/docpacks/:id/files', requireAdmin, docPackUpload.single('file'), (req, res) => {
-  const id = parseInt(req.params.id);
-  const pack = db.getDocPack(id);
-  if (!pack) { if (req.file) try { fs.unlinkSync(req.file.path); } catch {} return res.status(404).json({ error: 'Pack not found' }); }
-  if (!req.file) return res.status(400).json({ error: 'no file uploaded' });
+// ── Shared helpers for file uploads (admin + share-link routes) ──
 
-  const kind = ['photo','diagram','network_diagram','site_plan'].includes(req.body.kind) ? req.body.kind : 'photo';
-  const ext = (req.file.originalname.match(/\.([a-z0-9]{2,5})$/i) || [, 'jpg'])[1].toLowerCase();
-  const newName = `${uuidv4()}.${ext}`;
-  const destPath = docpack.fileDiskPath(id, newName);
-  try {
-    fs.renameSync(req.file.path, destPath);
-  } catch (e) {
-    try { fs.unlinkSync(req.file.path); } catch {}
-    return res.status(500).json({ error: 'failed to move uploaded file: ' + e.message });
+async function _ingestUploadedFile(packId, req, contributor) {
+  const pack = db.getDocPack(packId);
+  if (!pack) {
+    if (req.file) { try { fs.unlinkSync(req.file.path); } catch {} }
+    const e = new Error('Pack not found'); e.status = 404; throw e;
   }
-  const sortOrder = Date.now() % 1000000;
-  const r = db.addDocPackFile(id, kind, newName, req.file.originalname, req.file.mimetype, req.file.size, req.body.caption || '', sortOrder);
-  // touch pack updated_at
-  db.updateDocPack(id, pack.name, pack.data);
-  res.json({ ok: true, file: { id: r.lastInsertRowid, kind, filename: newName, original_name: req.file.originalname, size: req.file.size, mime: req.file.mimetype } });
+  if (!req.file) { const e = new Error('no file uploaded'); e.status = 400; throw e; }
+
+  // Per-pack disk quota
+  const used = db.sumDocPackFileSize(packId);
+  if (used + req.file.size > PER_PACK_QUOTA_BYTES) {
+    try { fs.unlinkSync(req.file.path); } catch {}
+    const e = new Error(`חרגת ממכסת הדיסק לפרויקט (${(PER_PACK_QUOTA_BYTES/1024/1024/1024).toFixed(1)}GB)`);
+    e.status = 413; throw e;
+  }
+
+  const kind = ALLOWED_KINDS.includes(req.body.kind) ? req.body.kind : 'general';
+  const visibility = ['client','internal'].includes(req.body.visibility)
+    ? req.body.visibility
+    : defaultVisibilityForKind(kind);
+
+  const extMatch = (req.file.originalname || '').match(/\.([a-z0-9]{2,5})$/i);
+  const ext = (extMatch ? extMatch[1] : 'bin').toLowerCase();
+  const newName = `${uuidv4()}.${ext}`;
+  const destPath = docpack.fileDiskPath(packId, newName);
+  try { fs.renameSync(req.file.path, destPath); }
+  catch (e) {
+    try { fs.unlinkSync(req.file.path); } catch {}
+    const err = new Error('failed to move uploaded file: ' + e.message); err.status = 500; throw err;
+  }
+
+  const sortOrder = Date.now() % 1_000_000;
+  const r = db.addDocPackFile({
+    packId, kind,
+    filename: newName,
+    originalName: req.file.originalname,
+    mime: req.file.mimetype,
+    size: req.file.size,
+    caption: req.body.caption || '',
+    note: req.body.note || '',
+    visibility,
+    contributor,
+    sortOrder,
+  });
+  db.updateDocPack(packId, pack.name, pack.data); // touch updated_at
+  const row = db.getDocPackFile(r.lastInsertRowid);
+  return publicFileShape(row);
+}
+
+app.post('/api/docpacks/:id/files', requireAdmin, docPackUpload.single('file'), async (req, res) => {
+  try {
+    const file = await _ingestUploadedFile(parseInt(req.params.id), req, req.user.username);
+    res.json({ ok: true, file });
+  } catch (e) {
+    res.status(e.status || 500).json({ error: e.message });
+  }
 });
 
 app.get('/api/docpacks/:id/files/:fileId', requireAuth, (req, res) => {
@@ -436,8 +520,8 @@ app.get('/api/docpacks/:id/files/:fileId', requireAuth, (req, res) => {
   const fileId = parseInt(req.params.fileId);
   const f = db.getDocPackFile(fileId);
   if (!f || f.pack_id !== id) return res.status(404).send('Not found');
-  const p = docpack.fileDiskPath(id, f.filename);
-  if (!fs.existsSync(p)) return res.status(404).send('Missing on disk');
+  const p = f.filename ? docpack.fileDiskPath(id, f.filename) : f.external_path;
+  if (!p || !fs.existsSync(p)) return res.status(404).send('Missing on disk');
   res.sendFile(p);
 });
 
@@ -446,7 +530,8 @@ app.delete('/api/docpacks/:id/files/:fileId', requireAdmin, (req, res) => {
   const fileId = parseInt(req.params.fileId);
   const f = db.getDocPackFile(fileId);
   if (!f || f.pack_id !== id) return res.status(404).json({ error: 'Not found' });
-  try { fs.unlinkSync(docpack.fileDiskPath(id, f.filename)); } catch {}
+  // Skip external_path — those PDFs are shared from /data/ds
+  if (f.filename) try { fs.unlinkSync(docpack.fileDiskPath(id, f.filename)); } catch {}
   db.deleteDocPackFile(fileId);
   res.json({ ok: true });
 });
@@ -456,23 +541,103 @@ app.patch('/api/docpacks/:id/files/:fileId', requireAdmin, (req, res) => {
   const fileId = parseInt(req.params.fileId);
   const f = db.getDocPackFile(fileId);
   if (!f || f.pack_id !== id) return res.status(404).json({ error: 'Not found' });
-  const caption   = req.body?.caption   ?? f.caption ?? '';
-  const sortOrder = req.body?.sort_order ?? f.sort_order ?? 0;
-  db.updateDocPackFileMeta(fileId, caption, sortOrder);
+  const fields = {};
+  if (req.body?.caption    !== undefined) fields.caption    = req.body.caption;
+  if (req.body?.sort_order !== undefined) fields.sortOrder  = req.body.sort_order;
+  if (req.body?.visibility !== undefined && ['client','internal'].includes(req.body.visibility))
+                                          fields.visibility = req.body.visibility;
+  if (req.body?.note       !== undefined) fields.note       = req.body.note;
+  if (req.body?.kind       !== undefined && ALLOWED_KINDS.includes(req.body.kind))
+                                          fields.kind       = req.body.kind;
+  db.updateDocPackFileMeta(fileId, fields);
   res.json({ ok: true });
 });
 
-app.post('/api/docpacks/:id/generate', requireAuth, (req, res) => {
+// ── Datasheet search (autocomplete for equipment "model" inputs) ──
+app.get('/api/datasheets/search', requireAuth, (req, res) => {
+  const q = String(req.query.q || '').trim();
+  if (!q) return res.json({ matches: [] });
+  res.json({ matches: docpack.searchDatasheets(q, 10) });
+});
+
+// Admin can force a re-index after adding new PDFs under /data/ds
+app.post('/api/datasheets/reindex', requireAdmin, (req, res) => {
+  const n = docpack.buildDatasheetIndex();
+  res.json({ ok: true, count: n });
+});
+
+// ── Equipment entry with auto-datasheet attach ──
+function _appendEquipment(packId, payload, contributor) {
+  const pack = db.getDocPack(packId);
+  if (!pack) { const e = new Error('Pack not found'); e.status = 404; throw e; }
+  const { table, row } = payload || {};
+  if (!['cameras','backhauls','switches'].includes(table)) {
+    const e = new Error('table must be one of cameras|backhauls|switches'); e.status = 400; throw e;
+  }
+  if (!row || typeof row !== 'object') {
+    const e = new Error('row object is required'); e.status = 400; throw e;
+  }
+
+  let data = {};
+  try { data = JSON.parse(pack.data || '{}'); } catch {}
+  if (!Array.isArray(data[table])) data[table] = [];
+  const enriched = { ...row, _contributor: contributor || '' };
+  data[table].push(enriched);
+  db.updateDocPack(packId, pack.name, JSON.stringify(data));
+
+  // Auto-attach datasheet if we can identify the model
+  const model = row.model || row.mpn || row.name;
+  let attachedFile = null;
+  if (model) {
+    const ds = docpack.lookupDatasheet(model);
+    if (ds) {
+      // Don't dupe: check if this external_path is already attached to this pack
+      const existing = db.listDocPackFiles(packId)
+        .find(f => f.external_path === ds.absPath);
+      if (!existing) {
+        const r = db.addDocPackFile({
+          packId,
+          kind: 'datasheet',
+          filename: null,
+          originalName: ds.original + '.pdf',
+          mime: 'application/pdf',
+          size: (() => { try { return fs.statSync(ds.absPath).size; } catch { return 0; } })(),
+          caption: ds.mfr,
+          note: `דף מוצר עבור ${model}`,
+          visibility: 'client',
+          contributor: contributor || '',
+          sortOrder: Date.now() % 1_000_000,
+          externalPath: ds.absPath,
+        });
+        attachedFile = publicFileShape(db.getDocPackFile(r.lastInsertRowid));
+      } else {
+        attachedFile = publicFileShape(existing);
+      }
+    }
+  }
+
+  return { table, row: enriched, attached_datasheet: attachedFile, data };
+}
+
+app.post('/api/docpacks/:id/equipment', requireAdmin, (req, res) => {
+  try {
+    const r = _appendEquipment(parseInt(req.params.id), req.body || {}, req.user.username);
+    res.json({ ok: true, ...r });
+  } catch (e) {
+    res.status(e.status || 500).json({ error: e.message });
+  }
+});
+
+app.post('/api/docpacks/:id/generate', requireAuth, async (req, res) => {
   const id = parseInt(req.params.id);
   const pack = db.getDocPack(id);
   if (!pack) return res.status(404).json({ error: 'Pack not found' });
   try {
-    const buf = docpack.generateDocPack(id);
-    const filename = sanitizeFilename(pack.name) + '.docx';
-    res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document');
-    // Use RFC 5987 encoding for non-ASCII filenames (Hebrew)
+    const buf = await docpack.generateDocPack(id);
+    const filename = sanitizeFilename(pack.name) + '.zip';
+    res.setHeader('Content-Type', 'application/zip');
     res.setHeader('Content-Disposition',
-      `attachment; filename="docpack.docx"; filename*=UTF-8''${encodeURIComponent(filename)}`);
+      `attachment; filename="docpack.zip"; filename*=UTF-8''${encodeURIComponent(filename)}`);
     res.setHeader('Content-Length', buf.length);
     db.logAudit(req.user.id, req.user.username, 'export',
       `docpack:${pack.name}`, getClientIp(req), '');
@@ -481,6 +646,127 @@ app.post('/api/docpacks/:id/generate', requireAuth, (req, res) => {
     console.error('[docpack] generate failed:', e.message, e.stack);
     res.status(500).json({ error: e.message || 'Generation failed' });
   }
+});
+
+// ── Share tokens (admin) ──
+
+function _genToken() {
+  return require('crypto').randomBytes(24).toString('hex');
+}
+
+app.post('/api/docpacks/:id/shares', requireAdmin, (req, res) => {
+  const id = parseInt(req.params.id);
+  const pack = db.getDocPack(id);
+  if (!pack) return res.status(404).json({ error: 'Pack not found' });
+  const token = _genToken();
+  const expiresAt = req.body?.expires_at || null;
+  db.createDocPackShare(id, token, req.user.username, expiresAt);
+  db.logAudit(req.user.id, req.user.username, 'update_user',
+    `Created share link for doc pack: ${pack.name}`, getClientIp(req), '');
+  res.json({ ok: true, token, url: `/public/docpack/${token}` });
+});
+
+app.get('/api/docpacks/:id/shares', requireAdmin, (req, res) => {
+  const id = parseInt(req.params.id);
+  res.json({ shares: db.listDocPackShares(id) });
+});
+
+app.delete('/api/docpacks/:id/shares/:shareId', requireAdmin, (req, res) => {
+  db.revokeDocPackShare(parseInt(req.params.shareId));
+  res.json({ ok: true });
+});
+
+// ── Public share-link routes (no auth, token-validated) ──
+
+function _validateShare(token) {
+  const row = db.getDocPackShareByToken(token);
+  if (!row) return { error: 'invalid', status: 404 };
+  if (row.revoked_at) return { error: 'revoked', status: 410 };
+  if (row.expires_at && new Date(row.expires_at) < new Date())
+    return { error: 'expired', status: 410 };
+  const pack = db.getDocPack(row.pack_id);
+  if (!pack) return { error: 'pack missing', status: 410 };
+  db.touchDocPackShare(row.id);
+  return { row, pack };
+}
+
+const shareUploadLimiter = rateLimit({
+  windowMs: 60 * 1000, max: 60, // 60 uploads/min per IP
+  standardHeaders: true, legacyHeaders: false,
+});
+
+app.get('/api/share/:token', (req, res) => {
+  const v = _validateShare(req.params.token);
+  if (v.error) return res.status(v.status).json({ error: v.error });
+  let data = {};
+  try { data = JSON.parse(v.pack.data || '{}'); } catch {}
+  // Only client-visible files surface in the share view
+  const files = db.listDocPackFilesByDate(v.pack.id)
+    .filter(f => (f.visibility || 'client') === 'client')
+    .map(publicFileShape);
+  res.json({
+    pack: {
+      id: v.pack.id, name: v.pack.name, type: v.pack.type,
+      data: { cameras: data.cameras || [], backhauls: data.backhauls || [], switches: data.switches || [] },
+    },
+    files,
+  });
+});
+
+app.post('/api/share/:token/equipment', shareUploadLimiter, (req, res) => {
+  const v = _validateShare(req.params.token);
+  if (v.error) return res.status(v.status).json({ error: v.error });
+  const name = String(req.header('X-Contributor-Name') || 'משתתף').slice(0, 60);
+  const contributor = `share:${v.row.id}:${name}`;
+  try {
+    const r = _appendEquipment(v.pack.id, req.body || {}, contributor);
+    res.json({ ok: true, ...r });
+  } catch (e) {
+    res.status(e.status || 500).json({ error: e.message });
+  }
+});
+
+app.post('/api/share/:token/files', shareUploadLimiter, docPackUpload.single('file'), async (req, res) => {
+  const v = _validateShare(req.params.token);
+  if (v.error) { if (req.file) try { fs.unlinkSync(req.file.path); } catch {} return res.status(v.status).json({ error: v.error }); }
+  const name = String(req.header('X-Contributor-Name') || 'משתתף').slice(0, 60);
+  const contributor = `share:${v.row.id}:${name}`;
+  try {
+    const file = await _ingestUploadedFile(v.pack.id, req, contributor);
+    res.json({ ok: true, file });
+  } catch (e) {
+    res.status(e.status || 500).json({ error: e.message });
+  }
+});
+
+app.get('/api/share/:token/datasheets/search', (req, res) => {
+  const v = _validateShare(req.params.token);
+  if (v.error) return res.status(v.status).json({ error: v.error });
+  const q = String(req.query.q || '').trim();
+  if (!q) return res.json({ matches: [] });
+  res.json({ matches: docpack.searchDatasheets(q, 10) });
+});
+
+app.get('/api/share/:token/files/:fileId', (req, res) => {
+  const v = _validateShare(req.params.token);
+  if (v.error) return res.status(v.status).send('Not found');
+  const f = db.getDocPackFile(parseInt(req.params.fileId));
+  if (!f || f.pack_id !== v.pack.id) return res.status(404).send('Not found');
+  if ((f.visibility || 'client') !== 'client') return res.status(403).send('Forbidden');
+  const p = f.filename ? docpack.fileDiskPath(f.pack_id, f.filename) : f.external_path;
+  if (!p || !fs.existsSync(p)) return res.status(404).send('Missing on disk');
+  res.sendFile(p);
+});
+
+// Serve the contractor-facing HTML page (token rendered into it)
+app.get('/public/docpack/:token', (req, res) => {
+  const v = _validateShare(req.params.token);
+  // Even on error, still serve the page; it'll show a friendly "invalid link" state via API call.
+  const sharePath = path.join(__dirname, 'share.html');
+  if (!fs.existsSync(sharePath)) return res.status(500).send('share.html missing');
+  let html = fs.readFileSync(sharePath, 'utf8');
+  html = html.replace(/\{\{TOKEN\}\}/g, req.params.token);
+  res.set('Content-Type', 'text/html; charset=utf-8').send(html);
 });
 
 // ── Exchange rates (Bank of Israel) ──────────────────────────────────────────
