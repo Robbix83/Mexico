@@ -4272,6 +4272,8 @@ let plImported=JSON.parse(localStorage.getItem('afkon_pl_imported')||'[]');
 let whItems=[];
 let _whMeta={importedAt:null,count:0};
 let _whLoaded=false;
+let _whSortCol=''; // '' | 'sku' | 'desc' | 'qty' | 'unit' | 'cost'
+let _whSortDir=1;  // 1 = asc, -1 = desc
 let _whLoadingPromise=null;
 let _whParsed=[];
 async function ensureWarehouseLoaded(force){
@@ -5713,14 +5715,41 @@ async function doWhImport(){
   closeWhImport();
   renderWarehouse();
 }
+function whSort(col){
+  if(_whSortCol===col){
+    // toggle direction; third click → clear sort (back to import order)
+    if(_whSortDir===-1){_whSortCol='';_whSortDir=1;}
+    else _whSortDir=-_whSortDir;
+  } else {
+    _whSortCol=col;
+    // numeric columns default to descending (high → low); text columns default to ascending
+    _whSortDir=(col==='qty'||col==='cost')?-1:1;
+  }
+  renderWarehouse();
+}
+
 function renderWarehouse(){
   const q=(document.getElementById('wh-search')?.value||'').trim().toLowerCase();
   const meta=_whMeta||{};
-  const items=q
+  let items=q
     ? whItems.filter(x=>
         x.sku.toLowerCase().includes(q)||
         x.desc.toLowerCase().includes(q))
-    : whItems;
+    : whItems.slice();
+  if(_whSortCol){
+    const col=_whSortCol, dir=_whSortDir;
+    items.sort((a,b)=>{
+      if(col==='qty')   return dir*((+a.qty||0)-(+b.qty||0));
+      if(col==='cost'){
+        // Normalize cost to ILS for sort comparison
+        const ac=(a.cur==='USD'?(+a.cost||0)*plUsdRate:(+a.cost||0));
+        const bc=(b.cur==='USD'?(+b.cost||0)*plUsdRate:(+b.cost||0));
+        return dir*(ac-bc);
+      }
+      const av=String(a[col]||''), bv=String(b[col]||'');
+      return dir*av.localeCompare(bv,'he');
+    });
+  }
 
   const statsEl=document.getElementById('wh-stats');
   if(statsEl){
@@ -5778,13 +5807,17 @@ function renderWarehouse(){
     </tr>`;
   }).join('');
 
+  const arrow=col=>{
+    if(_whSortCol!==col) return '<span style="opacity:.25;font-size:.7rem;margin-right:4px">⇅</span>';
+    return `<span style="color:#1d4ed8;font-size:.75rem;margin-right:4px">${_whSortDir===1?'▲':'▼'}</span>`;
+  };
   grid.innerHTML=`<table class="wh-table">
     <thead><tr>
-      <th style="width:130px">מק"ט</th>
-      <th>תיאור</th>
-      <th style="text-align:center;width:80px">כמות</th>
-      <th style="text-align:center;width:80px">יחידה</th>
-      <th style="text-align:right;width:130px">עלות</th>
+      <th style="width:130px;cursor:pointer;user-select:none" onclick="whSort('sku')">${arrow('sku')}מק"ט</th>
+      <th style="cursor:pointer;user-select:none" onclick="whSort('desc')">${arrow('desc')}תיאור</th>
+      <th style="text-align:center;width:90px;cursor:pointer;user-select:none" onclick="whSort('qty')">${arrow('qty')}כמות</th>
+      <th style="text-align:center;width:80px;cursor:pointer;user-select:none" onclick="whSort('unit')">${arrow('unit')}יחידה</th>
+      <th style="text-align:right;width:140px;cursor:pointer;user-select:none" onclick="whSort('cost')">${arrow('cost')}עלות</th>
     </tr></thead>
     <tbody>${tableRows}</tbody>
   </table>`;
