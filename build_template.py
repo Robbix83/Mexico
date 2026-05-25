@@ -108,18 +108,56 @@ def add_bullet_rtl(doc, text):
     return p
 
 
+def set_document_hebrew(doc):
+    """Tell Word this document's primary language is Hebrew (he-IL).
+    Without this, the default <w:lang ... w:bidi="ar-SA"/> in rPrDefault makes
+    Word treat the document as English-with-Arabic-bidi — Hebrew text still
+    appears but Word's reading-order heuristics misalign the page.
+    Fix: rewrite both rPrDefault/<w:lang> in styles.xml AND themeFontLang in
+    settings.xml at the python-docx XML level before saving.
+    """
+    # rPrDefault > w:rPr > w:lang
+    docDefaults = doc.styles.element.find(qn('w:docDefaults'))
+    if docDefaults is not None:
+        rPrDef = docDefaults.find(qn('w:rPrDefault'))
+        if rPrDef is not None:
+            rPr = rPrDef.find(qn('w:rPr'))
+            if rPr is not None:
+                lang = rPr.find(qn('w:lang'))
+                if lang is None:
+                    lang = OxmlElement('w:lang')
+                    rPr.append(lang)
+                lang.set(qn('w:val'),     'he-IL')
+                lang.set(qn('w:eastAsia'),'he-IL')
+                lang.set(qn('w:bidi'),    'he-IL')
+    # settings.xml > w:themeFontLang
+    settings = doc.settings.element
+    tfl = settings.find(qn('w:themeFontLang'))
+    if tfl is None:
+        tfl = OxmlElement('w:themeFontLang')
+        settings.append(tfl)
+    tfl.set(qn('w:val'),     'he-IL')
+    tfl.set(qn('w:eastAsia'),'he-IL')
+    tfl.set(qn('w:bidi'),    'he-IL')
+
+
 def build():
     doc = Document()
 
     # ── RTL EVERYWHERE ──
-    # 1. Section-level bidi: cascades to anything Word can't otherwise
+    # 1. Document language = Hebrew (he-IL). CRITICAL: without this Word
+    #    interprets <w:bidi/> via Arabic conventions (the default bidi lang
+    #    is ar-SA) and the page-level reading order is wrong.
+    set_document_hebrew(doc)
+
+    # 2. Section-level bidi: cascades to anything Word can't otherwise
     #    figure out (e.g. paragraphs docxtemplater fabricates inside loops
     #    or where it inlines images). Without this, any paragraph that
     #    inherits from "Normal" w/o its own <w:bidi/> renders LTR.
     for sec in doc.sections:
         set_section_rtl(sec)
 
-    # 2. Style-level bidi on the styles we actually use, so dynamically
+    # 3. Style-level bidi on the styles we actually use, so dynamically
     #    created paragraphs that pick up these styles also default RTL.
     for style_name in ('Normal', 'Heading 1', 'Heading 2', 'Heading 3', 'List Bullet'):
         try:

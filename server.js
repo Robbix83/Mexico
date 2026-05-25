@@ -681,6 +681,11 @@ app.post('/api/docpacks/:id/generate', requireAuth, async (req, res) => {
   const pack = db.getDocPack(id);
   if (!pack) return res.status(404).json({ error: 'Pack not found' });
   try {
+    // Sweep equipment tables and attach any datasheets we recognize but
+    // haven't linked yet. Catches data added before in-form auto-attach
+    // existed. Idempotent.
+    const swept = docpack.sweepAndAttachDatasheets(id, req.user.username);
+    if (swept > 0) console.log(`[docpack] export-sweep attached ${swept} datasheet(s) to pack ${id}`);
     const buf = await docpack.generateDocPack(id);
     const filename = sanitizeFilename(pack.name) + '.docx';
     res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document');

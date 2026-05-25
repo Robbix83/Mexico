@@ -459,6 +459,63 @@ async function dryRenderAllTemplates() {
   }
 }
 
+/**
+ * sweepAndAttachDatasheets(packId, contributor) — pre-export hook that walks
+ * the pack's equipment tables (cameras/backhauls/switches) and, for any model
+ * we recognize but haven't attached yet, inserts a datasheet doc_pack_files
+ * row pointing at the on-disk PDF.
+ *
+ * Idempotent: safe to call multiple times. Returns the count of newly
+ * attached datasheets.
+ */
+function sweepAndAttachDatasheets(packId, contributor) {
+  const pack = db.getDocPack(packId);
+  if (!pack) return 0;
+  let data = {};
+  try { data = JSON.parse(pack.data || '{}'); } catch { return 0; }
+
+  // Collect unique model strings across all equipment tables
+  const models = new Set();
+  for (const tbl of ['cameras', 'backhauls', 'switches']) {
+    const rows = Array.isArray(data[tbl]) ? data[tbl] : [];
+    for (const r of rows) {
+      const m = (r.model || r.mpn || '').trim();
+      if (m) models.add(m);
+    }
+  }
+  if (!models.size) return 0;
+
+  const existingPaths = new Set(
+    db.listDocPackFiles(packId)
+      .filter(f => f.external_path)
+      .map(f => f.external_path)
+  );
+
+  let attached = 0;
+  for (const model of models) {
+    const ds = lookupDatasheet(model);
+    if (!ds) continue;
+    if (existingPaths.has(ds.absPath)) continue;
+    db.addDocPackFile({
+      packId,
+      kind: 'datasheet',
+      filename: null,
+      originalName: ds.original + '.pdf',
+      mime: 'application/pdf',
+      size: (() => { try { return fs.statSync(ds.absPath).size; } catch { return 0; } })(),
+      caption: ds.mfr,
+      note: `דף מוצר עבור ${model}`,
+      visibility: 'client',
+      contributor: contributor || '(export-sweep)',
+      sortOrder: Date.now() % 1_000_000,
+      externalPath: ds.absPath,
+    });
+    existingPaths.add(ds.absPath);
+    attached++;
+  }
+  return attached;
+}
+
 module.exports = {
   buildContext,
   generateDocPack,
@@ -468,6 +525,7 @@ module.exports = {
   buildDatasheetIndex,
   lookupDatasheet,
   searchDatasheets,
+  sweepAndAttachDatasheets,
   UPLOADS_DIR,
   TEMPLATES_DIR,
   DS_PATH,
