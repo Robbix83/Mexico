@@ -4264,7 +4264,7 @@ function _updatePlSubCell(key){
   const qty=plQty(key);
   const p=getAllPlData().find(x=>_plKey(x.mfr,x.model)===key);
   const ep=p?getPlEffective(p):null;
-  const hasPrice=ep&&ep.price!=null;
+  const hasPrice=ep&&ep.price!=null&&ep.price!==0;
   const disc=_plDisc(ep?.mfr);
   const baseIls=hasPrice?_toIls(ep):0;
   const finalIls=Math.round(baseIls*(1-disc));
@@ -4293,7 +4293,7 @@ function _updatePlCartBar(){
     const qty=plQty(key);
     if(qty<=0) return;
     const ep=getPlEffective(p);
-    if(ep.price==null) return;
+    if(ep.price==null||ep.price===0) return;
     const disc=_plDisc(p.mfr);
     const baseIls=_toIls(ep);
     totalUnits+=qty;
@@ -5516,7 +5516,8 @@ function renderPriceList(){
       let finalCell='<span style="color:#a0aec0">—</span>';
       let savingsCell='';
       let finalIls=0, listIls=0;
-      if(ep.price!=null){
+      const isPor=ep.price===0; // price on request — פנה לספק
+      if(ep.price!=null && !isPor){
         const baseIls=_toIls(ep);
         finalIls=Math.round(baseIls*(1-disc));
         listIls=Math.round(baseIls);
@@ -5534,6 +5535,10 @@ function renderPriceList(){
         finalCell=disc>0
           ?`<span class="pl-price-discounted">₪${finalIls.toLocaleString()}</span>`
           :`<span class="pl-price-final">₪${listIls.toLocaleString()}</span>`;
+      } else if(isPor){
+        const porLabel='<span style="color:#e07b00;font-weight:700;font-size:.78rem">פנה לספק</span>';
+        priceCell=porLabel;
+        finalCell=porLabel;
       }
       // DS link — prefer local file override over URL
       let dsCell='';
