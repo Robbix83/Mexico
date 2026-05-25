@@ -457,6 +457,15 @@ app.delete('/api/docpacks/:id', requireAdmin, (req, res) => {
 
 // ── Shared helpers for file uploads (admin + share-link routes) ──
 
+// multer reports `originalname` decoded as latin1, but browsers send the filename
+// as UTF-8 bytes in the multipart header. Hebrew filenames come through as
+// mojibake unless we re-decode. This is a well-known multer quirk.
+function fixUtf8Filename(name) {
+  if (!name) return name;
+  try { return Buffer.from(name, 'latin1').toString('utf8'); }
+  catch { return name; }
+}
+
 async function _ingestUploadedFile(packId, req, contributor) {
   const pack = db.getDocPack(packId);
   if (!pack) {
@@ -464,6 +473,8 @@ async function _ingestUploadedFile(packId, req, contributor) {
     const e = new Error('Pack not found'); e.status = 404; throw e;
   }
   if (!req.file) { const e = new Error('no file uploaded'); e.status = 400; throw e; }
+  // Repair Hebrew (or any non-ASCII) filename
+  req.file.originalname = fixUtf8Filename(req.file.originalname);
 
   // Per-pack disk quota
   const used = db.sumDocPackFileSize(packId);
