@@ -36,6 +36,37 @@ def set_table_rtl(table):
     tblPr.append(bidiVisual)
 
 
+def set_section_rtl(section):
+    """Enable RTL at the section level so it cascades to all content,
+    including paragraphs that docxtemplater creates dynamically inside
+    {#loops} or where it inserts images."""
+    sectPr = section._sectPr
+    bidi = OxmlElement('w:bidi')
+    bidi.set(qn('w:val'), '1')
+    # Insert as the first child so Word reads it before page setup
+    sectPr.insert(0, bidi)
+
+
+def set_style_rtl(style):
+    """Enable RTL on a style's paragraph-properties so any paragraph
+    using this style (including ones created at render time) inherits
+    bidi without us having to set it per-paragraph."""
+    pPr = style.element.get_or_add_pPr()
+    # Avoid duplicating <w:bidi/> if already present
+    existing = pPr.findall(qn('w:bidi'))
+    for e in existing:
+        pPr.remove(e)
+    bidi = OxmlElement('w:bidi')
+    bidi.set(qn('w:val'), '1')
+    pPr.append(bidi)
+    # Also pin right alignment on the style itself (jc=right is RTL's "natural left")
+    jc = pPr.find(qn('w:jc'))
+    if jc is None:
+        jc = OxmlElement('w:jc')
+        pPr.append(jc)
+    jc.set(qn('w:val'), 'right')
+
+
 def shade_cell(cell, color_hex):
     """Apply background shading to a cell."""
     tcPr = cell._tc.get_or_add_tcPr()
@@ -79,6 +110,23 @@ def add_bullet_rtl(doc, text):
 
 def build():
     doc = Document()
+
+    # ── RTL EVERYWHERE ──
+    # 1. Section-level bidi: cascades to anything Word can't otherwise
+    #    figure out (e.g. paragraphs docxtemplater fabricates inside loops
+    #    or where it inlines images). Without this, any paragraph that
+    #    inherits from "Normal" w/o its own <w:bidi/> renders LTR.
+    for sec in doc.sections:
+        set_section_rtl(sec)
+
+    # 2. Style-level bidi on the styles we actually use, so dynamically
+    #    created paragraphs that pick up these styles also default RTL.
+    for style_name in ('Normal', 'Heading 1', 'Heading 2', 'Heading 3', 'List Bullet'):
+        try:
+            set_style_rtl(doc.styles[style_name])
+        except KeyError:
+            pass  # style not present in this build
+
     # Default font: Arial 11
     style = doc.styles['Normal']
     style.font.name = 'Arial'
