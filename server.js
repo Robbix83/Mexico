@@ -639,6 +639,43 @@ app.post('/api/docpacks/:id/equipment', requireAdmin, (req, res) => {
   }
 });
 
+// Idempotent: attach a datasheet PDF to a pack by model lookup, WITHOUT
+// touching the equipment lists. Used when the admin edits a model field
+// inline in the equipment table (the row already exists; we just need to
+// make sure the matching datasheet is in the appendix).
+app.post('/api/docpacks/:id/datasheets/attach', requireAdmin, (req, res) => {
+  const id = parseInt(req.params.id);
+  const pack = db.getDocPack(id);
+  if (!pack) return res.status(404).json({ error: 'Pack not found' });
+  const model = String(req.body?.model || '').trim();
+  if (!model) return res.status(400).json({ error: 'model is required' });
+
+  const ds = docpack.lookupDatasheet(model);
+  if (!ds) return res.json({ ok: true, found: false });
+
+  const existing = db.listDocPackFiles(id).find(f => f.external_path === ds.absPath);
+  if (existing) {
+    return res.json({ ok: true, found: true, attached: false, file: publicFileShape(existing) });
+  }
+
+  const r = db.addDocPackFile({
+    packId: id,
+    kind: 'datasheet',
+    filename: null,
+    originalName: ds.original + '.pdf',
+    mime: 'application/pdf',
+    size: (() => { try { return fs.statSync(ds.absPath).size; } catch { return 0; } })(),
+    caption: ds.mfr,
+    note: `דף מוצר עבור ${model}`,
+    visibility: 'client',
+    contributor: req.user.username,
+    sortOrder: Date.now() % 1_000_000,
+    externalPath: ds.absPath,
+  });
+  db.updateDocPack(id, pack.name, pack.data);
+  res.json({ ok: true, found: true, attached: true, file: publicFileShape(db.getDocPackFile(r.lastInsertRowid)) });
+});
+
 app.post('/api/docpacks/:id/generate', requireAuth, async (req, res) => {
   const id = parseInt(req.params.id);
   const pack = db.getDocPack(id);

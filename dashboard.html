@@ -6584,7 +6584,7 @@ async function dpFileSetNote(fileId,note){
 // ── Datasheet autocomplete in equipment tables ──
 function dpModelInput(tableKey,idx,field,inputEl){
   dpRowField(tableKey,idx,field,inputEl.value); // keep saving as before
-  // Throttle datasheet lookup
+  // Throttle datasheet lookup for both autocomplete + auto-attach
   clearTimeout(_dpDatasheetSearchT);
   const q=inputEl.value.trim();
   if(q.length<2){return;}
@@ -6593,10 +6593,59 @@ function dpModelInput(tableKey,idx,field,inputEl){
       const r=await fetch('/api/datasheets/search?q='+encodeURIComponent(q));
       if(!r.ok) return;
       const j=await r.json();
+      const matches=j.matches||[];
       const dl=document.getElementById('dp-datasheet-options');
-      if(dl) dl.innerHTML=(j.matches||[]).map(m=>`<option value="${_escDp(m.model)}">${_escDp(m.mfr)}</option>`).join('');
+      if(dl) dl.innerHTML=matches.map(m=>`<option value="${_escDp(m.model)}">${_escDp(m.mfr)}</option>`).join('');
+      // If we have an EXACT match for what the user typed → auto-attach.
+      // Server is idempotent (no-op if already attached). Toast on success.
+      const exact=matches.find(m=>m.exact || _normalizeModelClient(m.model)===_normalizeModelClient(q));
+      if(exact && _currentDocPack){
+        await dpAttachDatasheet(q);
+      }
     }catch(e){}
-  },220);
+  },600); // longer debounce — wait for user to stop typing
+}
+
+function _normalizeModelClient(s){return String(s||'').toUpperCase().replace(/[\s_\-./\\]+/g,'');}
+
+let _dpAttachInflight=new Set();
+async function dpAttachDatasheet(model){
+  if(!_currentDocPack||!model) return;
+  const key=_normalizeModelClient(model);
+  if(_dpAttachInflight.has(key)) return; // dedupe parallel calls
+  _dpAttachInflight.add(key);
+  try{
+    const r=await fetch('/api/docpacks/'+_currentDocPack.id+'/datasheets/attach',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({model}),
+    });
+    if(!r.ok) return;
+    const j=await r.json();
+    if(j.found && j.attached && j.file){
+      _currentDocFiles.unshift({...j.file,pack_id:_currentDocPack.id});
+      _currentDocQuota.used+=(j.file.size||0);
+      // Soft toast: refresh just the timeline so the new datasheet shows up
+      const list=document.getElementById('dp-timeline-list');
+      if(list) list.innerHTML=_dpRenderTimelineRows();
+      _dpShowToast(`✓ דף מוצר "${j.file.original_name}" צורף אוטומטית`);
+    }
+  }catch(e){/* swallow */}
+  finally{_dpAttachInflight.delete(key);}
+}
+
+function _dpShowToast(msg){
+  let toast=document.getElementById('dp-toast');
+  if(!toast){
+    toast=document.createElement('div');
+    toast.id='dp-toast';
+    toast.style.cssText='position:fixed;bottom:24px;right:24px;background:#1a2a4a;color:#fff;padding:12px 18px;border-radius:8px;font-size:.85rem;box-shadow:0 4px 16px rgba(0,0,0,.2);z-index:9999;transition:opacity .25s;max-width:340px';
+    document.body.appendChild(toast);
+  }
+  toast.textContent=msg;
+  toast.style.opacity='1';
+  clearTimeout(_dpShowToast._t);
+  _dpShowToast._t=setTimeout(()=>{toast.style.opacity='0';},4000);
 }
 
 // After the user finishes typing a model + tabs out, optionally invoke the server
