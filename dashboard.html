@@ -1069,6 +1069,7 @@ tr:hover .pl-edit-btn{opacity:.65}
         בחר קובץ ייצוא ממערכת ERP. הנתונים יחליפו את כל המלאי הקיים. שורות עם כמות 0 לא יכנסו.
       </p>
       <input type="file" id="wh-file-inp" accept=".xlsx,.xls"
+        onclick="this.value=null"
         onchange="handleWhFile(this.files[0])" style="margin-bottom:10px;width:100%"/>
       <div id="wh-import-preview" style="font-size:.85rem;color:#2d7a4f;font-weight:600;min-height:22px"></div>
       <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:18px">
@@ -5565,6 +5566,10 @@ function doWhImport(){
   localStorage.setItem('afkon_warehouse_meta_v1',JSON.stringify({
     importedAt:new Date().toISOString(), count:whItems.length
   }));
+  // Reset file input so the same file can be re-imported next time
+  const fi=document.getElementById('wh-file-inp');
+  if(fi) fi.value='';
+  _whParsed=[];
   closeWhImport();
   renderWarehouse();
 }
