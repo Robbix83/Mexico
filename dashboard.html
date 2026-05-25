@@ -5529,7 +5529,7 @@ function handleWhFile(file){
       for(let i=3;i<rows.length;i++){          // data starts at Excel row 4 (index 3)
         const r=rows[i];
         if(!r) continue;
-        const qty=parseFloat(r[14])||0;        // col O: יתרה ביח' מפעל
+        const qty=parseFloat(r[10])||0;        // col K: יתרה
         if(qty<=0) continue;
         const sku=String(r[1]||'').trim();
         const desc=String(r[2]||'').trim();
@@ -5540,7 +5540,7 @@ function handleWhFile(file){
           sku,
           desc,
           qty,
-          unit: String(r[15]||"יח'").trim(),  // col P: יח' מפעל
+          unit: String(r[11]||"יח'").trim(),  // col L: יחידה
           cost: cost_ils>0 ? cost_ils : cost_cur,
           cur:  cost_ils>0 ? 'ILS' : (cost_cur>0?'USD':'ILS')
         });
