@@ -90,6 +90,23 @@ db.exec(`
   );
   CREATE INDEX IF NOT EXISTS idx_doc_pack_shares_pack  ON doc_pack_shares(pack_id);
   CREATE INDEX IF NOT EXISTS idx_doc_pack_shares_token ON doc_pack_shares(token);
+
+  -- User join requests (public landing page form) --
+  CREATE TABLE IF NOT EXISTS user_requests (
+    id                   INTEGER PRIMARY KEY AUTOINCREMENT,
+    first_name           TEXT NOT NULL,
+    last_name            TEXT NOT NULL,
+    email                TEXT NOT NULL,
+    phone                TEXT NOT NULL,
+    role_title           TEXT NOT NULL,
+    division             TEXT NOT NULL,
+    status               TEXT NOT NULL DEFAULT 'pending',
+    created_at           TEXT NOT NULL DEFAULT (datetime('now')),
+    reviewed_at          TEXT,
+    reviewed_by_username TEXT,
+    rejection_note       TEXT
+  );
+  CREATE INDEX IF NOT EXISTS idx_user_requests_status ON user_requests(status, created_at DESC);
 `);
 
 // ── Migrations for Drop 2B (extra columns on doc_pack_files) ──
@@ -250,6 +267,17 @@ const stmts = {
   getDocPackShareByToken: db.prepare('SELECT * FROM doc_pack_shares WHERE token = ?'),
   revokeDocPackShare:   db.prepare("UPDATE doc_pack_shares SET revoked_at = datetime('now') WHERE id = ?"),
   touchDocPackShare:    db.prepare("UPDATE doc_pack_shares SET last_used_at = datetime('now') WHERE id = ?"),
+
+  // User join requests
+  createUserRequest: db.prepare(`INSERT INTO user_requests
+    (first_name, last_name, email, phone, role_title, division) VALUES (?, ?, ?, ?, ?, ?)`),
+  listUserRequests:     db.prepare('SELECT * FROM user_requests ORDER BY created_at DESC'),
+  listPendingUserRequests: db.prepare("SELECT * FROM user_requests WHERE status='pending' ORDER BY created_at DESC"),
+  getUserRequest:       db.prepare('SELECT * FROM user_requests WHERE id = ?'),
+  approveUserRequest:   db.prepare(`UPDATE user_requests
+    SET status='approved', reviewed_at=datetime('now'), reviewed_by_username=? WHERE id=?`),
+  rejectUserRequest:    db.prepare(`UPDATE user_requests
+    SET status='rejected', reviewed_at=datetime('now'), reviewed_by_username=?, rejection_note=? WHERE id=?`),
 };
 
 module.exports = {
@@ -352,4 +380,13 @@ module.exports = {
   getDocPackShareByToken:   (token)  => stmts.getDocPackShareByToken.get(token),
   revokeDocPackShare:       (id)     => stmts.revokeDocPackShare.run(id),
   touchDocPackShare:        (id)     => stmts.touchDocPackShare.run(id),
+
+  // User join requests
+  createUserRequest:   (firstName, lastName, email, phone, roleTitle, division) =>
+    stmts.createUserRequest.run(firstName, lastName, email, phone, roleTitle, division),
+  listUserRequests:    ()  => stmts.listUserRequests.all(),
+  listPendingUserRequests: () => stmts.listPendingUserRequests.all(),
+  getUserRequest:      (id) => stmts.getUserRequest.get(id),
+  approveUserRequest:  (id, byUsername) => stmts.approveUserRequest.run(byUsername, id),
+  rejectUserRequest:   (id, byUsername, note) => stmts.rejectUserRequest.run(byUsername, note || null, id),
 };

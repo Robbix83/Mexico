@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>אפקון — מערכת ניהול פרויקטים</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{
+    min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;
+    background:linear-gradient(135deg,#1a2a4a 0%,#2d4a7a 100%);
+    font-family:'Segoe UI',system-ui,Arial,sans-serif;padding:24px;
+  }
+
+  /* Hero card */
+  .hero{
+    background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.15);
+    border-radius:24px;padding:52px 48px 44px;max-width:520px;width:100%;
+    text-align:center;backdrop-filter:blur(12px);
+  }
+  .logo-wrap{margin-bottom:28px}
+  .logo-wrap img{height:56px}
+  .logo-fallback{
+    width:72px;height:72px;border-radius:50%;background:linear-gradient(135deg,#4f86f7,#2d63d4);
+    display:inline-flex;align-items:center;justify-content:center;
+    font-size:1.5rem;font-weight:900;color:#fff;letter-spacing:-1px;
+    box-shadow:0 8px 24px rgba(79,134,247,.4);
+  }
+  .tagline{font-size:.78rem;font-weight:600;color:#93c5fd;letter-spacing:2px;text-transform:uppercase;margin-bottom:14px}
+  h1{font-size:1.75rem;font-weight:800;color:#fff;margin-bottom:8px;line-height:1.2}
+  .sub{font-size:1rem;color:#93c5fd;margin-bottom:40px;font-weight:400}
+
+  /* Action buttons */
+  .actions{display:flex;flex-direction:column;gap:14px}
+  .btn-primary{
+    display:block;padding:15px 28px;background:#4f86f7;color:#fff;border:none;border-radius:12px;
+    font-size:1rem;font-weight:700;cursor:pointer;text-decoration:none;
+    transition:background .2s,transform .15s,box-shadow .2s;
+    box-shadow:0 4px 16px rgba(79,134,247,.45);
+  }
+  .btn-primary:hover{background:#3b73e5;transform:translateY(-1px);box-shadow:0 6px 20px rgba(79,134,247,.55)}
+  .btn-primary:active{transform:none}
+  .btn-outline{
+    display:block;padding:14px 28px;background:rgba(255,255,255,.08);color:#e0ecff;
+    border:1.5px solid rgba(255,255,255,.25);border-radius:12px;
+    font-size:1rem;font-weight:600;cursor:pointer;text-decoration:none;
+    transition:background .2s,border-color .2s;
+  }
+  .btn-outline:hover{background:rgba(255,255,255,.14);border-color:rgba(255,255,255,.45)}
+
+  /* Footer */
+  .footer{margin-top:32px;font-size:.75rem;color:rgba(255,255,255,.35);text-align:center}
+
+  /* ── Modal overlay ── */
+  .modal-bg{
+    display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);
+    z-index:500;align-items:center;justify-content:center;padding:20px;
+  }
+  .modal-bg.open{display:flex}
+  .modal{
+    background:#fff;border-radius:18px;padding:32px 32px 28px;
+    width:480px;max-width:100%;max-height:90vh;overflow-y:auto;
+    box-shadow:0 24px 64px rgba(0,0,0,.3);animation:pop .18s ease;
+  }
+  @keyframes pop{from{transform:scale(.95);opacity:0}to{transform:scale(1);opacity:1}}
+  .modal h3{font-size:1.1rem;font-weight:800;color:#1a2a4a;margin-bottom:6px}
+  .modal-sub{font-size:.83rem;color:#64748b;margin-bottom:22px}
+  .field{margin-bottom:16px}
+  .field label{display:block;font-size:.8rem;font-weight:700;color:#374151;margin-bottom:5px}
+  .field input,.field select{
+    width:100%;padding:10px 13px;border:1.5px solid #d1d5db;border-radius:8px;
+    font-size:.9rem;outline:none;transition:border-color .2s;font-family:inherit;
+  }
+  .field input:focus,.field select:focus{border-color:#4f86f7}
+  .field-row{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  .modal-actions{display:flex;gap:10px;justify-content:flex-end;margin-top:22px;flex-wrap:wrap}
+  .btn-cancel{
+    padding:10px 20px;background:#f1f5f9;color:#475569;border:none;border-radius:8px;
+    font-size:.9rem;font-weight:600;cursor:pointer;
+  }
+  .btn-submit{
+    padding:10px 24px;background:#4f86f7;color:#fff;border:none;border-radius:8px;
+    font-size:.9rem;font-weight:700;cursor:pointer;transition:background .2s;flex:1;
+  }
+  .btn-submit:hover{background:#3b73e5}
+  .btn-submit:disabled{background:#93c5fd;cursor:not-allowed}
+  .err{
+    background:#fef2f2;border:1px solid #fca5a5;color:#dc2626;
+    border-radius:8px;padding:10px 14px;font-size:.82rem;margin-top:12px;display:none;
+  }
+  .err.show{display:block}
+
+  /* Success screen */
+  .success{text-align:center;padding:20px 0}
+  .success .icon{font-size:3.5rem;margin-bottom:16px}
+  .success h4{font-size:1.1rem;font-weight:800;color:#1a2a4a;margin-bottom:8px}
+  .success p{font-size:.88rem;color:#64748b;line-height:1.6}
+  .success .close-btn{
+    margin-top:22px;padding:10px 30px;background:#4f86f7;color:#fff;border:none;
+    border-radius:8px;font-size:.9rem;font-weight:700;cursor:pointer;
+  }
+</style>
+</head>
+<body>
+
+<!-- Hero -->
+<div class="hero">
+  <div class="logo-wrap">
+    <img src="/logo.png" alt="אפקון"
+         onerror="this.style.display='none';document.getElementById('logo-fb').style.display='inline-flex'">
+    <div class="logo-fallback" id="logo-fb" style="display:none">אפ</div>
+  </div>
+  <div class="tagline">אפקון בקרה ואוטומציה</div>
+  <h1>ברוכים הבאים</h1>
+  <p class="sub">מערכת ניהול פרויקטים</p>
+  <div class="actions">
+    <a href="/login" class="btn-primary">🔐 כניסה למערכת</a>
+    <button class="btn-outline" onclick="openRequestModal()">📋 בקשה לפתיחת משתמש</button>
+  </div>
+</div>
+
+<div class="footer">
+  © אפקון בקרה ואוטומציה · כל הזכויות שמורות
+</div>
+
+<!-- ── Registration Request Modal ── -->
+<div class="modal-bg" id="modal-request">
+  <div class="modal">
+
+    <!-- Form view -->
+    <div id="req-form-view">
+      <h3>בקשה לפתיחת משתמש</h3>
+      <p class="modal-sub">מלא את הפרטים ונציג יחזור אליך לאחר אישור הבקשה</p>
+
+      <div class="field-row">
+        <div class="field">
+          <label for="req-fname">שם פרטי *</label>
+          <input id="req-fname" type="text" placeholder="ישראל" required>
+        </div>
+        <div class="field">
+          <label for="req-lname">שם משפחה *</label>
+          <input id="req-lname" type="text" placeholder="ישראלי" required>
+        </div>
+      </div>
+
+      <div class="field-row">
+        <div class="field">
+          <label for="req-email">מייל *</label>
+          <input id="req-email" type="email" placeholder="israel@company.co.il" dir="ltr" required>
+        </div>
+        <div class="field">
+          <label for="req-phone">טלפון *</label>
+          <input id="req-phone" type="tel" placeholder="050-0000000" dir="ltr" required>
+        </div>
+      </div>
+
+      <div class="field-row">
+        <div class="field">
+          <label for="req-role">תפקיד *</label>
+          <input id="req-role" type="text" placeholder="מנהל פרויקט" required>
+        </div>
+        <div class="field">
+          <label for="req-div">חטיבה *</label>
+          <input id="req-div" type="text" list="divisions-list" placeholder="בחר או הקלד..." required>
+          <datalist id="divisions-list">
+            <option value="בקרה ואוטומציה">
+            <option value="CCTV ומצלמות">
+            <option value="כיבוי אש">
+            <option value="כניסה ובקרה">
+            <option value="רשתות תקשורת">
+            <option value="מעקב ואבטחה">
+            <option value="הנהלה">
+            <option value="כספים">
+            <option value="מנהלה">
+          </datalist>
+        </div>
+      </div>
+
+      <div class="err" id="req-err"></div>
+
+      <div class="modal-actions">
+        <button class="btn-cancel" onclick="closeRequestModal()">ביטול</button>
+        <button class="btn-submit" id="req-btn" onclick="submitRequest()">שלח בקשה</button>
+      </div>
+    </div>
+
+    <!-- Success view -->
+    <div id="req-success-view" style="display:none">
+      <div class="success">
+        <div class="icon">✅</div>
+        <h4>בקשתך נשלחה בהצלחה!</h4>
+        <p>קיבלנו את בקשתך לפתיחת משתמש.<br>
+           אישור נשלח לכתובת המייל שמסרת.<br>
+           נחזור אליך בהקדם לאחר בדיקת הפרטים.</p>
+        <button class="close-btn" onclick="closeRequestModal()">סגור</button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+function openRequestModal() {
+  document.getElementById('modal-request').classList.add('open');
+  document.getElementById('req-form-view').style.display = '';
+  document.getElementById('req-success-view').style.display = 'none';
+  document.getElementById('req-err').classList.remove('show');
+  document.getElementById('req-btn').disabled = false;
+  document.getElementById('req-btn').textContent = 'שלח בקשה';
+  // Clear fields
+  ['req-fname','req-lname','req-email','req-phone','req-role','req-div'].forEach(id => {
+    document.getElementById(id).value = '';
+  });
+  setTimeout(() => document.getElementById('req-fname').focus(), 80);
+}
+
+function closeRequestModal() {
+  document.getElementById('modal-request').classList.remove('open');
+}
+
+// Close on overlay click
+document.getElementById('modal-request').addEventListener('click', function(e) {
+  if (e.target === this) closeRequestModal();
+});
+
+async function submitRequest() {
+  const errEl  = document.getElementById('req-err');
+  const btn    = document.getElementById('req-btn');
+  errEl.classList.remove('show');
+
+  const firstName = document.getElementById('req-fname').value.trim();
+  const lastName  = document.getElementById('req-lname').value.trim();
+  const email     = document.getElementById('req-email').value.trim();
+  const phone     = document.getElementById('req-phone').value.trim();
+  const roleTitle = document.getElementById('req-role').value.trim();
+  const division  = document.getElementById('req-div').value.trim();
+
+  // Client-side validation
+  if (!firstName || !lastName || !email || !phone || !roleTitle || !division) {
+    errEl.textContent = 'יש למלא את כל השדות';
+    errEl.classList.add('show');
+    return;
+  }
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    errEl.textContent = 'כתובת מייל אינה תקינה';
+    errEl.classList.add('show');
+    return;
+  }
+  if (!/^[\d\s\-\+\(\)]{7,15}$/.test(phone)) {
+    errEl.textContent = 'מספר טלפון אינו תקין';
+    errEl.classList.add('show');
+    return;
+  }
+
+  btn.disabled = true;
+  btn.textContent = 'שולח...';
+
+  try {
+    const res = await fetch('/api/user-requests', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ firstName, lastName, email, phone, roleTitle, division }),
+    });
+    const data = await res.json();
+    if (res.ok) {
+      document.getElementById('req-form-view').style.display = 'none';
+      document.getElementById('req-success-view').style.display = '';
+    } else {
+      errEl.textContent = data.error || 'שגיאה בשליחת הבקשה — נסה שנית';
+      errEl.classList.add('show');
+      btn.disabled = false;
+      btn.textContent = 'שלח בקשה';
+    }
+  } catch {
+    errEl.textContent = 'שגיאת רשת — נסה שנית';
+    errEl.classList.add('show');
+    btn.disabled = false;
+    btn.textContent = 'שלח בקשה';
+  }
+}
+</script>
+</body>
+</html>

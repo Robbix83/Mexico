@@ -10,6 +10,9 @@ const fs           = require('fs');
 const multer       = require('multer');
 const { v4: uuidv4 } = require('uuid');
 
+const crypto  = require('crypto');
+const nodemailer = require('nodemailer');
+
 const db      = require('./db');
 const docpack = require('./docpack');
 
@@ -26,6 +29,51 @@ const JWT_SECRET = process.env.JWT_SECRET || 'dev-secret-change-in-production';
 const DS_PATH    = path.resolve(process.env.DS_PATH    || path.join(__dirname, 'ds'));
 const DS_FALLBACK = path.join(__dirname, 'ds'); // git-committed PDFs — used when DS_PATH is empty
 const STATIC_DIR = process.env.STATIC_DIR || __dirname;
+const APP_URL    = (process.env.APP_URL || 'https://nuvo.co.il').replace(/\/$/, '');
+
+// ── Email (nodemailer / Gmail) ────────────────────────────────────────────────
+
+const _mailer = nodemailer.createTransport({
+  host: 'smtp.gmail.com',
+  port: 587,
+  secure: false,
+  auth: { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS },
+});
+
+async function sendMail(to, subject, html) {
+  if (!process.env.SMTP_USER || !process.env.SMTP_PASS) {
+    console.warn('[mail] SMTP not configured — skipping email to', to);
+    return;
+  }
+  try {
+    await _mailer.sendMail({
+      from: `"אפקון" <${process.env.SMTP_USER}>`,
+      to,
+      subject,
+      html,
+    });
+    console.log('[mail] sent to', to, '|', subject);
+  } catch (e) {
+    console.error('[mail] send failed to', to, '—', e.message);
+  }
+}
+
+// ── User-request helpers ──────────────────────────────────────────────────────
+
+function _genUsername(email, existingUsernames) {
+  // Use the part of the email before @ as the base username, keep only safe chars.
+  const base = email.split('@')[0].toLowerCase().replace(/[^a-z0-9._-]/g, '') || 'user';
+  if (!existingUsernames.has(base)) return base;
+  let i = 2;
+  while (existingUsernames.has(`${base}${i}`)) i++;
+  return `${base}${i}`;
+}
+
+function _genTempPassword() {
+  // 10 random URL-safe chars + guaranteed upper + digit + symbol so it passes validatePassword
+  const rand = crypto.randomBytes(8).toString('base64url').slice(0, 8);
+  return `${rand.charAt(0).toUpperCase()}${rand.slice(1)}!7`;
+}
 
 // ── Middleware ────────────────────────────────────────────────────────────────
 
@@ -154,11 +202,20 @@ const loginLimiter = rateLimit({
   legacyHeaders: false,
 });
 
+// Max 5 registration-request submissions per IP per hour
+const requestLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000,
+  max: 5,
+  message: { error: 'יותר מדי בקשות — נסה שנית בעוד שעה' },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
 // ── Auth routes ───────────────────────────────────────────────────────────────
 
 app.get('/login', (req, res) => {
   const token = req.cookies?.token;
-  if (verifyToken(token)) return res.redirect('/');
+  if (verifyToken(token)) return res.redirect('/dashboard');
   res.sendFile(path.join(STATIC_DIR, 'login.html'));
 });
 
@@ -342,6 +399,167 @@ app.put('/api/users/:id/sections', requireAdmin, (req, res) => {
   db.setSections(id, sections);
   db.logAudit(req.user.id, req.user.username, 'update_user',
     `Set sections for user id=${id}: [${sections.join(',')}]`, getClientIp(req), '');
+  res.json({ ok: true });
+});
+
+// ── User join requests (public) ───────────────────────────────────────────────
+
+// POST /api/user-requests — public, no auth, rate-limited
+app.post('/api/user-requests', requestLimiter, async (req, res) => {
+  const { firstName, lastName, email, phone, roleTitle, division } = req.body;
+
+  // Validate all fields
+  if (!firstName || !lastName || !email || !phone || !roleTitle || !division)
+    return res.status(400).json({ error: 'כל השדות נדרשים' });
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))
+    return res.status(400).json({ error: 'כתובת מייל אינה תקינה' });
+  if (!/^[\d\s\-\+\(\)]{7,20}$/.test(phone))
+    return res.status(400).json({ error: 'מספר טלפון אינו תקין' });
+  if (String(firstName).length > 60 || String(lastName).length > 60)
+    return res.status(400).json({ error: 'שם ארוך מדי' });
+
+  const r = db.createUserRequest(
+    String(firstName).trim(),
+    String(lastName).trim(),
+    String(email).trim().toLowerCase(),
+    String(phone).trim(),
+    String(roleTitle).trim(),
+    String(division).trim()
+  );
+  const reqId = r.lastInsertRowid;
+  const fullName = `${String(firstName).trim()} ${String(lastName).trim()}`;
+
+  // Send confirmation to requester (best-effort)
+  await sendMail(
+    String(email).trim(),
+    'בקשתך התקבלה — מערכת ניהול פרויקטים אפקון',
+    `<div dir="rtl" style="font-family:Arial,sans-serif;max-width:520px;margin:auto">
+      <h2 style="color:#1a2a4a">בקשתך התקבלה ✅</h2>
+      <p>שלום ${fullName},</p>
+      <p>קיבלנו את בקשתך לפתיחת משתמש במערכת ניהול הפרויקטים של אפקון.</p>
+      <p>הבקשה נמצאת בבדיקה — נחזור אליך בהקדם.</p>
+      <br><p style="color:#64748b;font-size:.88em">אפקון בקרה ואוטומציה</p>
+    </div>`
+  );
+
+  // Notify admin(s) if configured
+  if (process.env.ADMIN_NOTIFY_EMAIL) {
+    for (const adminEmail of process.env.ADMIN_NOTIFY_EMAIL.split(',').map(e => e.trim()).filter(Boolean)) {
+      await sendMail(
+        adminEmail,
+        `בקשת הצטרפות חדשה — ${fullName}`,
+        `<div dir="rtl" style="font-family:Arial,sans-serif;max-width:520px;margin:auto">
+          <h2 style="color:#1a2a4a">בקשת הצטרפות חדשה 📋</h2>
+          <table style="border-collapse:collapse;width:100%">
+            <tr><td style="padding:6px 12px;font-weight:700;color:#475569">שם:</td><td style="padding:6px 12px">${fullName}</td></tr>
+            <tr style="background:#f8fafc"><td style="padding:6px 12px;font-weight:700;color:#475569">מייל:</td><td style="padding:6px 12px">${String(email).trim()}</td></tr>
+            <tr><td style="padding:6px 12px;font-weight:700;color:#475569">טלפון:</td><td style="padding:6px 12px">${String(phone).trim()}</td></tr>
+            <tr style="background:#f8fafc"><td style="padding:6px 12px;font-weight:700;color:#475569">תפקיד:</td><td style="padding:6px 12px">${String(roleTitle).trim()}</td></tr>
+            <tr><td style="padding:6px 12px;font-weight:700;color:#475569">חטיבה:</td><td style="padding:6px 12px">${String(division).trim()}</td></tr>
+          </table>
+          <br>
+          <a href="${APP_URL}/admin" style="background:#4f86f7;color:#fff;padding:10px 20px;border-radius:8px;text-decoration:none;font-weight:700">לניהול הבקשה ←</a>
+        </div>`
+      );
+    }
+  }
+
+  res.json({ ok: true, id: reqId });
+});
+
+// GET /api/user-requests — admin only, list all requests
+app.get('/api/user-requests', requireAdmin, (req, res) => {
+  res.json(db.listUserRequests());
+});
+
+// GET /api/user-requests/pending-count — admin only, for badge
+app.get('/api/user-requests/pending-count', requireAdmin, (req, res) => {
+  res.json({ count: db.listPendingUserRequests().length });
+});
+
+// PUT /api/user-requests/:id/approve
+app.put('/api/user-requests/:id/approve', requireAdmin, async (req, res) => {
+  const id = parseInt(req.params.id);
+  const request = db.getUserRequest(id);
+  if (!request) return res.status(404).json({ error: 'בקשה לא נמצאה' });
+  if (request.status !== 'pending')
+    return res.status(400).json({ error: 'הבקשה כבר טופלה' });
+
+  // Generate username from email
+  const existingUsernames = new Set(db.listUsers().map(u => u.username.toLowerCase()));
+  const username = _genUsername(request.email, existingUsernames);
+  const tempPw   = _genTempPassword();
+
+  try {
+    db.createUser(username, tempPw, 'viewer');
+  } catch (e) {
+    if (e.message.includes('UNIQUE')) {
+      return res.status(409).json({ error: `שם המשתמש "${username}" כבר קיים` });
+    }
+    throw e;
+  }
+
+  db.approveUserRequest(id, req.user.username);
+  db.logAudit(req.user.id, req.user.username, 'user_request_approved',
+    `Approved request ${id} — created user: ${username}`, getClientIp(req), '');
+
+  const fullName = `${request.first_name} ${request.last_name}`;
+
+  // Send approval email with credentials
+  await sendMail(
+    request.email,
+    'בקשתך אושרה — פרטי כניסה למערכת',
+    `<div dir="rtl" style="font-family:Arial,sans-serif;max-width:520px;margin:auto">
+      <h2 style="color:#166534">בקשתך אושרה ✅</h2>
+      <p>שלום ${fullName},</p>
+      <p>בקשתך לפתיחת משתמש אושרה! להלן פרטי הכניסה שלך:</p>
+      <table style="border-collapse:collapse;width:100%;margin:16px 0;border:1px solid #e2e8f0;border-radius:8px;overflow:hidden">
+        <tr style="background:#f0fdf4"><td style="padding:10px 16px;font-weight:700;color:#166534">כתובת המערכת:</td>
+          <td style="padding:10px 16px"><a href="${APP_URL}">${APP_URL}</a></td></tr>
+        <tr><td style="padding:10px 16px;font-weight:700;color:#475569">שם משתמש:</td>
+          <td style="padding:10px 16px;font-family:monospace;font-size:1.1em">${username}</td></tr>
+        <tr style="background:#f8fafc"><td style="padding:10px 16px;font-weight:700;color:#475569">סיסמה זמנית:</td>
+          <td style="padding:10px 16px;font-family:monospace;font-size:1.1em">${tempPw}</td></tr>
+      </table>
+      <p style="background:#fef3c7;border:1px solid #fde68a;border-radius:8px;padding:10px 14px;font-size:.9em;color:#92400e">
+        ⚠️ בכניסה הראשונה תתבקש להחליף את הסיסמה הזמנית לסיסמה אישית.
+      </p>
+      <br><p style="color:#64748b;font-size:.88em">אפקון בקרה ואוטומציה</p>
+    </div>`
+  );
+
+  res.json({ ok: true, username });
+});
+
+// PUT /api/user-requests/:id/reject
+app.put('/api/user-requests/:id/reject', requireAdmin, async (req, res) => {
+  const id = parseInt(req.params.id);
+  const request = db.getUserRequest(id);
+  if (!request) return res.status(404).json({ error: 'בקשה לא נמצאה' });
+  if (request.status !== 'pending')
+    return res.status(400).json({ error: 'הבקשה כבר טופלה' });
+
+  const note = String(req.body.rejection_note || '').trim().slice(0, 500);
+  db.rejectUserRequest(id, req.user.username, note);
+  db.logAudit(req.user.id, req.user.username, 'user_request_rejected',
+    `Rejected request ${id} — ${request.email}`, getClientIp(req), '');
+
+  const fullName = `${request.first_name} ${request.last_name}`;
+
+  // Send rejection email
+  await sendMail(
+    request.email,
+    'עדכון בקשת הצטרפות — אפקון',
+    `<div dir="rtl" style="font-family:Arial,sans-serif;max-width:520px;margin:auto">
+      <h2 style="color:#1a2a4a">עדכון לגבי בקשתך</h2>
+      <p>שלום ${fullName},</p>
+      <p>לצערנו, בקשתך לפתיחת משתמש במערכת לא אושרה בשלב זה.</p>
+      ${note ? `<p style="background:#f1f5f9;border-radius:8px;padding:10px 14px;color:#374151"><strong>הערת המנהל:</strong> ${note}</p>` : ''}
+      <p>לשאלות, ניתן לפנות ישירות לאחראי המערכת.</p>
+      <br><p style="color:#64748b;font-size:.88em">אפקון בקרה ואוטומציה</p>
+    </div>`
+  );
+
   res.json({ ok: true });
 });
 
@@ -1045,7 +1263,15 @@ app.get('/api/audit', requireAdmin, (req, res) => {
 
 // ── Static files (auth protected) ────────────────────────────────────────────
 
-app.get('/', requireAuth, (req, res) => {
+// Public landing page — authenticated users are redirected directly to dashboard
+app.get('/', (req, res) => {
+  const token = req.cookies?.token;
+  if (verifyToken(token)) return res.redirect('/dashboard');
+  res.sendFile(path.join(STATIC_DIR, 'landing.html'));
+});
+
+// Main dashboard — requires authentication
+app.get('/dashboard', requireAuth, (req, res) => {
   res.sendFile(path.join(STATIC_DIR, 'dashboard.html'));
 });
 

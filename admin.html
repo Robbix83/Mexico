@@ -76,6 +76,17 @@ tr:hover td{background:#f8fafc}
 /* Empty */
 .empty{text-align:center;padding:40px;color:#94a3b8;font-size:.9rem}
 
+/* Pending badge on tab */
+.tab-badge{
+  display:inline-block;background:#ef4444;color:#fff;
+  border-radius:10px;font-size:.68rem;font-weight:700;
+  padding:1px 7px;margin-right:4px;min-width:18px;text-align:center;
+}
+/* Request status badges */
+.req-pending{background:#fef3c7;color:#92400e;padding:3px 10px;border-radius:20px;font-size:.75rem;font-weight:700}
+.req-approved{background:#dcfce7;color:#166534;padding:3px 10px;border-radius:20px;font-size:.75rem;font-weight:700}
+.req-rejected{background:#fee2e2;color:#991b1b;padding:3px 10px;border-radius:20px;font-size:.75rem;font-weight:700}
+
 /* Pagination */
 .pagination{display:flex;gap:8px;align-items:center;padding:12px 20px;justify-content:flex-end;font-size:.82rem;color:#64748b}
 .page-btn{padding:5px 12px;border:1px solid #e2e8f0;border-radius:6px;cursor:pointer;background:#fff}
@@ -88,13 +99,14 @@ tr:hover td{background:#f8fafc}
 <!-- Header -->
 <div class="header">
   <h1>🛡️ לוח ניהול — אפקון</h1>
-  <a href="/">← חזרה לדאשבורד</a>
+  <a href="/dashboard">← חזרה לדאשבורד</a>
   <a href="#" onclick="logout()">יציאה</a>
 </div>
 
 <!-- Tabs -->
 <div class="tabs">
   <div class="tab active" onclick="switchTab('users',this)">👥 משתמשים</div>
+  <div class="tab" id="tab-requests" onclick="switchTab('requests',this)">📋 בקשות הצטרפות</div>
   <div class="tab" onclick="switchTab('audit',this)">📋 יומן פעילות</div>
 </div>
 
@@ -112,6 +124,22 @@ tr:hover td{background:#f8fafc}
         <th>שינוי סיסמה?</th><th>נוצר</th><th>כניסה אחרונה</th><th>פעולות</th>
       </tr></thead>
       <tbody id="users-tbody"><tr><td colspan="7" class="empty">טוען...</td></tr></tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ── REQUESTS PANEL ── -->
+<div class="panel" id="panel-requests">
+  <div class="card">
+    <div class="card-head">
+      <h2>בקשות הצטרפות למערכת</h2>
+      <button class="btn btn-sm" style="background:#f1f5f9;color:#475569" onclick="loadRequests()">🔄 רענן</button>
+    </div>
+    <table id="requests-table">
+      <thead><tr>
+        <th>שם</th><th>מייל</th><th>טלפון</th><th>תפקיד</th><th>חטיבה</th><th>תאריך</th><th>סטטוס</th><th>פעולות</th>
+      </tr></thead>
+      <tbody id="requests-tbody"><tr><td colspan="8" class="empty">טוען...</td></tr></tbody>
     </table>
   </div>
 </div>
@@ -215,6 +243,23 @@ tr:hover td{background:#f8fafc}
   </div>
 </div>
 
+<!-- ── REJECT REQUEST MODAL ── -->
+<div class="modal-bg" id="modal-reject">
+  <div class="modal">
+    <h3>דחיית בקשת הצטרפות</h3>
+    <p id="reject-name-label" style="font-size:.85rem;color:#64748b;margin-bottom:14px"></p>
+    <div class="field">
+      <label>הסבר / הערה (אופציונלי — יישלח למבקש)</label>
+      <input id="reject-note" type="text" placeholder="לדוגמה: אינך משויך לאיזור זה..." style="direction:rtl">
+    </div>
+    <div class="err-msg" id="reject-err"></div>
+    <div class="modal-actions">
+      <button class="btn" onclick="closeModal('modal-reject')">ביטול</button>
+      <button class="btn btn-danger" onclick="submitReject()">דחה בקשה</button>
+    </div>
+  </div>
+</div>
+
 <!-- ── RESET PASSWORD MODAL ── -->
 <div class="modal-bg" id="modal-reset">
   <div class="modal">
@@ -245,7 +290,8 @@ const ACTION_LABELS = {
   change_password:'שינוי סיסמה', update_user:'עדכון משתמש', delete_user:'מחיקת משתמש',
   unlock_user:'שחרור חסימה', warehouse_import:'ייבוא מלאי מחסנים',
   docpack_create:'יצירת תיק תיעוד', docpack_delete:'מחיקת תיק תיעוד',
-  docpack_share_create:'יצירת קישור שיתוף', docpack_share_revoke:'ביטול קישור שיתוף'
+  docpack_share_create:'יצירת קישור שיתוף', docpack_share_revoke:'ביטול קישור שיתוף',
+  user_request_approved:'אישור בקשת משתמש', user_request_rejected:'דחיית בקשת משתמש'
 };
 
 // ── Tabs ───────────────────────────────────────────────────────────────────
@@ -254,8 +300,106 @@ function switchTab(name, el) {
   document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
   el.classList.add('active');
   document.getElementById('panel-'+name).classList.add('active');
-  if (name==='audit') loadAudit(1);
-  if (name==='users') loadUsers();
+  if (name==='audit')    loadAudit(1);
+  if (name==='users')    loadUsers();
+  if (name==='requests') loadRequests();
+}
+
+// ── User Join Requests ────────────────────────────────────────────────────
+let _rejectTargetId = null;
+
+async function loadRequests() {
+  const tbody = document.getElementById('requests-tbody');
+  tbody.innerHTML = '<tr><td colspan="8" class="empty">טוען...</td></tr>';
+  const res = await fetch('/api/user-requests');
+  const rows = await res.json();
+  renderRequests(rows);
+}
+
+function renderRequests(rows) {
+  const tbody = document.getElementById('requests-tbody');
+  if (!rows || !rows.length) {
+    tbody.innerHTML = '<tr><td colspan="8" class="empty">אין בקשות</td></tr>';
+    return;
+  }
+  tbody.innerHTML = rows.map(r => {
+    const statusBadge = r.status === 'pending'
+      ? '<span class="req-pending">ממתין</span>'
+      : r.status === 'approved'
+        ? '<span class="req-approved">אושר</span>'
+        : '<span class="req-rejected">נדחה</span>';
+    const actions = r.status === 'pending'
+      ? `<div class="btn-group">
+           <button class="btn btn-sm" style="background:#dcfce7;color:#166534" onclick="approveRequest(${r.id},'${esc(r.first_name+' '+r.last_name)}')">✅ אשר</button>
+           <button class="btn btn-danger btn-sm" onclick="openRejectModal(${r.id},'${esc(r.first_name+' '+r.last_name)}')">❌ דחה</button>
+         </div>`
+      : `<span style="font-size:.75rem;color:#94a3b8">טופל ע"י ${esc(r.reviewed_by_username||'—')}</span>`;
+    return `<tr>
+      <td><strong>${esc(r.first_name)} ${esc(r.last_name)}</strong></td>
+      <td><a href="mailto:${esc(r.email)}" style="color:#4f86f7">${esc(r.email)}</a></td>
+      <td>${esc(r.phone)}</td>
+      <td>${esc(r.role_title)}</td>
+      <td>${esc(r.division)}</td>
+      <td>${fmtDate(r.created_at)}</td>
+      <td>${statusBadge}</td>
+      <td>${actions}</td>
+    </tr>`;
+  }).join('');
+}
+
+async function approveRequest(id, name) {
+  if (!confirm(`לאשר את הבקשה של "${name}"?\nייווצר משתמש אוטומטית וישלח מייל עם פרטי הכניסה.`)) return;
+  const btn = event.target;
+  btn.disabled = true; btn.textContent = 'מאשר...';
+  const res = await api('PUT', `/api/user-requests/${id}/approve`);
+  if (res.ok) {
+    alert(`✅ הבקשה אושרה!\nשם משתמש: ${res.username}\nמייל עם פרטי כניסה נשלח.`);
+    loadRequests();
+    updatePendingBadge();
+  } else {
+    alert(res.error || 'שגיאה באישור הבקשה');
+    btn.disabled = false; btn.textContent = '✅ אשר';
+  }
+}
+
+function openRejectModal(id, name) {
+  _rejectTargetId = id;
+  document.getElementById('reject-name-label').textContent = `בקשה של: ${name}`;
+  document.getElementById('reject-note').value = '';
+  document.getElementById('reject-err').classList.remove('show');
+  document.getElementById('modal-reject').classList.add('open');
+}
+
+async function submitReject() {
+  const note = document.getElementById('reject-note').value.trim();
+  const errEl = document.getElementById('reject-err');
+  errEl.classList.remove('show');
+  const res = await api('PUT', `/api/user-requests/${_rejectTargetId}/reject`, { rejection_note: note });
+  if (res.ok) {
+    closeModal('modal-reject');
+    loadRequests();
+    updatePendingBadge();
+  } else {
+    errEl.textContent = res.error || 'שגיאה';
+    errEl.classList.add('show');
+  }
+}
+
+async function updatePendingBadge() {
+  try {
+    const res = await fetch('/api/user-requests/pending-count');
+    const data = await res.json();
+    const tab = document.getElementById('tab-requests');
+    // Remove existing badge if any
+    const old = tab.querySelector('.tab-badge');
+    if (old) old.remove();
+    if (data.count > 0) {
+      const badge = document.createElement('span');
+      badge.className = 'tab-badge';
+      badge.textContent = data.count;
+      tab.insertBefore(badge, tab.firstChild);
+    }
+  } catch {}
 }
 
 // ── Users ──────────────────────────────────────────────────────────────────
@@ -488,6 +632,7 @@ document.querySelectorAll('.modal-bg').forEach(el=>{
 
 // Init
 loadUsers();
+updatePendingBadge();
 </script>
 </body>
 </html>

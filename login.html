@@ -48,6 +48,8 @@
     font-size:.8rem;color:#92400e;text-align:center;margin-bottom:18px;
     background:#fef3c7;border:1px solid #fde68a;border-radius:8px;padding:8px 12px;
   }
+  .back-link{display:block;text-align:center;margin-top:18px;font-size:.82rem;color:#6b7280;text-decoration:none}
+  .back-link:hover{color:#4f86f7}
 </style>
 </head>
 <body>
@@ -98,6 +100,8 @@
   </div>
 </div>
 
+<a href="/" class="back-link">← חזרה לדף הבית</a>
+
 <script>
 let _loginPassword = '';
 
@@ -125,7 +129,7 @@ async function doLogin(e) {
         document.getElementById('step-change').classList.add('active');
         setTimeout(() => document.getElementById('cp-new').focus(), 50);
       } else {
-        window.location.href = '/';
+        window.location.href = '/dashboard';
       }
     } else {
       err.textContent = data.error || 'שגיאה בכניסה';
