@@ -6228,7 +6228,7 @@ function renderDocPackForm(){
         <div class="dp-field" style="margin-top:14px">
           <label>דיאגרמת רשת</label>
           ${_dpUploadBox('network_diagram')}
-          <div class="dp-gallery">
+          <div class="dp-gallery" ondragover="event.preventDefault()" ondrop="event.preventDefault();dpUploadFile(event.dataTransfer.files[0],'network_diagram')">
             ${networks.map(p=>_dpPhotoCard(p)).join('')}
           </div>
         </div>
@@ -6243,14 +6243,14 @@ function renderDocPackForm(){
         <div class="dp-field">
           <label>תכנית האתר</label>
           ${_dpUploadBox('site_plan')}
-          <div class="dp-gallery">
+          <div class="dp-gallery" ondragover="event.preventDefault()" ondrop="event.preventDefault();dpUploadFile(event.dataTransfer.files[0],'site_plan')">
             ${siteplans.map(p=>_dpPhotoCard(p)).join('')}
           </div>
         </div>
         <div class="dp-field" style="margin-top:18px">
           <label>תמונות מהשטח</label>
           ${_dpUploadBox('photo')}
-          <div class="dp-gallery">
+          <div class="dp-gallery" ondragover="event.preventDefault()" ondrop="event.preventDefault();dpUploadFile(event.dataTransfer.files[0],'photo')">
             ${photos.map(p=>_dpPhotoCard(p)).join('')}
           </div>
         </div>
@@ -6380,9 +6380,11 @@ function _dpSlot(kind,file){
 }
 
 function _dpPhotoCard(p){
-  return `<div class="dp-photo">
+  return `<div class="dp-photo"
+    ondragover="event.preventDefault()"
+    ondrop="event.preventDefault();dpUploadFile(event.dataTransfer.files[0],'${p.kind}')">
     <button class="dp-photo-del dp-admin-only" title="מחק" onclick="dpDeleteFile(${p.id})">✕</button>
-    <img src="${dpFileUrl(p.id)}" alt=""/>
+    <img src="${dpFileUrl(p.id)}" alt="" draggable="false"/>
     <div class="dp-photo-caption">
       <input type="text" placeholder="כיתוב…" value="${_escDp(p.caption||'')}"
         onchange="dpUpdatePhotoCaption(${p.id},this.value)"/>
