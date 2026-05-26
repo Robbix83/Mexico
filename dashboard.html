@@ -563,9 +563,9 @@ kbd{background:#edf2f7;border:1px solid #cbd5e0;border-radius:4px;padding:1px 5p
 .wh-unit-badge.unit{background:#e2e8f0;color:#4a5568}
 .wh-unit-badge.meter{background:#dbeafe;color:#1d4ed8}
 /* ─── DOC PACK (תיק תיעוד) ─── */
-.dp-shell{display:grid;grid-template-columns:260px 1fr;gap:18px;align-items:start}
-.dp-side{background:#fff;border:1px solid #e2e8f0;border-radius:10px;padding:12px;position:sticky;top:14px;max-height:calc(100vh - 130px);overflow-y:auto}
-.dp-main{background:#fff;border:1px solid #e2e8f0;border-radius:10px;padding:18px 20px;min-height:400px}
+.dp-shell{display:grid;grid-template-columns:1fr 260px;gap:18px;align-items:start}
+.dp-side{grid-column:2;background:#fff;border:1px solid #e2e8f0;border-radius:10px;padding:12px;position:sticky;top:14px;max-height:calc(100vh - 130px);overflow-y:auto}
+.dp-main{grid-column:1;background:#fff;border:1px solid #e2e8f0;border-radius:10px;padding:18px 20px;min-height:400px}
 .dp-list-item{padding:8px 10px;border-radius:7px;cursor:pointer;font-size:.85rem;display:flex;justify-content:space-between;align-items:center;gap:6px;border:1px solid transparent}
 .dp-list-item:hover{background:#f7fafc}
 .dp-list-item.active{background:#eef4ff;border-color:#bfdbfe;color:#1d4ed8;font-weight:700}
@@ -579,8 +579,8 @@ kbd{background:#edf2f7;border:1px solid #cbd5e0;border-radius:4px;padding:1px 5p
 .dp-grid-2{display:grid;grid-template-columns:1fr 1fr;gap:10px 14px}
 .dp-grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px 14px}
 .dp-field{display:flex;flex-direction:column;gap:3px}
-.dp-field label{font-size:.78rem;font-weight:600;color:#4a5568}
-.dp-field input,.dp-field textarea,.dp-field select{padding:7px 10px;border:1.5px solid #e2e8f0;border-radius:6px;font-size:.85rem;font-family:inherit;background:#fff}
+.dp-field label{font-size:.78rem;font-weight:600;color:#4a5568;text-align:right}
+.dp-field input,.dp-field textarea,.dp-field select{padding:7px 10px;border:1.5px solid #e2e8f0;border-radius:6px;font-size:.85rem;font-family:inherit;background:#fff;direction:rtl;text-align:right}
 .dp-field input:focus,.dp-field textarea:focus{outline:none;border-color:#bfdbfe;box-shadow:0 0 0 3px rgba(59,130,246,.1)}
 .dp-field textarea{min-height:80px;resize:vertical}
 .dp-table{width:100%;border-collapse:collapse;font-size:.78rem;margin-top:6px}
@@ -1058,7 +1058,7 @@ tr:hover .pl-edit-btn{opacity:.65}
       </aside>
       <div class="dp-main" id="dp-main">
         <div style="text-align:center;padding:60px 20px;color:#a0aec0;font-size:.9rem">
-          בחר פרויקט מהרשימה משמאל, או צור חדש.
+          בחר פרויקט מהרשימה מימין, או צור חדש.
         </div>
       </div>
     </div>
