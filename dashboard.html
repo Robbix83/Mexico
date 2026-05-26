@@ -6137,8 +6137,8 @@ function renderDocPackForm(){
     return;
   }
   const d=_currentDocPack.data||{};
-  const network=_currentDocFiles.find(f=>f.kind==='network_diagram');
-  const siteplan=_currentDocFiles.find(f=>f.kind==='site_plan');
+  const networks=_currentDocFiles.filter(f=>f.kind==='network_diagram');
+  const siteplans=_currentDocFiles.filter(f=>f.kind==='site_plan');
   const photos=_currentDocFiles.filter(f=>f.kind==='photo');
 
   const quota=_currentDocQuota||{used:0,max:0};
@@ -6227,7 +6227,10 @@ function renderDocPackForm(){
         </div>
         <div class="dp-field" style="margin-top:14px">
           <label>דיאגרמת רשת</label>
-          ${_dpSlot('network_diagram',network)}
+          ${_dpUploadBox('network_diagram')}
+          <div class="dp-gallery">
+            ${networks.map(p=>_dpPhotoCard(p)).join('')}
+          </div>
         </div>
       </div>
     </div>
@@ -6238,8 +6241,11 @@ function renderDocPackForm(){
       </div>
       <div class="dp-section-body">
         <div class="dp-field">
-          <label>תכנית האתר (תמונה אחת)</label>
-          ${_dpSlot('site_plan',siteplan)}
+          <label>תכנית האתר</label>
+          ${_dpUploadBox('site_plan')}
+          <div class="dp-gallery">
+            ${siteplans.map(p=>_dpPhotoCard(p)).join('')}
+          </div>
         </div>
         <div class="dp-field" style="margin-top:18px">
           <label>תמונות מהשטח</label>
