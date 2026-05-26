@@ -15,6 +15,13 @@ const docpack = require('./docpack');
 
 const app  = express();
 const PORT = process.env.PORT || 3000;
+
+// L1 — In production we REFUSE to boot with the default dev secret. Forging
+// admin JWTs is trivial if attacker knows the fallback string.
+if (process.env.NODE_ENV === 'production' && !process.env.JWT_SECRET) {
+  console.error('[fatal] JWT_SECRET env var is required in production.');
+  process.exit(1);
+}
 const JWT_SECRET = process.env.JWT_SECRET || 'dev-secret-change-in-production';
 const DS_PATH    = path.resolve(process.env.DS_PATH    || path.join(__dirname, 'ds'));
 const DS_FALLBACK = path.join(__dirname, 'ds'); // git-committed PDFs — used when DS_PATH is empty
@@ -93,6 +100,23 @@ function requireAdmin(req, res, next) {
       return res.status(403).send('<h1>403 Forbidden</h1>');
     }
     next();
+  });
+}
+
+// H2 — Server-enforced section check (the client-side hiding of tabs is not
+// enough on its own; an authenticated viewer could otherwise call any /api
+// endpoint directly). Admins always pass. Viewers must have the requested
+// section in their `sections` array.
+function requireSection(name) {
+  return (req, res, next) => requireAuth(req, res, () => {
+    if (req.user.role === 'admin') return next();
+    const u = db.getUserById(req.user.id);
+    let secs = [];
+    try { secs = u && u.sections ? JSON.parse(u.sections) : []; } catch {}
+    if (!Array.isArray(secs) || !secs.includes(name)) {
+      return res.status(403).json({ error: 'Section not allowed' });
+    }
+    return next();
   });
 }
 
@@ -327,7 +351,11 @@ const DOC_UPLOAD_STAGING = path.join(docpack.UPLOADS_DIR, '_staging');
 if (!fs.existsSync(DOC_UPLOAD_STAGING)) fs.mkdirSync(DOC_UPLOAD_STAGING, { recursive: true });
 
 // Allowed extensions — combined with mime-type sniffing on each upload.
-const ALLOWED_EXT = /\.(jpe?g|png|webp|gif|bmp|svg|tiff?|mp4|mov|m4v|avi|mkv|webm|pdf|xlsx?|csv|docx?|pptx?|txt|zip)$/i;
+// SVG intentionally NOT allowed: SVG can carry <script> and our CSP allows
+// 'unsafe-inline' for first-party scripts, so a stored SVG opened directly
+// from /api/docpacks/:id/files/:fileId would execute in the app origin and
+// steal admin sessions. (M3 from the security review.)
+const ALLOWED_EXT = /\.(jpe?g|png|webp|gif|bmp|tiff?|mp4|mov|m4v|avi|mkv|webm|pdf|xlsx?|csv|docx?|pptx?|txt|zip)$/i;
 const ALLOWED_KINDS = [
   'photo', 'diagram', 'network_diagram', 'site_plan',
   'video', 'pdf', 'excel', 'quote_contractor', 'quote_supplier',
@@ -345,12 +373,25 @@ const KIND_DEFAULT_VISIBILITY = {
 const PER_PACK_QUOTA_BYTES = 2 * 1024 * 1024 * 1024; // 2GB
 const PER_FILE_MAX_BYTES   = 200 * 1024 * 1024;      // 200MB
 
+// H3 — /api/docpacks/:id/generate is expensive (pdf-to-img renders up to
+// 50 pages, builds a docx, writes temp PNGs). Cap at 6/min PER USER so
+// a logged-in viewer can't saturate CPU / disk.
+const generateRateLimiter = rateLimit({
+  windowMs: 60 * 1000, max: 6,
+  standardHeaders: true, legacyHeaders: false,
+  keyGenerator: (req) => (req.user && req.user.id) ? `u:${req.user.id}` : req.ip,
+  message: { error: 'יותר מדי בקשות ייצוא. נסה שוב בעוד דקה.' },
+});
+
 const docPackUpload = multer({
   dest: DOC_UPLOAD_STAGING,
   limits: { fileSize: PER_FILE_MAX_BYTES },
   fileFilter: (_req, file, cb) => {
-    // Accept by extension OR by mime type — the user uploads from many tools that
-    // report wrong/missing mimes. Either signal must pass.
+    // Reject SVG explicitly regardless of declared mime — see M3 comment above.
+    if (/\.svg$/i.test(file.originalname || '') || /svg/i.test(file.mimetype || '')) {
+      return cb(new Error('SVG אסור — אנא העלה PNG/JPG'));
+    }
+    // Accept by extension AND by mime type — both signals must be reasonable.
     const okExt  = ALLOWED_EXT.test(file.originalname || '');
     const okMime = /^(image|video)\//i.test(file.mimetype || '') ||
                    /pdf|excel|spreadsheet|word|presentation|zip|csv|octet-stream/i.test(file.mimetype || '');
@@ -367,6 +408,14 @@ function sanitizeFilename(name) {
 
 function defaultVisibilityForKind(kind) {
   return KIND_DEFAULT_VISIBILITY[kind] || 'client';
+}
+
+function _sanitizeContributorName(raw) {
+  let s = String(raw || 'משתתף');
+  // Drop control chars (incl. CR/LF) and HTML-significant chars (<>"'&`)
+  s = s.replace(/[\x00-\x1f\x7f<>"'`&]/g, '');
+  s = s.trim().slice(0, 60);
+  return s || 'משתתף';
 }
 
 function publicFileShape(f) {
@@ -387,7 +436,7 @@ function publicFileShape(f) {
   };
 }
 
-app.get('/api/docpacks', requireAuth, (req, res) => {
+app.get('/api/docpacks', requireSection('docpack'), (req, res) => {
   res.json({ packs: db.listDocPacks() });
 });
 
@@ -401,7 +450,7 @@ app.post('/api/docpacks', requireAdmin, (req, res) => {
   res.json({ ok: true, id: r.lastInsertRowid });
 });
 
-app.get('/api/docpacks/:id', requireAuth, (req, res) => {
+app.get('/api/docpacks/:id', requireSection('docpack'), (req, res) => {
   const id = parseInt(req.params.id);
   const pack = db.getDocPack(id);
   if (!pack) return res.status(404).json({ error: 'Pack not found' });
@@ -568,7 +617,7 @@ app.get('/api/docpacks/:id/files/_diag', requireAdmin, (req, res) => {
   });
 });
 
-app.get('/api/docpacks/:id/files/:fileId', requireAuth, (req, res) => {
+app.get('/api/docpacks/:id/files/:fileId', requireSection('docpack'), (req, res) => {
   const id = parseInt(req.params.id);
   const fileId = parseInt(req.params.fileId);
   const f = db.getDocPackFile(fileId);
@@ -578,6 +627,11 @@ app.get('/api/docpacks/:id/files/:fileId', requireAuth, (req, res) => {
     console.warn(`[docpack] file missing on disk: pack=${id} file=${fileId} name=${f.filename}`);
     return res.status(404).send('Missing on disk');
   }
+  // Defense-in-depth: any non-image content gets X-Content-Type-Options and
+  // a tight CSP via response header. Prevents stored-XSS even if a bad file
+  // slipped past the upload filter.
+  res.setHeader('X-Content-Type-Options', 'nosniff');
+  res.setHeader('Content-Security-Policy', "default-src 'none'; img-src 'self'; style-src 'unsafe-inline'");
   res.sendFile(p);
 });
 
@@ -722,7 +776,7 @@ app.post('/api/docpacks/:id/datasheets/attach', requireAdmin, (req, res) => {
   res.json({ ok: true, found: true, attached: true, file: publicFileShape(db.getDocPackFile(r.lastInsertRowid)) });
 });
 
-app.post('/api/docpacks/:id/generate', requireAuth, async (req, res) => {
+app.post('/api/docpacks/:id/generate', requireSection('docpack'), generateRateLimiter, async (req, res) => {
   const id = parseInt(req.params.id);
   const pack = db.getDocPack(id);
   if (!pack) return res.status(404).json({ error: 'Pack not found' });
@@ -835,7 +889,10 @@ app.get('/api/share/:token', (req, res) => {
 app.post('/api/share/:token/equipment', shareUploadLimiter, (req, res) => {
   const v = _validateShare(req.params.token);
   if (v.error) return res.status(v.status).json({ error: v.error });
-  const name = String(req.header('X-Contributor-Name') || 'משתתף').slice(0, 60);
+  // H1 — strip HTML / control / quote chars at WRITE time. The name is stored
+  // in many places (contributor field, _contributor in row JSON, audit detail)
+  // and we cannot rely on every future render path remembering to escape it.
+  const name = _sanitizeContributorName(req.header('X-Contributor-Name'));
   const contributor = `share:${v.row.id}:${name}`;
   try {
     const r = _appendEquipment(v.pack.id, req.body || {}, contributor);
@@ -848,7 +905,10 @@ app.post('/api/share/:token/equipment', shareUploadLimiter, (req, res) => {
 app.post('/api/share/:token/files', shareUploadLimiter, docPackUpload.single('file'), async (req, res) => {
   const v = _validateShare(req.params.token);
   if (v.error) { if (req.file) try { fs.unlinkSync(req.file.path); } catch {} return res.status(v.status).json({ error: v.error }); }
-  const name = String(req.header('X-Contributor-Name') || 'משתתף').slice(0, 60);
+  // H1 — strip HTML / control / quote chars at WRITE time. The name is stored
+  // in many places (contributor field, _contributor in row JSON, audit detail)
+  // and we cannot rely on every future render path remembering to escape it.
+  const name = _sanitizeContributorName(req.header('X-Contributor-Name'));
   const contributor = `share:${v.row.id}:${name}`;
   try {
     const file = await _ingestUploadedFile(v.pack.id, req, contributor);

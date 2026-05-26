@@ -163,6 +163,11 @@ try {
 const userCount = db.prepare('SELECT COUNT(*) as n FROM users').get().n;
 if (userCount === 0) {
   const adminUser = process.env.ADMIN_USER || 'admin';
+  // L2 — In production we REFUSE to seed with the known-default password.
+  if (process.env.NODE_ENV === 'production' && !process.env.ADMIN_PASSWORD) {
+    console.error('[fatal] ADMIN_PASSWORD env var is required when seeding the first admin in production.');
+    process.exit(1);
+  }
   const adminPass = process.env.ADMIN_PASSWORD || 'changeme123';
   const hash = bcrypt.hashSync(adminPass, 12);
   db.prepare(
