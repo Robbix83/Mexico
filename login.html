@@ -50,6 +50,17 @@
   }
   .back-link{display:block;text-align:center;margin-top:18px;font-size:.82rem;color:#6b7280;text-decoration:none}
   .back-link:hover{color:#4f86f7}
+
+  /* Password visibility toggle */
+  .pw-wrap{position:relative}
+  .pw-wrap input{padding-left:40px}
+  .pw-toggle{
+    position:absolute;top:50%;left:11px;transform:translateY(-50%);
+    background:none;border:none;cursor:pointer;padding:4px;color:#9ca3af;
+    line-height:1;transition:color .2s;outline:none;
+  }
+  .pw-toggle:hover{color:#4f86f7}
+  .pw-toggle svg{width:18px;height:18px;display:block}
 </style>
 </head>
 <body>
@@ -69,7 +80,13 @@
       </div>
       <div class="field">
         <label for="p">סיסמה</label>
-        <input id="p" name="password" type="password" autocomplete="current-password" required>
+        <div class="pw-wrap">
+          <input id="p" name="password" type="password" autocomplete="current-password" required>
+          <button type="button" class="pw-toggle" onclick="togglePw('p')" tabindex="-1" aria-label="הצג סיסמה">
+            <svg id="eye-p" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+            <svg id="eye-off-p" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none"><path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19m-6.72-1.07a3 3 0 11-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+          </button>
+        </div>
       </div>
       <button class="btn" type="submit" id="btn">כניסה</button>
       <div class="err" id="err"></div>
@@ -88,11 +105,23 @@
     <form id="change-form" onsubmit="doChangePassword(event)">
       <div class="field">
         <label for="cp-new">סיסמה חדשה</label>
-        <input id="cp-new" type="password" autocomplete="new-password" required placeholder="לפחות 8 תווים...">
+        <div class="pw-wrap">
+          <input id="cp-new" type="password" autocomplete="new-password" required placeholder="לפחות 8 תווים...">
+          <button type="button" class="pw-toggle" onclick="togglePw('cp-new')" tabindex="-1" aria-label="הצג סיסמה">
+            <svg id="eye-cp-new" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+            <svg id="eye-off-cp-new" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none"><path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19m-6.72-1.07a3 3 0 11-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+          </button>
+        </div>
       </div>
       <div class="field">
         <label for="cp-confirm">אישור סיסמה חדשה</label>
-        <input id="cp-confirm" type="password" autocomplete="new-password" required placeholder="חזור על הסיסמה החדשה">
+        <div class="pw-wrap">
+          <input id="cp-confirm" type="password" autocomplete="new-password" required placeholder="חזור על הסיסמה החדשה">
+          <button type="button" class="pw-toggle" onclick="togglePw('cp-confirm')" tabindex="-1" aria-label="הצג סיסמה">
+            <svg id="eye-cp-confirm" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+            <svg id="eye-off-cp-confirm" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none"><path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19m-6.72-1.07a3 3 0 11-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+          </button>
+        </div>
       </div>
       <button class="btn" type="submit" id="cp-btn">שנה סיסמה וכנס</button>
       <div class="err" id="cp-err"></div>
@@ -103,6 +132,14 @@
 <a href="/" class="back-link">← חזרה לדף הבית</a>
 
 <script>
+function togglePw(id) {
+  const inp = document.getElementById(id);
+  const show = inp.type === 'password';
+  inp.type = show ? 'text' : 'password';
+  document.getElementById('eye-' + id).style.display     = show ? 'none' : '';
+  document.getElementById('eye-off-' + id).style.display = show ? '' : 'none';
+}
+
 let _loginPassword = '';
 
 async function doLogin(e) {
