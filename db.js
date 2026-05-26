@@ -99,6 +99,51 @@ try { db.exec("ALTER TABLE doc_pack_files ADD COLUMN note TEXT"); }             
 try { db.exec("ALTER TABLE doc_pack_files ADD COLUMN contributor TEXT"); }                         catch (_) {}
 try { db.exec("ALTER TABLE doc_pack_files ADD COLUMN external_path TEXT"); }                       catch (_) {}
 
+// Migration: doc_pack_files.filename was originally NOT NULL. With Drop 2B,
+// datasheets are stored as "linked" rows (filename NULL, external_path set).
+// SQLite can't DROP NOT NULL in place; the only way is to recreate the
+// table. We detect the constraint via PRAGMA table_info and migrate if so.
+try {
+  const cols = db.prepare("PRAGMA table_info(doc_pack_files)").all();
+  const filenameCol = cols.find(c => c.name === 'filename');
+  if (filenameCol && filenameCol.notnull === 1) {
+    console.log('[db] migrating doc_pack_files to make filename nullable…');
+    db.exec(`
+      BEGIN TRANSACTION;
+      CREATE TABLE doc_pack_files__new (
+        id            INTEGER PRIMARY KEY AUTOINCREMENT,
+        pack_id       INTEGER NOT NULL REFERENCES doc_packs(id) ON DELETE CASCADE,
+        kind          TEXT    NOT NULL DEFAULT 'photo',
+        filename      TEXT,
+        original_name TEXT,
+        mime          TEXT,
+        size          INTEGER NOT NULL DEFAULT 0,
+        caption       TEXT,
+        sort_order    INTEGER NOT NULL DEFAULT 0,
+        created_at    TEXT    NOT NULL DEFAULT (datetime('now')),
+        visibility    TEXT    NOT NULL DEFAULT 'client',
+        note          TEXT,
+        contributor   TEXT,
+        external_path TEXT
+      );
+      INSERT INTO doc_pack_files__new
+        (id, pack_id, kind, filename, original_name, mime, size, caption, sort_order, created_at, visibility, note, contributor, external_path)
+        SELECT id, pack_id, kind, filename, original_name, mime, size, caption, sort_order, created_at,
+               COALESCE(visibility,'client'), note, contributor, external_path
+          FROM doc_pack_files;
+      DROP TABLE doc_pack_files;
+      ALTER TABLE doc_pack_files__new RENAME TO doc_pack_files;
+      CREATE INDEX IF NOT EXISTS idx_doc_pack_files_pack    ON doc_pack_files(pack_id, sort_order);
+      CREATE INDEX IF NOT EXISTS idx_doc_pack_files_created ON doc_pack_files(pack_id, created_at DESC);
+      COMMIT;
+    `);
+    console.log('[db] ✓ doc_pack_files migration done');
+  }
+} catch (e) {
+  console.error('[db] doc_pack_files filename migration failed:', e.message);
+  try { db.exec('ROLLBACK'); } catch {}
+}
+
 // Migration: add must_change_password column to existing DBs
 try {
   db.exec("ALTER TABLE users ADD COLUMN must_change_password INTEGER NOT NULL DEFAULT 0");
