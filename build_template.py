@@ -232,30 +232,36 @@ def build():
     add_para_rtl(doc, '\n')
     info_table = doc.add_table(rows=7, cols=4)
     info_table.style = 'Light Grid Accent 1'
-    set_table_rtl(info_table)
+    # bidiVisual is NOT used here: Google Docs ignores <w:bidiVisual/> and renders
+    # columns in physical left→right order regardless.  Instead we physically reverse
+    # the column order so the role-label (rightmost in Hebrew) sits in physical col 3
+    # (rightmost in both Word and Google Docs without any bidi table flag).
+    # Reading order for a Hebrew reader (right → left):
+    #   col3 (role/label) | col2 (function) | col1 (org) | col0 (person)
 
     rows_data = [
-        ('מגיש',  'גורם מבצע',         '{contractor_org}', '{contractor_person}'),
-        ('מגיש',  'גורם מוביל',         '{pm_org}',         '{pm_person}'),
-        ('מקבל',  'לקוח סופי',           '{customer_org}',   '{customer_person}'),
-        ('בודק',  'יועץ טכנולוגי',       '{consultant_org}', '{consultant_person}'),
-        ('מאשר',  'מהנדס טכנולוגי',     '{engineer_org}',   '{engineer_person}'),
-        ('תאריך', 'תאריך הגשה',          '{submit_date}',    ''),
-        ('תאריך', 'תאריך עדכון',         '{update_date}',    ''),
+        ('{contractor_person}', '{contractor_org}', 'גורם מבצע',      'מגיש'),
+        ('{pm_person}',         '{pm_org}',          'גורם מוביל',     'מגיש'),
+        ('{customer_person}',   '{customer_org}',    'לקוח סופי',      'מקבל'),
+        ('{consultant_person}', '{consultant_org}',  'יועץ טכנולוגי',  'בודק'),
+        ('{engineer_person}',   '{engineer_org}',    'מהנדס טכנולוגי', 'מאשר'),
+        ('',                    '{submit_date}',     'תאריך הגשה',     'תאריך'),
+        ('',                    '{update_date}',     'תאריך עדכון',    'תאריך'),
     ]
-    for i, (role, key, org, person) in enumerate(rows_data):
+    for i, row_vals in enumerate(rows_data):
         cells = info_table.rows[i].cells
-        for cell, txt in zip(cells, [role, key, org, person]):
+        for cell, txt in zip(cells, row_vals):
             cell.text = ''
             p = cell.paragraphs[0]
             set_rtl(p)
             p.alignment = WD_ALIGN_PARAGRAPH.RIGHT
             cell.vertical_alignment = WD_ALIGN_VERTICAL.CENTER
             run = p.add_run(txt)
+            set_run_rtl(run)
             run.font.name = 'Arial'
             run.font.size = Pt(11)
-        shade_cell(cells[0], 'E8EEF7')
-        shade_cell(cells[1], 'F4F6FA')
+        shade_cell(cells[3], 'E8EEF7')  # role label — physically rightmost col
+        shade_cell(cells[2], 'F4F6FA')  # function  — second from right
 
     doc.add_page_break()
 
@@ -307,76 +313,85 @@ def build():
     add_heading_rtl(doc, 'רשימת מצלמות', level=2)
     cam_table = doc.add_table(rows=2, cols=7)
     cam_table.style = 'Light Grid Accent 1'
-    set_table_rtl(cam_table)
-    cam_headers = ['מס"ד', 'ארון תקשורת', 'שם המצלמה', 'סוג מצלמה', 'פורט בפנל', 'כתובת IP', 'מיקום בתכנית']
+    # Columns physically reversed so they display in correct Hebrew R→L reading order
+    # without needing <w:bidiVisual/> (which Google Docs ignores).
+    # Physical L→R: מיקום | IP | פורט | סוג | שם | ארון | מס"ד
+    # Hebrew reader sees R→L: מס"ד | ארון | שם | סוג | פורט | IP | מיקום ✓
+    cam_headers = ['מיקום בתכנית', 'כתובת IP', 'פורט בפנל', 'סוג מצלמה', 'שם המצלמה', 'ארון תקשורת', 'מס"ד']
     for cell, h in zip(cam_table.rows[0].cells, cam_headers):
         cell.text = ''
         p = cell.paragraphs[0]
         set_rtl(p); p.alignment = WD_ALIGN_PARAGRAPH.CENTER
         r = p.add_run(h); r.bold = True; r.font.name = 'Arial'; r.font.size = Pt(10)
+        set_run_rtl(r)
         shade_cell(cell, '1A2A4A')
         for run in p.runs:
             run.font.color.rgb = RGBColor(0xFF, 0xFF, 0xFF)
-    # Data row with loop placeholders
+    # Data row — loop fields match the reversed header order
     cam_data_cells = cam_table.rows[1].cells
     cam_loop_fields = [
-        '{#cameras}{idx}', '{cabinet}', '{name}', '{model}', '{port}', '{ip}', '{location}{/cameras}',
+        '{#cameras}{location}', '{ip}', '{port}', '{model}', '{name}', '{cabinet}', '{idx}{/cameras}',
     ]
     for cell, txt in zip(cam_data_cells, cam_loop_fields):
         cell.text = ''
         p = cell.paragraphs[0]
         set_rtl(p); p.alignment = WD_ALIGN_PARAGRAPH.CENTER
         r = p.add_run(txt); r.font.name = 'Arial'; r.font.size = Pt(10)
+        set_run_rtl(r)
     add_para_rtl(doc, '')
 
     # ── 5.2 Backhauls ──
     add_heading_rtl(doc, 'רשימת עורקים', level=2)
     bh_table = doc.add_table(rows=2, cols=6)
     bh_table.style = 'Light Grid Accent 1'
-    set_table_rtl(bh_table)
-    bh_headers = ['מס"ד', 'סוג עורק', 'מק"ט', 'יצרן', 'מיקום', 'כתובת IP']
+    # Columns physically reversed (L→R: IP | מיקום | יצרן | מק"ט | סוג עורק | מס"ד)
+    bh_headers = ['כתובת IP', 'מיקום', 'יצרן', 'מק"ט', 'סוג עורק', 'מס"ד']
     for cell, h in zip(bh_table.rows[0].cells, bh_headers):
         cell.text = ''
         p = cell.paragraphs[0]
         set_rtl(p); p.alignment = WD_ALIGN_PARAGRAPH.CENTER
         r = p.add_run(h); r.bold = True; r.font.name = 'Arial'; r.font.size = Pt(10)
+        set_run_rtl(r)
         shade_cell(cell, '1A2A4A')
         for run in p.runs:
             run.font.color.rgb = RGBColor(0xFF, 0xFF, 0xFF)
     bh_data_cells = bh_table.rows[1].cells
     bh_loop_fields = [
-        '{#backhauls}{idx}', '{type}', '{mpn}', '{vendor}', '{location}', '{ip}{/backhauls}',
+        '{#backhauls}{ip}', '{location}', '{vendor}', '{mpn}', '{type}', '{idx}{/backhauls}',
     ]
     for cell, txt in zip(bh_data_cells, bh_loop_fields):
         cell.text = ''
         p = cell.paragraphs[0]
         set_rtl(p); p.alignment = WD_ALIGN_PARAGRAPH.CENTER
         r = p.add_run(txt); r.font.name = 'Arial'; r.font.size = Pt(10)
+        set_run_rtl(r)
     add_para_rtl(doc, '')
 
     # ── 5.3 Switches ──
     add_heading_rtl(doc, 'רשימת מתגים', level=2)
     sw_table = doc.add_table(rows=2, cols=5)
     sw_table.style = 'Light Grid Accent 1'
-    set_table_rtl(sw_table)
-    sw_headers = ['מס"ד', 'מתגים', 'מק"ט', 'יצרן', 'כתובת IP']
+    # Columns physically reversed (L→R: IP | יצרן | מק"ט | מתגים | מס"ד)
+    sw_headers = ['כתובת IP', 'יצרן', 'מק"ט', 'מתגים', 'מס"ד']
     for cell, h in zip(sw_table.rows[0].cells, sw_headers):
         cell.text = ''
         p = cell.paragraphs[0]
         set_rtl(p); p.alignment = WD_ALIGN_PARAGRAPH.CENTER
         r = p.add_run(h); r.bold = True; r.font.name = 'Arial'; r.font.size = Pt(10)
+        set_run_rtl(r)
         shade_cell(cell, '1A2A4A')
         for run in p.runs:
             run.font.color.rgb = RGBColor(0xFF, 0xFF, 0xFF)
     sw_data_cells = sw_table.rows[1].cells
     sw_loop_fields = [
-        '{#switches}{idx}', '{name}', '{mpn}', '{vendor}', '{ip}{/switches}',
+        '{#switches}{ip}', '{vendor}', '{mpn}', '{name}', '{idx}{/switches}',
     ]
     for cell, txt in zip(sw_data_cells, sw_loop_fields):
         cell.text = ''
         p = cell.paragraphs[0]
         set_rtl(p); p.alignment = WD_ALIGN_PARAGRAPH.CENTER
         r = p.add_run(txt); r.font.name = 'Arial'; r.font.size = Pt(10)
+        set_run_rtl(r)
 
     # ═════════════════ 6. נספח — דפי מוצר ═════════════════
     # Each datasheet PDF is rendered to PNG pages by the server at export time
