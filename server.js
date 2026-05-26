@@ -526,14 +526,57 @@ app.post('/api/docpacks/:id/files', requireAdmin, docPackUpload.single('file'), 
   }
 });
 
+// Resolve a doc-pack file by trying multiple historical upload locations.
+// Earlier deploys without DOC_PACK_UPLOADS_DIR landed files under
+// <app>/data/doc_packs (ephemeral). Newer deploys use /data/doc_packs
+// (persistent). For backward compat we try several paths.
+function _resolveDocPackFilePath(packId, f) {
+  if (!f) return null;
+  if (f.external_path && fs.existsSync(f.external_path)) return f.external_path;
+  if (!f.filename) return null;
+  const candidates = [
+    docpack.fileDiskPath(packId, f.filename),
+    path.join('/data/doc_packs', String(packId), f.filename),
+    path.join(__dirname, 'data', 'doc_packs', String(packId), f.filename),
+  ];
+  for (const p of candidates) {
+    try { if (fs.existsSync(p)) return p; } catch {}
+  }
+  return null;
+}
+
 app.get('/api/docpacks/:id/files/:fileId', requireAuth, (req, res) => {
   const id = parseInt(req.params.id);
   const fileId = parseInt(req.params.fileId);
   const f = db.getDocPackFile(fileId);
   if (!f || f.pack_id !== id) return res.status(404).send('Not found');
-  const p = f.filename ? docpack.fileDiskPath(id, f.filename) : f.external_path;
-  if (!p || !fs.existsSync(p)) return res.status(404).send('Missing on disk');
+  const p = _resolveDocPackFilePath(id, f);
+  if (!p) {
+    console.warn(`[docpack] file missing on disk: pack=${id} file=${fileId} name=${f.filename}`);
+    return res.status(404).send('Missing on disk');
+  }
   res.sendFile(p);
+});
+
+// Admin-only diagnostic: returns the resolved disk path for each file in a pack
+// and whether it exists. Use to debug "upload appears in timeline but preview blank".
+app.get('/api/docpacks/:id/files/_diag', requireAdmin, (req, res) => {
+  const id = parseInt(req.params.id);
+  const pack = db.getDocPack(id);
+  if (!pack) return res.status(404).json({ error: 'pack not found' });
+  const files = db.listDocPackFiles(id);
+  res.json({
+    UPLOADS_DIR: docpack.UPLOADS_DIR,
+    DOC_PACK_UPLOADS_DIR_env: process.env.DOC_PACK_UPLOADS_DIR || '(unset)',
+    files: files.map(f => ({
+      id: f.id,
+      kind: f.kind,
+      filename: f.filename,
+      external_path: f.external_path,
+      resolved: _resolveDocPackFilePath(id, f),
+      exists: !!_resolveDocPackFilePath(id, f),
+    })),
+  });
 });
 
 app.delete('/api/docpacks/:id/files/:fileId', requireAdmin, (req, res) => {
@@ -568,7 +611,8 @@ app.patch('/api/docpacks/:id/files/:fileId', requireAdmin, (req, res) => {
 app.get('/api/datasheets/search', requireAuth, (req, res) => {
   const q = String(req.query.q || '').trim();
   if (!q) return res.json({ matches: [] });
-  res.json({ matches: docpack.searchDatasheets(q, 10) });
+  const cat = ['cameras','backhauls','switches'].includes(req.query.cat) ? req.query.cat : null;
+  res.json({ matches: docpack.searchDatasheets(q, 10, cat) });
 });
 
 // Admin can force a re-index after adding new PDFs under /data/ds
@@ -817,7 +861,8 @@ app.get('/api/share/:token/datasheets/search', (req, res) => {
   if (v.error) return res.status(v.status).json({ error: v.error });
   const q = String(req.query.q || '').trim();
   if (!q) return res.json({ matches: [] });
-  res.json({ matches: docpack.searchDatasheets(q, 10) });
+  const cat = ['cameras','backhauls','switches'].includes(req.query.cat) ? req.query.cat : null;
+  res.json({ matches: docpack.searchDatasheets(q, 10, cat) });
 });
 
 app.get('/api/share/:token/files/:fileId', (req, res) => {

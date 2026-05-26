@@ -173,10 +173,14 @@ def build():
     # ═════════════════ COVER ═════════════════
     p = add_para_rtl(doc, '', align=WD_ALIGN_PARAGRAPH.CENTER)
     p.add_run('\n\n\n').font.size = Pt(20)
-    p = add_para_rtl(doc, 'תיק תיעוד AS-MADE', align=WD_ALIGN_PARAGRAPH.CENTER)
+    # Centered cover title — Hebrew only, no Latin chars to avoid BIDI reorder
+    p = add_para_rtl(doc, 'תיק תיעוד', align=WD_ALIGN_PARAGRAPH.CENTER)
     p.runs[0].font.size = Pt(36)
     p.runs[0].bold = True
     p.runs[0].font.color.rgb = RGBColor(0x1a, 0x2a, 0x4a)
+    p = add_para_rtl(doc, 'AS-MADE', align=WD_ALIGN_PARAGRAPH.CENTER)
+    p.runs[0].font.size = Pt(20)
+    p.runs[0].font.color.rgb = RGBColor(0x60, 0x70, 0x80)
 
     p = add_para_rtl(doc, '{site_name}', align=WD_ALIGN_PARAGRAPH.CENTER)
     p.runs[0].font.size = Pt(28)
@@ -221,18 +225,22 @@ def build():
     doc.add_page_break()
 
     # ═════════════════ 1. הקדמה ═════════════════
-    add_heading_rtl(doc, '1. הקדמה', level=1)
+    # Drop numeric prefixes from headings — Latin digits ("1.", "2."...) inside
+    # an RTL paragraph get reordered by Unicode BIDI to the visual left, which
+    # made the heading look reversed in Word ("הקדמה 1." instead of "1. הקדמה").
+    # Plain Hebrew titles render cleanly.
+    add_heading_rtl(doc, 'הקדמה', level=1)
     add_para_rtl(doc, '{intro_text}')
     add_para_rtl(doc, '')
 
     # ═════════════════ 2. תכולת הפרויקט ═════════════════
-    add_heading_rtl(doc, '2. תכולת הפרויקט', level=1)
+    add_heading_rtl(doc, 'תכולת הפרויקט', level=1)
     # Loop over scope_items
     p = add_bullet_rtl(doc, '{#scope_items}{text}{/scope_items}')
     add_para_rtl(doc, '')
 
     # ═════════════════ 3. ארכיטקטורת רשת ═════════════════
-    add_heading_rtl(doc, '3. ארכיטקטורת רשת התקשורת', level=1)
+    add_heading_rtl(doc, 'ארכיטקטורת רשת התקשורת', level=1)
     add_para_rtl(doc, '{network_arch_text}')
     add_para_rtl(doc, '')
     # Network diagram image
@@ -241,7 +249,7 @@ def build():
     add_para_rtl(doc, '')
 
     # ═════════════════ 4. שרטוט AS-MADE ═════════════════
-    add_heading_rtl(doc, '4. שרטוט AS-MADE', level=1)
+    add_heading_rtl(doc, 'שרטוט AS-MADE', level=1)
     add_para_rtl(doc, 'תכנית האתר:', bold=True)
     add_para_rtl(doc, '{%site_plan_img}', align=WD_ALIGN_PARAGRAPH.CENTER)
     add_para_rtl(doc, '')
@@ -258,10 +266,10 @@ def build():
     doc.add_page_break()
 
     # ═════════════════ 5. רשימת ציוד וכתובות IP ═════════════════
-    add_heading_rtl(doc, '5. רשימת ציוד וכתובות IP', level=1)
+    add_heading_rtl(doc, 'רשימת ציוד וכתובות IP', level=1)
 
     # ── 5.1 Cameras ──
-    add_heading_rtl(doc, '5.1 רשימת מצלמות', level=2)
+    add_heading_rtl(doc, 'רשימת מצלמות', level=2)
     cam_table = doc.add_table(rows=2, cols=7)
     cam_table.style = 'Light Grid Accent 1'
     set_table_rtl(cam_table)
@@ -287,7 +295,7 @@ def build():
     add_para_rtl(doc, '')
 
     # ── 5.2 Backhauls ──
-    add_heading_rtl(doc, '5.2 רשימת עורקים', level=2)
+    add_heading_rtl(doc, 'רשימת עורקים', level=2)
     bh_table = doc.add_table(rows=2, cols=6)
     bh_table.style = 'Light Grid Accent 1'
     set_table_rtl(bh_table)
@@ -312,7 +320,7 @@ def build():
     add_para_rtl(doc, '')
 
     # ── 5.3 Switches ──
-    add_heading_rtl(doc, '5.3 רשימת מתגים', level=2)
+    add_heading_rtl(doc, 'רשימת מתגים', level=2)
     sw_table = doc.add_table(rows=2, cols=5)
     sw_table.style = 'Light Grid Accent 1'
     set_table_rtl(sw_table)
@@ -341,7 +349,7 @@ def build():
     # iterates pages within a datasheet. paragraphLoop:true (set in docpack.js)
     # makes loops that wrap whole paragraphs repeat each contained paragraph.
     doc.add_page_break()
-    add_heading_rtl(doc, '6. נספח — דפי מוצר', level=1)
+    add_heading_rtl(doc, 'נספח — דפי מוצר', level=1)
     p = add_para_rtl(doc,
         'דפי המוצר של כל הרכיבים בפרויקט. כל דאטה-שיט מופיע בעמוד נפרד.')
     p.runs[0].font.size = Pt(10.5)

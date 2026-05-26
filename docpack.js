@@ -175,21 +175,53 @@ function lookupDatasheet(modelString) {
   return _dsIndex.get(key) || null;
 }
 
-function searchDatasheets(query, limit = 10) {
+// Rough manufacturer → category mapping for autocomplete scoping. When the
+// user is editing the "backhauls" table, we don't want to suggest Hikvision
+// camera models. Filenames in the flat datasheets/ folder are matched by
+// known prefix patterns.
+const _MFR_TO_CAT = {
+  Hikvision: 'cameras', Uniview: 'cameras', Bosch: 'cameras', Avigilon: 'cameras',
+  Axis: 'cameras', Pelco: 'cameras', Hanwha: 'cameras', Dahua: 'cameras',
+  SIKLU: 'backhauls', Siklu: 'backhauls', Ubiquiti: 'backhauls', Cambium: 'backhauls', Mimosa: 'backhauls',
+  Planet: 'switches', HP: 'switches', HPE: 'switches', Cisco: 'switches',
+  Aruba: 'switches', Netgear: 'switches', Juniper: 'switches', Mikrotik: 'switches',
+};
+const _FILENAME_HINT_TO_CAT = [
+  { re: /^EH[-_]?\d/i,       cat: 'backhauls' }, // SIKLU EH-600, EH-710
+  { re: /^WGS[-_]?\d/i,      cat: 'switches' },  // Planet WGS-...
+  { re: /^GS[-_]?\d/i,       cat: 'switches' },
+  { re: /^DS[-_]?\d/i,       cat: 'cameras'  },  // Hikvision DS-...
+  { re: /^IPC\d/i,           cat: 'cameras'  },  // Uniview IPC...
+];
+function _inferCategory(item) {
+  if (_MFR_TO_CAT[item.mfr]) return _MFR_TO_CAT[item.mfr];
+  for (const h of _FILENAME_HINT_TO_CAT) {
+    if (h.re.test(item.original)) return h.cat;
+  }
+  return null; // unknown
+}
+
+function searchDatasheets(query, limit = 10, categoryHint = null) {
   ensureDsIndex();
   if (!query || !query.trim()) return [];
   const q = _normalizeModel(query);
+  const wantCat = categoryHint && ['cameras','backhauls','switches'].includes(categoryHint) ? categoryHint : null;
   const hits = [];
   for (const item of _dsIndex.values()) {
-    if (item.key === q) { hits.unshift({ ...item, exact: true }); }       // exact first
+    if (wantCat) {
+      const cat = _inferCategory(item);
+      // If we know the item's category and it's the WRONG one → skip.
+      // Unknown categories pass through (don't hide pdfs we can't classify).
+      if (cat && cat !== wantCat) continue;
+    }
+    if (item.key === q) { hits.unshift({ ...item, exact: true }); }
     else if (item.key.includes(q) || q.includes(item.key)) hits.push({ ...item, exact: false });
     if (hits.length >= limit * 2) break;
   }
   return hits.slice(0, limit).map(h => ({
-    model:    h.original,
-    mfr:      h.mfr,
-    relPath:  path.relative(path.dirname(h.absPath).split(path.sep).includes('ds') ? path.dirname(path.dirname(h.absPath)) : DS_PATH, h.absPath).split(path.sep).join('/'),
-    exact:    h.exact,
+    model: h.original,
+    mfr:   h.mfr === 'datasheets' ? '' : h.mfr, // hide noisy folder name
+    exact: h.exact,
   }));
 }
 
@@ -395,11 +427,20 @@ async function buildContext(pack, files, opts = {}) {
 }
 
 // Image source: prefer uploaded file (under UPLOADS_DIR); fall back to external_path
-// (used for datasheets auto-linked from /data/ds/...). Used by image insertion AND
-// by the ZIP packager so both code paths read the same source.
+// (used for datasheets auto-linked from /data/ds/...). Tries multiple historical
+// upload locations so files saved before DOC_PACK_UPLOADS_DIR env var was set
+// can still be embedded.
 function _imgSourcePath(file) {
-  if (file.filename)      return fileDiskPath(file.pack_id, file.filename);
-  if (file.external_path) return file.external_path;
+  if (file.external_path && fs.existsSync(file.external_path)) return file.external_path;
+  if (!file.filename) return '';
+  const candidates = [
+    fileDiskPath(file.pack_id, file.filename),
+    path.join('/data/doc_packs', String(file.pack_id), file.filename),
+    path.join(__dirname, 'data', 'doc_packs', String(file.pack_id), file.filename),
+  ];
+  for (const p of candidates) {
+    try { if (fs.existsSync(p)) return p; } catch {}
+  }
   return '';
 }
 

@@ -6582,28 +6582,28 @@ async function dpFileSetNote(fileId,note){
 }
 
 // ── Datasheet autocomplete in equipment tables ──
+// tableKey is one of 'cameras' | 'backhauls' | 'switches'; we send it as `cat`
+// so the server filters out manufacturers from the wrong category (no more
+// Hikvision camera suggestions when typing in a switch row).
 function dpModelInput(tableKey,idx,field,inputEl){
   dpRowField(tableKey,idx,field,inputEl.value); // keep saving as before
-  // Throttle datasheet lookup for both autocomplete + auto-attach
   clearTimeout(_dpDatasheetSearchT);
   const q=inputEl.value.trim();
   if(q.length<2){return;}
   _dpDatasheetSearchT=setTimeout(async()=>{
     try{
-      const r=await fetch('/api/datasheets/search?q='+encodeURIComponent(q));
+      const r=await fetch('/api/datasheets/search?q='+encodeURIComponent(q)+'&cat='+encodeURIComponent(tableKey));
       if(!r.ok) return;
       const j=await r.json();
       const matches=j.matches||[];
       const dl=document.getElementById('dp-datasheet-options');
       if(dl) dl.innerHTML=matches.map(m=>`<option value="${_escDp(m.model)}">${_escDp(m.mfr)}</option>`).join('');
-      // If we have an EXACT match for what the user typed → auto-attach.
-      // Server is idempotent (no-op if already attached). Toast on success.
       const exact=matches.find(m=>m.exact || _normalizeModelClient(m.model)===_normalizeModelClient(q));
       if(exact && _currentDocPack){
         await dpAttachDatasheet(q);
       }
     }catch(e){}
-  },600); // longer debounce — wait for user to stop typing
+  },600);
 }
 
 function _normalizeModelClient(s){return String(s||'').toUpperCase().replace(/[\s_\-./\\]+/g,'');}
