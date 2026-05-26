@@ -55,9 +55,13 @@ const db = require('./db');
 
 const TEMPLATES_DIR = path.join(__dirname, 'templates');
 const UPLOADS_DIR   = process.env.DOC_PACK_UPLOADS_DIR || path.join(__dirname, 'data', 'doc_packs');
-// Datasheets live under DS_PATH (mirrored on Render's persistent disk).
+// Datasheets live in multiple places:
+//   - ds/<manufacturer>/<model>.pdf      (per-mfr layout, used by newer items)
+//   - datasheets/<sku-or-model>.pdf       (flat layout — referenced from pricelists)
+// We walk ALL of these so any model the user types gets matched.
 const DS_PATH       = path.resolve(process.env.DS_PATH || path.join(__dirname, 'ds'));
-const DS_FALLBACK   = path.join(__dirname, 'ds'); // git-committed PDFs if DS_PATH is empty
+const DS_FALLBACK   = path.join(__dirname, 'ds');         // git-committed per-mfr PDFs
+const DATASHEETS_FLAT = path.join(__dirname, 'datasheets'); // git-committed flat-folder PDFs
 
 // Ensure uploads dir exists at module load
 if (!fs.existsSync(UPLOADS_DIR)) fs.mkdirSync(UPLOADS_DIR, { recursive: true });
@@ -143,7 +147,7 @@ function _walk(dir, out) {
 
 function buildDatasheetIndex() {
   const list = [];
-  for (const root of [DS_PATH, DS_FALLBACK]) {
+  for (const root of [DS_PATH, DS_FALLBACK, DATASHEETS_FLAT]) {
     if (fs.existsSync(root)) _walk(root, list);
   }
   const map = new Map();
@@ -288,8 +292,17 @@ async function buildContext(pack, files, opts = {}) {
   const network = findFirst('network_diagram');
   const sitepl  = findFirst('site_plan');
 
+  // Photos = explicitly 'photo' kind, OR an image-typed file that ISN'T being
+  // used in a single-slot (network_diagram/site_plan). This catches files the
+  // admin uploaded via the generic uploader without picking a kind, OR labeled
+  // as 'general' or 'diagram' but actually a site photo.
+  const _isImageFile = (f) =>
+    (f.mime && /^image\//i.test(f.mime)) ||
+    /\.(jpe?g|png|webp|gif|bmp|tiff?)$/i.test(f.original_name || '');
+  const _usedAsSlot = new Set([network?.id, sitepl?.id].filter(Boolean));
+
   const photoRows = allFiles
-    .filter(f => f.kind === 'photo')
+    .filter(f => !_usedAsSlot.has(f.id) && (f.kind === 'photo' || (_isImageFile(f) && f.kind !== 'network_diagram' && f.kind !== 'site_plan')))
     .sort((a, b) => (a.sort_order - b.sort_order) || (a.id - b.id));
 
   // Datasheets / PDFs: render every page to PNG and embed inline in Word
