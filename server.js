@@ -680,13 +680,33 @@ app.post('/api/docpacks/:id/generate', requireAuth, async (req, res) => {
   const id = parseInt(req.params.id);
   const pack = db.getDocPack(id);
   if (!pack) return res.status(404).json({ error: 'Pack not found' });
+
+  // ── Phase 1: sweep + attach datasheets (defensive — never fail the whole
+  // export just because the sweep encountered a bad row) ──
   try {
-    // Sweep equipment tables and attach any datasheets we recognize but
-    // haven't linked yet. Catches data added before in-form auto-attach
-    // existed. Idempotent.
     const swept = docpack.sweepAndAttachDatasheets(id, req.user.username);
     if (swept > 0) console.log(`[docpack] export-sweep attached ${swept} datasheet(s) to pack ${id}`);
-    const buf = await docpack.generateDocPack(id);
+  } catch (e) {
+    console.warn('[docpack] sweep skipped due to error:', e.message, e.stack);
+  }
+
+  // ── Phase 2: render the docx — failures here should return JSON to the client ──
+  let buf;
+  try {
+    buf = await docpack.generateDocPack(id);
+  } catch (e) {
+    console.error('[docpack] generate failed:', e.message);
+    console.error(e.stack);
+    // Include the error properties from docxtemplater if present
+    let detail = e.message || 'Generation failed';
+    if (e.properties && e.properties.errors) {
+      const subErrs = e.properties.errors.slice(0, 3).map(x => x.message || String(x)).join(' | ');
+      detail = `${detail} — sub-errors: ${subErrs}`;
+    }
+    return res.status(500).json({ error: detail });
+  }
+
+  try {
     const filename = sanitizeFilename(pack.name) + '.docx';
     res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document');
     res.setHeader('Content-Disposition',
@@ -696,8 +716,8 @@ app.post('/api/docpacks/:id/generate', requireAuth, async (req, res) => {
       `docpack:${pack.name}`, getClientIp(req), '');
     res.end(buf);
   } catch (e) {
-    console.error('[docpack] generate failed:', e.message, e.stack);
-    res.status(500).json({ error: e.message || 'Generation failed' });
+    console.error('[docpack] send failed:', e.message);
+    if (!res.headersSent) res.status(500).json({ error: 'Failed to send docx: ' + e.message });
   }
 });
 

@@ -204,40 +204,49 @@ setInterval(() => { try { buildDatasheetIndex(); } catch (e) { /* swallow */ } }
  * `getSize(_, tagValue, tagName)` returns [widthPx, heightPx] for the image
  *  inside the document. We use 600×400 for photos and 720×400 for diagrams.
  */
+const _PLACEHOLDER_PNG = Buffer.from(
+  'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVQYV2NgAAIAAAUAAeImBZsAAAAASUVORK5CYII=',
+  'base64'
+);
+
 function imageModuleOpts() {
   return {
     centered: false,
     getImage(tagValue) {
-      if (!tagValue || !fs.existsSync(tagValue)) {
-        // Return a 1×1 transparent PNG so docxtemplater doesn't blow up
-        return Buffer.from(
-          'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVQYV2NgAAIAAAUAAeImBZsAAAAASUVORK5CYII=',
-          'base64'
-        );
+      try {
+        if (!tagValue) return _PLACEHOLDER_PNG;
+        if (typeof tagValue !== 'string') return _PLACEHOLDER_PNG;
+        if (!fs.existsSync(tagValue)) return _PLACEHOLDER_PNG;
+        return fs.readFileSync(tagValue);
+      } catch (e) {
+        console.warn('[docpack img] getImage failed:', e.message);
+        return _PLACEHOLDER_PNG;
       }
-      return fs.readFileSync(tagValue);
     },
     getSize(_img, tagValue, tagName) {
-      // PDF-rendered datasheet pages: keep the actual rendered aspect ratio
-      // (pdf-to-img returns the original page proportions). Width fits the
-      // page area (approx 620px in Word at default margins), height auto-
-      // computed from the PNG dimensions.
-      if (tagName === 'page_img' || /pdf_/i.test(String(tagValue))) {
-        try {
-          // Read PNG width/height from the IHDR chunk (offsets 16-24)
-          const buf = fs.readFileSync(tagValue);
-          if (buf.length >= 24) {
-            const w = buf.readUInt32BE(16);
-            const h = buf.readUInt32BE(20);
-            const targetW = 620;
-            const targetH = Math.round(h * (targetW / w));
-            return [targetW, targetH];
+      try {
+        // PDF-rendered datasheet pages: keep the actual rendered aspect ratio.
+        if (tagName === 'page_img' || /pdf_/i.test(String(tagValue || ''))) {
+          if (tagValue && typeof tagValue === 'string' && fs.existsSync(tagValue)) {
+            const buf = fs.readFileSync(tagValue);
+            if (buf.length >= 24) {
+              const w = buf.readUInt32BE(16);
+              const h = buf.readUInt32BE(20);
+              if (w > 0 && h > 0) {
+                const targetW = 620;
+                const targetH = Math.round(h * (targetW / w));
+                return [targetW, targetH];
+              }
+            }
           }
-        } catch {}
-        return [620, 800];
+          return [620, 800];
+        }
+        if (tagName && /diagram|plan/i.test(tagName)) return [620, 380];
+        return [560, 380]; // default photo size
+      } catch (e) {
+        console.warn('[docpack img] getSize failed:', e.message);
+        return [560, 380];
       }
-      if (tagName && /diagram|plan/i.test(tagName)) return [620, 380];
-      return [560, 380]; // default photo size
     },
   };
 }
