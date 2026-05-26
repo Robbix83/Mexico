@@ -28,6 +28,28 @@ def set_rtl(paragraph):
     pPr.append(bidi)
 
 
+def set_run_rtl(run):
+    """Add <w:rtl/> to a run's rPr.
+    Paragraph-level <w:bidi/> is respected by Word but largely ignored by
+    Google Docs. Run-level <w:rtl/> is respected by both — this is the
+    reliable cross-app way to force RTL on each text run."""
+    rPr = run._r.get_or_add_rPr()
+    for e in rPr.findall(qn('w:rtl')):
+        rPr.remove(e)
+    rtl = OxmlElement('w:rtl')
+    rPr.append(rtl)
+
+
+def set_style_run_rtl(style):
+    """Add <w:rtl/> to a style's rPr so all runs using this style
+    (including ones docxtemplater creates at render time) inherit RTL."""
+    rPr = style.element.get_or_add_rPr()
+    for e in rPr.findall(qn('w:rtl')):
+        rPr.remove(e)
+    rtl = OxmlElement('w:rtl')
+    rPr.append(rtl)
+
+
 def set_table_rtl(table):
     """Enable RTL on a table."""
     tblPr = table._tbl.tblPr
@@ -81,6 +103,8 @@ def add_heading_rtl(doc, text, level=1):
     h = doc.add_heading(text, level=level)
     set_rtl(h)
     h.alignment = WD_ALIGN_PARAGRAPH.RIGHT
+    for run in h.runs:
+        set_run_rtl(run)
     return h
 
 
@@ -90,6 +114,7 @@ def add_para_rtl(doc, text='', bold=False, size=None, align=WD_ALIGN_PARAGRAPH.R
     p.alignment = align
     if text:
         run = p.add_run(text)
+        set_run_rtl(run)
         if bold:
             run.bold = True
         if size:
@@ -104,6 +129,7 @@ def add_bullet_rtl(doc, text):
     p.alignment = WD_ALIGN_PARAGRAPH.RIGHT
     if text:
         run = p.add_run(text)
+        set_run_rtl(run)
         run.font.name = 'Arial'
     return p
 
@@ -130,6 +156,12 @@ def set_document_hebrew(doc):
                 lang.set(qn('w:val'),     'he-IL')
                 lang.set(qn('w:eastAsia'),'he-IL')
                 lang.set(qn('w:bidi'),    'he-IL')
+            # Also stamp <w:rtl/> on rPrDefault so every run that inherits
+            # the document default is RTL — Google Docs reads this.
+            if rPr is not None:
+                for e in rPr.findall(qn('w:rtl')):
+                    rPr.remove(e)
+                rPr.append(OxmlElement('w:rtl'))
     # settings.xml > w:themeFontLang
     settings = doc.settings.element
     tfl = settings.find(qn('w:themeFontLang'))
@@ -157,11 +189,14 @@ def build():
     for sec in doc.sections:
         set_section_rtl(sec)
 
-    # 3. Style-level bidi on the styles we actually use, so dynamically
-    #    created paragraphs that pick up these styles also default RTL.
-    for style_name in ('Normal', 'Heading 1', 'Heading 2', 'Heading 3', 'List Bullet'):
+    # 3. Style-level bidi (paragraph) + rtl (run) on every style we use.
+    #    set_style_rtl  → <w:bidi/> + jc=right on pPr  (Word paragraph RTL)
+    #    set_style_run_rtl → <w:rtl/> on rPr (Google Docs run RTL — critical)
+    for style_name in ('Normal', 'Heading 1', 'Heading 2', 'Heading 3', 'List Bullet',
+                       'Default Paragraph Font'):
         try:
             set_style_rtl(doc.styles[style_name])
+            set_style_run_rtl(doc.styles[style_name])
         except KeyError:
             pass  # style not present in this build
 
