@@ -6582,27 +6582,86 @@ async function dpFileSetNote(fileId,note){
 }
 
 // ── Datasheet autocomplete in equipment tables ──
-// tableKey is one of 'cameras' | 'backhauls' | 'switches'; we send it as `cat`
-// so the server filters out manufacturers from the wrong category (no more
-// Hikvision camera suggestions when typing in a switch row).
+// Combines TWO sources:
+//   1. Client-side PRICE_LIST_DATA — every model from every manufacturer in
+//      the pricelist (including those without on-disk PDFs).
+//   2. Server datasheet index — PDFs on disk under ds/ and datasheets/.
+// Pricelist entries surface even when no PDF exists yet, so the user can
+// still pick a name. If a matching PDF exists, the attach endpoint will
+// find it.
+
+// Map equipment-table → which pricelist categories belong to it.
+// Pricelist `cat` strings are free-form Hebrew, so we match by substring.
+const _DP_TABLE_CAT_HINTS = {
+  cameras:  ['מצלמ','PTZ','בולט','כיפ','דום','קופסה','panoram','חצובה'],
+  backhauls:['עורק','MIMO','SIKLU','גשר אלחוטי','wireless','radio','ptp','ptmp','מ"מ','גלי','EHF','60GHz'],
+  switches: ['מתג','switch','POE','PoE','router','נתב','ראוטר'],
+};
+// Manufacturers that strongly indicate a category (overrides cat hints).
+const _DP_MFR_TO_CAT = {
+  Hikvision:'cameras', Uniview:'cameras', Bosch:'cameras', Avigilon:'cameras',
+  Axis:'cameras', Pelco:'cameras', Hanwha:'cameras', Dahua:'cameras',
+  SIKLU:'backhauls', Siklu:'backhauls', Cambium:'backhauls', Mimosa:'backhauls',
+  Planet:'switches', HP:'switches', HPE:'switches', Cisco:'switches',
+  Aruba:'switches', Netgear:'switches', Juniper:'switches', Mikrotik:'switches',
+  Ubiquiti:'switches', // also makes radios but mostly switches in our list
+};
+function _dpPricelistMatches(query,tableKey){
+  if(typeof PRICE_LIST_DATA==='undefined'||!Array.isArray(PRICE_LIST_DATA)) return [];
+  const qn=_normalizeModelClient(query);
+  const hints=_DP_TABLE_CAT_HINTS[tableKey]||[];
+  const out=[];
+  for(const item of PRICE_LIST_DATA){
+    if(!item||!item.model) continue;
+    // Category match: if mfr strongly suggests a category, use that.
+    // Otherwise check cat substring against hints.
+    let itemCat=_DP_MFR_TO_CAT[item.mfr]||null;
+    if(!itemCat){
+      const lcCat=(item.cat||'').toLowerCase();
+      for(const h of hints){
+        if(lcCat.includes(h.toLowerCase())){ itemCat=tableKey; break; }
+      }
+    }
+    if(itemCat && itemCat!==tableKey) continue;
+    // Model match (substring on normalized)
+    const mn=_normalizeModelClient(item.model);
+    if(!mn.includes(qn) && !qn.includes(mn)) continue;
+    out.push({model:item.model, mfr:item.mfr, exact:mn===qn, source:'pricelist', ds:item.ds||''});
+    if(out.length>=15) break;
+  }
+  return out;
+}
+
 function dpModelInput(tableKey,idx,field,inputEl){
   dpRowField(tableKey,idx,field,inputEl.value); // keep saving as before
   clearTimeout(_dpDatasheetSearchT);
   const q=inputEl.value.trim();
   if(q.length<2){return;}
+  // INSTANT — pricelist matches show immediately (no network round-trip).
+  const dl=document.getElementById('dp-datasheet-options');
+  const plMatches=_dpPricelistMatches(q,tableKey);
+  if(dl) dl.innerHTML=plMatches.map(m=>`<option value="${_escDp(m.model)}">${_escDp(m.mfr)}</option>`).join('');
+  // DEBOUNCED — also query the server (files on disk) and merge.
   _dpDatasheetSearchT=setTimeout(async()=>{
+    let serverMatches=[];
     try{
       const r=await fetch('/api/datasheets/search?q='+encodeURIComponent(q)+'&cat='+encodeURIComponent(tableKey));
-      if(!r.ok) return;
-      const j=await r.json();
-      const matches=j.matches||[];
-      const dl=document.getElementById('dp-datasheet-options');
-      if(dl) dl.innerHTML=matches.map(m=>`<option value="${_escDp(m.model)}">${_escDp(m.mfr)}</option>`).join('');
-      const exact=matches.find(m=>m.exact || _normalizeModelClient(m.model)===_normalizeModelClient(q));
-      if(exact && _currentDocPack){
-        await dpAttachDatasheet(q);
-      }
+      if(r.ok){ const j=await r.json(); serverMatches=j.matches||[]; }
     }catch(e){}
+    // Merge: pricelist first (broader), then server (PDFs-only). Dedupe by model.
+    const seen=new Set();
+    const all=[];
+    for(const m of [...plMatches,...serverMatches]){
+      const k=_normalizeModelClient(m.model);
+      if(seen.has(k)) continue;
+      seen.add(k);
+      all.push(m);
+    }
+    if(dl) dl.innerHTML=all.map(m=>`<option value="${_escDp(m.model)}">${_escDp(m.mfr||'')}</option>`).join('');
+    const exact=all.find(m=>m.exact || _normalizeModelClient(m.model)===_normalizeModelClient(q));
+    if(exact && _currentDocPack){
+      await dpAttachDatasheet(q);
+    }
   },600);
 }
 
