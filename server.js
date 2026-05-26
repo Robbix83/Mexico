@@ -545,21 +545,10 @@ function _resolveDocPackFilePath(packId, f) {
   return null;
 }
 
-app.get('/api/docpacks/:id/files/:fileId', requireAuth, (req, res) => {
-  const id = parseInt(req.params.id);
-  const fileId = parseInt(req.params.fileId);
-  const f = db.getDocPackFile(fileId);
-  if (!f || f.pack_id !== id) return res.status(404).send('Not found');
-  const p = _resolveDocPackFilePath(id, f);
-  if (!p) {
-    console.warn(`[docpack] file missing on disk: pack=${id} file=${fileId} name=${f.filename}`);
-    return res.status(404).send('Missing on disk');
-  }
-  res.sendFile(p);
-});
-
 // Admin-only diagnostic: returns the resolved disk path for each file in a pack
 // and whether it exists. Use to debug "upload appears in timeline but preview blank".
+// MUST be declared BEFORE the catch-all :fileId route below — Express matches
+// in registration order and `:fileId` would otherwise eat `_diag` as a parameter.
 app.get('/api/docpacks/:id/files/_diag', requireAdmin, (req, res) => {
   const id = parseInt(req.params.id);
   const pack = db.getDocPack(id);
@@ -577,6 +566,19 @@ app.get('/api/docpacks/:id/files/_diag', requireAdmin, (req, res) => {
       exists: !!_resolveDocPackFilePath(id, f),
     })),
   });
+});
+
+app.get('/api/docpacks/:id/files/:fileId', requireAuth, (req, res) => {
+  const id = parseInt(req.params.id);
+  const fileId = parseInt(req.params.fileId);
+  const f = db.getDocPackFile(fileId);
+  if (!f || f.pack_id !== id) return res.status(404).send('Not found');
+  const p = _resolveDocPackFilePath(id, f);
+  if (!p) {
+    console.warn(`[docpack] file missing on disk: pack=${id} file=${fileId} name=${f.filename}`);
+    return res.status(404).send('Missing on disk');
+  }
+  res.sendFile(p);
 });
 
 app.delete('/api/docpacks/:id/files/:fileId', requireAdmin, (req, res) => {
