@@ -54,7 +54,24 @@ async function _getPdfToImg() {
 const db = require('./db');
 
 const TEMPLATES_DIR = path.join(__dirname, 'templates');
-const UPLOADS_DIR   = process.env.DOC_PACK_UPLOADS_DIR || path.join(__dirname, 'data', 'doc_packs');
+// Pick the upload directory in this priority:
+//   1. Explicit DOC_PACK_UPLOADS_DIR env var (Render dashboard or render.yaml).
+//   2. /data/doc_packs if /data exists (Render's persistent disk mountPath).
+//   3. <app>/data/doc_packs (local dev; on Render this is ephemeral and lost on deploy).
+// Without step 2, files uploaded after a deploy land on the container's
+// ephemeral disk and are wiped on the next deploy — which is exactly what
+// happened to the user's site_plan / network_diagram before this change.
+function _pickUploadsDir() {
+  if (process.env.DOC_PACK_UPLOADS_DIR) return process.env.DOC_PACK_UPLOADS_DIR;
+  try {
+    if (fs.existsSync('/data') && fs.statSync('/data').isDirectory()) {
+      return '/data/doc_packs';
+    }
+  } catch {}
+  return path.join(__dirname, 'data', 'doc_packs');
+}
+const UPLOADS_DIR = _pickUploadsDir();
+console.log('[docpack] UPLOADS_DIR =', UPLOADS_DIR);
 // Datasheets live in multiple places:
 //   - ds/<manufacturer>/<model>.pdf      (per-mfr layout, used by newer items)
 //   - datasheets/<sku-or-model>.pdf       (flat layout — referenced from pricelists)
