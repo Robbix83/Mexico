@@ -445,7 +445,7 @@ app.post('/api/docpacks', requireAdmin, (req, res) => {
   if (!name || typeof name !== 'string' || !name.trim())
     return res.status(400).json({ error: 'name is required' });
   const r = db.createDocPack(name.trim(), type || 'cctv', '{}', req.user.id, req.user.username);
-  db.logAudit(req.user.id, req.user.username, 'create_user',
+  db.logAudit(req.user.id, req.user.username, 'docpack_create',
     `Created doc pack: ${name.trim()}`, getClientIp(req), '');
   res.json({ ok: true, id: r.lastInsertRowid });
 });
@@ -499,7 +499,7 @@ app.delete('/api/docpacks/:id', requireAdmin, (req, res) => {
   }
   try { fs.rmdirSync(docpack.packDir(id)); } catch {/* dir non-empty or missing — fine */}
   db.deleteDocPack(id); // ON DELETE CASCADE removes rows in doc_pack_files
-  db.logAudit(req.user.id, req.user.username, 'delete_user',
+  db.logAudit(req.user.id, req.user.username, 'docpack_delete',
     `Deleted doc pack: ${pack.name}`, getClientIp(req), '');
   res.json({ ok: true });
 });
@@ -598,20 +598,29 @@ function _resolveDocPackFilePath(packId, f) {
 // and whether it exists. Use to debug "upload appears in timeline but preview blank".
 // MUST be declared BEFORE the catch-all :fileId route below — Express matches
 // in registration order and `:fileId` would otherwise eat `_diag` as a parameter.
+// M2 — paths are redacted so a compromised admin session learns less about
+// the host filesystem layout than the raw paths would expose.
+const _APP_DIR_REDACTED = '<APP>';
+function _redactPath(p) {
+  if (!p) return p;
+  return String(p)
+    .replace(__dirname, _APP_DIR_REDACTED)
+    .replace(/^\/opt\/render\/project\/src/, _APP_DIR_REDACTED);
+}
 app.get('/api/docpacks/:id/files/_diag', requireAdmin, (req, res) => {
   const id = parseInt(req.params.id);
   const pack = db.getDocPack(id);
   if (!pack) return res.status(404).json({ error: 'pack not found' });
   const files = db.listDocPackFiles(id);
   res.json({
-    UPLOADS_DIR: docpack.UPLOADS_DIR,
-    DOC_PACK_UPLOADS_DIR_env: process.env.DOC_PACK_UPLOADS_DIR || '(unset)',
+    UPLOADS_DIR: _redactPath(docpack.UPLOADS_DIR),
+    DOC_PACK_UPLOADS_DIR_env: process.env.DOC_PACK_UPLOADS_DIR ? '(set)' : '(unset)',
     files: files.map(f => ({
       id: f.id,
       kind: f.kind,
       filename: f.filename,
-      external_path: f.external_path,
-      resolved: _resolveDocPackFilePath(id, f),
+      external_path: _redactPath(f.external_path),
+      resolved: _redactPath(_resolveDocPackFilePath(id, f)),
       exists: !!_resolveDocPackFilePath(id, f),
     })),
   });
@@ -689,15 +698,29 @@ function _appendEquipment(packId, payload, contributor) {
     const e = new Error('row object is required'); e.status = 400; throw e;
   }
 
+  // L6 — Whitelist row fields per-table so a hostile share-link contributor
+  // cannot pump arbitrary keys + values into the pack.data JSON (DB bloat or
+  // future XSS sink). Each field is also clipped to 200 chars.
+  const ROW_FIELDS = {
+    cameras:   ['idx','cabinet','name','model','port','ip','location'],
+    backhauls: ['idx','type','mpn','vendor','location','ip'],
+    switches:  ['idx','name','mpn','vendor','ip'],
+  };
+  const clean = {};
+  for (const k of ROW_FIELDS[table]) {
+    if (row[k] === undefined || row[k] === null) continue;
+    clean[k] = String(row[k]).slice(0, 200);
+  }
+
   let data = {};
   try { data = JSON.parse(pack.data || '{}'); } catch {}
   if (!Array.isArray(data[table])) data[table] = [];
-  const enriched = { ...row, _contributor: contributor || '' };
+  const enriched = { ...clean, _contributor: contributor || '' };
   data[table].push(enriched);
   db.updateDocPack(packId, pack.name, JSON.stringify(data));
 
   // Auto-attach datasheet if we can identify the model
-  const model = row.model || row.mpn || row.name;
+  const model = clean.model || clean.mpn || clean.name;
   let attachedFile = null;
   if (model) {
     const ds = docpack.lookupDatasheet(model);
@@ -834,7 +857,7 @@ app.post('/api/docpacks/:id/shares', requireAdmin, (req, res) => {
   const token = _genToken();
   const expiresAt = req.body?.expires_at || null;
   db.createDocPackShare(id, token, req.user.username, expiresAt);
-  db.logAudit(req.user.id, req.user.username, 'update_user',
+  db.logAudit(req.user.id, req.user.username, 'docpack_share_create',
     `Created share link for doc pack: ${pack.name}`, getClientIp(req), '');
   res.json({ ok: true, token, url: `/public/docpack/${token}` });
 });
@@ -845,7 +868,10 @@ app.get('/api/docpacks/:id/shares', requireAdmin, (req, res) => {
 });
 
 app.delete('/api/docpacks/:id/shares/:shareId', requireAdmin, (req, res) => {
-  db.revokeDocPackShare(parseInt(req.params.shareId));
+  const shareId = parseInt(req.params.shareId);
+  db.revokeDocPackShare(shareId);
+  db.logAudit(req.user.id, req.user.username, 'docpack_share_revoke',
+    `Revoked share link id=${shareId} for pack id=${req.params.id}`, getClientIp(req), '');
   res.json({ ok: true });
 });
 
@@ -868,7 +894,7 @@ const shareUploadLimiter = rateLimit({
   standardHeaders: true, legacyHeaders: false,
 });
 
-app.get('/api/share/:token', (req, res) => {
+app.get('/api/share/:token', shareUploadLimiter, (req, res) => {
   const v = _validateShare(req.params.token);
   if (v.error) return res.status(v.status).json({ error: v.error });
   let data = {};
@@ -918,7 +944,7 @@ app.post('/api/share/:token/files', shareUploadLimiter, docPackUpload.single('fi
   }
 });
 
-app.get('/api/share/:token/datasheets/search', (req, res) => {
+app.get('/api/share/:token/datasheets/search', shareUploadLimiter, (req, res) => {
   const v = _validateShare(req.params.token);
   if (v.error) return res.status(v.status).json({ error: v.error });
   const q = String(req.query.q || '').trim();
@@ -927,7 +953,7 @@ app.get('/api/share/:token/datasheets/search', (req, res) => {
   res.json({ matches: docpack.searchDatasheets(q, 10, cat) });
 });
 
-app.get('/api/share/:token/files/:fileId', (req, res) => {
+app.get('/api/share/:token/files/:fileId', shareUploadLimiter, (req, res) => {
   const v = _validateShare(req.params.token);
   if (v.error) return res.status(v.status).send('Not found');
   const f = db.getDocPackFile(parseInt(req.params.fileId));

@@ -6786,14 +6786,17 @@ async function dpReloadShares(){
     }
     const origin=window.location.origin;
     body.innerHTML=shares.map(s=>{
-      const url=origin+'/public/docpack/'+s.token;
+      // L10 — Tokens are server-generated 24-byte hex (safe), but escape
+      // defensively in case the format ever changes upstream.
+      const safeToken=_escDp(s.token).replace(/[^a-fA-F0-9]/g,'');
+      const url=origin+'/public/docpack/'+safeToken;
       const date=s.created_at?new Date(s.created_at).toLocaleDateString('he-IL'):'';
       const lastUsed=s.last_used_at?`שימוש אחרון ${new Date(s.last_used_at).toLocaleDateString('he-IL')}`:'לא נעשה בו שימוש';
       return `<div style="border:1px solid #e2e8f0;border-radius:8px;padding:10px;margin-bottom:8px">
         <div style="display:flex;gap:8px;align-items:center">
-          <input type="text" readonly value="${url}" onclick="this.select()"
+          <input type="text" readonly value="${_escDp(url)}" onclick="this.select()"
             style="flex:1;padding:6px 8px;border:1px solid #e2e8f0;border-radius:5px;font-size:.78rem;background:#f8fafc;font-family:monospace"/>
-          <button onclick="dpCopyShareUrl(this,'${url}')" style="background:#1d4ed8;color:#fff;border:none;padding:6px 12px;border-radius:5px;font-size:.78rem;cursor:pointer">העתק</button>
+          <button onclick="dpCopyShareUrl(this,'${_escDp(url)}')" style="background:#1d4ed8;color:#fff;border:none;padding:6px 12px;border-radius:5px;font-size:.78rem;cursor:pointer">העתק</button>
           <button onclick="dpRevokeShare(${s.id})" style="background:#fee2e2;color:#b91c1c;border:1px solid #fecaca;padding:6px 10px;border-radius:5px;font-size:.78rem;cursor:pointer">בטל</button>
         </div>
         <div style="font-size:.7rem;color:#94a3b8;margin-top:6px">נוצר ${date} · ${lastUsed}</div>
