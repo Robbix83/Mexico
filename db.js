@@ -176,7 +176,7 @@ if (userCount === 0) {
 const stmts = {
   getUserByUsername: db.prepare('SELECT * FROM users WHERE username = ? COLLATE NOCASE'),
   getUserById:       db.prepare('SELECT * FROM users WHERE id = ?'),
-  listUsers:         db.prepare('SELECT id,username,role,active,created_at,last_login,must_change_password,login_attempts FROM users ORDER BY created_at DESC'),
+  listUsers:         db.prepare('SELECT id,username,role,active,created_at,last_login,must_change_password,login_attempts,sections FROM users ORDER BY created_at DESC'),
   createUser:        db.prepare('INSERT INTO users (username, password_hash, role) VALUES (?, ?, ?)'),
   setMustChangePassword: db.prepare('UPDATE users SET must_change_password = ? WHERE id = ?'),
   setSections:       db.prepare('UPDATE users SET sections = ? WHERE id = ?'),
