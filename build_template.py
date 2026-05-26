@@ -355,17 +355,9 @@ def build():
     p.runs[0].font.size = Pt(10.5)
     add_para_rtl(doc, '')
 
-    # Outer loop: each datasheet starts with a heading + per-page images
+    # Outer loop: one entry per datasheet; inner loop renders pages as images
     add_para_rtl(doc, '{#datasheets}')
-    p = add_para_rtl(doc, '{name}', align=WD_ALIGN_PARAGRAPH.RIGHT)
-    p.runs[0].bold = True
-    p.runs[0].font.size = Pt(13)
-    p.runs[0].font.color.rgb = RGBColor(0x1a, 0x2a, 0x4a)
-    p = add_para_rtl(doc, '{mfr}', align=WD_ALIGN_PARAGRAPH.RIGHT)
-    p.runs[0].italic = True
-    p.runs[0].font.size = Pt(10)
-    p.runs[0].font.color.rgb = RGBColor(0x60, 0x70, 0x80)
-    # Inner loop: each page is one full-width image, centered
+    # Inner loop: each page is one full-width image — no text labels
     add_para_rtl(doc, '{#pages}')
     add_para_rtl(doc, '{%page_img}', align=WD_ALIGN_PARAGRAPH.CENTER)
     add_para_rtl(doc, '{/pages}')
