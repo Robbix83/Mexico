@@ -33,6 +33,9 @@ app.use(helmet({
   contentSecurityPolicy: {
     directives: {
       defaultSrc: ["'self'"],
+      // 'unsafe-inline' here is required because dashboard.html uses inline
+      // onclick="..." handlers and inline <script> blocks. Removing it would
+      // need a full migration of all event handlers to addEventListener.
       scriptSrc:     ["'self'", "'unsafe-inline'", 'cdn.jsdelivr.net', 'cdnjs.cloudflare.com'],
       scriptSrcAttr: ["'unsafe-inline'"],
       styleSrc:   ["'self'", "'unsafe-inline'", 'cdn.jsdelivr.net', 'fonts.googleapis.com'],
@@ -41,8 +44,29 @@ app.use(helmet({
       frameSrc:   ["'self'"],   // allow same-origin iframes (PDF preview)
       connectSrc: ["'self'"],
     }
-  }
+  },
+  // HSTS preload: 1 year + includeSubDomains + preload directive.
+  // Eligible for submission at https://hstspreload.org/ once live.
+  strictTransportSecurity: {
+    maxAge: 60 * 60 * 24 * 365,    // 1 year
+    includeSubDomains: true,
+    preload: true,
+  },
 }));
+
+// Permissions-Policy: explicitly deny browser APIs we don't use. Bonus
+// Observatory score + prevents an XSS from accessing camera/mic/geolocation
+// even if it somehow runs.
+app.use((req, res, next) => {
+  res.setHeader('Permissions-Policy',
+    'accelerometer=(), autoplay=(), camera=(), display-capture=(), ' +
+    'encrypted-media=(), fullscreen=(self), geolocation=(), gyroscope=(), ' +
+    'magnetometer=(), microphone=(), midi=(), payment=(), picture-in-picture=(), ' +
+    'publickey-credentials-get=(), screen-wake-lock=(), sync-xhr=(), usb=(), ' +
+    'web-share=(), xr-spatial-tracking=()'
+  );
+  next();
+});
 app.use(express.json({ limit: '10mb' }));  // warehouse imports can be ~500KB+
 app.use(cookieParser());
 app.set('trust proxy', 1);
