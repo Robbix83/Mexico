@@ -6632,15 +6632,71 @@ function _dpPricelistMatches(query,tableKey){
   return out;
 }
 
+// Extract Latin-looking model substrings from a free-form Hebrew product name.
+// e.g. "מתג תקשורת תעשייתי PLANET WGS-4215-8P2S POE" → ["PLANET","WGS-4215-8P2S","POE"]
+// Filters short tokens (<3 chars) and pure-word manufacturer names if a longer
+// dashed model exists in the same string.
+function _dpExtractLatinModels(name){
+  if(!name) return [];
+  const tokens=String(name).match(/[A-Za-z][A-Za-z0-9][A-Za-z0-9.\-_/+]+/g)||[];
+  // Prefer tokens containing a digit or dash (real model numbers)
+  const dashed=tokens.filter(t=>/[\d\-]/.test(t)&&t.length>=4);
+  return dashed.length?dashed:tokens.filter(t=>t.length>=3);
+}
+
+// Match the user's query against the LOCAL catalog (catalogItems). The catalog
+// is a flat list of {sku, name, cat} entries (e.g. Planet switches, Hikvision
+// brackets) seeded in dashboard.html. We extract Latin model substrings from
+// the name and offer each match as an option.
+function _dpCatalogMatches(query,tableKey){
+  if(typeof catalogItems==='undefined'||!Array.isArray(catalogItems)) return [];
+  const qn=_normalizeModelClient(query);
+  const hints=_DP_TABLE_CAT_HINTS[tableKey]||[];
+  const out=[];
+  for(const item of catalogItems){
+    if(!item||!item.name) continue;
+    // Category-fit: catalog `cat` is broad ('מתגים ורשת', 'מצלמות'). Apply hints.
+    const lcCat=(item.cat||'').toLowerCase();
+    let catFits=false;
+    for(const h of hints){
+      if(lcCat.includes(h.toLowerCase())){ catFits=true; break; }
+    }
+    if(!catFits) continue;
+    // Extract candidate model strings from the Hebrew name
+    const models=_dpExtractLatinModels(item.name);
+    for(const m of models){
+      const mn=_normalizeModelClient(m);
+      if(!mn.includes(qn) && !qn.includes(mn)) continue;
+      // Try to guess mfr from the same name (uppercase word that's NOT the matched model)
+      const allCaps=item.name.match(/\b[A-Z][A-Z]{2,}\b/g)||[];
+      const mfr=allCaps.find(c=>_normalizeModelClient(c)!==mn) || '';
+      out.push({model:m, mfr, exact:mn===qn, source:'catalog', ds:''});
+      if(out.length>=15) break;
+    }
+    if(out.length>=15) break;
+  }
+  return out;
+}
+
 function dpModelInput(tableKey,idx,field,inputEl){
-  dpRowField(tableKey,idx,field,inputEl.value); // keep saving as before
+  dpRowField(tableKey,idx,field,inputEl.value);
   clearTimeout(_dpDatasheetSearchT);
   const q=inputEl.value.trim();
   if(q.length<2){return;}
-  // INSTANT — pricelist matches show immediately (no network round-trip).
+  // INSTANT — pricelist + catalog (both client-side) show immediately.
   const dl=document.getElementById('dp-datasheet-options');
   const plMatches=_dpPricelistMatches(q,tableKey);
-  if(dl) dl.innerHTML=plMatches.map(m=>`<option value="${_escDp(m.model)}">${_escDp(m.mfr)}</option>`).join('');
+  const catMatches=_dpCatalogMatches(q,tableKey);
+  const _render=(list)=>{
+    if(!dl) return;
+    const seen=new Set();
+    const html=list.filter(m=>{
+      const k=_normalizeModelClient(m.model);
+      if(seen.has(k)) return false; seen.add(k); return true;
+    }).map(m=>`<option value="${_escDp(m.model)}">${_escDp(m.mfr||'')}</option>`).join('');
+    dl.innerHTML=html;
+  };
+  _render([...plMatches,...catMatches]);
   // DEBOUNCED — also query the server (files on disk) and merge.
   _dpDatasheetSearchT=setTimeout(async()=>{
     let serverMatches=[];
@@ -6648,16 +6704,9 @@ function dpModelInput(tableKey,idx,field,inputEl){
       const r=await fetch('/api/datasheets/search?q='+encodeURIComponent(q)+'&cat='+encodeURIComponent(tableKey));
       if(r.ok){ const j=await r.json(); serverMatches=j.matches||[]; }
     }catch(e){}
-    // Merge: pricelist first (broader), then server (PDFs-only). Dedupe by model.
-    const seen=new Set();
-    const all=[];
-    for(const m of [...plMatches,...serverMatches]){
-      const k=_normalizeModelClient(m.model);
-      if(seen.has(k)) continue;
-      seen.add(k);
-      all.push(m);
-    }
-    if(dl) dl.innerHTML=all.map(m=>`<option value="${_escDp(m.model)}">${_escDp(m.mfr||'')}</option>`).join('');
+    _render([...plMatches,...catMatches,...serverMatches]);
+    // Auto-attach if exact match exists (server idempotent)
+    const all=[...plMatches,...catMatches,...serverMatches];
     const exact=all.find(m=>m.exact || _normalizeModelClient(m.model)===_normalizeModelClient(q));
     if(exact && _currentDocPack){
       await dpAttachDatasheet(q);
