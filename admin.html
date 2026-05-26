@@ -438,7 +438,7 @@ function renderUsers() {
           ${u.login_attempts>=5?`<button class="btn btn-sm" style="background:#fef3c7;color:#92400e;border-color:#fde68a" onclick="unlockUser(${u.id},'${u.username}')">🔓 שחרר</button>`:''}
           <button class="btn btn-warning btn-sm" onclick="openResetPassword(${u.id},'${u.username}')">איפוס סיסמה</button>
           <button class="btn btn-sm ${u.active?'btn-danger':''}" onclick="toggleActive(${u.id},${u.active})">${u.active?'השבת':'הפעל'}</button>
-          <button class="btn btn-sm" onclick="toggleRole(${u.id},'${u.role}')">${u.role==='admin'?'הפוך לצופה':'הפוך למנהל'}</button>
+          ${u.role==='admin'?`<button class="btn btn-sm btn-warning" onclick="toggleRole(${u.id})">↩ הפוך לצופה</button>`:''}
           <button class="btn btn-danger btn-sm" onclick="deleteUser(${u.id},'${u.username}')">🗑️ מחק</button>
         </div>
         <div style="margin-top:4px">${sectionsBadges}</div>
@@ -502,11 +502,13 @@ async function toggleActive(id, current) {
   loadUsers();
 }
 
-async function toggleRole(id, currentRole) {
-  const newRole = currentRole==='admin'?'viewer':'admin';
-  if (!confirm(`לשנות תפקיד ל-${newRole}?`)) return;
-  await api('PUT',`/api/users/${id}`,{role:newRole});
-  loadUsers();
+async function toggleRole(id) {
+  if (!confirm('להפוך משתמש זה לצופה?\nבשלב הבא תוכל להגדיר אילו מסכים מותרים לו.')) return;
+  await api('PUT', `/api/users/${id}`, { role: 'viewer' });
+  await loadUsers();
+  // Immediately open the permissions modal so sections can be configured
+  const user = users.find(u => u.id === id);
+  if (user) openPermissions(id, user.username);
 }
 
 function openAddUser() {
