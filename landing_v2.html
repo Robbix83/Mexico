@@ -1,0 +1,616 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>אפקון — מערכת ניהול פרויקטים</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+
+:root{--cx:-9999px;--cy:-9999px}
+
+body{
+  min-height:100vh;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;
+  background:#04081a;
+  font-family:'Heebo',system-ui,Arial,sans-serif;
+  padding:24px;overflow-x:hidden;
+}
+
+/* ── Twinkling stars layer ── */
+.stars{position:fixed;inset:0;z-index:0;pointer-events:none}
+.star{
+  position:absolute;border-radius:50%;background:#fff;
+  animation:twinkle ease-in-out infinite;
+}
+@keyframes twinkle{
+  0%,100%{opacity:.08;transform:scale(1)}
+  50%    {opacity:.55;transform:scale(1.4)}
+}
+
+/* ── Cursor spotlight ── */
+.cursor-light{
+  position:fixed;inset:0;z-index:0;pointer-events:none;
+  background:radial-gradient(380px circle at var(--cx) var(--cy),
+    rgba(99,102,241,.05) 0%,transparent 80%);
+}
+
+/* ── Aurora blobs ── */
+.aurora{position:fixed;inset:0;z-index:0;overflow:hidden;pointer-events:none}
+.aorb{
+  position:absolute;border-radius:50%;
+  filter:blur(140px);
+  animation:auroraFloat ease-in-out infinite;
+}
+.aorb-1{
+  width:900px;height:700px;
+  background:radial-gradient(ellipse,rgba(49,46,129,.55) 0%,transparent 65%);
+  top:-200px;right:-200px;
+  animation-duration:38s;animation-delay:0s;
+}
+.aorb-2{
+  width:800px;height:600px;
+  background:radial-gradient(ellipse,rgba(6,78,59,.45) 0%,transparent 65%);
+  bottom:-200px;left:-200px;
+  animation-duration:44s;animation-delay:-16s;
+}
+.aorb-3{
+  width:600px;height:500px;
+  background:radial-gradient(ellipse,rgba(76,29,149,.35) 0%,transparent 65%);
+  top:35%;left:30%;
+  animation-duration:32s;animation-delay:-9s;
+}
+@keyframes auroraFloat{
+  0%  {transform:translate(0,0)   scale(1)}
+  33% {transform:translate(40px,-50px) scale(1.05)}
+  66% {transform:translate(-30px,40px) scale(.96)}
+  100%{transform:translate(0,0)   scale(1)}
+}
+
+/* ── Page content ── */
+.page{position:relative;z-index:1;display:flex;flex-direction:column;align-items:center;width:100%}
+
+/* ── Card ── */
+.card{
+  background:rgba(6,10,30,.88);
+  border:1px solid rgba(255,255,255,.08);
+  border-radius:26px;
+  padding:44px 44px 36px;
+  max-width:480px;width:100%;
+  text-align:center;
+  backdrop-filter:blur(28px);-webkit-backdrop-filter:blur(28px);
+  animation:cardIn .8s cubic-bezier(.22,1,.36,1) both, cardFloat 8s ease-in-out 1s infinite;
+  box-shadow:
+    0 0 0 1px rgba(99,102,241,.16),
+    0 30px 90px rgba(0,0,0,.55),
+    0 0 100px rgba(99,102,241,.06),
+    inset 0 1px 0 rgba(255,255,255,.06);
+}
+@keyframes cardIn{
+  from{opacity:0;transform:translateY(28px) scale(.98)}
+  to  {opacity:1;transform:translateY(0)    scale(1)}
+}
+@keyframes cardFloat{
+  0%,100%{transform:translateY(0px)}
+  50%    {transform:translateY(-9px)}
+}
+
+/* ── Logo area ── */
+.logo-area{
+  position:relative;
+  display:inline-flex;align-items:center;justify-content:center;
+  margin-bottom:28px;
+}
+/* Breathing glow behind logo */
+.logo-halo{
+  position:absolute;
+  width:180px;height:100px;
+  border-radius:50%;
+  background:radial-gradient(ellipse,rgba(99,102,241,.2) 0%,transparent 70%);
+  animation:haloBreath 5s ease-in-out infinite;
+  pointer-events:none;
+}
+@keyframes haloBreath{
+  0%,100%{opacity:.5;transform:scale(.85)}
+  50%    {opacity:1; transform:scale(1.15)}
+}
+/* Logo image container */
+.logo-frame{
+  position:relative;z-index:1;
+  background:rgba(255,255,255,.06);
+  border:1px solid rgba(255,255,255,.1);
+  border-radius:16px;
+  padding:12px 18px;
+  backdrop-filter:blur(8px);
+  display:inline-flex;align-items:center;justify-content:center;
+}
+.logo-frame img{
+  height:60px;display:block;
+  filter:drop-shadow(0 2px 12px rgba(0,0,0,.3));
+}
+.logo-fallback{
+  height:60px;display:flex;align-items:center;justify-content:center;
+  font-size:2rem;font-weight:900;color:#fff;
+  width:100px;
+  text-shadow:0 2px 12px rgba(99,102,241,.6);
+}
+
+/* ── Tagline ── */
+.tagline{
+  font-size:.68rem;letter-spacing:3.5px;text-transform:uppercase;
+  color:rgba(165,180,252,.6);font-weight:600;
+  margin-bottom:10px;
+}
+
+/* ── Title ── */
+h1{
+  font-size:2.4rem;font-weight:800;
+  margin-bottom:8px;line-height:1.1;
+  color:#fff;
+  text-shadow:0 2px 30px rgba(99,102,241,.25),0 1px 0 rgba(0,0,0,.4);
+  animation:titleIn .9s .3s cubic-bezier(.22,1,.36,1) both;
+}
+@keyframes titleIn{
+  from{opacity:0;transform:translateY(12px)}
+  to  {opacity:1;transform:translateY(0)}
+}
+
+/* ── Subtitle ── */
+.sub{
+  font-size:.88rem;color:rgba(255,255,255,.4);
+  margin-bottom:32px;font-weight:300;
+  min-height:1.4em;letter-spacing:.3px;
+  animation:subIn .9s .5s cubic-bezier(.22,1,.36,1) both;
+}
+@keyframes subIn{
+  from{opacity:0;transform:translateY(8px)}
+  to  {opacity:1;transform:translateY(0)}
+}
+.sub::after{
+  content:'|';color:rgba(99,102,241,.6);
+  animation:blink 1s step-end infinite;
+  font-weight:200;margin-right:1px;
+}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0}}
+
+/* ── Divider ── */
+.divider{
+  width:40px;height:1px;
+  background:linear-gradient(90deg,transparent,rgba(99,102,241,.4),transparent);
+  margin:0 auto 28px;
+  animation:dividerIn .9s .55s both;
+}
+@keyframes dividerIn{from{opacity:0;width:0}to{opacity:1;width:40px}}
+
+/* ── Buttons ── */
+.actions{
+  display:flex;flex-direction:column;gap:12px;
+  animation:actionsIn .9s .7s both;
+}
+@keyframes actionsIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+
+.btn-primary{
+  display:block;padding:15px 28px;
+  background:linear-gradient(135deg,#4f46e5 0%,#4338ca 100%);
+  color:#fff;border:none;border-radius:13px;
+  font-size:1rem;font-weight:700;cursor:pointer;font-family:inherit;
+  transition:all .2s ease;
+  box-shadow:0 4px 20px rgba(79,70,229,.4),inset 0 1px 0 rgba(255,255,255,.12);
+  position:relative;overflow:hidden;
+}
+.btn-primary::before{
+  content:'';position:absolute;inset:0;
+  background:linear-gradient(135deg,rgba(255,255,255,.12),transparent);
+  opacity:0;transition:opacity .2s;
+}
+.btn-primary:hover{
+  transform:translateY(-2px);
+  box-shadow:0 8px 32px rgba(79,70,229,.55),inset 0 1px 0 rgba(255,255,255,.18);
+}
+.btn-primary:hover::before{opacity:1}
+.btn-primary:active{transform:translateY(0)}
+
+.btn-outline{
+  display:block;padding:14px 28px;
+  background:rgba(255,255,255,.04);
+  color:rgba(255,255,255,.7);
+  border:1px solid rgba(255,255,255,.12);
+  border-radius:13px;
+  font-size:.95rem;font-weight:500;cursor:pointer;font-family:inherit;
+  transition:all .2s ease;
+}
+.btn-outline:hover{
+  background:rgba(255,255,255,.08);
+  border-color:rgba(255,255,255,.25);
+  color:rgba(255,255,255,.9);
+  transform:translateY(-1px);
+}
+
+/* ── Bottom strip ── */
+.bottom-strip{
+  display:flex;align-items:center;justify-content:center;gap:16px;
+  padding:18px 0 0;
+  margin-top:26px;
+  border-top:1px solid rgba(255,255,255,.05);
+  font-size:.68rem;color:rgba(255,255,255,.22);letter-spacing:.4px;
+}
+.dot-sep{width:3px;height:3px;border-radius:50%;background:rgba(255,255,255,.15)}
+
+/* ── Footer ── */
+.footer{
+  margin-top:24px;font-size:.65rem;
+  color:rgba(255,255,255,.16);text-align:center;line-height:1.9;
+}
+
+/* ══ MODALS ══ */
+.modal-bg{
+  display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);
+  z-index:500;align-items:center;justify-content:center;padding:20px;
+  backdrop-filter:blur(8px);
+}
+.modal-bg.open{display:flex}
+.modal{
+  background:#fff;border-radius:18px;padding:32px 32px 28px;
+  width:480px;max-width:100%;max-height:90vh;overflow-y:auto;
+  box-shadow:0 24px 64px rgba(0,0,0,.4);animation:pop .2s ease;
+}
+@keyframes pop{from{transform:scale(.95);opacity:0}to{transform:scale(1);opacity:1}}
+.modal h3{font-size:1.1rem;font-weight:800;color:#1a2a4a;margin-bottom:6px}
+.modal-sub{font-size:.83rem;color:#64748b;margin-bottom:22px}
+.field{margin-bottom:16px}
+.field label{display:block;font-size:.8rem;font-weight:700;color:#374151;margin-bottom:5px}
+.field input,.field select{
+  width:100%;padding:10px 13px;border:1.5px solid #d1d5db;border-radius:8px;
+  font-size:.9rem;outline:none;transition:border-color .2s;font-family:inherit;
+}
+.field input:focus,.field select:focus{border-color:#4f46e5}
+.field-row{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.modal-actions{display:flex;gap:10px;justify-content:flex-end;margin-top:22px;flex-wrap:wrap}
+.btn-cancel{
+  padding:10px 20px;background:#f1f5f9;color:#475569;border:none;
+  border-radius:8px;font-size:.9rem;font-weight:600;cursor:pointer;font-family:inherit;
+}
+.btn-submit{
+  padding:10px 24px;background:#4f46e5;color:#fff;border:none;border-radius:8px;
+  font-size:.9rem;font-weight:700;cursor:pointer;transition:background .2s;flex:1;font-family:inherit;
+}
+.btn-submit:hover{background:#4338ca}
+.btn-submit:disabled{background:#a5b4fc;cursor:not-allowed}
+.err{
+  background:#fef2f2;border:1px solid #fca5a5;color:#dc2626;
+  border-radius:8px;padding:10px 14px;font-size:.82rem;margin-top:12px;display:none;
+}
+.err.show{display:block}
+.success{text-align:center;padding:20px 0}
+.success .icon{font-size:3.5rem;margin-bottom:16px}
+.success h4{font-size:1.1rem;font-weight:800;color:#1a2a4a;margin-bottom:8px}
+.success p{font-size:.88rem;color:#64748b;line-height:1.6}
+.success .close-btn{
+  margin-top:22px;padding:10px 30px;background:#4f46e5;color:#fff;border:none;
+  border-radius:8px;font-size:.9rem;font-weight:700;cursor:pointer;font-family:inherit;
+}
+.pw-wrap{position:relative}
+.pw-wrap input{padding-left:40px}
+.pw-toggle{
+  position:absolute;top:50%;left:11px;transform:translateY(-50%);
+  background:none;border:none;cursor:pointer;padding:4px;color:#9ca3af;
+  line-height:1;transition:color .2s;outline:none;
+}
+.pw-toggle:hover{color:#4f46e5}
+.pw-toggle svg{width:18px;height:18px;display:block}
+.login-step{display:none}
+.login-step.active{display:block}
+.change-title{font-size:1rem;font-weight:700;color:#b45309;text-align:center;margin-bottom:8px}
+.change-sub{
+  font-size:.8rem;color:#92400e;text-align:center;margin-bottom:18px;
+  background:#fef3c7;border:1px solid #fde68a;border-radius:8px;padding:8px 12px;
+}
+.hint{
+  background:#eff6ff;border:1px solid #bfdbfe;color:#1d4ed8;
+  border-radius:8px;padding:10px 14px;font-size:.78rem;margin-bottom:18px;line-height:1.6;
+}
+
+@media(max-width:480px){
+  .card{padding:36px 24px 30px}
+  h1{font-size:1.9rem}
+}
+</style>
+</head>
+<body>
+
+<div class="stars" id="stars"></div>
+<div class="cursor-light"></div>
+<div class="aurora">
+  <div class="aorb aorb-1"></div>
+  <div class="aorb aorb-2"></div>
+  <div class="aorb aorb-3"></div>
+</div>
+
+<div class="page">
+  <div class="card">
+
+    <!-- Logo -->
+    <div class="logo-area">
+      <div class="logo-halo"></div>
+      <div class="logo-frame">
+        <img src="logo.png" alt="אפקון"
+             onerror="this.style.display='none';document.getElementById('logo-fb').style.display='flex'">
+        <div class="logo-fallback" id="logo-fb" style="display:none">אפקון</div>
+      </div>
+    </div>
+
+    <div class="tagline">אפקון בקרה ואוטומציה</div>
+    <h1>ברוכים הבאים</h1>
+
+    <div class="divider"></div>
+
+    <p class="sub" id="typewriter"></p>
+
+    <div class="actions">
+      <button class="btn-primary" onclick="openLoginModal()">🔐 כניסה למערכת</button>
+      <button class="btn-outline" onclick="openRequestModal()">📋 בקשה לפתיחת משתמש</button>
+    </div>
+
+    <div class="bottom-strip">
+      <span>🔒 SSL</span>
+      <span class="dot-sep"></span>
+      <span>24/7 ניטור</span>
+      <span class="dot-sep"></span>
+      <span>גישה מאובטחת</span>
+    </div>
+
+  </div>
+
+  <div class="footer">
+    כל הזכויות שמורות ל-Rob X Systems ואפקון בקרה ואוטומציה
+  </div>
+</div>
+
+<!-- ── Registration Request Modal ── -->
+<div class="modal-bg" id="modal-request">
+  <div class="modal">
+    <div id="req-form-view">
+      <h3>בקשה לפתיחת משתמש</h3>
+      <p class="modal-sub">מלא את הפרטים ונציג יחזור אליך לאחר אישור הבקשה</p>
+      <div class="field-row">
+        <div class="field"><label for="req-fname">שם פרטי *</label><input id="req-fname" type="text" placeholder="ישראל" required></div>
+        <div class="field"><label for="req-lname">שם משפחה *</label><input id="req-lname" type="text" placeholder="ישראלי" required></div>
+      </div>
+      <div class="field-row">
+        <div class="field"><label for="req-email">מייל *</label><input id="req-email" type="email" placeholder="israel@company.co.il" dir="ltr" required></div>
+        <div class="field"><label for="req-phone">טלפון *</label><input id="req-phone" type="tel" placeholder="050-0000000" dir="ltr" required></div>
+      </div>
+      <div class="field-row">
+        <div class="field"><label for="req-role">תפקיד *</label><input id="req-role" type="text" placeholder="מנהל פרויקט" required></div>
+        <div class="field">
+          <label for="req-div">חטיבה *</label>
+          <input id="req-div" type="text" list="divisions-list" placeholder="בחר או הקלד..." required>
+          <datalist id="divisions-list">
+            <option value="בקרה ואוטומציה"><option value="CCTV ומצלמות"><option value="כיבוי אש">
+            <option value="כניסה ובקרה"><option value="רשתות תקשורת"><option value="הנהלה">
+          </datalist>
+        </div>
+      </div>
+      <div class="err" id="req-err"></div>
+      <div class="modal-actions">
+        <button class="btn-cancel" onclick="closeRequestModal()">ביטול</button>
+        <button class="btn-submit" id="req-btn" onclick="submitRequest()">שלח בקשה</button>
+      </div>
+    </div>
+    <div id="req-success-view" style="display:none">
+      <div class="success">
+        <div class="icon">✅</div>
+        <h4>בקשתך נשלחה בהצלחה!</h4>
+        <p>קיבלנו את בקשתך לפתיחת משתמש.<br>נחזור אליך בהקדם לאחר בדיקת הפרטים.</p>
+        <button class="close-btn" onclick="closeRequestModal()">סגור</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── Login Modal ── -->
+<div class="modal-bg" id="modal-login">
+  <div class="modal">
+    <div id="login-step-1" class="login-step active">
+      <h3>כניסה למערכת</h3>
+      <p class="modal-sub">הזן את שם המשתמש והסיסמה שלך</p>
+      <div class="field">
+        <label for="l-user">שם משתמש</label>
+        <input id="l-user" type="text" autocomplete="username" placeholder="שם משתמש" dir="ltr" required>
+      </div>
+      <div class="field">
+        <label for="l-pass">סיסמה</label>
+        <div class="pw-wrap">
+          <input id="l-pass" type="password" autocomplete="current-password" placeholder="סיסמה" dir="ltr" required>
+          <button type="button" class="pw-toggle" onclick="togglePwLogin('l-pass')" tabindex="-1">
+            <svg id="eye-l-pass" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+            <svg id="eye-off-l-pass" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none"><path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19m-6.72-1.07a3 3 0 11-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+          </button>
+        </div>
+      </div>
+      <div class="err" id="login-err"></div>
+      <div class="modal-actions">
+        <button class="btn-cancel" onclick="closeLoginModal()">ביטול</button>
+        <button class="btn-submit" id="login-btn" onclick="doLogin()">כניסה</button>
+      </div>
+    </div>
+    <div id="login-step-2" class="login-step">
+      <p class="change-title">🔒 נדרש שינוי סיסמה</p>
+      <p class="change-sub">עליך להגדיר סיסמה חדשה לפני הכניסה למערכת</p>
+      <div class="hint">✓ לפחות 8 תווים · ✓ אות גדולה · ✓ אות קטנה · ✓ ספרה</div>
+      <div class="field">
+        <label for="cp-new">סיסמה חדשה</label>
+        <div class="pw-wrap">
+          <input id="cp-new" type="password" autocomplete="new-password" placeholder="לפחות 8 תווים..." dir="ltr">
+          <button type="button" class="pw-toggle" onclick="togglePwLogin('cp-new')" tabindex="-1">
+            <svg id="eye-cp-new" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+            <svg id="eye-off-cp-new" style="display:none" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19m-6.72-1.07a3 3 0 11-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+          </button>
+        </div>
+      </div>
+      <div class="field">
+        <label for="cp-confirm">אישור סיסמה</label>
+        <div class="pw-wrap">
+          <input id="cp-confirm" type="password" autocomplete="new-password" placeholder="חזור על הסיסמה" dir="ltr">
+          <button type="button" class="pw-toggle" onclick="togglePwLogin('cp-confirm')" tabindex="-1">
+            <svg id="eye-cp-confirm" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+            <svg id="eye-off-cp-confirm" style="display:none" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19m-6.72-1.07a3 3 0 11-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+          </button>
+        </div>
+      </div>
+      <div class="err" id="cp-err"></div>
+      <div class="modal-actions">
+        <button class="btn-submit" id="cp-btn" onclick="doChangePassword()">שנה סיסמה וכנס</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ── Stars ────────────────────────────────────────────────── */
+(function(){
+  const c = document.getElementById('stars');
+  for(let i=0;i<70;i++){
+    const s = document.createElement('div');
+    s.className = 'star';
+    const sz = Math.random()*1.8+.4;
+    s.style.cssText = `width:${sz}px;height:${sz}px;top:${Math.random()*100}%;left:${Math.random()*100}%;`+
+      `animation-duration:${(Math.random()*5+3).toFixed(1)}s;animation-delay:${(Math.random()*8).toFixed(1)}s;`;
+    c.appendChild(s);
+  }
+})();
+
+/* ── Cursor spotlight ────────────────────────────────────── */
+document.addEventListener('mousemove', e => {
+  document.documentElement.style.setProperty('--cx', e.clientX+'px');
+  document.documentElement.style.setProperty('--cy', e.clientY+'px');
+});
+
+/* ── Subtle card parallax on mouse ──────────────────────── */
+(function(){
+  const card = document.querySelector('.card');
+  let active = false;
+  setTimeout(()=>{ active = true; }, 900);
+
+  document.addEventListener('mousemove', e => {
+    if(!active) return;
+    const cx = innerWidth/2, cy = innerHeight/2;
+    const dx = (e.clientX - cx)/cx * 4;
+    const dy = (e.clientY - cy)/cy * 3;
+    card.style.transform = `translateY(var(--float-offset,0px)) rotateY(${dx}deg) rotateX(${-dy}deg)`;
+  });
+  document.addEventListener('mouseleave', () => {
+    card.style.transform = '';
+  });
+})();
+
+/* ── Typewriter ──────────────────────────────────────────── */
+(function(){
+  const el   = document.getElementById('typewriter');
+  const txts = ['מערכת ניהול פרויקטים','ניהול · בקרה · תיעוד','פתרונות אבטחה מתקדמים'];
+  let ti=0,ci=0,del=false;
+  function tick(){
+    const t=txts[ti];
+    if(!del){ ci++; el.textContent=t.slice(0,ci); if(ci===t.length){del=true;setTimeout(tick,2200);return;} }
+    else    { ci--; el.textContent=t.slice(0,ci); if(ci===0){del=false;ti=(ti+1)%txts.length;} }
+    setTimeout(tick, del?42:80);
+  }
+  setTimeout(tick, 600);
+})();
+
+/* ── Modal helpers ───────────────────────────────────────── */
+function openRequestModal(){
+  document.getElementById('modal-request').classList.add('open');
+  document.getElementById('req-form-view').style.display='';
+  document.getElementById('req-success-view').style.display='none';
+  document.getElementById('req-err').classList.remove('show');
+  document.getElementById('req-btn').disabled=false;
+  document.getElementById('req-btn').textContent='שלח בקשה';
+  ['req-fname','req-lname','req-email','req-phone','req-role','req-div'].forEach(id=>{document.getElementById(id).value='';});
+  setTimeout(()=>document.getElementById('req-fname').focus(),80);
+}
+function closeRequestModal(){ document.getElementById('modal-request').classList.remove('open'); }
+
+document.getElementById('modal-request').addEventListener('click',function(e){ if(e.target===this)closeRequestModal(); });
+document.getElementById('modal-login').addEventListener('click',function(e){ if(e.target===this)closeLoginModal(); });
+
+let _loginPassword='';
+function togglePwLogin(id){
+  const inp=document.getElementById(id),show=inp.type==='password';
+  inp.type=show?'text':'password';
+  document.getElementById('eye-'+id).style.display    =show?'none':'';
+  document.getElementById('eye-off-'+id).style.display=show?'':'none';
+}
+function openLoginModal(){
+  document.getElementById('modal-login').classList.add('open');
+  document.getElementById('login-step-1').classList.add('active');
+  document.getElementById('login-step-2').classList.remove('active');
+  ['l-user','l-pass'].forEach(id=>{document.getElementById(id).value='';});
+  document.getElementById('login-err').classList.remove('show');
+  document.getElementById('login-btn').disabled=false;
+  document.getElementById('login-btn').textContent='כניסה';
+  setTimeout(()=>document.getElementById('l-user').focus(),80);
+}
+function closeLoginModal(){ document.getElementById('modal-login').classList.remove('open'); }
+
+async function doLogin(){
+  const btn=document.getElementById('login-btn'),err=document.getElementById('login-err');
+  err.classList.remove('show'); btn.disabled=true; btn.textContent='מתחבר...';
+  try{
+    const pw=document.getElementById('l-pass').value;
+    const res=await fetch('/api/auth/login',{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({username:document.getElementById('l-user').value.trim(),password:pw})});
+    const data=await res.json();
+    if(res.ok){
+      if(data.must_change_password){
+        _loginPassword=pw;
+        document.getElementById('login-step-1').classList.remove('active');
+        document.getElementById('login-step-2').classList.add('active');
+        setTimeout(()=>document.getElementById('cp-new').focus(),50);
+      } else { window.location.href='/dashboard'; }
+    } else { err.textContent=data.error||'שגיאה בכניסה'; err.classList.add('show'); btn.disabled=false; btn.textContent='כניסה'; }
+  } catch{ err.textContent='שגיאת רשת — נסה שנית'; err.classList.add('show'); btn.disabled=false; btn.textContent='כניסה'; }
+}
+
+async function doChangePassword(){
+  const btn=document.getElementById('cp-btn'),err=document.getElementById('cp-err');
+  const newPw=document.getElementById('cp-new').value,confPw=document.getElementById('cp-confirm').value;
+  err.classList.remove('show');
+  if(newPw!==confPw){err.textContent='הסיסמאות אינן תואמות';err.classList.add('show');return;}
+  btn.disabled=true; btn.textContent='שומר...';
+  try{
+    const res=await fetch('/api/auth/change-password',{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({currentPassword:_loginPassword,newPassword:newPw})});
+    const data=await res.json();
+    if(res.ok){ window.location.href='/dashboard'; }
+    else{ err.textContent=data.error||'שגיאה'; err.classList.add('show'); btn.disabled=false; btn.textContent='שנה סיסמה וכנס'; }
+  } catch{ err.textContent='שגיאת רשת'; err.classList.add('show'); btn.disabled=false; btn.textContent='שנה סיסמה וכנס'; }
+}
+
+async function submitRequest(){
+  const errEl=document.getElementById('req-err'),btn=document.getElementById('req-btn');
+  errEl.classList.remove('show');
+  const firstName=document.getElementById('req-fname').value.trim();
+  const lastName =document.getElementById('req-lname').value.trim();
+  const email    =document.getElementById('req-email').value.trim();
+  const phone    =document.getElementById('req-phone').value.trim();
+  const roleTitle=document.getElementById('req-role').value.trim();
+  const division =document.getElementById('req-div').value.trim();
+  if(!firstName||!lastName||!email||!phone||!roleTitle||!division){errEl.textContent='יש למלא את כל השדות';errEl.classList.add('show');return;}
+  if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){errEl.textContent='מייל לא תקין';errEl.classList.add('show');return;}
+  if(!/^[\d\s\-\+\(\)]{7,15}$/.test(phone)){errEl.textContent='טלפון לא תקין';errEl.classList.add('show');return;}
+  btn.disabled=true; btn.textContent='שולח...';
+  try{
+    const res=await fetch('/api/user-requests',{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({firstName,lastName,email,phone,roleTitle,division})});
+    const data=await res.json();
+    if(res.ok){document.getElementById('req-form-view').style.display='none';document.getElementById('req-success-view').style.display='';}
+    else{errEl.textContent=data.error||'שגיאה';errEl.classList.add('show');btn.disabled=false;btn.textContent='שלח בקשה';}
+  } catch{errEl.textContent='שגיאת רשת';errEl.classList.add('show');btn.disabled=false;btn.textContent='שלח בקשה';}
+}
+</script>
+</body>
+</html>
