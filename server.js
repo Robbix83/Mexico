@@ -996,9 +996,10 @@ app.post('/api/admin/ds-finder/manual', requireAdmin, async (req, res) => {
   try {
     const result = await dsFinder.downloadFromUrl(model.trim(), manufacturer.trim(), url.trim());
     if (result.success) {
+      const filename = path.basename(result.path);
       db.logAudit(req.user.id, req.user.username, 'ds_finder_manual',
-        `${manufacturer}/${model}`, getClientIp(req), url);
-      res.json({ ok: true, path: result.path });
+        `${manufacturer}/${model} → ${filename}`, getClientIp(req), url);
+      res.json({ ok: true, path: result.path, filename, foundViaSearch: result.foundViaSearch || false });
     } else {
       res.status(422).json({ ok: false, error: result.error });
     }
