@@ -158,13 +158,12 @@
   @keyframes textFlow{0%{background-position:0% 50%}100%{background-position:300% 50%}}
 
   h1{
-    font-size:2.6rem;font-weight:900;color:#fff;
+    font-size:2.6rem;font-weight:900;
     margin-bottom:10px;line-height:1.1;
-    text-shadow:
-      0 0 8px  rgba(59,130,246,.9),
-      0 0 28px rgba(59,130,246,.55),
-      0 0 60px rgba(59,130,246,.28),
-      0 2px 40px rgba(0,0,0,.5);
+    background:linear-gradient(160deg,#ffffff 0%,#dbeafe 45%,#93c5fd 100%);
+    -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+    background-clip:text;
+    filter:drop-shadow(0 0 16px rgba(59,130,246,.75)) drop-shadow(0 0 38px rgba(59,130,246,.4));
   }
 
   .sub{
@@ -179,6 +178,42 @@
     color:#06b6d4;font-weight:300;margin-right:2px;
   }
   @keyframes blink{0%,100%{opacity:1}50%{opacity:0}}
+
+  /* ── Radar rings ── */
+  .logo-radar{position:relative;display:inline-flex;align-items:center;justify-content:center;margin-bottom:20px}
+  .r-ring{
+    position:absolute;border-radius:50%;
+    border:1px solid rgba(59,130,246,.45);
+    width:90px;height:90px;
+    animation:radarPing 3s ease-out infinite;
+  }
+  .r-ring:nth-child(1){animation-delay:0s}
+  .r-ring:nth-child(2){animation-delay:1s}
+  .r-ring:nth-child(3){animation-delay:2s}
+  @keyframes radarPing{
+    0%  {transform:scale(.9);opacity:.65;border-color:rgba(59,130,246,.5)}
+    100%{transform:scale(3.2);opacity:0; border-color:rgba(139,92,246,.0)}
+  }
+
+  /* ── Cursor spotlight ── */
+  .cursor-light{
+    position:fixed;inset:0;z-index:0;pointer-events:none;
+    background:radial-gradient(
+      500px circle at var(--cx,-9999px) var(--cy,-9999px),
+      rgba(59,130,246,.055) 0%,
+      transparent 80%
+    );
+  }
+
+  /* ── Film grain ── */
+  .grain{
+    position:fixed;inset:0;z-index:998;pointer-events:none;opacity:.028;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    background-repeat:repeat;background-size:220px 220px;
+  }
+
+  /* ── Hero wrapper tilt ── */
+  .hero-wrapper{transition:transform .25s ease;transform-style:preserve-3d;will-change:transform}
 
   /* ── Buttons ── */
   .actions{display:flex;flex-direction:column;gap:13px}
@@ -315,6 +350,8 @@
 <body>
 
 <canvas id="particles"></canvas>
+<div class="cursor-light"></div>
+<div class="grain"></div>
 <div class="bg-orbs">
   <div class="orb orb-1"></div>
   <div class="orb orb-2"></div>
@@ -331,12 +368,17 @@
         מערכת פעילה
       </div>
 
-      <div class="logo-wrap">
-        <div class="logo-container">
-          <img src="/logo.png" alt="אפקון"
-               onerror="this.style.display='none';document.getElementById('logo-fb').style.display='inline-flex'">
-          <div class="logo-fallback" id="logo-fb" style="display:none">אפ</div>
-          <div class="scan-line"></div>
+      <div class="logo-radar">
+        <div class="r-ring"></div>
+        <div class="r-ring"></div>
+        <div class="r-ring"></div>
+        <div class="logo-wrap" style="margin-bottom:0">
+          <div class="logo-container">
+            <img src="/logo.png" alt="אפקון"
+                 onerror="this.style.display='none';document.getElementById('logo-fb').style.display='inline-flex'">
+            <div class="logo-fallback" id="logo-fb" style="display:none">אפ</div>
+            <div class="scan-line"></div>
+          </div>
         </div>
       </div>
 
@@ -562,6 +604,29 @@
     setTimeout(tick,del?38:72);
   }
   tick();
+})();
+
+/* ── Cursor spotlight ───────────────────────────────────── */
+document.addEventListener('mousemove', e => {
+  document.documentElement.style.setProperty('--cx', e.clientX + 'px');
+  document.documentElement.style.setProperty('--cy', e.clientY + 'px');
+});
+
+/* ── 3D card tilt ────────────────────────────────────────── */
+(function(){
+  const w = document.querySelector('.hero-wrapper');
+  // Wait for entrance animation to finish
+  setTimeout(() => {
+    w.addEventListener('mousemove', e => {
+      const r  = w.getBoundingClientRect();
+      const x  = (e.clientX - r.left  - r.width  / 2) / (r.width  / 2);
+      const y  = (e.clientY - r.top   - r.height / 2) / (r.height / 2);
+      w.style.transform = `perspective(900px) rotateY(${x * 7}deg) rotateX(${-y * 5}deg) scale(1.015)`;
+    });
+    w.addEventListener('mouseleave', () => {
+      w.style.transform = 'perspective(900px) rotateY(0deg) rotateX(0deg) scale(1)';
+    });
+  }, 900);
 })();
 
 /* ── Modal helpers ───────────────────────────────────────── */
