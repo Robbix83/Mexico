@@ -180,19 +180,20 @@
   @keyframes blink{0%,100%{opacity:1}50%{opacity:0}}
 
   /* ── Radar rings ── */
-  .logo-radar{position:relative;display:inline-flex;align-items:center;justify-content:center;margin-bottom:20px}
+  .logo-radar{position:relative;display:flex;align-items:center;justify-content:center;margin-bottom:20px}
   .r-ring{
     position:absolute;border-radius:50%;
-    border:1px solid rgba(59,130,246,.45);
-    width:90px;height:90px;
-    animation:radarPing 3s ease-out infinite;
+    border:1.5px solid rgba(99,165,250,.6);
+    width:92px;height:92px;
+    animation:radarPing 2.8s ease-out infinite;
   }
   .r-ring:nth-child(1){animation-delay:0s}
-  .r-ring:nth-child(2){animation-delay:1s}
-  .r-ring:nth-child(3){animation-delay:2s}
+  .r-ring:nth-child(2){animation-delay:.93s}
+  .r-ring:nth-child(3){animation-delay:1.86s}
   @keyframes radarPing{
-    0%  {transform:scale(.9);opacity:.65;border-color:rgba(59,130,246,.5)}
-    100%{transform:scale(3.2);opacity:0; border-color:rgba(139,92,246,.0)}
+    0%  {transform:scale(.85);opacity:.8;border-color:rgba(99,165,250,.7)}
+    60% {border-color:rgba(139,92,246,.4)}
+    100%{transform:scale(3.4);opacity:0;border-color:rgba(139,92,246,.0)}
   }
 
   /* ── Cursor spotlight ── */
@@ -363,11 +364,6 @@
   <div class="hero-wrapper">
   <div class="hero">
     <div class="hero-inner">
-      <div class="live-badge">
-        <span class="live-dot"></span>
-        מערכת פעילה
-      </div>
-
       <div class="logo-radar">
         <div class="r-ring"></div>
         <div class="r-ring"></div>
@@ -380,6 +376,11 @@
             <div class="scan-line"></div>
           </div>
         </div>
+      </div>
+
+      <div class="live-badge" style="margin-bottom:18px">
+        <span class="live-dot"></span>
+        מערכת פעילה
       </div>
 
       <div class="tagline">אפקון בקרה ואוטומציה</div>
