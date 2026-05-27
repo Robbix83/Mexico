@@ -6302,8 +6302,8 @@ function renderDocPackList(){
   list.innerHTML=_docPacks.map(p=>{
     const active=p.id===_currentDocPackId?'active':'';
     return `<div class="dp-list-item ${active}" onclick="dpSelectPack(${p.id})">
-      <span>${_escDp(p.name)}</span>
       <span class="dp-list-date">${fmt(p.updated_at)}</span>
+      <span>${_escDp(p.name)}</span>
     </div>`;
   }).join('');
 }
