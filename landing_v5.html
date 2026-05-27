@@ -892,10 +892,24 @@
 
 <script>
   /* =========================================================
+     ISRAEL TIME HELPER  (Asia/Jerusalem — handles DST automatically)
+  ========================================================= */
+  function ilTime() {
+    var fmt = new Intl.DateTimeFormat('en-GB', {
+      timeZone: 'Asia/Jerusalem',
+      hour: '2-digit', minute: '2-digit', hour12: false
+    });
+    var s = fmt.format(new Date()); // "23:45"
+    var p = s.split(':');
+    return { h: parseInt(p[0], 10), m: parseInt(p[1], 10), hStr: p[0], mStr: p[1] };
+  }
+
+
+  /* =========================================================
      TIME-OF-DAY GREETING
   ========================================================= */
   (function() {
-    var h = new Date().getHours();
+    var h = ilTime().h;
     var g = h >= 5 && h < 12  ? '☀️ בוקר טוב'
            : h >= 12 && h < 17 ? '🌤 צהריים טובים'
            : h >= 17 && h < 21 ? '🌆 ערב טוב'
@@ -909,10 +923,9 @@
   ========================================================= */
   (function setupClock() {
     var el = document.getElementById('clockDisplay');
-    function pad2(n) { return n < 10 ? '0' + n : '' + n; }
     function tick() {
-      var d = new Date();
-      el.innerHTML = pad2(d.getHours()) + '<span class="clock-sep">:</span>' + pad2(d.getMinutes());
+      var t = ilTime();
+      el.innerHTML = t.hStr + '<span class="clock-sep">:</span>' + t.mStr;
     }
     tick();
     setInterval(tick, 10000);
