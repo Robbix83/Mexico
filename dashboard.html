@@ -4766,11 +4766,48 @@ function openPlEdit(mfr,model){
     document.getElementById('ple-file-status').style.display='none';
   }
   _pleDsTabUpdate();
+  // Hide local notice until async check runs
+  document.getElementById('ple-local-notice').style.display='none';
   // Override notice
   const hasOv=!!plOverrides[_pleKey];
   document.getElementById('ple-override-notice').style.display=hasOv?'':'none';
   document.getElementById('ple-reset-btn').style.display=hasOv?'':'none';
   document.getElementById('pl-edit-overlay').classList.add('open');
+
+  // Async: check if a local file for this model was downloaded to the server disk.
+  // If found AND the stored ds is not already pointing there, auto-update the URL field.
+  const _checkKey = _pleKey; // capture so we can bail if user switched items
+  (async () => {
+    try {
+      const r = await fetch('/api/datasheets/search?q=' + encodeURIComponent(model));
+      if (!r.ok) return;
+      const { matches } = await r.json();
+      if (!matches || !matches.length) return;
+      const hit = matches.find(m => m.exact) || matches[0];
+      if (!hit || !hit.mfr) return;
+      // Build the local serving URL
+      const localUrl = '/ds/' + encodeURIComponent(hit.mfr) + '/' + encodeURIComponent(hit.model) + '.pdf';
+      // Bail if user already closed or switched to a different item
+      if (_pleKey !== _checkKey) return;
+      const urlField = document.getElementById('ple-ds-url');
+      if (!urlField) return;
+      const curVal = urlField.value.trim();
+      if (curVal === localUrl) return; // already up-to-date
+      // Update field with local URL and switch to URL tab
+      urlField.value = localUrl;
+      _pleDsMode = 'url';
+      _pleDsTabUpdate();
+      // Show notice
+      const notice = document.getElementById('ple-local-notice');
+      const noticeText = document.getElementById('ple-local-notice-text');
+      if (notice && noticeText) {
+        noticeText.textContent = curVal
+          ? 'הקובץ קיים בשרת — שדה ה-DS עודכן לקובץ המקומי. לחץ שמור לאישור.'
+          : 'נמצא קובץ מקומי בשרת — לחץ שמור לשמירה.';
+        notice.style.display = '';
+      }
+    } catch { /* best-effort — ignore network errors */ }
+  })();
 }
 function closePlEdit(){
   document.getElementById('pl-edit-overlay').classList.remove('open');
@@ -7634,6 +7671,10 @@ function clearPlImported(){
         </div>
         <div id="ple-ds-url-wrap">
           <input type="url" id="ple-ds-url" placeholder="https://example.com/datasheet.pdf" dir="ltr"/>
+          <div id="ple-local-notice" style="display:none;margin-top:6px;font-size:.78rem;
+               color:#059669;background:#f0fdf4;padding:5px 10px;border-radius:6px;border:1px solid #a7f3d0">
+            📂 <span id="ple-local-notice-text"></span>
+          </div>
         </div>
         <div id="ple-ds-file-wrap" style="display:none">
           <div id="ple-file-status" class="ple-file-status" style="display:none">
