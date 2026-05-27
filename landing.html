@@ -44,45 +44,20 @@
   /* Page wrapper */
   .page-content{position:relative;z-index:1;display:flex;flex-direction:column;align-items:center;width:100%}
 
-  /* ══ HERO CARD ══ */
-  .hero{
-    background:rgba(255,255,255,.06);
-    border:1px solid rgba(255,255,255,.1);
-    border-radius:28px;
-    padding:0 0 0;
+  /* ══ HERO WRAPPER — animated gradient border ══ */
+  .hero-wrapper{
+    background:linear-gradient(135deg,#06b6d4,#3b82f6,#8b5cf6,#ec4899,#f43f5e,#8b5cf6,#3b82f6,#06b6d4);
+    background-size:400% 400%;
+    animation:borderGradient 4s ease infinite, cardIn .7s cubic-bezier(.22,1,.36,1) both;
+    padding:2px;
+    border-radius:29px;
     max-width:530px;width:100%;
-    text-align:center;
-    backdrop-filter:blur(26px);-webkit-backdrop-filter:blur(26px);
     box-shadow:
-      0 0 0 1px rgba(59,130,246,.22),
-      0 28px 80px rgba(0,0,0,.6),
-      0 0 140px rgba(59,130,246,.07),
-      inset 0 1px 0 rgba(255,255,255,.09);
-    position:relative;overflow:hidden;
-    animation:cardIn .7s cubic-bezier(.22,1,.36,1) both;
+      0 28px 80px rgba(0,0,0,.65),
+      0 0 60px rgba(59,130,246,.15),
+      0 0 120px rgba(139,92,246,.08);
   }
-
-  /* Animated gradient top accent bar */
-  .hero-accent{
-    height:3px;
-    background:linear-gradient(90deg,#06b6d4,#3b82f6,#8b5cf6,#ec4899,#3b82f6,#06b6d4);
-    background-size:400% 100%;
-    animation:accentFlow 5s linear infinite;
-  }
-  @keyframes accentFlow{0%{background-position:0% 0%}100%{background-position:400% 0%}}
-
-  /* Animated gradient border */
-  .hero::before{
-    content:'';position:absolute;inset:-1px;border-radius:29px;z-index:-1;
-    background:linear-gradient(135deg,rgba(59,130,246,.65),rgba(109,40,217,.3),rgba(6,182,212,.45),rgba(59,130,246,.65));
-    background-size:300% 300%;
-    animation:borderShimmer 7s linear infinite;
-    -webkit-mask:linear-gradient(#fff 0 0) content-box,linear-gradient(#fff 0 0);
-    -webkit-mask-composite:xor;
-    mask:linear-gradient(#fff 0 0) content-box,linear-gradient(#fff 0 0);
-    mask-composite:exclude;padding:1px;
-  }
-  @keyframes borderShimmer{
+  @keyframes borderGradient{
     0%  {background-position:0%   50%}
     50% {background-position:100% 50%}
     100%{background-position:0%   50%}
@@ -90,6 +65,17 @@
   @keyframes cardIn{
     from{opacity:0;transform:translateY(34px) scale(.97)}
     to  {opacity:1;transform:translateY(0)    scale(1)}
+  }
+
+  /* ══ HERO CARD ══ */
+  .hero{
+    background:rgba(8,15,40,.9);
+    border-radius:27px;
+    padding:0;
+    width:100%;
+    text-align:center;
+    backdrop-filter:blur(26px);-webkit-backdrop-filter:blur(26px);
+    position:relative;overflow:hidden;
   }
 
   /* Card inner */
@@ -337,9 +323,8 @@
 </div>
 
 <div class="page-content">
+  <div class="hero-wrapper">
   <div class="hero">
-    <div class="hero-accent"></div>
-
     <div class="hero-inner">
       <div class="live-badge">
         <span class="live-dot"></span>
@@ -373,6 +358,7 @@
       <span>גישה מאובטחת</span>
     </div>
   </div>
+  </div><!-- /hero-wrapper -->
 
   <div class="footer">
     כל הזכויות שמורות ל-Rob X Systems ואפקון בקרה ואוטומציה
