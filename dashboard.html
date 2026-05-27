@@ -4369,14 +4369,50 @@ let _whLoadingPromise=null;
 let _whCatFilter=null;      // null = all, string = active primary category
 let _whCollapsed=new Set(); // set of collapsed category names in overview mode
 const _WH_CATS=[
-  {name:'מצלמות',  icon:'🎥', skuRe:/^(DS-2[CXAD]|IPC|PKC|NDI-|NDE-|NDP-|DIP-|\d+\.?\d*C-H)/i, descRe:/מצלמ|camera|ptz|bullet|dome|fisheye/i},
-  {name:'מקלטים',  icon:'🖥', skuRe:/^(DS-[79]|NVR|XVR|DVR)/i,                                   descRe:/nvr|dvr|xvr|מקלט|רשם|recorder/i},
-  {name:'עורקים',  icon:'📡', skuRe:/^(RW-|EH-|MPL-|T-280|AX-)/i,                                descRe:/radwin|siklu|אלחוט|wireless|backhaul|עורק|ptmp/i},
-  {name:'רשת',     icon:'🔌', skuRe:/^(SFP|POE)/i,                                                descRe:/switch|מתג|patch|sfp|poe|vlan|router|firewall|ממסר/i},
-  {name:'ספקי כח', icon:'🔋', skuRe:null,                                                          descRe:/ups|ספק.?כח|power.?supply|סוללה|battery|12v|24v|adaptor|adapter/i},
-  {name:'כבלים',   icon:'🪛', skuRe:null,                                                          descRe:/כבל|cable|rj45|cat[56]|fiber|אופטי|bnc|coax/i},
-  {name:'אביזרים', icon:'🔧', skuRe:null,                                                          descRe:/מתלה|bracket|housing|קופסה|junction|כיסוי|חיבור|connector|mount/i},
-  {name:'אחר',     icon:'📦', skuRe:null,                                                          descRe:null},
+  // מצלמות — מצלמות IP ואנלוג, PTZ, תרמיות
+  // Hikvision DS-2CD/DS-2CC/DS-2CE/DS-2AE, Uniview IPC/PKC, Bosch NDI/NDE/NDP/DIP, Avigilon *C-H*
+  {name:'מצלמות', icon:'🎥',
+   skuRe:/^(DS-2[CXAD]|DS-2T|IPC|PKC|NDI-|NDE-|NDP-|DIP-|\d+\.?\d*C-H)/i,
+   descRe:/מצלמ|camera|ptz|bullet|dome|fisheye|turret|thermal/i},
+
+  // מקלטים — NVR / DVR / XVR
+  // Hikvision DS-7xxx / DS-9xxx, NVR/XVR/DVR prefixes
+  // NOTE: "מקלט" alone can mean radio receiver — require "וידא" or video context
+  {name:'מקלטים', icon:'🖥',
+   skuRe:/^(DS-[79]|NVR|XVR|DVR)/i,
+   descRe:/\bnvr\b|\bdvr\b|\bxvr\b|מקלט.*וידא|וידא.*מקלט|video.?recorder|רשם.?וידא/i},
+
+  // עורקים — עורקי תקשורת אלחוטיים RADWIN ו-SIKLU בלבד
+  // שום קשר ל"אלחוטי" כמילה — רק RADWIN / SIKLU לפי שם מוצר או פרפיקס מק"ט
+  {name:'עורקים', icon:'📡',
+   skuRe:/^(RW-|EH-|MPL-|T-280|AX-)/i,
+   descRe:/\bradwin\b|siklu|ptmp|backhaul|עורק/i},
+
+  // רשת — מתגים, SFP, patch panels, media converters
+  // לא כולל PoE injector (→ ספקי כח) ולא router/firewall כמילים כלליות
+  {name:'רשת', icon:'🔌',
+   skuRe:/^SFP/i,
+   descRe:/\bswitch\b|מתג|patch.?panel|\bsfp\b|\bvlan\b|media.?conv|ממסר|managed.?switch|unmanaged.?switch|hub.?lan/i},
+
+  // ספקי כח — UPS, ספקי כח, מזריקי PoE, סוללות, שנאים
+  // "מזרק מתח" = PoE injector → כאן; סוללות → כאן
+  {name:'ספקי כח', icon:'🔋',
+   skuRe:null,
+   descRe:/\bups\b|ספק.?כח|power.?supply|סוללה|battery|מזרק.?מתח|poe.{0,10}inject|poe.{0,10}supply|12vdc|24vdc|48vdc|adaptor|adapter|שנאי|אל-פסק/i},
+
+  // כבלים — כבלים, סיב אופטי, patch cord, קואקס
+  {name:'כבלים', icon:'🪛',
+   skuRe:null,
+   descRe:/\bכבל\b|cable|\brj.?45\b|\bcat[56]e?\b|fiber|סיב.?אופטי|\bbnc\b|coax|\butp\b|patch.?cord|trunk|תיל/i},
+
+  // אביזרים — מתלים, קופסאות, חיבורים, גלאים, מגנטי דלת, חיישנים, אינטרקום
+  // כולל אביזרי מצלמות + אביזרי אזעקה/אבטחה
+  {name:'אביזרים', icon:'🔧',
+   skuRe:null,
+   descRe:/מתלה|bracket|housing|קופסה|junction|כיסוי|חיבור|\bconnector\b|\bmount\b|גלאי|מגנט.{0,6}דלת|חיישן|intercom|אינטרקום|לוחית|מסוף|terminal/i},
+
+  // אחר — כל השאר (ציוד משרדי, חיישני אוטומציה, מוצרים שלא סווגו)
+  {name:'אחר', icon:'📦', skuRe:null, descRe:null},
 ];
 function _whGetCat(item){
   const sku=String(item.sku||''), desc=String(item.desc||'').toLowerCase();
