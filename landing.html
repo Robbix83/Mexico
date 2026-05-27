@@ -510,6 +510,12 @@
       color: #374151;
       margin-bottom: 5px;
     }
+    /* Login form — LTR override */
+    #loginSection .form-group label { text-align: left; }
+    #loginSection .form-group input {
+      direction: ltr;
+      text-align: left;
+    }
     .form-group input,
     .form-group select,
     .form-group textarea {
@@ -1139,21 +1145,19 @@
       });
       var data = await res.json();
 
-      if (res.ok && data.token) {
-        if (data.requiresPasswordChange) {
+      if (res.ok && data.ok) {
+        if (data.must_change_password) {
           document.getElementById('changePwUsername').value = username;
           document.getElementById('loginSection').style.display = 'none';
           document.getElementById('changePwSection').style.display = '';
-          localStorage.setItem('_tempToken', data.token);
         } else {
-          localStorage.setItem('token', data.token);
           _showSuccess('loginSuccess', 'Login successful, redirecting...');
           setTimeout(function() {
-            window.location.href = data.redirect || '/dashboard.html';
+            window.location.href = '/dashboard.html';
           }, 900);
         }
       } else {
-        _showError('loginError', data.message || 'Invalid username or password.');
+        _showError('loginError', data.error || 'Invalid username or password.');
       }
     } catch (err) {
       _showError('loginError', 'שגיאת תקשורת. נסה שוב.');
