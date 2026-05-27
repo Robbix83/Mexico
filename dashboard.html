@@ -906,6 +906,97 @@ tr:hover .pl-edit-btn{opacity:.65}
   border-bottom:1px solid var(--border);padding-bottom:6px}
 .note-tt-body{font-size:.86rem;color:#2d3748;line-height:1.6;white-space:pre-wrap;
   max-height:160px;overflow-y:auto}
+
+/* ── Requisition view ─────────────────────────────────────── */
+.rq-shell{display:grid;grid-template-columns:1fr;gap:14px}
+.rq-card{background:#fff;border:1px solid var(--border);border-radius:10px;padding:14px 16px}
+.rq-card h3{margin:0 0 10px;font-size:.95rem;color:#1a2a4a;font-weight:700}
+.rq-header-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;align-items:end}
+.rq-header-grid label{display:flex;flex-direction:column;gap:4px;font-size:.78rem;color:#475569;font-weight:600}
+.rq-header-grid input{padding:7px 9px;border:1px solid var(--border);border-radius:6px;font-size:.85rem;font-family:inherit;direction:rtl}
+.rq-status-sel{padding:6px 10px;border-radius:7px;border:1.5px solid var(--border);font-size:.82rem;font-weight:700;cursor:pointer;outline:none;font-family:inherit;direction:rtl}
+.rq-status-draft{border-color:#cbd5e0;color:#475569;background:#f8fafc}
+.rq-status-pending{border-color:#f59e0b;color:#92400e;background:#fffbeb}
+.rq-status-approved{border-color:#10b981;color:#065f46;background:#ecfdf5}
+.rq-status-done{border-color:#6366f1;color:#3730a3;background:#eef2ff}
+.rq-hist-status{display:inline-block;padding:2px 8px;border-radius:999px;font-size:.7rem;font-weight:700;white-space:nowrap}
+.rq-hist-status.draft{background:#f1f5f9;color:#475569}
+.rq-hist-status.pending{background:#fef3c7;color:#92400e}
+.rq-hist-status.approved{background:#d1fae5;color:#065f46}
+.rq-hist-status.done{background:#e0e7ff;color:#3730a3}
+.rq-toolbar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:10px}
+.rq-chip{padding:5px 12px;border:1px solid var(--border);border-radius:999px;background:#f8fafc;color:#475569;font-size:.78rem;font-weight:600;cursor:pointer;user-select:none}
+.rq-chip.active{background:#1a2a4a;color:#fff;border-color:#1a2a4a}
+.rq-search{flex:1;min-width:200px;padding:7px 10px;border:1px solid var(--border);border-radius:6px;font-size:.85rem}
+.rq-table{width:100%;border-collapse:collapse;font-size:.82rem;table-layout:fixed}
+.rq-table th{background:#f1f5f9;color:#334155;font-weight:600;padding:7px 8px;border-bottom:1px solid var(--border);font-size:.76rem;text-align:right}
+.rq-table td{padding:6px 8px;border-bottom:1px solid #f1f5f9;vertical-align:middle}
+.rq-table tr:hover td{background:#fafbfc}
+.rq-src-badge{display:inline-block;padding:2px 8px;border-radius:999px;font-size:.68rem;font-weight:700;white-space:nowrap}
+.rq-src-warehouse{background:#dcfce7;color:#166534}
+.rq-src-pricelist{background:#dbeafe;color:#1d4ed8}
+.rq-qty-wrap{display:flex;gap:2px;align-items:center;justify-content:center}
+.rq-qty-btn{width:24px;height:24px;border:1px solid var(--border);background:#f8fafc;border-radius:5px;cursor:pointer;font-weight:700;color:#475569}
+.rq-qty-btn:hover{background:#e2e8f0}
+.rq-qty-inp{width:46px;height:24px;border:1px solid var(--border);border-radius:5px;text-align:center;font-size:.8rem}
+.rq-qty-inp.qty-active{background:#fef3c7;font-weight:700;border-color:#f59e0b}
+.rq-table-wrap{max-height:520px;overflow-y:auto;border:1px solid var(--border);border-radius:8px}
+.rq-actions{display:flex;gap:8px;align-items:center;justify-content:space-between;flex-wrap:wrap;margin-top:10px}
+.rq-btn{padding:8px 16px;border-radius:7px;border:1px solid transparent;font-size:.85rem;font-weight:700;cursor:pointer}
+.rq-btn-primary{background:#1d4ed8;color:#fff}
+.rq-btn-primary:hover{background:#1e40af}
+.rq-btn-primary:disabled{background:#94a3b8;cursor:not-allowed}
+.rq-btn-secondary{background:#eef4ff;color:#1d4ed8;border-color:#bfdbfe}
+.rq-btn-ghost{background:#f8fafc;color:#475569;border-color:var(--border)}
+.rq-btn-danger{background:#fee2e2;color:#b91c1c;border-color:#fecaca}
+.rq-meta{font-size:.78rem;color:#64748b}
+.rq-toggle{display:inline-flex;align-items:center;gap:6px;font-size:.82rem;color:#334155;cursor:pointer}
+.rq-hist-table{width:100%;border-collapse:collapse;font-size:.82rem}
+.rq-hist-table th,.rq-hist-table td{padding:6px 8px;border-bottom:1px solid var(--border);text-align:right}
+.rq-hist-table th{background:#f1f5f9;font-size:.74rem;color:#475569;font-weight:600}
+.rq-hist-row{cursor:pointer}
+.rq-hist-row:hover td{background:#eff6ff}
+.rq-empty{text-align:center;padding:20px;color:#94a3b8;font-size:.85rem}
+
+/* ── Requisition preview modal ─────────────────────────────── */
+.rq-preview-overlay{position:fixed;inset:0;z-index:2000;background:#3a3a3a;display:flex;flex-direction:column;overflow:hidden}
+.rq-preview-toolbar{background:#1a2a4a;color:#fff;padding:10px 18px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;gap:12px}
+.rq-preview-toolbar h3{margin:0;font-size:.95rem;font-weight:600;direction:rtl}
+.rq-preview-body{flex:1;overflow-y:auto;padding:28px 16px;display:flex;flex-direction:column;align-items:center;gap:20px}
+.rq-preview-page{background:#fff;width:min(794px,calc(100vw - 32px));padding:48px 56px;box-shadow:0 4px 24px rgba(0,0,0,.4);direction:rtl;font-family:Arial,sans-serif;font-size:11pt;color:#1a1a2e;box-sizing:border-box;line-height:1.55}
+.rq-prev-head{display:flex;flex-direction:row;direction:ltr;justify-content:space-between;align-items:flex-start;border-bottom:2px solid #1a2a4a;padding-bottom:10px;margin-bottom:14px}
+.rq-prev-logo{height:54px;width:auto;object-fit:contain}
+.rq-prev-title{text-align:center;flex:1;padding:0 12px}
+.rq-prev-title h1{margin:0;font-size:20pt;color:#1a2a4a;font-weight:700}
+.rq-prev-title .sub{font-size:10pt;color:#607080;margin-top:2px}
+.rq-prev-meta{font-size:10pt;color:#374151;text-align:right;min-width:140px;line-height:1.6}
+.rq-prev-meta b{color:#1a2a4a}
+.rq-prev-info{width:100%;border-collapse:collapse;margin-bottom:14px;font-size:10pt}
+.rq-prev-info td{padding:6px 9px;border:1px solid #c8d5e8}
+.rq-prev-info td.l{background:#e8eef7;font-weight:700;width:120px;color:#1a2a4a}
+.rq-prev-items{width:100%;border-collapse:collapse;font-size:9.5pt;margin-bottom:10px}
+.rq-prev-items th{background:#1a2a4a;color:#fff;padding:6px 8px;font-size:9pt;text-align:center}
+.rq-prev-items td{border:1px solid #dde4ef;padding:5px 8px;text-align:center}
+.rq-prev-items td.txt-r{text-align:right}
+.rq-prev-items tr:nth-child(even) td{background:#f8fafc}
+.rq-prev-src{font-size:7.5pt;color:#64748b;display:block}
+.rq-prev-totals{margin-top:8px;padding:8px 12px;background:#f1f5f9;border-right:3px solid #1a2a4a;font-size:10.5pt;font-weight:700;color:#1a2a4a;text-align:left}
+.rq-prev-totals .row{margin:2px 0}
+.rq-prev-notes{margin-top:14px;font-size:10pt;color:#374151;white-space:pre-wrap}
+.rq-prev-vat{margin-top:10px;font-size:9pt;color:#b45309;font-weight:700;text-align:center;padding:6px;background:#fffbeb;border:1px dashed #f59e0b;border-radius:5px}
+.rq-prev-foot{margin-top:18px;font-size:8.5pt;color:#94a3b8;text-align:center;border-top:1px solid #e2e8f0;padding-top:8px}
+
+@media print {
+  @page { size: A4; margin: 12mm; }
+  html, body { background: #fff !important; }
+  body * { visibility: hidden !important; }
+  .rq-preview-overlay, .rq-preview-overlay * { visibility: visible !important; }
+  .rq-preview-overlay { position: absolute !important; inset: 0 !important; background: #fff !important; overflow: visible !important; }
+  .rq-preview-toolbar { display: none !important; }
+  .rq-preview-body { padding: 0 !important; gap: 0 !important; display: block !important; overflow: visible !important; }
+  .rq-preview-page { box-shadow: none !important; width: 100% !important; padding: 0 !important; page-break-after: always; }
+  .rq-preview-page:last-child { page-break-after: auto; }
+}
 </style>
 </head>
 <body>
@@ -935,6 +1026,7 @@ tr:hover .pl-edit-btn{opacity:.65}
   <button class="vt"        id="vt-warehouse" onclick="setView('warehouse')">🏭 מלאי מחסנים</button>
   <button class="vt"        id="vt-docpack"   onclick="setView('docpack')">📁 תיק תיעוד</button>
   <button class="vt"        id="vt-pricelist" onclick="setView('pricelist')">💲 מחירונים</button>
+  <button class="vt"        id="vt-requisition" onclick="setView('requisition')">📝 דרישת רכש</button>
 </div>
 
 <main>
@@ -1222,6 +1314,96 @@ tr:hover .pl-edit-btn{opacity:.65}
       </table>
     </div>
     <div class="pl-cart-bar" id="pl-cart-bar"></div>
+  </section>
+
+  <!-- ══ PURCHASE REQUISITION (דרישת רכש) VIEW ══ -->
+  <section id="requisition-view" style="display:none">
+    <h2>📝 דרישת רכש</h2>
+    <div class="rq-shell">
+
+      <!-- Header form -->
+      <div class="rq-card">
+        <h3>פרטי הדרישה <span id="rq-meta-line" class="rq-meta" style="font-weight:400;font-size:.8rem;margin-right:10px">דרישה חדשה — לא נשמרה</span></h3>
+        <div class="rq-header-grid">
+          <label>ספק / יצרן
+            <input type="text" id="rq-supplier" placeholder="שם ספק / יצרן" oninput="rqDraft.supplier=this.value;rqSaveDraft()"/>
+          </label>
+          <label>מזמין
+            <input type="text" id="rq-requester" placeholder="שם המזמין" oninput="rqDraft.requester=this.value;rqSaveDraft()"/>
+          </label>
+          <label style="grid-column:1/-1">הערות
+            <input type="text" id="rq-notes" placeholder="הערות לדרישה (אופציונלי)" oninput="rqDraft.notes=this.value;rqSaveDraft()"/>
+          </label>
+        </div>
+        <div class="rq-actions">
+          <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+            <label class="rq-toggle">
+              <input type="checkbox" id="rq-show-prices" checked onchange="rqDraft.show_prices=this.checked;rqSaveDraft()"/>
+              הצג מחירים בתצוגה מקדימה / PDF
+            </label>
+            <select id="rq-status-sel" class="rq-status-sel rq-status-draft"
+              onchange="rqChangeStatus(this.value)">
+              <option value="draft">טיוטה</option>
+              <option value="pending">ממתין לאישור</option>
+              <option value="approved">מאושרת</option>
+              <option value="done">בוצעה</option>
+            </select>
+          </div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap">
+            <button class="rq-btn rq-btn-ghost" onclick="rqNewDraft()">📄 דרישה חדשה</button>
+            <button class="rq-btn rq-btn-secondary" onclick="rqOpenPreview()">👁 תצוגה מקדימה</button>
+            <button class="rq-btn rq-btn-primary" onclick="rqSave()">💾 שמור</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- SKU picker -->
+      <div class="rq-card">
+        <h3>בחירת מק"טים</h3>
+        <div class="rq-toolbar">
+          <span class="rq-chip active" id="rq-chip-all" onclick="rqSetSource('all')">הכל</span>
+          <span class="rq-chip" id="rq-chip-warehouse" onclick="rqSetSource('warehouse')">רק מחסן</span>
+          <span class="rq-chip" id="rq-chip-pricelist" onclick="rqSetSource('pricelist')">רק מחירון</span>
+          <input class="rq-search" id="rq-search" type="search" placeholder='חיפוש מק"ט / תיאור / יצרן...' oninput="rqRender()"/>
+          <span id="rq-stats" class="rq-meta"></span>
+        </div>
+        <div class="rq-table-wrap">
+          <table class="rq-table">
+            <colgroup>
+              <col style="width:78px"/>
+              <col style="width:130px"/>
+              <col/>
+              <col style="width:68px"/>
+              <col style="width:68px"/>
+              <col style="width:90px"/>
+              <col style="width:125px"/>
+              <col style="width:100px"/>
+            </colgroup>
+            <thead>
+              <tr>
+                <th style="text-align:center">מקור</th>
+                <th>מק"ט</th>
+                <th>תיאור</th>
+                <th style="text-align:center">במלאי</th>
+                <th style="text-align:center">יח'</th>
+                <th style="text-align:left">מחיר</th>
+                <th style="text-align:center">כמות</th>
+                <th style="text-align:left">סה"כ</th>
+              </tr>
+            </thead>
+            <tbody id="rq-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- History -->
+      <div class="rq-card">
+        <h3>היסטוריית דרישות
+          <button class="rq-btn rq-btn-ghost" style="float:left;font-size:.75rem;padding:4px 10px" onclick="rqLoadHistory().then(rqRenderHistory)">🔄 רענן</button>
+        </h3>
+        <div id="rq-history-wrap"></div>
+      </div>
+    </div>
   </section>
 
   <!-- ══ WAREHOUSE IMPORT MODAL ══ -->
@@ -2267,13 +2449,15 @@ function setView(v){
   document.getElementById('vt-warehouse').classList.toggle('active',v==='warehouse');
   document.getElementById('vt-docpack').classList.toggle('active',v==='docpack');
   document.getElementById('vt-pricelist').classList.toggle('active',v==='pricelist');
-  document.getElementById('list-view').style.display       =v==='list'?'':'none';
-  document.getElementById('kanban-view').style.display     =v==='kanban'?'':'none';
-  document.getElementById('catalog-view').style.display    =v==='catalog'?'':'none';
-  document.getElementById('warehouse-view').style.display  =v==='warehouse'?'':'none';
-  document.getElementById('docpack-view').style.display    =v==='docpack'?'':'none';
-  document.getElementById('pricelist-view').style.display  =v==='pricelist'?'':'none';
-  const _hideExtra=v==='catalog'||v==='pricelist'||v==='warehouse'||v==='docpack';
+  document.getElementById('vt-requisition').classList.toggle('active',v==='requisition');
+  document.getElementById('list-view').style.display        =v==='list'?'':'none';
+  document.getElementById('kanban-view').style.display      =v==='kanban'?'':'none';
+  document.getElementById('catalog-view').style.display     =v==='catalog'?'':'none';
+  document.getElementById('warehouse-view').style.display   =v==='warehouse'?'':'none';
+  document.getElementById('docpack-view').style.display     =v==='docpack'?'':'none';
+  document.getElementById('pricelist-view').style.display   =v==='pricelist'?'':'none';
+  document.getElementById('requisition-view').style.display =v==='requisition'?'':'none';
+  const _hideExtra=v==='catalog'||v==='pricelist'||v==='warehouse'||v==='docpack'||v==='requisition';
   document.getElementById('sec-charts').style.display      =v==='list'?'':'none';
   document.getElementById('sec-stats').style.display       =_hideExtra?'none':'';
   document.getElementById('sec-done').style.display        =_hideExtra?'none':'';
@@ -2283,6 +2467,10 @@ function setView(v){
   else if(v==='warehouse'){renderWarehouse();ensureWarehouseLoaded().then(()=>renderWarehouse());}
   else if(v==='docpack'){renderDocPack();ensureDocPacksLoaded().then(()=>renderDocPack());}
   else if(v==='pricelist') renderPriceList();
+  else if(v==='requisition'){
+    rqRender();
+    Promise.all([ensureWarehouseLoaded(), rqLoadHistory()]).then(()=>rqRender());
+  }
   else renderList();
 }
 
@@ -4178,7 +4366,7 @@ async function _dsfSyncCatalog(){
 
 function _applyViewPermissions(){
   if(_userSections===null) return; // admin — no restrictions
-  ['list','kanban','catalog','pricelist','warehouse','docpack'].forEach(s=>{
+  ['list','kanban','catalog','pricelist','warehouse','docpack','requisition'].forEach(s=>{
     const btn=document.getElementById('vt-'+s);
     if(btn) btn.style.display=_userSections.includes(s)?'':'none';
   });
@@ -7249,6 +7437,595 @@ dpExportWord = async function(){
   }catch(e){alert('שגיאה: '+e.message);}
   finally{if(btn){btn.disabled=false;btn.textContent='⬇ ייצוא Word';}}
 };
+// ════════════════════════════════════════════════════════════
+
+// ═══════════════════════════════════════════════════════════════════
+// ══  PURCHASE REQUISITION (דרישת רכש)                            ══
+// ═══════════════════════════════════════════════════════════════════
+
+const RQ_DRAFT_KEY='afkon_rq_draft';
+let rqDraft = (function(){
+  try{
+    const raw=localStorage.getItem(RQ_DRAFT_KEY);
+    if(raw){
+      const o=JSON.parse(raw);
+      if(o && typeof o==='object'){
+        return Object.assign({
+          id:null, req_number:null,
+          supplier:'', requester:'', notes:'',
+          show_prices:true,
+          status:'draft',
+          qtys:{},          // { "warehouse:SKU" | "pricelist:MFR||MODEL" : qty }
+        }, o);
+      }
+    }
+  }catch{}
+  return { id:null, req_number:null, supplier:'', requester:'', notes:'',
+           show_prices:true, status:'draft', qtys:{} };
+})();
+let rqSourceFilter='all'; // 'all' | 'warehouse' | 'pricelist'
+let rqHistory=[];
+let _rqEsc=(s)=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
+function rqSaveDraft(){
+  try{ localStorage.setItem(RQ_DRAFT_KEY, JSON.stringify(rqDraft)); }catch{}
+  rqUpdateMeta();
+}
+
+function rqNotesSync(){
+  // Notes is now a plain input — nothing extra to sync
+}
+
+const _RQ_STATUS_LBL={draft:'טיוטה',pending:'ממתין לאישור',approved:'מאושרת',done:'בוצעה'};
+const _RQ_STATUS_CLS={draft:'draft',pending:'pending',approved:'approved',done:'done'};
+
+function rqSyncStatusUI(){
+  const sel=document.getElementById('rq-status-sel');
+  if(!sel) return;
+  const st=rqDraft.status||'draft';
+  sel.value=st;
+  sel.className='rq-status-sel rq-status-'+st;
+  // Disable transition if not yet saved
+  sel.disabled=!(rqDraft.id);
+  sel.title=rqDraft.id?'':'שמור את הדרישה קודם לשינוי סטטוס';
+}
+
+async function rqChangeStatus(newStatus){
+  if(!rqDraft.id){ alert('שמור את הדרישה תחילה, ואז תוכל לשנות את הסטטוס.'); rqSyncStatusUI(); return; }
+  try{
+    const r=await fetch('/api/requisitions/'+encodeURIComponent(rqDraft.id)+'/status',{
+      method:'PATCH',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({status:newStatus}),
+    });
+    if(!r.ok){ const j=await r.json().catch(()=>({})); throw new Error(j.error||'שגיאה'); }
+    rqDraft.status=newStatus;
+    rqSaveDraft();
+    rqSyncStatusUI();
+    rqLoadHistory().then(rqRenderHistory);
+    const _t=document.createElement('div');
+    _t.style.cssText='position:fixed;bottom:28px;left:50%;transform:translateX(-50%);background:#276749;color:#fff;padding:10px 24px;border-radius:20px;font-size:.88rem;font-weight:700;z-index:9999;box-shadow:0 4px 20px rgba(0,0,0,.18);direction:rtl';
+    _t.textContent='סטטוס עודכן ל-'+(_RQ_STATUS_LBL[newStatus]||newStatus)+' ✅';
+    document.body.appendChild(_t); setTimeout(()=>_t.remove(),3000);
+  }catch(e){
+    alert('שגיאה בעדכון סטטוס: '+e.message);
+    rqSyncStatusUI();
+  }
+}
+
+function rqUpdateMeta(){
+  const el=document.getElementById('rq-meta-line');
+  if(!el) return;
+  if(rqDraft.id && rqDraft.req_number){
+    const stLbl=_RQ_STATUS_LBL&&_RQ_STATUS_LBL[rqDraft.status||'draft']||'טיוטה';
+    el.textContent=`נטען: ${rqDraft.req_number} · ${stLbl}`;
+  } else {
+    el.textContent='דרישה חדשה — לא נשמרה';
+  }
+}
+
+function rqKey(source, sku){ return source+':'+sku; }
+function _rqSafeId(key){ return key.replace(/[^a-zA-Z0-9]/g,'_'); }
+
+function rqAllRows(){
+  // Unified list: warehouse + pricelist (PRICE_LIST_DATA + plImported)
+  const rows=[];
+  // Warehouse
+  for(const w of (whItems||[])){
+    if(!w||!w.sku) continue;
+    rows.push({
+      source:'warehouse',
+      sku:String(w.sku),
+      desc:String(w.desc||''),
+      unit:String(w.unit||'יח'),
+      qtyOnHand:+w.qty||0,
+      price:+w.cost||0,
+      cur:w.cur||'ILS',
+      mfr:'',
+      key:rqKey('warehouse', String(w.sku)),
+    });
+  }
+  // Pricelist (effective values)
+  try{
+    const all=getAllPlData();
+    for(const p of all){
+      if(!p||!p.model) continue;
+      const ep=getPlEffective(p);
+      rows.push({
+        source:'pricelist',
+        sku:String(ep.model||p.model),
+        desc:String(ep.desc||p.desc||''),
+        unit:'יח',
+        qtyOnHand:null,
+        price:+ep.price||0,
+        cur:ep.cur||'ILS',
+        mfr:String(ep.mfr||p.mfr||''),
+        key:rqKey('pricelist', _plKey(p.mfr,p.model)),
+      });
+    }
+  }catch{}
+  return rows;
+}
+
+function rqSetSource(s){
+  rqSourceFilter=s;
+  document.getElementById('rq-chip-all').classList.toggle('active',s==='all');
+  document.getElementById('rq-chip-warehouse').classList.toggle('active',s==='warehouse');
+  document.getElementById('rq-chip-pricelist').classList.toggle('active',s==='pricelist');
+  rqRender();
+}
+
+function rqQty(key){ return +rqDraft.qtys[key] || 0; }
+function rqChangeQty(key, delta){
+  const nxt=Math.max(0,Math.min(9999, rqQty(key)+delta));
+  if(nxt===0) delete rqDraft.qtys[key]; else rqDraft.qtys[key]=nxt;
+  rqSaveDraft();
+  const sid=_rqSafeId(key);
+  const inp=document.getElementById('rq-qty-'+sid);
+  if(inp){ inp.value=nxt; inp.classList.toggle('qty-active', nxt>0); }
+  _rqUpdateRowTotal(key);
+  _rqUpdateStats();
+}
+function rqSetQty(key, val){
+  const nxt=Math.max(0,Math.min(9999, parseInt(val)||0));
+  if(nxt===0) delete rqDraft.qtys[key]; else rqDraft.qtys[key]=nxt;
+  rqSaveDraft();
+  const sid=_rqSafeId(key);
+  const inp=document.getElementById('rq-qty-'+sid);
+  if(inp){ inp.value=nxt; inp.classList.toggle('qty-active', nxt>0); }
+  _rqUpdateRowTotal(key);
+  _rqUpdateStats();
+}
+
+function _rqRowPriceIls(row){
+  if(!row || !row.price) return 0;
+  if(row.cur==='USD') return row.price*plUsdRate;
+  if(row.cur==='EUR') return row.price*plEurRate;
+  return row.price;
+}
+
+function _rqUpdateRowTotal(key){
+  const rows=rqAllRows();
+  const row=rows.find(r=>r.key===key);
+  if(!row) return;
+  const sid=_rqSafeId(key);
+  const cell=document.getElementById('rq-sub-'+sid);
+  if(!cell) return;
+  const qty=rqQty(key);
+  if(qty<=0 || !row.price){ cell.innerHTML='<span style="color:#cbd5e0">—</span>'; return; }
+  const ils=_rqRowPriceIls(row)*qty;
+  cell.innerHTML=`<b>₪${Math.round(ils).toLocaleString('he-IL')}</b>`;
+}
+
+function _rqUpdateStats(){
+  const el=document.getElementById('rq-stats');
+  if(!el) return;
+  let cnt=0, totalIls=0;
+  const rows=rqAllRows();
+  const byKey=new Map(rows.map(r=>[r.key,r]));
+  for(const [k,q] of Object.entries(rqDraft.qtys)){
+    if(!q) continue;
+    cnt++;
+    const r=byKey.get(k);
+    if(r && r.price) totalIls += _rqRowPriceIls(r)*q;
+  }
+  el.textContent = cnt
+    ? `${cnt} פריטים · סה"כ ₪${Math.round(totalIls).toLocaleString('he-IL')} (לפני מע"מ)`
+    : '';
+}
+
+function rqRender(){
+  // Sync header form fields from draft
+  const sup=document.getElementById('rq-supplier');
+  const req=document.getElementById('rq-requester');
+  const nts=document.getElementById('rq-notes');
+  const sp =document.getElementById('rq-show-prices');
+  if(sup && sup.value!==rqDraft.supplier)  sup.value=rqDraft.supplier||'';
+  if(req && req.value!==rqDraft.requester) req.value=rqDraft.requester||'';
+  if(nts && nts.value!==rqDraft.notes){    nts.value=rqDraft.notes||''; }
+  if(sp)  sp.checked = rqDraft.show_prices !== false;
+  rqSyncStatusUI();
+  rqUpdateMeta();
+
+  const q=(document.getElementById('rq-search')?.value||'').trim().toLowerCase();
+  let rows=rqAllRows();
+  if(rqSourceFilter!=='all') rows=rows.filter(r=>r.source===rqSourceFilter);
+  if(q){
+    rows=rows.filter(r=>
+      r.sku.toLowerCase().includes(q) ||
+      r.desc.toLowerCase().includes(q) ||
+      (r.mfr||'').toLowerCase().includes(q)
+    );
+  }
+  // Selected rows first, then by source then by sku
+  rows.sort((a,b)=>{
+    const qa=rqQty(a.key)>0?0:1, qb=rqQty(b.key)>0?0:1;
+    if(qa!==qb) return qa-qb;
+    if(a.source!==b.source) return a.source.localeCompare(b.source);
+    return a.sku.localeCompare(b.sku);
+  });
+
+  // Cap rendered rows to keep the DOM light — selected always survive
+  const MAX_ROWS=400;
+  const selected=rows.filter(r=>rqQty(r.key)>0);
+  let display=rows;
+  if(rows.length>MAX_ROWS){
+    const others=rows.filter(r=>rqQty(r.key)<=0).slice(0, MAX_ROWS - selected.length);
+    display=[...selected, ...others];
+  }
+
+  const tbody=document.getElementById('rq-tbody');
+  if(!tbody) return;
+  if(!display.length){
+    tbody.innerHTML=`<tr><td colspan="8" class="rq-empty">לא נמצאו פריטים — נסה לסנן או לייבא מלאי/מחירון 🔍</td></tr>`;
+  } else {
+    tbody.innerHTML=display.map(r=>{
+      const sid=_rqSafeId(r.key);
+      const qty=rqQty(r.key);
+      const isWh=r.source==='warehouse';
+      const badge=isWh
+        ?'<span class="rq-src-badge rq-src-warehouse">מחסן</span>'
+        :'<span class="rq-src-badge rq-src-pricelist">מחירון</span>';
+      let priceCell='<span style="color:#cbd5e0">—</span>';
+      if(r.price>0){
+        const ils=_rqRowPriceIls(r);
+        if(r.cur==='USD')      priceCell=`<span style="color:#718096;font-size:.72rem">$${r.price.toFixed(2)}</span><br>₪${Math.round(ils).toLocaleString('he-IL')}`;
+        else if(r.cur==='EUR') priceCell=`<span style="color:#718096;font-size:.72rem">€${r.price.toFixed(2)}</span><br>₪${Math.round(ils).toLocaleString('he-IL')}`;
+        else                   priceCell=`₪${Math.round(ils).toLocaleString('he-IL')}`;
+      }
+      const subInit=qty>0&&r.price
+        ?`<b>₪${Math.round(_rqRowPriceIls(r)*qty).toLocaleString('he-IL')}</b>`
+        :'<span style="color:#cbd5e0">—</span>';
+      const desc=_rqEsc(r.desc) || '<span style="color:#cbd5e0">—</span>';
+      const mfr=isWh?'':(r.mfr?`<span style="color:#94a3b8;font-size:.72rem">${_rqEsc(r.mfr)} · </span>`:'');
+      const stockCell = isWh
+        ? (r.qtyOnHand > 0
+            ? `<b style="color:#166534">${r.qtyOnHand}</b>`
+            : `<span style="color:#dc2626">0</span>`)
+        : `<span style="color:#cbd5e0">—</span>`;
+      return `<tr>
+        <td style="text-align:center">${badge}</td>
+        <td><code style="font-size:.78rem">${_rqEsc(r.sku)}</code></td>
+        <td>${mfr}${desc}</td>
+        <td style="text-align:center">${stockCell}</td>
+        <td style="text-align:center;color:#64748b">${_rqEsc(r.unit||'')}</td>
+        <td style="text-align:left">${priceCell}</td>
+        <td>
+          <div class="rq-qty-wrap">
+            <button class="rq-qty-btn" onclick="rqChangeQty('${r.key.replace(/'/g,"\\'")}',-1)">−</button>
+            <input class="rq-qty-inp${qty>0?' qty-active':''}" id="rq-qty-${sid}" type="number" min="0" max="9999"
+                   value="${qty}" onchange="rqSetQty('${r.key.replace(/'/g,"\\'")}',this.value)"/>
+            <button class="rq-qty-btn" onclick="rqChangeQty('${r.key.replace(/'/g,"\\'")}',1)">+</button>
+          </div>
+        </td>
+        <td id="rq-sub-${sid}" style="text-align:left">${subInit}</td>
+      </tr>`;
+    }).join('');
+    if(rows.length>MAX_ROWS){
+      tbody.innerHTML += `<tr><td colspan="8" class="rq-empty">מציג ${display.length} מתוך ${rows.length} — צמצם בחיפוש לראות יותר</td></tr>`;
+    }
+  }
+  _rqUpdateStats();
+  rqRenderHistory();
+}
+
+// ── History panel ──
+async function rqLoadHistory(){
+  try{
+    const r=await fetch('/api/requisitions');
+    if(!r.ok) throw new Error('failed');
+    const j=await r.json();
+    rqHistory=Array.isArray(j.items)?j.items:[];
+  }catch{ rqHistory=[]; }
+  return rqHistory;
+}
+
+function rqRenderHistory(){
+  const wrap=document.getElementById('rq-history-wrap');
+  if(!wrap) return;
+  if(!rqHistory.length){
+    wrap.innerHTML='<div class="rq-empty">אין דרישות שמורות עדיין.</div>';
+    return;
+  }
+  wrap.innerHTML=`<table class="rq-hist-table">
+    <thead><tr>
+      <th>מס׳ דרישה</th><th>ספק / יצרן</th><th>מזמין</th>
+      <th style="text-align:center">סטטוס</th>
+      <th style="text-align:center">פריטים</th><th>נוצרה</th><th style="width:90px"></th>
+    </tr></thead><tbody>
+    ${rqHistory.map(h=>{
+      const d=h.created_at?new Date(h.created_at).toLocaleDateString('he-IL'):'';
+      const st=h.status||'draft';
+      const stLbl=_RQ_STATUS_LBL[st]||st;
+      const stCls=_RQ_STATUS_CLS[st]||'draft';
+      return `<tr class="rq-hist-row" onclick="rqLoadInto('${h.id}')">
+        <td><b>${_rqEsc(h.req_number)}</b></td>
+        <td>${_rqEsc(h.supplier||'—')}</td>
+        <td>${_rqEsc(h.requester||'—')}</td>
+        <td style="text-align:center"><span class="rq-hist-status ${stCls}">${stLbl}</span></td>
+        <td style="text-align:center">${h.item_count||0}</td>
+        <td>${d}</td>
+        <td><button class="rq-btn rq-btn-danger" style="font-size:.7rem;padding:3px 8px"
+          onclick="event.stopPropagation();rqDelete('${h.id}')">מחק</button></td>
+      </tr>`;
+    }).join('')}
+    </tbody></table>`;
+}
+
+async function rqLoadInto(id){
+  try{
+    const r=await fetch('/api/requisitions/'+encodeURIComponent(id));
+    if(!r.ok) throw new Error('failed');
+    const j=await r.json();
+    rqDraft = {
+      id: j.id,
+      req_number: j.req_number,
+      supplier: j.supplier||'',
+      requester: j.requester||'',
+      notes: j.notes||'',
+      show_prices: j.show_prices !== false,
+      status: j.status||'draft',
+      qtys: {},
+    };
+    for(const it of (j.items||[])){
+      let key;
+      if(it.source==='warehouse'){
+        key='warehouse:'+it.sku;
+      } else {
+        // pricelist key needs mfr||model; we stored sku as model and have no mfr.
+        // Try to find a row in current data that matches by model alone.
+        const match=getAllPlData().find(p=>String(p.model)===String(it.sku));
+        key='pricelist:'+_plKey(match?match.mfr:'', it.sku);
+      }
+      rqDraft.qtys[key]=+it.qty||0;
+    }
+    rqSaveDraft();
+    rqRender();
+  }catch(e){ alert('שגיאה בטעינה'); }
+}
+
+function rqNewDraft(){
+  if(Object.keys(rqDraft.qtys).length || rqDraft.supplier || rqDraft.requester || rqDraft.notes){
+    if(!confirm('לפתוח דרישה חדשה? הטיוטה הנוכחית תימחק.')) return;
+  }
+  rqDraft={ id:null, req_number:null, supplier:'', requester:'', notes:'',
+            show_prices:true, status:'draft', qtys:{} };
+  rqSaveDraft();
+  rqRender();
+}
+
+function rqBuildItems(){
+  const rows=rqAllRows();
+  const byKey=new Map(rows.map(r=>[r.key,r]));
+  const items=[];
+  for(const [k,q] of Object.entries(rqDraft.qtys)){
+    if(!q) continue;
+    const r=byKey.get(k);
+    if(!r){
+      // Row not in current dataset (warehouse/pricelist cleared) — reconstruct from key
+      const colonIdx=k.indexOf(':');
+      const src=colonIdx>=0?k.slice(0,colonIdx):k;
+      const keyRest=colonIdx>=0?k.slice(colonIdx+1):'';
+      let sku=keyRest, desc='';
+      if(src==='pricelist'){
+        // key = "mfr||model" — extract only the model for the SKU column
+        const pipeIdx=keyRest.indexOf('||');
+        if(pipeIdx>=0){ desc='('+keyRest.slice(0,pipeIdx)+')'; sku=keyRest.slice(pipeIdx+2); }
+      }
+      items.push({ source:src, sku, desc, qty:q, unit:'', price:0, cur:'ILS' });
+      continue;
+    }
+    items.push({
+      source: r.source,
+      sku:    r.sku,
+      desc:   r.desc,
+      mfr:    r.mfr||'',
+      qty:    q,
+      unit:   r.unit||'',
+      price:  r.price||0,
+      cur:    r.cur||'ILS',
+    });
+  }
+  return items;
+}
+
+async function rqSave(){
+  const items=rqBuildItems();
+  if(!items.length){ alert('בחר לפחות פריט אחד עם כמות לפני שמירה.'); return; }
+  const body={
+    supplier:  rqDraft.supplier,
+    requester: rqDraft.requester,
+    notes:     rqDraft.notes,
+    show_prices: rqDraft.show_prices !== false,
+    items,
+  };
+  try{
+    let r, j;
+    if(rqDraft.id){
+      r=await fetch('/api/requisitions/'+encodeURIComponent(rqDraft.id),
+        {method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body)});
+      if(!r.ok) throw new Error('save failed');
+    } else {
+      r=await fetch('/api/requisitions',
+        {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body)});
+      if(!r.ok) throw new Error('save failed');
+      j=await r.json();
+      rqDraft.id=j.id;
+      rqDraft.req_number=j.req_number;
+      rqSaveDraft();
+    }
+    await rqLoadHistory();
+    rqRender();
+    alert('נשמר: '+(rqDraft.req_number||''));
+  }catch(e){ alert('שגיאה בשמירה'); }
+}
+
+async function rqDelete(id){
+  if(!confirm('למחוק את הדרישה?')) return;
+  try{
+    const r=await fetch('/api/requisitions/'+encodeURIComponent(id),{method:'DELETE'});
+    if(!r.ok) throw new Error('failed');
+    if(rqDraft.id===id){
+      rqDraft.id=null; rqDraft.req_number=null; rqSaveDraft();
+    }
+    await rqLoadHistory();
+    rqRender();
+  }catch{ alert('שגיאה במחיקה'); }
+}
+
+// ── Preview + Print ──
+function rqOpenPreview(){
+  const items=rqBuildItems();
+  if(!items.length){ alert('בחר לפחות פריט אחד עם כמות לפני תצוגה מקדימה.'); return; }
+  const esc=_rqEsc;
+  const showPrices = rqDraft.show_prices !== false;
+  const today = new Date().toLocaleDateString('he-IL');
+  const reqNumber = rqDraft.req_number || '—';
+  const statusLbl = _RQ_STATUS_LBL[rqDraft.status] || rqDraft.status || 'טיוטה';
+
+  // Group totals by currency (pre-VAT)
+  const totals={}; // cur -> sum
+  let totalIlsEquiv=0;
+  for(const it of items){
+    const sub=it.qty*(+it.price||0);
+    if(sub>0){
+      totals[it.cur]=(totals[it.cur]||0)+sub;
+      // also accumulate an ILS-equivalent
+      let ils=sub;
+      if(it.cur==='USD') ils=sub*plUsdRate;
+      else if(it.cur==='EUR') ils=sub*plEurRate;
+      totalIlsEquiv+=ils;
+    }
+  }
+
+  // Items table
+  const colHeads = showPrices
+    ? '<th>מק"ט</th><th>תיאור</th><th>יח׳</th><th>כמות</th><th>מחיר יח׳</th><th>סה"כ</th>'
+    : '<th>מק"ט</th><th>תיאור</th><th>יח׳</th><th>כמות</th>';
+  const colspan = showPrices?6:4;
+
+  const rowsHtml = items.map(it=>{
+    const srcLbl = it.source==='warehouse'?'מחסן':'מחירון';
+    const priceTxt = (()=>{
+      if(!it.price) return '—';
+      const sym = it.cur==='USD'?'$':(it.cur==='EUR'?'€':'₪');
+      return `${sym}${(+it.price).toLocaleString('he-IL',{minimumFractionDigits:0,maximumFractionDigits:2})}`;
+    })();
+    const subTxt = (()=>{
+      if(!it.price) return '—';
+      const sub=it.qty*it.price;
+      const sym = it.cur==='USD'?'$':(it.cur==='EUR'?'€':'₪');
+      return `${sym}${sub.toLocaleString('he-IL',{minimumFractionDigits:0,maximumFractionDigits:2})}`;
+    })();
+    const priceCells = showPrices
+      ? `<td>${priceTxt}</td><td><b>${subTxt}</b></td>`
+      : '';
+    const descCell = it.source==='pricelist' && it.mfr
+      ? `<span style="color:#6b7280;font-size:8pt">${esc(it.mfr)} · </span>${esc(it.desc||'')}`
+      : esc(it.desc||'');
+    return `<tr>
+      <td><code style="font-size:8.5pt">${esc(it.sku)}</code><span class="rq-prev-src">${srcLbl}</span></td>
+      <td class="txt-r">${descCell}</td>
+      <td>${esc(it.unit||'')}</td>
+      <td><b>${it.qty}</b></td>
+      ${priceCells}
+    </tr>`;
+  }).join('');
+
+  // Totals
+  let totalsHtml='';
+  if(showPrices){
+    const lines=[];
+    for(const [cur, sum] of Object.entries(totals)){
+      const sym = cur==='USD'?'$':(cur==='EUR'?'€':'₪');
+      lines.push(`<div class="row">סה"כ ${cur}: ${sym}${sum.toLocaleString('he-IL',{minimumFractionDigits:0,maximumFractionDigits:2})}</div>`);
+    }
+    if(Object.keys(totals).length>1 || (totals.USD||totals.EUR)){
+      lines.push(`<div class="row" style="border-top:1px solid #cbd5e0;margin-top:4px;padding-top:4px">שווי כולל בש"ח (לפי שערים נוכחיים): ₪${Math.round(totalIlsEquiv).toLocaleString('he-IL')}</div>`);
+    }
+    totalsHtml=`<div class="rq-prev-totals">${lines.join('')}</div>`;
+  }
+
+  const vatBanner = showPrices
+    ? `<div class="rq-prev-vat">⚠ כל המחירים בדרישה זו הם <b>לפני מע"מ</b></div>`
+    : '';
+
+  const html = `
+    <div class="rq-prev-head">
+      <img src="/logo.png" alt="לוגו" class="rq-prev-logo"
+        onerror="this.onerror=null;this.src='logo.png'"/>
+      <div class="rq-prev-title">
+        <h1>דרישת רכש</h1>
+        <div class="sub">Purchase Requisition</div>
+      </div>
+      <div class="rq-prev-meta">
+        <div><b>מס׳ דרישה:</b><br>${esc(reqNumber)}</div>
+        <div style="margin-top:4px"><b>תאריך:</b><br>${esc(today)}</div>
+        <div style="margin-top:4px"><b>סטטוס:</b><br>${esc(statusLbl)}</div>
+      </div>
+    </div>
+    <table class="rq-prev-info">
+      <tr><td class="l">ספק / יצרן</td><td>${esc(rqDraft.supplier||'—')}</td>
+          <td class="l">מזמין</td><td>${esc(rqDraft.requester||'—')}</td>
+          <td class="l" style="white-space:nowrap">הערות</td>
+          <td style="max-width:180px;overflow:hidden;font-size:${rqDraft.notes&&rqDraft.notes.length>60?'8.5pt':'10pt'};line-height:1.35;max-height:38px">${esc((rqDraft.notes||'').slice(0,120)+(rqDraft.notes&&rqDraft.notes.length>120?'…':''))||'—'}</td>
+      </tr>
+    </table>
+    ${rqDraft.notes&&rqDraft.notes.length>60?`<div style="font-size:8.5pt;color:#64748b;margin-bottom:8px;white-space:pre-wrap;line-height:1.5"><b>הערות מלאות:</b> ${esc(rqDraft.notes)}</div>`:''}
+    <table class="rq-prev-items">
+      <thead><tr>${colHeads}</tr></thead>
+      <tbody>${rowsHtml || `<tr><td colspan="${colspan}" style="padding:12px;color:#94a3b8">אין פריטים</td></tr>`}</tbody>
+    </table>
+    ${totalsHtml}
+    ${vatBanner}
+    <div class="rq-prev-foot">אפקון בקרה ואוטומציה · נוצר אוטומטית במערכת ניהול הפרויקטים</div>
+  `;
+
+  const modal=document.createElement('div');
+  modal.className='rq-preview-overlay';
+  modal.id='rq-preview-overlay';
+  modal.innerHTML=`
+    <div class="rq-preview-toolbar">
+      <div style="display:flex;align-items:center;gap:10px">
+        <button onclick="rqClosePreview()" style="background:#4a5568;color:#fff;border:none;padding:6px 14px;border-radius:6px;cursor:pointer;font-size:.88rem;font-weight:600">✕ סגור</button>
+        <h3>תצוגה מקדימה — ${esc(reqNumber)}</h3>
+      </div>
+      <button onclick="window.print()" style="background:#1d4ed8;color:#fff;border:none;padding:7px 18px;border-radius:6px;cursor:pointer;font-size:.88rem;font-weight:700">🖨 הדפס / שמור כ-PDF</button>
+    </div>
+    <div class="rq-preview-body">
+      <div class="rq-preview-page">${html}</div>
+    </div>`;
+  document.body.appendChild(modal);
+  document.body.style.overflow='hidden';
+  modal._keyHandler=e=>{ if(e.key==='Escape') rqClosePreview(); };
+  document.addEventListener('keydown', modal._keyHandler);
+}
+function rqClosePreview(){
+  const el=document.getElementById('rq-preview-overlay');
+  if(el){ if(el._keyHandler) document.removeEventListener('keydown', el._keyHandler); el.remove(); }
+  document.body.style.overflow='';
+}
+
 // ════════════════════════════════════════════════════════════
 
 function renderPriceList(){
