@@ -1019,7 +1019,9 @@ async function dsfManualDownload() {
   try {
     const r = await api('POST', '/api/admin/ds-finder/manual', { model, manufacturer: mfr, url });
     if (r.ok) {
-      msgEl.textContent = '✅ נשמר בהצלחה';
+      msgEl.textContent = r.foundViaSearch
+        ? `✅ נשמר (הלינק המקורי לא עבד — נמצא דרך חיפוש אוטומטי)`
+        : '✅ נשמר בהצלחה';
       msgEl.style.color = '#10b981';
       document.getElementById('dsf-manual-model').value = '';
       document.getElementById('dsf-manual-mfr').value   = '';

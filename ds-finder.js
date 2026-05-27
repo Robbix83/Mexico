@@ -647,23 +647,53 @@ function getStatus() {
 function pauseWorker()  { _workerPaused = true;  console.log('[ds-finder] Worker paused'); }
 function resumeWorker() { _workerPaused = false; console.log('[ds-finder] Worker resumed'); }
 
-// Download a PDF from a user-supplied URL and save it immediately (bypasses queue order)
+// Mark a queue item as found (best-effort — won't throw)
+function _markQueueItemFound(model, savedPath) {
+  try {
+    const rows = db.listDsQueueActive(9999);
+    const row = rows.find(r => r.model === model);
+    if (row) db.markDsQueueFound(row.id, savedPath);
+  } catch { /* best-effort */ }
+}
+
+// Download a PDF from a user-supplied URL and save it immediately (bypasses queue order).
+// If the supplied URL fails (auth wall, bot block, wrong content), automatically falls back
+// to a DuckDuckGo search for "<model>.PDF" and tries those URLs.
 async function downloadFromUrl(model, manufacturer, url) {
   if (!model || !manufacturer || !url) {
     return { success: false, error: 'model, manufacturer and url are required' };
   }
   try {
+    // 1. Try the user-supplied URL first
     const buf = await _fetchPdf(url, 30000);
-    if (!buf) return { success: false, error: 'URL did not return a valid PDF (no %PDF magic bytes or < 1 KB)' };
-    const savedPath = _safeSave(manufacturer, model, buf);
-    // Mark queue item found if it exists
-    try {
-      const rows = db.listDsQueue(null, 9999);
-      const row = rows.find(r => r.model === model);
-      if (row) db.markDsQueueFound(row.id, savedPath);
-    } catch { /* queue update is best-effort */ }
-    console.log(`[ds-finder] ✅ manual download: ${manufacturer}/${model} <- ${url.slice(0, 80)}`);
-    return { success: true, path: savedPath };
+    if (buf) {
+      const savedPath = _safeSave(manufacturer, model, buf);
+      _markQueueItemFound(model, savedPath);
+      console.log(`[ds-finder] ✅ manual: ${manufacturer}/${model} <- ${url.slice(0, 80)}`);
+      return { success: true, path: savedPath };
+    }
+
+    // 2. User URL returned non-PDF (auth wall, HTML, etc.) — try DDG search automatically
+    console.log(`[ds-finder] manual URL returned no PDF for ${model}, trying DDG search...`);
+    const searchUrls = await _searchPdfUrls(model, 5);
+    for (const sUrl of searchUrls) {
+      if (sUrl === url) continue; // don't retry the same URL
+      try {
+        const sBuf = await _fetchPdf(sUrl, 20000);
+        if (sBuf) {
+          const savedPath = _safeSave(manufacturer, model, sBuf);
+          _markQueueItemFound(model, savedPath);
+          console.log(`[ds-finder] ✅ manual DDG fallback: ${manufacturer}/${model} <- ${sUrl.slice(0, 80)}`);
+          return { success: true, path: savedPath, foundViaSearch: true, searchUrl: sUrl };
+        }
+      } catch { /* try next */ }
+    }
+
+    // 3. Everything failed — explain why in Hebrew
+    return {
+      success: false,
+      error: 'הכתובת לא החזירה PDF תקין (ייתכן שהאתר דורש התחברות, או שחסם גישה אוטומטית). גם חיפוש אוטומטי לא מצא קובץ. נסה לינק ישיר מאתר היצרן הרשמי.',
+    };
   } catch (e) {
     return { success: false, error: e.message };
   }
