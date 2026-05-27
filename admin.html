@@ -727,6 +727,10 @@ const DSF_SOURCE_LABELS = {
   pricelist:'מחירון', warehouse:'מחסן', catalog:'קטלוג'
 };
 
+// Which manufacturers are currently enabled (checked) — drives table filter.
+// null = show all; Set = show only these.
+let _dsfEnabledMfrs = null;
+
 let _dsfItems = [];
 
 let _dsfPollTimer    = null;
@@ -891,6 +895,14 @@ function _dsfRenderMfrChips(mfrs) {
       </span>
     </label>`;
   }).join('');
+
+  // Update the table filter: when some manufacturers are disabled, hide their rows
+  const enabledSet = new Set(mfrs.filter(m => m.enabled !== 0).map(m => m.manufacturer));
+  const allEnabled = enabledSet.size === mfrs.length;
+  _dsfEnabledMfrs = allEnabled ? null : enabledSet;
+
+  // Re-render table immediately so unchecking a chip filters the view at once
+  if (_dsfItems.length) _dsfRenderTable(_dsfItems);
 }
 
 async function dsfToggleMfr(manufacturer, enabled) {
@@ -921,11 +933,20 @@ function _dsfRenderStats(s) {
 
 function _dsfRenderTable(items) {
   const tbody = document.getElementById('dsf-tbody');
-  if (!items.length) {
-    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:20px;color:#10b981;font-weight:600">✅ כל הדאטה שיטס נמצאו — אין פריטים ממתינים</td></tr>';
+
+  // Apply manufacturer filter (driven by which chips are checked)
+  const visible = _dsfEnabledMfrs
+    ? items.filter(it => _dsfEnabledMfrs.has(it.manufacturer))
+    : items;
+
+  if (!visible.length) {
+    const msg = _dsfEnabledMfrs
+      ? '✅ אין פריטים ממתינים ליצרנים המסומנים'
+      : '✅ כל הדאטה שיטס נמצאו — אין פריטים ממתינים';
+    tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;padding:20px;color:#10b981;font-weight:600">${msg}</td></tr>`;
     return;
   }
-  tbody.innerHTML = items.slice(0, 200).map(it => {
+  tbody.innerHTML = visible.slice(0, 200).map(it => {
     const color  = DSF_STATUS_COLORS[it.status]  || '#718096';
     const sLabel = DSF_STATUS_LABELS[it.status]  || it.status;
     const src    = DSF_SOURCE_LABELS[it.source]  || it.source;
