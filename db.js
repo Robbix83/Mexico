@@ -329,6 +329,10 @@ const stmts = {
     ORDER BY created_at DESC
     LIMIT ?
   `),
+  resetDsQueueErrors: db.prepare(`
+    UPDATE ds_queue SET next_retry_at=datetime('now')
+    WHERE status='error'
+  `),
   // Per-manufacturer stats + enabled status (joined)
   listDsFinderManufacturers: db.prepare(`
     SELECT
@@ -476,6 +480,7 @@ module.exports = {
   listDsFinderManufacturers: () => stmts.listDsFinderManufacturers.all(),
   setDsFinderSetting: (manufacturer, enabled) =>
     stmts.setDsFinderSetting.run(manufacturer, enabled ? 1 : 0),
+  resetDsQueueErrors: () => stmts.resetDsQueueErrors.run(),
 
   // User join requests
   createUserRequest:   (firstName, lastName, email, phone, roleTitle, division) =>

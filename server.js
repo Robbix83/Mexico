@@ -1013,6 +1013,13 @@ app.put('/api/admin/ds-finder/manufacturers/:mfr', requireAdmin, (req, res) => {
   res.json({ ok: true, manufacturer: mfr, enabled });
 });
 
+// Reset backoff: set next_retry_at=now for all error items so they get processed on next run
+app.post('/api/admin/ds-finder/reset-errors', requireAdmin, (req, res) => {
+  const info = db.resetDsQueueErrors();
+  db.logAudit(req.user.id, req.user.username, 'ds_finder_reset', `Reset ${info.changes} error items`, getClientIp(req), '');
+  res.json({ ok: true, count: info.changes });
+});
+
 // Catalog sync: browser sends catalog items missing datasheets
 app.post('/api/admin/ds-finder/catalog', requireAdmin, dsfCatalogLimiter, (req, res) => {
   const { items } = req.body || {};

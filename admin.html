@@ -180,8 +180,13 @@ tr:hover td{background:#f8fafc}
       </div>
     </div>
 
-    <!-- Status message -->
-    <div id="dsf-msg" style="font-size:.8rem;color:#64748b;min-height:18px;margin-bottom:12px;direction:rtl"></div>
+    <!-- Status message + reset-errors button -->
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;direction:rtl">
+      <div id="dsf-msg" style="font-size:.8rem;color:#64748b;flex:1;min-height:18px"></div>
+      <button class="btn btn-sm" id="dsf-reset-btn"
+              style="font-size:.75rem;background:#fff7ed;color:#c2410c;border-color:#fed7aa;white-space:nowrap"
+              onclick="dsfResetErrors()">🔁 נסה שוב את כל השגיאות</button>
+    </div>
 
     <!-- Recent items table -->
     <div style="overflow-x:auto">
@@ -194,6 +199,7 @@ tr:hover td{background:#f8fafc}
             <th style="padding:7px 10px;text-align:right;border-bottom:2px solid #e2e8f0">סטטוס</th>
             <th style="padding:7px 10px;text-align:right;border-bottom:2px solid #e2e8f0">ניסיונות</th>
             <th style="padding:7px 10px;text-align:right;border-bottom:2px solid #e2e8f0">עדכון אחרון</th>
+            <th style="padding:7px 10px;text-align:center;border-bottom:2px solid #e2e8f0" title="הכנס לינק ידני">🔗</th>
           </tr>
         </thead>
         <tbody id="dsf-tbody">
@@ -203,7 +209,7 @@ tr:hover td{background:#f8fafc}
     </div>
 
     <!-- Manual PDF URL download -->
-    <div style="margin-top:22px;padding:14px 16px;border:1.5px dashed #bfdbfe;border-radius:10px;background:#f8fbff;direction:rtl">
+    <div id="dsf-manual-section" style="margin-top:22px;padding:14px 16px;border:1.5px dashed #bfdbfe;border-radius:10px;background:#f8fbff;direction:rtl">
       <div style="font-weight:700;color:#1a2a4a;margin-bottom:10px;font-size:.88rem">📎 הורד PDF ידנית — הדבק לינק ישיר לקובץ</div>
       <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
         <input id="dsf-manual-model" placeholder="מודל (DS-2CD2143G2-I)"
@@ -908,7 +914,7 @@ function _dsfRenderStats(s) {
 function _dsfRenderTable(items) {
   const tbody = document.getElementById('dsf-tbody');
   if (!items.length) {
-    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:20px;color:#a0aec0">אין פריטים</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:20px;color:#a0aec0">אין פריטים</td></tr>';
     return;
   }
   tbody.innerHTML = items.slice(0, 200).map(it => {
@@ -916,13 +922,20 @@ function _dsfRenderTable(items) {
     const sLabel = DSF_STATUS_LABELS[it.status]  || it.status;
     const src    = DSF_SOURCE_LABELS[it.source]  || it.source;
     const date   = it.last_attempt ? fmtDate(it.last_attempt) : '—';
-    return `<tr data-model="${esc(it.model||'')}" style="border-bottom:1px solid #f1f5f9">
-      <td style="padding:6px 10px">${esc(it.manufacturer||'')}</td>
-      <td style="padding:6px 10px;font-family:monospace;font-size:.75rem">${esc(it.model||'')}</td>
+    const mEsc   = esc(it.model||'');
+    const mfrEsc = esc(it.manufacturer||'');
+    return `<tr data-model="${mEsc}" style="border-bottom:1px solid #f1f5f9">
+      <td style="padding:6px 10px">${mfrEsc}</td>
+      <td style="padding:6px 10px;font-family:monospace;font-size:.75rem">${mEsc}</td>
       <td style="padding:6px 10px">${src}</td>
       <td class="dsf-status-cell" style="padding:6px 10px"><span style="color:${color};font-weight:600">${sLabel}</span></td>
       <td style="padding:6px 10px;text-align:center">${it.attempts||0}</td>
       <td style="padding:6px 10px;font-size:.72rem;color:#718096">${date}</td>
+      <td style="padding:4px 8px;text-align:center">
+        <button title="הכנס לינק PDF ידני" style="padding:2px 8px;font-size:.75rem;
+                background:#eff6ff;color:#1d4ed8;border:1px solid #bfdbfe;border-radius:5px;cursor:pointer"
+                onclick="dsfPrefillManual('${mEsc}','${mfrEsc}')">🔗</button>
+      </td>
     </tr>`;
   }).join('');
 }
@@ -998,6 +1011,35 @@ async function dsfManualDownload() {
   } finally {
     btn.disabled = false;
   }
+}
+
+async function dsfResetErrors() {
+  const btn = document.getElementById('dsf-reset-btn');
+  btn.disabled = true;
+  const msgEl = document.getElementById('dsf-msg');
+  try {
+    const r = await api('POST', '/api/admin/ds-finder/reset-errors');
+    if (r.ok) {
+      msgEl.textContent = `✅ ${r.count} פריטי שגיאה אופסו — יעובדו בסבב הבא`;
+      msgEl.style.color = '#10b981';
+      setTimeout(() => { msgEl.textContent = ''; msgEl.style.color = ''; dsfRefresh(); }, 4000);
+    }
+  } catch (e) {
+    msgEl.textContent = '❌ ' + e.message;
+    msgEl.style.color = '#ef4444';
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+function dsfPrefillManual(model, mfr) {
+  document.getElementById('dsf-manual-model').value = model;
+  document.getElementById('dsf-manual-mfr').value   = mfr;
+  document.getElementById('dsf-manual-url').value   = '';
+  document.getElementById('dsf-manual-msg').textContent = '';
+  const section = document.getElementById('dsf-manual-section');
+  if (section) section.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  setTimeout(() => document.getElementById('dsf-manual-url').focus(), 350);
 }
 
 // Hook into tab switch — start/stop live polling with the DS-Finder tab
