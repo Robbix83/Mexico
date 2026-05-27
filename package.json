@@ -22,7 +22,9 @@
     "pdf-to-img": "^6.1.0",
     "pizzip": "^3.1.7",
     "uuid": "^9.0.1",
-    "nodemailer": "^6.9.13"
+    "nodemailer": "^6.9.13",
+    "archiver": "^7.0.1",
+    "puppeteer": "^22.0.0"
   },
   "engines": {
     "node": "20.x"

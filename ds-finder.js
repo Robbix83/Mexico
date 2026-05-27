@@ -47,6 +47,7 @@ let _populateRunning = false;
 let _processRunning  = false;
 let _lastPopulateAt  = 0;
 let _lastProcessAt   = 0;
+let _puppeteerBusy   = false; // only one Chrome instance at a time
 
 // ── Manufacturer-SKU inference ────────────────────────────────────────────────
 function _inferMfr(sku) {
@@ -232,6 +233,105 @@ function _getDsHint(model) {
   return entry ? (entry.ds || '') : '';
 }
 
+// ── Puppeteer fallback for Hikvision ─────────────────────────────────────────
+// Used when all direct content/dam URL attempts fail.
+// Navigates to the Hikvision product page in a real browser and extracts the
+// actual download URL (which may be on assets.hikvision.com with an opaque ID).
+async function _hikvisionPuppeteer(model) {
+  if (_puppeteerBusy) return null; // don't stack Chrome instances
+
+  let puppeteerMod;
+  try { puppeteerMod = require('puppeteer'); }
+  catch { return null; } // package not installed
+
+  _puppeteerBusy = true;
+  let browser;
+  try {
+    browser = await puppeteerMod.launch({
+      headless: 'new',
+      args: [
+        '--no-sandbox',
+        '--disable-setuid-sandbox',
+        '--disable-dev-shm-usage', // use /tmp instead of /dev/shm (crucial for Render)
+        '--disable-gpu',
+        '--no-zygote',
+        '--single-process',        // reduces memory on constrained environments
+        '--disable-extensions',
+      ],
+      timeout: 30000,
+    });
+
+    const page = await browser.newPage();
+    await page.setUserAgent(BROWSER_UA);
+    page.setDefaultTimeout(20000);
+
+    // 1. Search for the product
+    const searchUrl = `https://www.hikvision.com/en/search/?q=${encodeURIComponent(model)}&active=Products`;
+    try {
+      await page.goto(searchUrl, { waitUntil: 'domcontentloaded', timeout: 25000 });
+    } catch { return null; }
+
+    // 2. Find the first specific product page link in the results
+    const productUrl = await page.evaluate(() => {
+      for (const a of document.querySelectorAll('a[href]')) {
+        const parts = a.href.split('/');
+        if (
+          a.href.includes('hikvision.com/en/products/') &&
+          parts.length >= 8 &&
+          !a.href.match(/\/products\/?$/)
+        ) {
+          return a.href;
+        }
+      }
+      return null;
+    });
+    if (!productUrl) { console.log(`[ds-finder] puppeteer: no product page for ${model}`); return null; }
+
+    // 3. Navigate to the product page
+    try {
+      await page.goto(productUrl, { waitUntil: 'domcontentloaded', timeout: 25000 });
+    } catch { return null; }
+
+    // 4. Click "Downloads" tab if present, then wait for tab content
+    const clickedTab = await page.evaluate(() => {
+      for (const el of document.querySelectorAll('a, button, [role="tab"], li, span')) {
+        if (/^downloads?$/i.test(el.textContent.trim())) { el.click(); return true; }
+      }
+      return false;
+    });
+    if (clickedTab) await new Promise(r => setTimeout(r, 2000));
+
+    // 5. Find a datasheet PDF link
+    const pdfUrl = await page.evaluate(() => {
+      for (const a of document.querySelectorAll('a[href]')) {
+        const href = a.href;
+        const text = a.textContent.toLowerCase();
+        // Direct assets CDN URL with opaque doc ID
+        if (href.includes('assets.hikvision.com') && href.includes('/doc/')) return href;
+        // content/dam PDF with "datasheet" in path or text
+        if (href.toLowerCase().endsWith('.pdf') &&
+            (href.toLowerCase().includes('datasheet') || text.includes('datasheet'))) {
+          return href;
+        }
+      }
+      return null;
+    });
+
+    if (!pdfUrl) { console.log(`[ds-finder] puppeteer: no PDF link found for ${model}`); return null; }
+    console.log(`[ds-finder] puppeteer found URL for ${model}: ${pdfUrl.slice(0, 90)}`);
+
+    // 6. Download via server-side fetch (CDN links are public)
+    return await _fetchPdf(pdfUrl, 30000);
+
+  } catch (e) {
+    console.error(`[ds-finder] puppeteer error for ${model}:`, e.message.slice(0, 120));
+    return null;
+  } finally {
+    _puppeteerBusy = false;
+    if (browser) { try { await browser.close(); } catch { } }
+  }
+}
+
 // ── Main download function ────────────────────────────────────────────────────
 async function downloadDatasheet(model, manufacturer, dsHint = '') {
   // Quick check: already on disk (could have been added by another run)
@@ -258,6 +358,19 @@ async function downloadDatasheet(model, manufacturer, dsHint = '') {
       }
     } catch (e) { /* try next */ }
   }
+
+  // Hikvision last resort: use headless browser to find the real download URL
+  if (mfr === 'hikvision') {
+    try {
+      const buf = await _hikvisionPuppeteer(model);
+      if (buf) {
+        const savedPath = _safeSave(manufacturer, model, buf);
+        console.log(`[ds-finder] ✅ ${manufacturer}/${model} via puppeteer`);
+        return { success: true, path: savedPath, url: 'puppeteer' };
+      }
+    } catch { /* puppeteer failed, fall through */ }
+  }
+
   return { success: false, path: null, error: `No PDF found (tried ${urls.length} URLs)` };
 }
 
@@ -327,7 +440,18 @@ async function processQueue(limit = 5) {
   let processed = 0, found = 0, failed = 0;
 
   try {
-    const items = db.listDsQueuePending(limit);
+    // Respect per-manufacturer enabled/disabled settings
+    const mfrSettings = db.listDsFinderManufacturers();
+    const disabledMfrs = new Set(
+      mfrSettings.filter(s => !s.enabled).map(s => (s.manufacturer || '').toLowerCase())
+    );
+
+    // Fetch a larger batch then filter out disabled manufacturers
+    const allPending = db.listDsQueuePending(limit * 4);
+    const items = allPending
+      .filter(it => !disabledMfrs.has((it.manufacturer || '').toLowerCase()))
+      .slice(0, limit);
+
     for (const item of items) {
       // Exceeded max attempts → give up
       if ((item.attempts || 0) >= MAX_ATTEMPTS) {

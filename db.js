@@ -108,6 +108,13 @@ db.exec(`
   CREATE UNIQUE INDEX IF NOT EXISTS idx_ds_queue_model_source ON ds_queue(model, source);
   CREATE INDEX IF NOT EXISTS idx_ds_queue_pending ON ds_queue(status, next_retry_at);
 
+  -- Per-manufacturer enabled/disabled setting for ds-finder --
+  CREATE TABLE IF NOT EXISTS ds_finder_settings (
+    manufacturer TEXT PRIMARY KEY,
+    enabled      INTEGER NOT NULL DEFAULT 1,
+    updated_at   TEXT    NOT NULL DEFAULT (datetime('now'))
+  );
+
   -- User join requests (public landing page form) --
   CREATE TABLE IF NOT EXISTS user_requests (
     id                   INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -322,6 +329,26 @@ const stmts = {
     ORDER BY created_at DESC
     LIMIT ?
   `),
+  // Per-manufacturer stats + enabled status (joined)
+  listDsFinderManufacturers: db.prepare(`
+    SELECT
+      q.manufacturer,
+      COALESCE(s.enabled, 1) AS enabled,
+      SUM(CASE WHEN q.status='found'     THEN 1 ELSE 0 END) AS found,
+      SUM(CASE WHEN q.status='pending'   THEN 1 ELSE 0 END) AS pending,
+      SUM(CASE WHEN q.status='not_found' THEN 1 ELSE 0 END) AS not_found,
+      SUM(CASE WHEN q.status='error'     THEN 1 ELSE 0 END) AS error,
+      COUNT(*) AS total
+    FROM ds_queue q
+    LEFT JOIN ds_finder_settings s ON LOWER(s.manufacturer) = LOWER(q.manufacturer)
+    GROUP BY q.manufacturer
+    ORDER BY total DESC
+  `),
+  setDsFinderSetting: db.prepare(`
+    INSERT INTO ds_finder_settings (manufacturer, enabled, updated_at)
+    VALUES (?, ?, datetime('now'))
+    ON CONFLICT(manufacturer) DO UPDATE SET enabled=excluded.enabled, updated_at=excluded.updated_at
+  `),
 
   // User join requests
   createUserRequest: db.prepare(`INSERT INTO user_requests
@@ -446,6 +473,9 @@ module.exports = {
   markDsQueueError:   (id, msg, nextRetryAt) => stmts.markDsQueueError.run(msg || null, nextRetryAt, id),
   listDsQueue: (status = null, limit = 200) =>
     stmts.listDsQueue.all(status, status, limit),
+  listDsFinderManufacturers: () => stmts.listDsFinderManufacturers.all(),
+  setDsFinderSetting: (manufacturer, enabled) =>
+    stmts.setDsFinderSetting.run(manufacturer, enabled ? 1 : 0),
 
   // User join requests
   createUserRequest:   (firstName, lastName, email, phone, roleTitle, division) =>

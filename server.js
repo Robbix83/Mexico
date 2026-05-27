@@ -964,6 +964,21 @@ app.post('/api/admin/ds-finder/run', requireAdmin, (req, res) => {
   res.json({ ok: true });
 });
 
+// Per-manufacturer settings: list with per-manufacturer stats
+app.get('/api/admin/ds-finder/manufacturers', requireAdmin, (_req, res) => {
+  res.json({ manufacturers: db.listDsFinderManufacturers() });
+});
+
+// Per-manufacturer settings: toggle enabled/disabled
+app.put('/api/admin/ds-finder/manufacturers/:mfr', requireAdmin, (req, res) => {
+  const mfr     = req.params.mfr;
+  const enabled = req.body.enabled !== false && req.body.enabled !== 0;
+  db.setDsFinderSetting(mfr, enabled);
+  db.logAudit(req.user.id, req.user.username, 'ds_finder_setting',
+    `${mfr}: ${enabled ? 'enabled' : 'disabled'}`, getClientIp(req), '');
+  res.json({ ok: true, manufacturer: mfr, enabled });
+});
+
 // Catalog sync: browser sends catalog items missing datasheets
 app.post('/api/admin/ds-finder/catalog', requireAdmin, dsfCatalogLimiter, (req, res) => {
   const { items } = req.body || {};
