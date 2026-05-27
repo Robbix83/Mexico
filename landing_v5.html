@@ -107,7 +107,7 @@
     /* ===== CARD ===== */
     .card {
       background: rgba(10,7,4,.92);
-      border: 1px solid rgba(201,162,39,.22);
+      border: 1px solid rgba(201,162,39,.32);
       border-radius: 22px;
       padding: 44px 44px 36px;
       max-width: 480px;
@@ -121,10 +121,12 @@
       align-items: center;
       animation: cardIn .9s cubic-bezier(.22,1,.36,1) both, goldBreath 6s ease-in-out 1s infinite, cardFloat 8s ease-in-out 1.5s infinite;
       box-shadow:
-        0 0 0 1px rgba(201,162,39,.08),
-        0 30px 90px rgba(0,0,0,.7),
-        0 0 80px rgba(201,162,39,.04),
-        inset 0 1px 0 rgba(201,162,39,.12);
+        0 0 0 1px rgba(201,162,39,.10),
+        0 0 18px  rgba(201,162,39,.13),
+        0 0 48px  rgba(201,162,39,.08),
+        0 0 100px rgba(201,162,39,.05),
+        0 30px 90px rgba(0,0,0,.65),
+        inset 0 1px 0 rgba(201,162,39,.18);
     }
     @keyframes cardIn {
       from { opacity: 0; transform: translateY(32px) scale(.97); }
@@ -133,17 +135,21 @@
     @keyframes goldBreath {
       0%,100% {
         box-shadow:
-          0 0 0 1px rgba(201,162,39,.08),
-          0 30px 90px rgba(0,0,0,.7),
-          0 0 80px rgba(201,162,39,.04),
-          inset 0 1px 0 rgba(201,162,39,.12);
+          0 0 0 1px rgba(201,162,39,.10),
+          0 0 18px  rgba(201,162,39,.13),
+          0 0 48px  rgba(201,162,39,.08),
+          0 0 100px rgba(201,162,39,.05),
+          0 30px 90px rgba(0,0,0,.65),
+          inset 0 1px 0 rgba(201,162,39,.18);
       }
       50% {
         box-shadow:
-          0 0 0 1px rgba(201,162,39,.18),
-          0 30px 90px rgba(0,0,0,.7),
-          0 0 120px rgba(201,162,39,.08),
-          inset 0 1px 0 rgba(201,162,39,.18);
+          0 0 0 1px rgba(201,162,39,.22),
+          0 0 22px  rgba(201,162,39,.22),
+          0 0 60px  rgba(201,162,39,.13),
+          0 0 130px rgba(201,162,39,.08),
+          0 30px 90px rgba(0,0,0,.65),
+          inset 0 1px 0 rgba(201,162,39,.26);
       }
     }
     @keyframes cardFloat {
@@ -635,24 +641,6 @@
       50%       { opacity: .2; }
     }
 
-    /* ===== CORNER BRACKETS ===== */
-    .corner {
-      position: absolute !important;
-      width: 20px;
-      height: 20px;
-      pointer-events: none;
-      z-index: 3;
-      opacity: 0;
-      animation: cornerReveal .6s ease 1.3s both !important;
-    }
-    @keyframes cornerReveal {
-      to { opacity: 1; }
-    }
-    .corner-tl { top: 13px;    left: 13px;    border-top:    1.5px solid rgba(201,162,39,.55); border-left:   1.5px solid rgba(201,162,39,.55); }
-    .corner-tr { top: 13px;    right: 13px;   border-top:    1.5px solid rgba(201,162,39,.55); border-right:  1.5px solid rgba(201,162,39,.55); }
-    .corner-bl { bottom: 13px; left: 13px;    border-bottom: 1.5px solid rgba(201,162,39,.55); border-left:   1.5px solid rgba(201,162,39,.55); }
-    .corner-br { bottom: 13px; right: 13px;   border-bottom: 1.5px solid rgba(201,162,39,.55); border-right:  1.5px solid rgba(201,162,39,.55); }
-
     /* ===== SECURITY SCAN LINE ===== */
     .card-scan {
       position: absolute !important;
@@ -763,11 +751,7 @@
       <div class="strip-item"><span class="strip-icon">🛡</span> גישה מאובטחת</div>
     </div>
 
-    <!-- Decorative: corner brackets + scan line (absolutely positioned, stagger overridden) -->
-    <span class="corner corner-tl" aria-hidden="true"></span>
-    <span class="corner corner-tr" aria-hidden="true"></span>
-    <span class="corner corner-bl" aria-hidden="true"></span>
-    <span class="corner corner-br" aria-hidden="true"></span>
+    <!-- Security scan line (absolutely positioned, stagger overridden) -->
     <div class="card-scan" aria-hidden="true"></div>
 
   </div><!-- /card -->
