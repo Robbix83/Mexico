@@ -7,6 +7,8 @@
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:'Segoe UI',system-ui,Arial,sans-serif;background:#f1f5f9;color:#1e293b;min-height:100vh}
+@keyframes dsf-pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.5;transform:scale(1.3)}}
+.dsf-dot-active{animation:dsf-pulse 1.2s ease-in-out infinite}
 
 /* Header */
 .header{background:#1a2a4a;color:#fff;padding:0 24px;display:flex;align-items:center;height:56px;gap:16px;position:sticky;top:0;z-index:100}
@@ -150,8 +152,14 @@ tr:hover td{background:#f8fafc}
   <div class="card">
     <div class="card-head">
       <h2>🔍 חיפוש דאטה שיטס חסרים</h2>
+      <!-- Live activity indicator -->
+      <span id="dsf-live-dot" style="display:none;align-items:center;gap:6px;font-size:.8rem;color:#10b981;font-weight:600">
+        <span id="dsf-dot" style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#10b981"></span>
+        <span id="dsf-live-text">פעיל</span>
+      </span>
+      <button class="btn btn-sm" id="dsf-pause-btn" style="display:none" onclick="dsfPauseResume()">⏸ השהה</button>
+      <button class="btn btn-sm" style="background:#f1f5f9;color:#475569" onclick="dsfRunNow()" id="dsf-run-btn">⚡ הרץ עכשיו</button>
       <button class="btn btn-sm" style="background:#f1f5f9;color:#475569" onclick="dsfRefresh()">🔄 רענן</button>
-      <button class="btn btn-primary btn-sm" onclick="dsfRunNow()" id="dsf-run-btn">▶ הפעל עכשיו</button>
     </div>
 
     <!-- Stats bar -->
@@ -192,6 +200,21 @@ tr:hover td{background:#f8fafc}
           <tr><td colspan="6" style="text-align:center;padding:20px;color:#a0aec0">לחץ על הטאב לטעינה</td></tr>
         </tbody>
       </table>
+    </div>
+
+    <!-- Manual PDF URL download -->
+    <div style="margin-top:22px;padding:14px 16px;border:1.5px dashed #bfdbfe;border-radius:10px;background:#f8fbff;direction:rtl">
+      <div style="font-weight:700;color:#1a2a4a;margin-bottom:10px;font-size:.88rem">📎 הורד PDF ידנית — הדבק לינק ישיר לקובץ</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+        <input id="dsf-manual-model" placeholder="מודל (DS-2CD2143G2-I)"
+               style="flex:2;min-width:140px;padding:6px 10px;border:1px solid #e2e8f0;border-radius:6px;font-size:.82rem">
+        <input id="dsf-manual-mfr"   placeholder="יצרן (Hikvision)"
+               style="flex:1;min-width:100px;padding:6px 10px;border:1px solid #e2e8f0;border-radius:6px;font-size:.82rem">
+        <input id="dsf-manual-url"   placeholder="https://www.hikvision.com/.../file.pdf"
+               style="flex:4;min-width:220px;padding:6px 10px;border:1px solid #e2e8f0;border-radius:6px;font-size:.82rem">
+        <button class="btn btn-primary btn-sm" onclick="dsfManualDownload()" id="dsf-manual-btn">⬇ הורד</button>
+      </div>
+      <div id="dsf-manual-msg" style="margin-top:8px;font-size:.8rem;min-height:18px"></div>
     </div>
   </div>
 </div>
@@ -692,6 +715,9 @@ const DSF_SOURCE_LABELS = {
 
 let _dsfItems = [];
 
+let _dsfPollTimer    = null;
+let _dsfCurrentModel = null; // track for table highlight
+
 async function dsfRefresh() {
   try {
     const [statusRes, listRes, mfrRes] = await Promise.all([
@@ -703,12 +729,111 @@ async function dsfRefresh() {
     const { items } = listRes.ok ? await listRes.json() : { items: [] };
     const { manufacturers } = mfrRes.ok ? await mfrRes.json() : { manufacturers: [] };
     _dsfItems = items || [];
+    _dsfCurrentModel = status.currentModel || null;
     _dsfRenderStats(status.stats || {});
+    _dsfRenderLiveIndicator(status);
     _dsfRenderTable(_dsfItems);
     _dsfRenderMfrChips(manufacturers || []);
   } catch (e) {
     document.getElementById('dsf-msg').textContent = 'שגיאה בטעינה: ' + e.message;
   }
+}
+
+// Lightweight poll — only fetches status (no full list reload)
+async function _dsfPollStatus() {
+  try {
+    const res = await fetch('/api/admin/ds-finder/status');
+    if (!res.ok) return;
+    const status = await res.json();
+    _dsfCurrentModel = status.currentModel || null;
+    _dsfRenderLiveIndicator(status);
+    // If currently processing, highlight the active row without re-rendering the whole table
+    if (_dsfCurrentModel) _dsfHighlightActiveRow(_dsfCurrentModel);
+    else _dsfClearRowHighlights();
+  } catch { /* ignore poll errors */ }
+}
+
+function _dsfStartPoll() {
+  if (_dsfPollTimer) return;
+  _dsfPollTimer = setInterval(_dsfPollStatus, 3000);
+}
+function _dsfStopPoll() {
+  if (_dsfPollTimer) { clearInterval(_dsfPollTimer); _dsfPollTimer = null; }
+}
+
+function _dsfRenderLiveIndicator(status) {
+  const dot      = document.getElementById('dsf-dot');
+  const liveDiv  = document.getElementById('dsf-live-dot');
+  const liveText = document.getElementById('dsf-live-text');
+  const pauseBtn = document.getElementById('dsf-pause-btn');
+  if (!dot) return;
+
+  const isActive = status.processRunning || !!status.currentModel;
+  const isPaused = status.paused;
+
+  // Dot color + animation
+  if (isPaused) {
+    dot.style.background = '#f59e0b';
+    dot.classList.remove('dsf-dot-active');
+  } else if (isActive) {
+    dot.style.background = '#10b981';
+    dot.classList.add('dsf-dot-active');
+  } else {
+    dot.style.background = '#10b981';
+    dot.classList.remove('dsf-dot-active');
+  }
+
+  // Label
+  if (isPaused) {
+    liveText.textContent = 'בהשהיה';
+    liveDiv.style.color  = '#f59e0b';
+  } else if (status.currentModel) {
+    liveText.textContent = `מחפש: ${status.currentModel}`;
+    liveDiv.style.color  = '#10b981';
+  } else if (isActive) {
+    liveText.textContent = 'פעיל';
+    liveDiv.style.color  = '#10b981';
+  } else {
+    liveText.textContent = status.workerRunning ? 'ממתין לסבב הבא' : 'לא פעיל';
+    liveDiv.style.color  = '#64748b';
+  }
+
+  liveDiv.style.display = 'flex';
+
+  // Pause/resume button
+  if (status.workerRunning) {
+    pauseBtn.style.display = '';
+    if (isPaused) {
+      pauseBtn.textContent = '▶ המשך';
+      pauseBtn.style.background = '#10b981';
+      pauseBtn.style.color = '#fff';
+      pauseBtn.style.borderColor = '#10b981';
+    } else {
+      pauseBtn.textContent = '⏸ השהה';
+      pauseBtn.style.background = '';
+      pauseBtn.style.color = '';
+      pauseBtn.style.borderColor = '';
+    }
+  } else {
+    pauseBtn.style.display = 'none';
+  }
+}
+
+function _dsfHighlightActiveRow(model) {
+  const rows = document.querySelectorAll('#dsf-tbody tr[data-model]');
+  rows.forEach(r => {
+    if (r.dataset.model === model) {
+      r.style.background = '#f0fdf4';
+      const statusCell = r.querySelector('.dsf-status-cell');
+      if (statusCell) statusCell.innerHTML = '<span style="color:#10b981;font-weight:700">⏳ מחפש...</span>';
+    } else {
+      r.style.background = '';
+    }
+  });
+}
+
+function _dsfClearRowHighlights() {
+  document.querySelectorAll('#dsf-tbody tr[data-model]').forEach(r => { r.style.background = ''; });
 }
 
 function _dsfRenderMfrChips(mfrs) {
@@ -780,11 +905,11 @@ function _dsfRenderTable(items) {
     const sLabel = DSF_STATUS_LABELS[it.status]  || it.status;
     const src    = DSF_SOURCE_LABELS[it.source]  || it.source;
     const date   = it.last_attempt ? fmtDate(it.last_attempt) : '—';
-    return `<tr style="border-bottom:1px solid #f1f5f9">
+    return `<tr data-model="${esc(it.model||'')}" style="border-bottom:1px solid #f1f5f9">
       <td style="padding:6px 10px">${esc(it.manufacturer||'')}</td>
       <td style="padding:6px 10px;font-family:monospace;font-size:.75rem">${esc(it.model||'')}</td>
       <td style="padding:6px 10px">${src}</td>
-      <td style="padding:6px 10px"><span style="color:${color};font-weight:600">${sLabel}</span></td>
+      <td class="dsf-status-cell" style="padding:6px 10px"><span style="color:${color};font-weight:600">${sLabel}</span></td>
       <td style="padding:6px 10px;text-align:center">${it.attempts||0}</td>
       <td style="padding:6px 10px;font-size:.72rem;color:#718096">${date}</td>
     </tr>`;
@@ -798,19 +923,82 @@ async function dsfRunNow() {
   try {
     const r = await api('POST', '/api/admin/ds-finder/run');
     document.getElementById('dsf-msg').textContent = r.ok ? 'הופעל! יתחיל לעבד בעוד כמה שניות.' : 'שגיאה';
+    _dsfStartPoll(); // begin live-status polling now that worker is active
     setTimeout(() => {
       dsfRefresh();
       document.getElementById('dsf-msg').textContent = '';
     }, 8000);
   } catch { document.getElementById('dsf-msg').textContent = 'שגיאת תקשורת'; }
-  finally { btn.disabled = false; btn.textContent = '▶ הפעל עכשיו'; }
+  finally { btn.disabled = false; btn.textContent = '⚡ הרץ עכשיו'; }
 }
 
-// Hook into tab switch
+async function dsfPauseResume() {
+  const btn = document.getElementById('dsf-pause-btn');
+  const isPaused = btn.textContent.includes('המשך');
+  const endpoint = isPaused ? '/api/admin/ds-finder/resume' : '/api/admin/ds-finder/pause';
+  btn.disabled = true;
+  try {
+    await api('POST', endpoint);
+    await _dsfPollStatus(); // refresh indicator immediately
+  } catch (e) {
+    document.getElementById('dsf-msg').textContent = 'שגיאה: ' + e.message;
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+async function dsfManualDownload() {
+  const model = (document.getElementById('dsf-manual-model').value || '').trim();
+  const mfr   = (document.getElementById('dsf-manual-mfr').value   || '').trim();
+  const url   = (document.getElementById('dsf-manual-url').value   || '').trim();
+  const msgEl = document.getElementById('dsf-manual-msg');
+  const btn   = document.getElementById('dsf-manual-btn');
+
+  if (!model || !mfr || !url) {
+    msgEl.textContent = '⚠️ יש למלא מודל, יצרן ו-URL';
+    msgEl.style.color = '#f59e0b';
+    return;
+  }
+  if (!url.startsWith('http')) {
+    msgEl.textContent = '⚠️ URL חייב להתחיל ב-https://';
+    msgEl.style.color = '#f59e0b';
+    return;
+  }
+
+  btn.disabled = true;
+  msgEl.textContent = 'מוריד...';
+  msgEl.style.color = '#6366f1';
+  try {
+    const r = await api('POST', '/api/admin/ds-finder/manual', { model, manufacturer: mfr, url });
+    if (r.ok) {
+      msgEl.textContent = '✅ נשמר בהצלחה';
+      msgEl.style.color = '#10b981';
+      document.getElementById('dsf-manual-model').value = '';
+      document.getElementById('dsf-manual-mfr').value   = '';
+      document.getElementById('dsf-manual-url').value   = '';
+      setTimeout(dsfRefresh, 800);
+    } else {
+      msgEl.textContent = '❌ ' + (r.error || 'שגיאה לא ידועה');
+      msgEl.style.color = '#ef4444';
+    }
+  } catch (e) {
+    msgEl.textContent = '❌ ' + e.message;
+    msgEl.style.color = '#ef4444';
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+// Hook into tab switch — start/stop live polling with the DS-Finder tab
 const _origSwitchTab = switchTab;
 window.switchTab = function(name, el) {
   _origSwitchTab(name, el);
-  if (name === 'dsfinder') dsfRefresh();
+  if (name === 'dsfinder') {
+    dsfRefresh();
+    _dsfStartPoll();
+  } else {
+    _dsfStopPoll();
+  }
 };
 
 // Close modals on background click

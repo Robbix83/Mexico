@@ -964,6 +964,40 @@ app.post('/api/admin/ds-finder/run', requireAdmin, (req, res) => {
   res.json({ ok: true });
 });
 
+// Pause the background worker (intervals keep running, processQueue no-ops)
+app.post('/api/admin/ds-finder/pause', requireAdmin, (req, res) => {
+  dsFinder.pauseWorker();
+  db.logAudit(req.user.id, req.user.username, 'ds_finder_pause', 'Worker paused', getClientIp(req), '');
+  res.json({ ok: true, paused: true });
+});
+
+// Resume the background worker
+app.post('/api/admin/ds-finder/resume', requireAdmin, (req, res) => {
+  dsFinder.resumeWorker();
+  db.logAudit(req.user.id, req.user.username, 'ds_finder_resume', 'Worker resumed', getClientIp(req), '');
+  res.json({ ok: true, paused: false });
+});
+
+// Manual URL download: admin provides model + manufacturer + PDF URL, download happens immediately
+app.post('/api/admin/ds-finder/manual', requireAdmin, async (req, res) => {
+  const { model, manufacturer, url } = req.body || {};
+  if (!model || !manufacturer || !url) {
+    return res.status(400).json({ error: 'model, manufacturer and url are required' });
+  }
+  try {
+    const result = await dsFinder.downloadFromUrl(model.trim(), manufacturer.trim(), url.trim());
+    if (result.success) {
+      db.logAudit(req.user.id, req.user.username, 'ds_finder_manual',
+        `${manufacturer}/${model}`, getClientIp(req), url);
+      res.json({ ok: true, path: result.path });
+    } else {
+      res.status(422).json({ ok: false, error: result.error });
+    }
+  } catch (e) {
+    res.status(500).json({ ok: false, error: e.message });
+  }
+});
+
 // Per-manufacturer settings: list with per-manufacturer stats
 app.get('/api/admin/ds-finder/manufacturers', requireAdmin, (_req, res) => {
   res.json({ manufacturers: db.listDsFinderManufacturers() });

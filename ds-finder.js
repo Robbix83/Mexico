@@ -48,6 +48,8 @@ let _processRunning  = false;
 let _lastPopulateAt  = 0;
 let _lastProcessAt   = 0;
 let _puppeteerBusy   = false; // only one Chrome instance at a time
+let _currentModel    = null;  // model currently being downloaded (shown in UI)
+let _workerPaused    = false; // pause gate — intervals keep running but processQueue no-ops
 
 // ── Manufacturer-SKU inference ────────────────────────────────────────────────
 function _inferMfr(sku) {
@@ -436,6 +438,7 @@ async function populateQueue() {
 // ── Process queue ─────────────────────────────────────────────────────────────
 async function processQueue(limit = 5) {
   if (_processRunning) return { processed: 0, found: 0, failed: 0 };
+  if (_workerPaused)   return { processed: 0, found: 0, failed: 0 };
   _processRunning = true;
   let processed = 0, found = 0, failed = 0;
 
@@ -453,6 +456,8 @@ async function processQueue(limit = 5) {
       .slice(0, limit);
 
     for (const item of items) {
+      if (_workerPaused) break; // respect mid-loop pause
+
       // Exceeded max attempts → give up
       if ((item.attempts || 0) >= MAX_ATTEMPTS) {
         db.markDsQueueNotFound(item.id);
@@ -460,6 +465,7 @@ async function processQueue(limit = 5) {
         continue;
       }
 
+      _currentModel = item.model; // expose to status API
       const result = await downloadDatasheet(
         item.model, item.manufacturer, _getDsHint(item.model)
       );
@@ -490,6 +496,7 @@ async function processQueue(limit = 5) {
     console.error('[ds-finder] processQueue error:', e.message);
   } finally {
     _processRunning = false;
+    _currentModel   = null;
   }
   return { processed, found, failed };
 }
@@ -525,7 +532,34 @@ function getStatus() {
     workerRunning:   _workerRunning,
     populateRunning: _populateRunning,
     processRunning:  _processRunning,
+    currentModel:    _currentModel,
+    paused:          _workerPaused,
   };
+}
+
+function pauseWorker()  { _workerPaused = true;  console.log('[ds-finder] Worker paused'); }
+function resumeWorker() { _workerPaused = false; console.log('[ds-finder] Worker resumed'); }
+
+// Download a PDF from a user-supplied URL and save it immediately (bypasses queue order)
+async function downloadFromUrl(model, manufacturer, url) {
+  if (!model || !manufacturer || !url) {
+    return { success: false, error: 'model, manufacturer and url are required' };
+  }
+  try {
+    const buf = await _fetchPdf(url, 30000);
+    if (!buf) return { success: false, error: 'URL did not return a valid PDF (no %PDF magic bytes or < 1 KB)' };
+    const savedPath = _safeSave(manufacturer, model, buf);
+    // Mark queue item found if it exists
+    try {
+      const rows = db.listDsQueue(null, 9999);
+      const row = rows.find(r => r.model === model);
+      if (row) db.markDsQueueFound(row.id, savedPath);
+    } catch { /* queue update is best-effort */ }
+    console.log(`[ds-finder] ✅ manual download: ${manufacturer}/${model} <- ${url.slice(0, 80)}`);
+    return { success: true, path: savedPath };
+  } catch (e) {
+    return { success: false, error: e.message };
+  }
 }
 
 // ── Worker start ──────────────────────────────────────────────────────────────
@@ -559,4 +593,7 @@ module.exports = {
   downloadDatasheet,
   addCatalogItems,
   getStatus,
+  pauseWorker,
+  resumeWorker,
+  downloadFromUrl,
 };
