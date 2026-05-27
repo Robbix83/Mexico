@@ -6,3 +6,22 @@ data/
 *.sqlite-shm
 npm-debug.log*
 .DS_Store
+
+# Local helper scripts (vendor data import / inspection — not part of the app)
+_inspect*.py
+inspect_excel.py
+download_hik_batch*.py
+download_batch*.ps1
+download_batch*.py
+hik_batch*_*.py
+hik_batch*_*.sh
+hik_missing_batch_*.json
+fix_hik_prices.py
+check_batch*.ps1
+cleanup_and_check.ps1
+avi_full.txt
+
+# Stale HTML snapshots
+old_dashboard.html
+new_dashboard_lf.html
+*old_dashboard.html
