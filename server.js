@@ -587,6 +587,139 @@ app.put('/api/warehouse', requireAdmin, (req, res) => {
   res.json({ ok: true, count: items.length });
 });
 
+// ── Purchase requisitions (דרישת רכש) ────────────────────────────────────────
+
+function parseReqItems(raw) {
+  try {
+    const a = JSON.parse(raw || '[]');
+    return Array.isArray(a) ? a : [];
+  } catch { return []; }
+}
+
+function normalizeReqItems(items) {
+  if (!Array.isArray(items)) return [];
+  return items
+    .filter(it => it && typeof it === 'object')
+    .map(it => ({
+      source: it.source === 'warehouse' ? 'warehouse' : 'pricelist',
+      sku:    String(it.sku  ?? '').trim(),
+      desc:   String(it.desc ?? '').trim(),
+      qty:    Math.max(0, Number(it.qty) || 0),
+      unit:   String(it.unit ?? '').trim(),
+      price:  Number(it.price) || 0,
+      cur:    String(it.cur  ?? '').trim() || 'ILS',
+    }))
+    .filter(it => it.sku && it.qty > 0);
+}
+
+const VALID_REQ_STATUSES = ['draft', 'pending', 'approved', 'done'];
+
+app.get('/api/requisitions', requireAuth, (_req, res) => {
+  const rows = db.listRequisitions().map(r => {
+    const items = parseReqItems(r.items_json);
+    return {
+      id:         r.id,
+      req_number: r.req_number,
+      supplier:   r.supplier,
+      requester:  r.requester,
+      show_prices: !!r.show_prices,
+      status:     r.status || 'draft',
+      created_at: r.created_at,
+      updated_at: r.updated_at,
+      created_by: r.created_by,
+      item_count: items.length,
+    };
+  });
+  res.json({ items: rows });
+});
+
+app.get('/api/requisitions/:id', requireAuth, (req, res) => {
+  const r = db.getRequisition(req.params.id);
+  if (!r) return res.status(404).json({ error: 'Not found' });
+  res.json({
+    id:          r.id,
+    req_number:  r.req_number,
+    supplier:    r.supplier,
+    requester:   r.requester,
+    notes:       r.notes,
+    items:       parseReqItems(r.items_json),
+    show_prices: !!r.show_prices,
+    status:      r.status || 'draft',
+    created_at:  r.created_at,
+    updated_at:  r.updated_at,
+    created_by:  r.created_by,
+  });
+});
+
+app.patch('/api/requisitions/:id/status', requireAuth, (req, res) => {
+  const existing = db.getRequisition(req.params.id);
+  if (!existing) return res.status(404).json({ error: 'Not found' });
+  const { status } = req.body || {};
+  if (!VALID_REQ_STATUSES.includes(status)) {
+    return res.status(400).json({ error: `Invalid status. Allowed: ${VALID_REQ_STATUSES.join(', ')}` });
+  }
+  db.updateRequisitionStatus(req.params.id, status);
+  db.logAudit(req.user.id, req.user.username, 'requisition_status',
+    `${existing.req_number}: ${existing.status || 'draft'} → ${status}`, getClientIp(req), '');
+  res.json({ ok: true });
+});
+
+app.post('/api/requisitions', requireAuth, (req, res) => {
+  const { supplier, requester, notes, items, show_prices, status } = req.body || {};
+  const normItems = normalizeReqItems(items);
+  const id = uuidv4();
+  const reqNumber = db.nextReqNumber();
+  try {
+    db.createRequisition({
+      id, reqNumber,
+      supplier:  supplier  ? String(supplier).trim()  : null,
+      requester: requester ? String(requester).trim() : null,
+      notes:     notes     ? String(notes).trim()     : null,
+      itemsJson: JSON.stringify(normItems),
+      showPrices: show_prices !== false,
+      status: VALID_REQ_STATUSES.includes(status) ? status : 'draft',
+      createdBy: req.user.username || null,
+    });
+    db.logAudit(req.user.id, req.user.username, 'requisition_create',
+      `${reqNumber} (${normItems.length} items)`, getClientIp(req), '');
+    res.json({ ok: true, id, req_number: reqNumber });
+  } catch (e) {
+    console.error('[requisitions] create failed:', e.message);
+    res.status(500).json({ error: 'Failed to create requisition' });
+  }
+});
+
+app.put('/api/requisitions/:id', requireAuth, (req, res) => {
+  const existing = db.getRequisition(req.params.id);
+  if (!existing) return res.status(404).json({ error: 'Not found' });
+  const { supplier, requester, notes, items, show_prices } = req.body || {};
+  const normItems = normalizeReqItems(items);
+  try {
+    db.updateRequisition(req.params.id, {
+      supplier:  supplier  ? String(supplier).trim()  : null,
+      requester: requester ? String(requester).trim() : null,
+      notes:     notes     ? String(notes).trim()     : null,
+      itemsJson: JSON.stringify(normItems),
+      showPrices: show_prices !== false,
+    });
+    db.logAudit(req.user.id, req.user.username, 'requisition_update',
+      `${existing.req_number} (${normItems.length} items)`, getClientIp(req), '');
+    res.json({ ok: true });
+  } catch (e) {
+    console.error('[requisitions] update failed:', e.message);
+    res.status(500).json({ error: 'Failed to update requisition' });
+  }
+});
+
+app.delete('/api/requisitions/:id', requireAuth, (req, res) => {
+  const existing = db.getRequisition(req.params.id);
+  if (!existing) return res.status(404).json({ error: 'Not found' });
+  db.deleteRequisition(req.params.id);
+  db.logAudit(req.user.id, req.user.username, 'requisition_delete',
+    existing.req_number, getClientIp(req), '');
+  res.json({ ok: true });
+});
+
 // ── Doc packs (תיק תיעוד) ─────────────────────────────────────────────────────
 
 // Multer for file uploads — destination = a staging dir, we move files post-validation.
@@ -1356,6 +1489,11 @@ app.get('/ds/*', requireAuth, (req, res) => {
   }
 
   res.sendFile(filePath);
+});
+
+// Public: logo served without auth (needed on landing page before login)
+app.get('/logo.png', (req, res) => {
+  res.sendFile(path.join(STATIC_DIR, 'logo.png'));
 });
 
 // Static assets (logo, etc.) — auth required

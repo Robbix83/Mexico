@@ -108,6 +108,22 @@ db.exec(`
   CREATE UNIQUE INDEX IF NOT EXISTS idx_ds_queue_model_source ON ds_queue(model, source);
   CREATE INDEX IF NOT EXISTS idx_ds_queue_pending ON ds_queue(status, next_retry_at);
 
+  -- Purchase requisitions (דרישת רכש) --
+  CREATE TABLE IF NOT EXISTS requisitions (
+    id           TEXT    PRIMARY KEY,
+    req_number   TEXT    NOT NULL,
+    supplier     TEXT,
+    requester    TEXT,
+    notes        TEXT,
+    items_json   TEXT    NOT NULL DEFAULT '[]',
+    show_prices  INTEGER NOT NULL DEFAULT 1,
+    created_at   TEXT    NOT NULL DEFAULT (datetime('now')),
+    updated_at   TEXT    NOT NULL DEFAULT (datetime('now')),
+    created_by   TEXT
+  );
+  CREATE INDEX IF NOT EXISTS idx_req_created  ON requisitions(created_at DESC);
+  CREATE INDEX IF NOT EXISTS idx_req_number   ON requisitions(req_number);
+
   -- User join requests (public landing page form) --
   CREATE TABLE IF NOT EXISTS user_requests (
     id                   INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -191,6 +207,11 @@ try {
 // Migration: add login_attempts column for lockout tracking
 try {
   db.exec("ALTER TABLE users ADD COLUMN login_attempts INTEGER NOT NULL DEFAULT 0");
+} catch(e) { /* column already exists — skip */ }
+
+// Migration: add status column to requisitions (draft/pending/approved/done)
+try {
+  db.exec("ALTER TABLE requisitions ADD COLUMN status TEXT NOT NULL DEFAULT 'draft'");
 } catch(e) { /* column already exists — skip */ }
 
 // Seed admin user from env vars if no users exist
@@ -323,6 +344,31 @@ const stmts = {
     LIMIT ?
   `),
 
+  // Requisitions
+  listRequisitions: db.prepare(`
+    SELECT id, req_number, supplier, requester, show_prices, status,
+           created_at, updated_at, created_by, items_json
+    FROM requisitions
+    ORDER BY created_at DESC
+  `),
+  getRequisition: db.prepare('SELECT * FROM requisitions WHERE id = ?'),
+  updateRequisitionStatus: db.prepare(`UPDATE requisitions SET status=?, updated_at=datetime('now') WHERE id=?`),
+  maxReqNumberForYear: db.prepare(
+    "SELECT MAX(req_number) AS m FROM requisitions WHERE req_number LIKE ?"
+  ),
+  insertRequisition: db.prepare(`INSERT INTO requisitions
+    (id, req_number, supplier, requester, notes, items_json, show_prices, status, created_by)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`),
+  updateRequisition: db.prepare(`UPDATE requisitions SET
+    supplier    = ?,
+    requester   = ?,
+    notes       = ?,
+    items_json  = ?,
+    show_prices = ?,
+    updated_at  = datetime('now')
+    WHERE id = ?`),
+  deleteRequisition: db.prepare('DELETE FROM requisitions WHERE id = ?'),
+
   // User join requests
   createUserRequest: db.prepare(`INSERT INTO user_requests
     (first_name, last_name, email, phone, role_title, division) VALUES (?, ?, ?, ?, ?, ?)`),
@@ -446,6 +492,38 @@ module.exports = {
   markDsQueueError:   (id, msg, nextRetryAt) => stmts.markDsQueueError.run(msg || null, nextRetryAt, id),
   listDsQueue: (status = null, limit = 200) =>
     stmts.listDsQueue.all(status, status, limit),
+
+  // Requisitions
+  listRequisitions: () => stmts.listRequisitions.all(),
+  getRequisition:   (id) => stmts.getRequisition.get(id),
+  nextReqNumber: () => {
+    const year = new Date().getFullYear();
+    const prefix = `REQ-${year}-`;
+    const row = stmts.maxReqNumberForYear.get(`${prefix}%`);
+    let seq = 1;
+    if (row && row.m) {
+      const tail = String(row.m).slice(prefix.length);
+      const n = parseInt(tail, 10);
+      if (!isNaN(n)) seq = n + 1;
+    }
+    return `${prefix}${String(seq).padStart(4, '0')}`;
+  },
+  createRequisition: ({ id, reqNumber, supplier, requester, notes, itemsJson, showPrices, status, createdBy }) =>
+    stmts.insertRequisition.run(
+      id, reqNumber,
+      supplier || null, requester || null, notes || null,
+      itemsJson || '[]', showPrices ? 1 : 0,
+      status || 'draft',
+      createdBy || null
+    ),
+  updateRequisitionStatus: (id, status) => stmts.updateRequisitionStatus.run(status, id),
+  updateRequisition: (id, { supplier, requester, notes, itemsJson, showPrices }) =>
+    stmts.updateRequisition.run(
+      supplier || null, requester || null, notes || null,
+      itemsJson || '[]', showPrices ? 1 : 0,
+      id
+    ),
+  deleteRequisition: (id) => stmts.deleteRequisition.run(id),
 
   // User join requests
   createUserRequest:   (firstName, lastName, email, phone, roleTitle, division) =>
