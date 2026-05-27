@@ -511,8 +511,29 @@ async function populateQueue() {
       }
     }
 
+    // Check if any previously-found items have had their file deleted from disk.
+    // If the datasheet can no longer be found, reset to pending so it gets re-downloaded.
+    let reset = 0;
+    try {
+      const foundItems = db.listDsQueue('found', 9999);
+      for (const item of foundItems) {
+        const onDisk = docpack.lookupDatasheet(item.model);
+        if (!onDisk) {
+          // Also check the stored path directly if lookup didn't find it
+          const pathOk = item.found_path && fs.existsSync(item.found_path);
+          if (!pathOk) {
+            db.resetDsQueueFoundItem(item.id);
+            reset++;
+          }
+        }
+      }
+      if (reset > 0) console.log(`[ds-finder] populateQueue: reset ${reset} found→pending (files missing)`);
+    } catch (e) {
+      console.warn('[ds-finder] found-items check error:', e.message);
+    }
+
     _lastPopulateAt = Date.now();
-    console.log(`[ds-finder] populateQueue: +${added} new items queued`);
+    console.log(`[ds-finder] populateQueue: +${added} new, ${reset} re-queued (missing files)`);
   } catch (e) {
     console.error('[ds-finder] populateQueue error:', e.message);
   } finally {

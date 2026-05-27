@@ -944,8 +944,17 @@ app.get('/api/admin/ds-finder/status', requireAdmin, (_req, res) => {
 
 // List queue items (most recent first, optional ?status= filter)
 app.get('/api/admin/ds-finder/list', requireAdmin, (req, res) => {
-  const status = req.query.status || null;
-  const items  = db.listDsQueue(status, 200);
+  // By default exclude 'found' items — they don't need attention.
+  // Pass ?status=found or ?status=all to include them.
+  const status = req.query.status;
+  let items;
+  if (status === 'all') {
+    items = db.listDsQueue(null, 2000);
+  } else if (status) {
+    items = db.listDsQueue(status, 500);
+  } else {
+    items = db.listDsQueueActive(500); // default: pending + error + not_found only
+  }
   res.json({ items });
 });
 

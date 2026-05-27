@@ -922,7 +922,7 @@ function _dsfRenderStats(s) {
 function _dsfRenderTable(items) {
   const tbody = document.getElementById('dsf-tbody');
   if (!items.length) {
-    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:20px;color:#a0aec0">אין פריטים</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:20px;color:#10b981;font-weight:600">✅ כל הדאטה שיטס נמצאו — אין פריטים ממתינים</td></tr>';
     return;
   }
   tbody.innerHTML = items.slice(0, 200).map(it => {

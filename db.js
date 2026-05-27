@@ -329,9 +329,21 @@ const stmts = {
     ORDER BY created_at DESC
     LIMIT ?
   `),
+  listDsQueueActive: db.prepare(`
+    SELECT * FROM ds_queue
+    WHERE status != 'found'
+    ORDER BY status ASC, created_at DESC
+    LIMIT ?
+  `),
   resetDsQueueErrors: db.prepare(`
     UPDATE ds_queue SET next_retry_at=datetime('now')
     WHERE status='error'
+  `),
+  resetDsQueueFoundItem: db.prepare(`
+    UPDATE ds_queue
+    SET status='pending', found_path=NULL, attempts=0,
+        next_retry_at=datetime('now'), error_msg=NULL
+    WHERE id=?
   `),
   // Per-manufacturer stats + enabled status (joined)
   listDsFinderManufacturers: db.prepare(`
@@ -480,7 +492,9 @@ module.exports = {
   listDsFinderManufacturers: () => stmts.listDsFinderManufacturers.all(),
   setDsFinderSetting: (manufacturer, enabled) =>
     stmts.setDsFinderSetting.run(manufacturer, enabled ? 1 : 0),
-  resetDsQueueErrors: () => stmts.resetDsQueueErrors.run(),
+  resetDsQueueErrors:    ()    => stmts.resetDsQueueErrors.run(),
+  listDsQueueActive:     (limit = 500) => stmts.listDsQueueActive.all(limit),
+  resetDsQueueFoundItem: (id)  => stmts.resetDsQueueFoundItem.run(id),
 
   // User join requests
   createUserRequest:   (firstName, lastName, email, phone, roleTitle, division) =>
