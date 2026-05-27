@@ -4,63 +4,264 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>אפקון — מערכת ניהול פרויקטים</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;600;700;800;900&display=swap" rel="stylesheet">
 <style>
   *{box-sizing:border-box;margin:0;padding:0}
+
   body{
     min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;
-    background:linear-gradient(135deg,#1a2a4a 0%,#2d4a7a 100%);
-    font-family:'Segoe UI',system-ui,Arial,sans-serif;padding:24px;
+    background:#04091a;font-family:'Heebo',system-ui,Arial,sans-serif;
+    padding:24px;overflow-x:hidden;position:relative;
   }
 
-  /* Hero card */
-  .hero{
-    background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.15);
-    border-radius:24px;padding:52px 48px 44px;max-width:520px;width:100%;
-    text-align:center;backdrop-filter:blur(12px);
+  /* Dot grid */
+  body::before{
+    content:'';position:fixed;inset:0;
+    background-image:radial-gradient(rgba(59,130,246,.09) 1px,transparent 1px);
+    background-size:36px 36px;z-index:0;pointer-events:none;
   }
-  .logo-wrap{margin-bottom:28px}
-  .logo-wrap img{height:56px}
+
+  /* Particle canvas */
+  #particles{position:fixed;inset:0;z-index:0;opacity:.65}
+
+  /* Orbs */
+  .bg-orbs{position:fixed;inset:0;z-index:0;overflow:hidden;pointer-events:none}
+  .orb{position:absolute;border-radius:50%;filter:blur(90px);animation:floatOrb linear infinite}
+  .orb-1{width:600px;height:600px;background:radial-gradient(circle,rgba(37,99,235,.5) 0%,transparent 70%);top:-180px;right:-160px;animation-duration:24s;animation-delay:0s}
+  .orb-2{width:480px;height:480px;background:radial-gradient(circle,rgba(109,40,217,.4) 0%,transparent 70%);bottom:-120px;left:-120px;animation-duration:30s;animation-delay:-10s}
+  .orb-3{width:380px;height:380px;background:radial-gradient(circle,rgba(6,182,212,.3) 0%,transparent 70%);top:40%;left:40%;animation-duration:22s;animation-delay:-15s}
+  .orb-4{width:320px;height:320px;background:radial-gradient(circle,rgba(16,185,129,.2) 0%,transparent 70%);bottom:15%;right:12%;animation-duration:36s;animation-delay:-6s}
+  @keyframes floatOrb{
+    0%  {transform:translate(0,0)   scale(1)}
+    25% {transform:translate(35px,-45px) scale(1.07)}
+    50% {transform:translate(-25px,35px) scale(.93)}
+    75% {transform:translate(45px,25px)  scale(1.09)}
+    100%{transform:translate(0,0)   scale(1)}
+  }
+
+  /* Page wrapper */
+  .page-content{position:relative;z-index:1;display:flex;flex-direction:column;align-items:center;width:100%}
+
+  /* ══ HERO CARD ══ */
+  .hero{
+    background:rgba(255,255,255,.06);
+    border:1px solid rgba(255,255,255,.1);
+    border-radius:28px;
+    padding:0 0 0;
+    max-width:530px;width:100%;
+    text-align:center;
+    backdrop-filter:blur(26px);-webkit-backdrop-filter:blur(26px);
+    box-shadow:
+      0 0 0 1px rgba(59,130,246,.22),
+      0 28px 80px rgba(0,0,0,.6),
+      0 0 140px rgba(59,130,246,.07),
+      inset 0 1px 0 rgba(255,255,255,.09);
+    position:relative;overflow:hidden;
+    animation:cardIn .7s cubic-bezier(.22,1,.36,1) both;
+  }
+
+  /* Animated gradient top accent bar */
+  .hero-accent{
+    height:3px;
+    background:linear-gradient(90deg,#06b6d4,#3b82f6,#8b5cf6,#ec4899,#3b82f6,#06b6d4);
+    background-size:400% 100%;
+    animation:accentFlow 5s linear infinite;
+  }
+  @keyframes accentFlow{0%{background-position:0% 0%}100%{background-position:400% 0%}}
+
+  /* Animated gradient border */
+  .hero::before{
+    content:'';position:absolute;inset:-1px;border-radius:29px;z-index:-1;
+    background:linear-gradient(135deg,rgba(59,130,246,.65),rgba(109,40,217,.3),rgba(6,182,212,.45),rgba(59,130,246,.65));
+    background-size:300% 300%;
+    animation:borderShimmer 7s linear infinite;
+    -webkit-mask:linear-gradient(#fff 0 0) content-box,linear-gradient(#fff 0 0);
+    -webkit-mask-composite:xor;
+    mask:linear-gradient(#fff 0 0) content-box,linear-gradient(#fff 0 0);
+    mask-composite:exclude;padding:1px;
+  }
+  @keyframes borderShimmer{
+    0%  {background-position:0%   50%}
+    50% {background-position:100% 50%}
+    100%{background-position:0%   50%}
+  }
+  @keyframes cardIn{
+    from{opacity:0;transform:translateY(34px) scale(.97)}
+    to  {opacity:1;transform:translateY(0)    scale(1)}
+  }
+
+  /* Card inner */
+  .hero-inner{padding:32px 48px 32px}
+
+  /* ── Live badge ── */
+  .live-badge{
+    display:inline-flex;align-items:center;gap:7px;
+    padding:6px 16px;
+    background:rgba(16,185,129,.1);
+    border:1px solid rgba(16,185,129,.28);
+    border-radius:50px;
+    color:#34d399;font-size:.72rem;font-weight:700;letter-spacing:.5px;
+    margin-bottom:22px;
+  }
+  .live-dot{
+    width:7px;height:7px;background:#10b981;border-radius:50%;
+    animation:livePulse 1.8s ease-in-out infinite;
+  }
+  @keyframes livePulse{
+    0%,100%{box-shadow:0 0 0 0 rgba(16,185,129,.6)}
+    50%    {box-shadow:0 0 0 7px rgba(16,185,129,.0)}
+  }
+
+  /* ── Logo ── */
+  .logo-wrap{margin-bottom:20px;position:relative;display:inline-block}
+  .logo-container{
+    position:relative;display:inline-flex;align-items:center;justify-content:center;
+    overflow:hidden;border-radius:16px;min-width:80px;min-height:80px;
+  }
+  .logo-wrap img{
+    height:70px;display:block;
+    filter:drop-shadow(0 4px 22px rgba(59,130,246,.65)) drop-shadow(0 0 40px rgba(6,182,212,.3));
+  }
   .logo-fallback{
-    width:72px;height:72px;border-radius:50%;background:linear-gradient(135deg,#4f86f7,#2d63d4);
+    width:82px;height:82px;border-radius:50%;
+    background:linear-gradient(135deg,#3b82f6,#2563eb);
     display:inline-flex;align-items:center;justify-content:center;
     font-size:1.5rem;font-weight:900;color:#fff;letter-spacing:-1px;
-    box-shadow:0 8px 24px rgba(79,134,247,.4);
+    animation:logoPulse 3.2s ease-in-out infinite;
   }
-  .tagline{font-size:.78rem;font-weight:600;color:#93c5fd;letter-spacing:2px;text-transform:uppercase;margin-bottom:14px}
-  h1{font-size:1.75rem;font-weight:800;color:#fff;margin-bottom:8px;line-height:1.2}
-  .sub{font-size:1rem;color:#93c5fd;margin-bottom:40px;font-weight:400}
+  @keyframes logoPulse{
+    0%,100%{box-shadow:0 8px 28px rgba(59,130,246,.55),0 0 0 0 rgba(59,130,246,.35)}
+    50%    {box-shadow:0 8px 28px rgba(59,130,246,.65),0 0 0 15px rgba(59,130,246,.0)}
+  }
 
-  /* Action buttons */
-  .actions{display:flex;flex-direction:column;gap:14px}
+  /* Scanning line over logo */
+  .scan-line{
+    position:absolute;inset:0;
+    background:linear-gradient(to bottom,
+      transparent 0%,
+      rgba(6,182,212,.0) 35%,
+      rgba(6,182,212,.6) 48%,
+      rgba(255,255,255,.3) 50%,
+      rgba(6,182,212,.6) 52%,
+      rgba(6,182,212,.0) 65%,
+      transparent 100%
+    );
+    height:40%;
+    animation:scanDown 3.2s ease-in-out infinite;
+    pointer-events:none;mix-blend-mode:screen;
+  }
+  @keyframes scanDown{
+    0%  {top:-40%;opacity:0}
+    8%  {opacity:1}
+    92% {opacity:1}
+    100%{top:140%;opacity:0}
+  }
+
+  /* ── Typography ── */
+  .tagline{
+    font-size:.68rem;font-weight:700;letter-spacing:4px;text-transform:uppercase;
+    margin-bottom:10px;
+    background:linear-gradient(90deg,#3b82f6,#06b6d4,#8b5cf6,#3b82f6);
+    background-size:300% 100%;
+    -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+    background-clip:text;
+    animation:textFlow 5s linear infinite;
+  }
+  @keyframes textFlow{0%{background-position:0% 50%}100%{background-position:300% 50%}}
+
+  h1{
+    font-size:2.6rem;font-weight:900;color:#fff;
+    margin-bottom:10px;line-height:1.1;
+    text-shadow:
+      0 0 8px  rgba(59,130,246,.9),
+      0 0 28px rgba(59,130,246,.55),
+      0 0 60px rgba(59,130,246,.28),
+      0 2px 40px rgba(0,0,0,.5);
+  }
+
+  .sub{
+    font-size:.9rem;color:rgba(255,255,255,.55);
+    margin-bottom:30px;font-weight:400;
+    min-height:1.4em;letter-spacing:.3px;
+  }
+  /* Blinking cursor on typewriter */
+  .sub::after{
+    content:'|';
+    animation:blink .85s step-end infinite;
+    color:#06b6d4;font-weight:300;margin-right:2px;
+  }
+  @keyframes blink{0%,100%{opacity:1}50%{opacity:0}}
+
+  /* ── Buttons ── */
+  .actions{display:flex;flex-direction:column;gap:13px}
+
   .btn-primary{
-    display:block;padding:15px 28px;background:#4f86f7;color:#fff;border:none;border-radius:12px;
-    font-size:1rem;font-weight:700;cursor:pointer;text-decoration:none;
-    transition:background .2s,transform .15s,box-shadow .2s;
-    box-shadow:0 4px 16px rgba(79,134,247,.45);
+    display:block;padding:16px 28px;
+    background:linear-gradient(135deg,#3b82f6 0%,#2563eb 55%,#1d4ed8 100%);
+    color:#fff;border:none;border-radius:14px;
+    font-size:1.05rem;font-weight:700;cursor:pointer;
+    text-decoration:none;font-family:inherit;
+    transition:transform .15s,box-shadow .2s,filter .2s;
+    box-shadow:0 4px 26px rgba(59,130,246,.6),inset 0 1px 0 rgba(255,255,255,.15);
+    position:relative;overflow:hidden;
   }
-  .btn-primary:hover{background:#3b73e5;transform:translateY(-1px);box-shadow:0 6px 20px rgba(79,134,247,.55)}
-  .btn-primary:active{transform:none}
+  .btn-primary::after{
+    content:'';position:absolute;top:0;left:-110%;width:55%;height:100%;
+    background:linear-gradient(90deg,transparent,rgba(255,255,255,.28),transparent);
+    transform:skewX(-20deg);
+    animation:shimmer 3.6s ease-in-out infinite;
+  }
+  @keyframes shimmer{0%{left:-110%}55%{left:160%}100%{left:160%}}
+  .btn-primary:hover{
+    transform:translateY(-3px);
+    box-shadow:0 12px 40px rgba(59,130,246,.75),inset 0 1px 0 rgba(255,255,255,.22);
+    filter:brightness(1.1);
+  }
+  .btn-primary:active{transform:translateY(0);filter:brightness(.97)}
+
   .btn-outline{
-    display:block;padding:14px 28px;background:rgba(255,255,255,.08);color:#e0ecff;
-    border:1.5px solid rgba(255,255,255,.25);border-radius:12px;
-    font-size:1rem;font-weight:600;cursor:pointer;text-decoration:none;
-    transition:background .2s,border-color .2s;
+    display:block;padding:15px 28px;
+    background:rgba(255,255,255,.06);color:rgba(255,255,255,.82);
+    border:1.5px solid rgba(255,255,255,.18);border-radius:14px;
+    font-size:1rem;font-weight:600;cursor:pointer;
+    text-decoration:none;font-family:inherit;
+    transition:background .2s,border-color .2s,transform .15s,box-shadow .2s;
   }
-  .btn-outline:hover{background:rgba(255,255,255,.14);border-color:rgba(255,255,255,.45)}
+  .btn-outline:hover{
+    background:rgba(255,255,255,.11);border-color:rgba(255,255,255,.38);
+    transform:translateY(-2px);box-shadow:0 6px 22px rgba(0,0,0,.32);
+  }
 
-  /* Footer */
-  .footer{margin-top:32px;font-size:.75rem;color:rgba(255,255,255,.35);text-align:center}
+  /* ── Bottom security strip ── */
+  .security-strip{
+    display:flex;align-items:center;justify-content:center;gap:14px;
+    padding:16px 24px;
+    border-top:1px solid rgba(255,255,255,.07);
+    margin-top:28px;
+    font-size:.7rem;color:rgba(255,255,255,.3);
+    font-weight:600;letter-spacing:.5px;
+  }
+  .sec-sep{width:3px;height:3px;background:rgba(255,255,255,.18);border-radius:50%}
 
-  /* ── Modal overlay ── */
+  /* ── Footer ── */
+  .footer{
+    margin-top:22px;font-size:.68rem;color:rgba(255,255,255,.2);
+    text-align:center;line-height:1.8;
+  }
+
+  /* ══ MODALS ══ */
   .modal-bg{
-    display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);
+    display:none;position:fixed;inset:0;background:rgba(0,0,0,.72);
     z-index:500;align-items:center;justify-content:center;padding:20px;
+    backdrop-filter:blur(6px);
   }
   .modal-bg.open{display:flex}
   .modal{
     background:#fff;border-radius:18px;padding:32px 32px 28px;
     width:480px;max-width:100%;max-height:90vh;overflow-y:auto;
-    box-shadow:0 24px 64px rgba(0,0,0,.3);animation:pop .18s ease;
+    box-shadow:0 24px 64px rgba(0,0,0,.35);animation:pop .18s ease;
   }
   @keyframes pop{from{transform:scale(.95);opacity:0}to{transform:scale(1);opacity:1}}
   .modal h3{font-size:1.1rem;font-weight:800;color:#1a2a4a;margin-bottom:6px}
@@ -71,36 +272,32 @@
     width:100%;padding:10px 13px;border:1.5px solid #d1d5db;border-radius:8px;
     font-size:.9rem;outline:none;transition:border-color .2s;font-family:inherit;
   }
-  .field input:focus,.field select:focus{border-color:#4f86f7}
+  .field input:focus,.field select:focus{border-color:#3b82f6}
   .field-row{display:grid;grid-template-columns:1fr 1fr;gap:14px}
   .modal-actions{display:flex;gap:10px;justify-content:flex-end;margin-top:22px;flex-wrap:wrap}
   .btn-cancel{
     padding:10px 20px;background:#f1f5f9;color:#475569;border:none;border-radius:8px;
-    font-size:.9rem;font-weight:600;cursor:pointer;
+    font-size:.9rem;font-weight:600;cursor:pointer;font-family:inherit;
   }
   .btn-submit{
-    padding:10px 24px;background:#4f86f7;color:#fff;border:none;border-radius:8px;
-    font-size:.9rem;font-weight:700;cursor:pointer;transition:background .2s;flex:1;
+    padding:10px 24px;background:#3b82f6;color:#fff;border:none;border-radius:8px;
+    font-size:.9rem;font-weight:700;cursor:pointer;transition:background .2s;flex:1;font-family:inherit;
   }
-  .btn-submit:hover{background:#3b73e5}
+  .btn-submit:hover{background:#2563eb}
   .btn-submit:disabled{background:#93c5fd;cursor:not-allowed}
   .err{
     background:#fef2f2;border:1px solid #fca5a5;color:#dc2626;
     border-radius:8px;padding:10px 14px;font-size:.82rem;margin-top:12px;display:none;
   }
   .err.show{display:block}
-
-  /* Success screen */
   .success{text-align:center;padding:20px 0}
   .success .icon{font-size:3.5rem;margin-bottom:16px}
   .success h4{font-size:1.1rem;font-weight:800;color:#1a2a4a;margin-bottom:8px}
   .success p{font-size:.88rem;color:#64748b;line-height:1.6}
   .success .close-btn{
-    margin-top:22px;padding:10px 30px;background:#4f86f7;color:#fff;border:none;
-    border-radius:8px;font-size:.9rem;font-weight:700;cursor:pointer;
+    margin-top:22px;padding:10px 30px;background:#3b82f6;color:#fff;border:none;
+    border-radius:8px;font-size:.9rem;font-weight:700;cursor:pointer;font-family:inherit;
   }
-
-  /* Password toggle */
   .pw-wrap{position:relative}
   .pw-wrap input{padding-left:40px}
   .pw-toggle{
@@ -108,10 +305,8 @@
     background:none;border:none;cursor:pointer;padding:4px;color:#9ca3af;
     line-height:1;transition:color .2s;outline:none;
   }
-  .pw-toggle:hover{color:#4f86f7}
+  .pw-toggle:hover{color:#3b82f6}
   .pw-toggle svg{width:18px;height:18px;display:block}
-
-  /* Login modal steps */
   .login-step{display:none}
   .login-step.active{display:block}
   .change-title{font-size:1rem;font-weight:700;color:#b45309;text-align:center;margin-bottom:8px}
@@ -123,39 +318,73 @@
     background:#eff6ff;border:1px solid #bfdbfe;color:#1d4ed8;
     border-radius:8px;padding:10px 14px;font-size:.78rem;margin-bottom:18px;line-height:1.6;
   }
+
+  @media(max-width:480px){
+    .hero-inner{padding:28px 24px 28px}
+    h1{font-size:2rem}
+    .security-strip{gap:10px}
+  }
 </style>
 </head>
 <body>
 
-<!-- Hero -->
-<div class="hero">
-  <div class="logo-wrap">
-    <img src="/logo.png" alt="אפקון"
-         onerror="this.style.display='none';document.getElementById('logo-fb').style.display='inline-flex'">
-    <div class="logo-fallback" id="logo-fb" style="display:none">אפ</div>
-  </div>
-  <div class="tagline">אפקון בקרה ואוטומציה</div>
-  <h1>ברוכים הבאים</h1>
-  <p class="sub">מערכת ניהול פרויקטים</p>
-  <div class="actions">
-    <button class="btn-primary" onclick="openLoginModal()">🔐 כניסה למערכת</button>
-    <button class="btn-outline" onclick="openRequestModal()">📋 בקשה לפתיחת משתמש</button>
-  </div>
+<canvas id="particles"></canvas>
+<div class="bg-orbs">
+  <div class="orb orb-1"></div>
+  <div class="orb orb-2"></div>
+  <div class="orb orb-3"></div>
+  <div class="orb orb-4"></div>
 </div>
 
-<div class="footer">
-  © אפקון בקרה ואוטומציה · כל הזכויות שמורות
+<div class="page-content">
+  <div class="hero">
+    <div class="hero-accent"></div>
+
+    <div class="hero-inner">
+      <div class="live-badge">
+        <span class="live-dot"></span>
+        מערכת פעילה
+      </div>
+
+      <div class="logo-wrap">
+        <div class="logo-container">
+          <img src="/logo.png" alt="אפקון"
+               onerror="this.style.display='none';document.getElementById('logo-fb').style.display='inline-flex'">
+          <div class="logo-fallback" id="logo-fb" style="display:none">אפ</div>
+          <div class="scan-line"></div>
+        </div>
+      </div>
+
+      <div class="tagline">אפקון בקרה ואוטומציה</div>
+      <h1>ברוכים הבאים</h1>
+      <p class="sub" id="typewriter"></p>
+
+      <div class="actions">
+        <button class="btn-primary" onclick="openLoginModal()">🔐 כניסה למערכת</button>
+        <button class="btn-outline" onclick="openRequestModal()">📋 בקשה לפתיחת משתמש</button>
+      </div>
+    </div>
+
+    <div class="security-strip">
+      <span>🔒 SSL מוצפן</span>
+      <span class="sec-sep"></span>
+      <span>24/7 ניטור</span>
+      <span class="sec-sep"></span>
+      <span>גישה מאובטחת</span>
+    </div>
+  </div>
+
+  <div class="footer">
+    כל הזכויות שמורות ל-Rob X Systems ואפקון בקרה ואוטומציה
+  </div>
 </div>
 
 <!-- ── Registration Request Modal ── -->
 <div class="modal-bg" id="modal-request">
   <div class="modal">
-
-    <!-- Form view -->
     <div id="req-form-view">
       <h3>בקשה לפתיחת משתמש</h3>
       <p class="modal-sub">מלא את הפרטים ונציג יחזור אליך לאחר אישור הבקשה</p>
-
       <div class="field-row">
         <div class="field">
           <label for="req-fname">שם פרטי *</label>
@@ -166,7 +395,6 @@
           <input id="req-lname" type="text" placeholder="ישראלי" required>
         </div>
       </div>
-
       <div class="field-row">
         <div class="field">
           <label for="req-email">מייל *</label>
@@ -177,7 +405,6 @@
           <input id="req-phone" type="tel" placeholder="050-0000000" dir="ltr" required>
         </div>
       </div>
-
       <div class="field-row">
         <div class="field">
           <label for="req-role">תפקיד *</label>
@@ -199,16 +426,12 @@
           </datalist>
         </div>
       </div>
-
       <div class="err" id="req-err"></div>
-
       <div class="modal-actions">
         <button class="btn-cancel" onclick="closeRequestModal()">ביטול</button>
         <button class="btn-submit" id="req-btn" onclick="submitRequest()">שלח בקשה</button>
       </div>
     </div>
-
-    <!-- Success view -->
     <div id="req-success-view" style="display:none">
       <div class="success">
         <div class="icon">✅</div>
@@ -219,19 +442,15 @@
         <button class="close-btn" onclick="closeRequestModal()">סגור</button>
       </div>
     </div>
-
   </div>
 </div>
 
 <!-- ── Login Modal ── -->
 <div class="modal-bg" id="modal-login">
   <div class="modal">
-
-    <!-- Step 1: credentials -->
     <div id="login-step-1" class="login-step active">
       <h3>כניסה למערכת</h3>
       <p class="modal-sub">הזן את שם המשתמש והסיסמה שלך</p>
-
       <div class="field">
         <label for="l-user">שם משתמש</label>
         <input id="l-user" type="text" autocomplete="username" placeholder="שם משתמש" dir="ltr" required>
@@ -246,16 +465,12 @@
           </button>
         </div>
       </div>
-
       <div class="err" id="login-err"></div>
-
       <div class="modal-actions">
         <button class="btn-cancel" onclick="closeLoginModal()">ביטול</button>
         <button class="btn-submit" id="login-btn" onclick="doLogin()">כניסה</button>
       </div>
     </div>
-
-    <!-- Step 2: forced password change -->
     <div id="login-step-2" class="login-step">
       <p class="change-title">🔒 נדרש שינוי סיסמה</p>
       <p class="change-sub">עליך להגדיר סיסמה חדשה לפני הכניסה למערכת</p>
@@ -264,7 +479,6 @@
         ✓ לפחות 8 תווים &nbsp;·&nbsp; ✓ אות גדולה באנגלית<br>
         ✓ אות קטנה באנגלית &nbsp;·&nbsp; ✓ ספרה אחת לפחות
       </div>
-
       <div class="field">
         <label for="cp-new">סיסמה חדשה</label>
         <div class="pw-wrap">
@@ -285,199 +499,192 @@
           </button>
         </div>
       </div>
-
       <div class="err" id="cp-err"></div>
-
       <div class="modal-actions">
         <button class="btn-submit" id="cp-btn" onclick="doChangePassword()">שנה סיסמה וכנס</button>
       </div>
     </div>
-
   </div>
 </div>
 
 <script>
-function openRequestModal() {
+/* ── Particle network ────────────────────────────────────── */
+(function(){
+  const cv  = document.getElementById('particles');
+  const ctx = cv.getContext('2d');
+  let W, H, pts = [];
+
+  function resize(){
+    W = cv.width  = innerWidth;
+    H = cv.height = innerHeight;
+  }
+  function init(){
+    pts = [];
+    const n = Math.min(70, Math.floor(W * H / 18000));
+    for(let i=0;i<n;i++){
+      pts.push({
+        x:  Math.random()*W,
+        y:  Math.random()*H,
+        vx: (Math.random()-.5)*.45,
+        vy: (Math.random()-.5)*.45,
+        r:  Math.random()*1.4+.4
+      });
+    }
+  }
+  function draw(){
+    ctx.clearRect(0,0,W,H);
+    // Dots
+    pts.forEach(p=>{
+      p.x+=p.vx; p.y+=p.vy;
+      if(p.x<0||p.x>W) p.vx*=-1;
+      if(p.y<0||p.y>H) p.vy*=-1;
+      ctx.beginPath();
+      ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
+      ctx.fillStyle='rgba(96,165,250,.7)';
+      ctx.fill();
+    });
+    // Connections
+    for(let i=0;i<pts.length;i++){
+      for(let j=i+1;j<pts.length;j++){
+        const dx=pts[i].x-pts[j].x, dy=pts[i].y-pts[j].y;
+        const d=Math.sqrt(dx*dx+dy*dy);
+        if(d<130){
+          ctx.beginPath();
+          ctx.moveTo(pts[i].x,pts[i].y);
+          ctx.lineTo(pts[j].x,pts[j].y);
+          ctx.strokeStyle=`rgba(96,165,250,${.14*(1-d/130)})`;
+          ctx.lineWidth=.6;
+          ctx.stroke();
+        }
+      }
+    }
+    requestAnimationFrame(draw);
+  }
+  resize(); init(); draw();
+  window.addEventListener('resize',()=>{ resize(); init(); });
+})();
+
+/* ── Typewriter ──────────────────────────────────────────── */
+(function(){
+  const el  = document.getElementById('typewriter');
+  const txts= ['מערכת ניהול פרויקטים','ניהול · בקרה · תיעוד','פתרונות אבטחה מתקדמים'];
+  let ti=0,ci=0,del=false;
+  function tick(){
+    const t=txts[ti];
+    if(!del){ ci++; el.textContent=t.slice(0,ci); if(ci===t.length){del=true;setTimeout(tick,1900);return;} }
+    else    { ci--; el.textContent=t.slice(0,ci); if(ci===0){del=false;ti=(ti+1)%txts.length;} }
+    setTimeout(tick,del?38:72);
+  }
+  tick();
+})();
+
+/* ── Modal helpers ───────────────────────────────────────── */
+function openRequestModal(){
   document.getElementById('modal-request').classList.add('open');
-  document.getElementById('req-form-view').style.display = '';
-  document.getElementById('req-success-view').style.display = 'none';
+  document.getElementById('req-form-view').style.display='';
+  document.getElementById('req-success-view').style.display='none';
   document.getElementById('req-err').classList.remove('show');
-  document.getElementById('req-btn').disabled = false;
-  document.getElementById('req-btn').textContent = 'שלח בקשה';
-  // Clear fields
-  ['req-fname','req-lname','req-email','req-phone','req-role','req-div'].forEach(id => {
-    document.getElementById(id).value = '';
-  });
-  setTimeout(() => document.getElementById('req-fname').focus(), 80);
+  document.getElementById('req-btn').disabled=false;
+  document.getElementById('req-btn').textContent='שלח בקשה';
+  ['req-fname','req-lname','req-email','req-phone','req-role','req-div'].forEach(id=>{document.getElementById(id).value='';});
+  setTimeout(()=>document.getElementById('req-fname').focus(),80);
 }
+function closeRequestModal(){ document.getElementById('modal-request').classList.remove('open'); }
 
-function closeRequestModal() {
-  document.getElementById('modal-request').classList.remove('open');
+document.getElementById('modal-request').addEventListener('click',function(e){ if(e.target===this) closeRequestModal(); });
+document.getElementById('modal-login').addEventListener('click',function(e){ if(e.target===this) closeLoginModal(); });
+
+let _loginPassword='';
+function togglePwLogin(id){
+  const inp=document.getElementById(id); const show=inp.type==='password';
+  inp.type=show?'text':'password';
+  document.getElementById('eye-'+id).style.display    =show?'none':'';
+  document.getElementById('eye-off-'+id).style.display=show?'':'none';
 }
-
-// Close on overlay click
-document.getElementById('modal-request').addEventListener('click', function(e) {
-  if (e.target === this) closeRequestModal();
-});
-document.getElementById('modal-login').addEventListener('click', function(e) {
-  if (e.target === this) closeLoginModal();
-});
-
-// ── Login modal ──────────────────────────────────────────────────────────────
-
-let _loginPassword = '';
-
-function togglePwLogin(id) {
-  const inp = document.getElementById(id);
-  const show = inp.type === 'password';
-  inp.type = show ? 'text' : 'password';
-  document.getElementById('eye-' + id).style.display     = show ? 'none' : '';
-  document.getElementById('eye-off-' + id).style.display = show ? '' : 'none';
-}
-
-function openLoginModal() {
+function openLoginModal(){
   document.getElementById('modal-login').classList.add('open');
   document.getElementById('login-step-1').classList.add('active');
   document.getElementById('login-step-2').classList.remove('active');
-  document.getElementById('l-user').value = '';
-  document.getElementById('l-pass').value = '';
+  document.getElementById('l-user').value='';
+  document.getElementById('l-pass').value='';
   document.getElementById('login-err').classList.remove('show');
-  document.getElementById('login-btn').disabled = false;
-  document.getElementById('login-btn').textContent = 'כניסה';
-  setTimeout(() => document.getElementById('l-user').focus(), 80);
+  document.getElementById('login-btn').disabled=false;
+  document.getElementById('login-btn').textContent='כניסה';
+  setTimeout(()=>document.getElementById('l-user').focus(),80);
 }
+function closeLoginModal(){ document.getElementById('modal-login').classList.remove('open'); }
 
-function closeLoginModal() {
-  document.getElementById('modal-login').classList.remove('open');
-}
-
-async function doLogin() {
-  const btn = document.getElementById('login-btn');
-  const err = document.getElementById('login-err');
-  err.classList.remove('show');
-  btn.disabled = true; btn.textContent = 'מתחבר...';
-  try {
-    const pw = document.getElementById('l-pass').value;
-    const res = await fetch('/api/auth/login', {
-      method: 'POST',
-      headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({
-        username: document.getElementById('l-user').value.trim(),
-        password: pw
-      })
+async function doLogin(){
+  const btn=document.getElementById('login-btn'),err=document.getElementById('login-err');
+  err.classList.remove('show'); btn.disabled=true; btn.textContent='מתחבר...';
+  try{
+    const pw=document.getElementById('l-pass').value;
+    const res=await fetch('/api/auth/login',{
+      method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({username:document.getElementById('l-user').value.trim(),password:pw})
     });
-    const data = await res.json();
-    if (res.ok) {
-      if (data.must_change_password) {
-        _loginPassword = pw;
+    const data=await res.json();
+    if(res.ok){
+      if(data.must_change_password){
+        _loginPassword=pw;
         document.getElementById('login-step-1').classList.remove('active');
         document.getElementById('login-step-2').classList.add('active');
-        setTimeout(() => document.getElementById('cp-new').focus(), 50);
-      } else {
-        window.location.href = '/dashboard';
-      }
+        setTimeout(()=>document.getElementById('cp-new').focus(),50);
+      } else { window.location.href='/dashboard'; }
     } else {
-      err.textContent = data.error || 'שגיאה בכניסה';
-      err.classList.add('show');
-      btn.disabled = false; btn.textContent = 'כניסה';
+      err.textContent=data.error||'שגיאה בכניסה'; err.classList.add('show');
+      btn.disabled=false; btn.textContent='כניסה';
     }
-  } catch {
-    err.textContent = 'שגיאת רשת — נסה שנית';
-    err.classList.add('show');
-    btn.disabled = false; btn.textContent = 'כניסה';
+  } catch{
+    err.textContent='שגיאת רשת — נסה שנית'; err.classList.add('show');
+    btn.disabled=false; btn.textContent='כניסה';
   }
 }
 
-async function doChangePassword() {
-  const btn    = document.getElementById('cp-btn');
-  const err    = document.getElementById('cp-err');
-  const newPw  = document.getElementById('cp-new').value;
-  const confPw = document.getElementById('cp-confirm').value;
+async function doChangePassword(){
+  const btn=document.getElementById('cp-btn'),err=document.getElementById('cp-err');
+  const newPw=document.getElementById('cp-new').value,confPw=document.getElementById('cp-confirm').value;
   err.classList.remove('show');
-
-  if (newPw !== confPw) {
-    err.textContent = 'הסיסמאות אינן תואמות';
-    err.classList.add('show');
-    return;
-  }
-
-  btn.disabled = true; btn.textContent = 'שומר...';
-  try {
-    const res = await fetch('/api/auth/change-password', {
-      method: 'POST',
-      headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({ currentPassword: _loginPassword, newPassword: newPw })
+  if(newPw!==confPw){ err.textContent='הסיסמאות אינן תואמות'; err.classList.add('show'); return; }
+  btn.disabled=true; btn.textContent='שומר...';
+  try{
+    const res=await fetch('/api/auth/change-password',{
+      method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({currentPassword:_loginPassword,newPassword:newPw})
     });
-    const data = await res.json();
-    if (res.ok) {
-      window.location.href = '/dashboard';
-    } else {
-      err.textContent = data.error || 'שגיאה בשינוי סיסמה';
-      err.classList.add('show');
-      btn.disabled = false; btn.textContent = 'שנה סיסמה וכנס';
-    }
-  } catch {
-    err.textContent = 'שגיאת רשת — נסה שנית';
-    err.classList.add('show');
-    btn.disabled = false; btn.textContent = 'שנה סיסמה וכנס';
+    const data=await res.json();
+    if(res.ok){ window.location.href='/dashboard'; }
+    else{ err.textContent=data.error||'שגיאה בשינוי סיסמה'; err.classList.add('show'); btn.disabled=false; btn.textContent='שנה סיסמה וכנס'; }
+  } catch{
+    err.textContent='שגיאת רשת — נסה שנית'; err.classList.add('show');
+    btn.disabled=false; btn.textContent='שנה סיסמה וכנס';
   }
 }
 
-// ── Registration request ──────────────────────────────────────────────────────
-
-async function submitRequest() {
-  const errEl  = document.getElementById('req-err');
-  const btn    = document.getElementById('req-btn');
+async function submitRequest(){
+  const errEl=document.getElementById('req-err'),btn=document.getElementById('req-btn');
   errEl.classList.remove('show');
-
-  const firstName = document.getElementById('req-fname').value.trim();
-  const lastName  = document.getElementById('req-lname').value.trim();
-  const email     = document.getElementById('req-email').value.trim();
-  const phone     = document.getElementById('req-phone').value.trim();
-  const roleTitle = document.getElementById('req-role').value.trim();
-  const division  = document.getElementById('req-div').value.trim();
-
-  // Client-side validation
-  if (!firstName || !lastName || !email || !phone || !roleTitle || !division) {
-    errEl.textContent = 'יש למלא את כל השדות';
-    errEl.classList.add('show');
-    return;
-  }
-  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-    errEl.textContent = 'כתובת מייל אינה תקינה';
-    errEl.classList.add('show');
-    return;
-  }
-  if (!/^[\d\s\-\+\(\)]{7,15}$/.test(phone)) {
-    errEl.textContent = 'מספר טלפון אינו תקין';
-    errEl.classList.add('show');
-    return;
-  }
-
-  btn.disabled = true;
-  btn.textContent = 'שולח...';
-
-  try {
-    const res = await fetch('/api/user-requests', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ firstName, lastName, email, phone, roleTitle, division }),
+  const firstName=document.getElementById('req-fname').value.trim();
+  const lastName =document.getElementById('req-lname').value.trim();
+  const email    =document.getElementById('req-email').value.trim();
+  const phone    =document.getElementById('req-phone').value.trim();
+  const roleTitle=document.getElementById('req-role').value.trim();
+  const division =document.getElementById('req-div').value.trim();
+  if(!firstName||!lastName||!email||!phone||!roleTitle||!division){ errEl.textContent='יש למלא את כל השדות'; errEl.classList.add('show'); return; }
+  if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){ errEl.textContent='כתובת מייל אינה תקינה'; errEl.classList.add('show'); return; }
+  if(!/^[\d\s\-\+\(\)]{7,15}$/.test(phone)){ errEl.textContent='מספר טלפון אינו תקין'; errEl.classList.add('show'); return; }
+  btn.disabled=true; btn.textContent='שולח...';
+  try{
+    const res=await fetch('/api/user-requests',{
+      method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({firstName,lastName,email,phone,roleTitle,division})
     });
-    const data = await res.json();
-    if (res.ok) {
-      document.getElementById('req-form-view').style.display = 'none';
-      document.getElementById('req-success-view').style.display = '';
-    } else {
-      errEl.textContent = data.error || 'שגיאה בשליחת הבקשה — נסה שנית';
-      errEl.classList.add('show');
-      btn.disabled = false;
-      btn.textContent = 'שלח בקשה';
-    }
-  } catch {
-    errEl.textContent = 'שגיאת רשת — נסה שנית';
-    errEl.classList.add('show');
-    btn.disabled = false;
-    btn.textContent = 'שלח בקשה';
+    const data=await res.json();
+    if(res.ok){ document.getElementById('req-form-view').style.display='none'; document.getElementById('req-success-view').style.display=''; }
+    else{ errEl.textContent=data.error||'שגיאה בשליחת הבקשה — נסה שנית'; errEl.classList.add('show'); btn.disabled=false; btn.textContent='שלח בקשה'; }
+  } catch{
+    errEl.textContent='שגיאת רשת — נסה שנית'; errEl.classList.add('show');
+    btn.disabled=false; btn.textContent='שלח בקשה';
   }
 }
 </script>
