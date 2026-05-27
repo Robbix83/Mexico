@@ -1,0 +1,1109 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Nuvo — מערכת ניהול</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;700;800;900&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --green: #10b981;
+      --green-dark: #059669;
+      --green-darker: #047857;
+      --teal: #06b6d4;
+      --purple: #7c3aed;
+      --bg: #020d18;
+      --card-bg: rgba(3,18,28,.9);
+    }
+
+    html, body {
+      height: 100%;
+      font-family: 'Heebo', sans-serif;
+      background: var(--bg);
+      color: #fff;
+      overflow-x: hidden;
+    }
+
+    /* ===== STARS ===== */
+    .stars {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 0;
+    }
+    .star {
+      position: absolute;
+      border-radius: 50%;
+      background: #fff;
+      animation: starTwinkle ease-in-out infinite;
+    }
+    @keyframes starTwinkle {
+      0%, 100% { opacity: .15; transform: scale(1); }
+      50%       { opacity: 1;   transform: scale(1.4); }
+    }
+
+    /* ===== CURSOR SPOTLIGHT ===== */
+    .cursor-light {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 1;
+      background: radial-gradient(
+        circle 320px at var(--cx, 50%) var(--cy, 50%),
+        rgba(16,185,129,.04) 0%,
+        transparent 70%
+      );
+    }
+
+    /* ===== AURORA BANDS ===== */
+    .aurora-bands {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 0;
+      overflow: hidden;
+    }
+    .band {
+      position: absolute;
+      width: 200%;
+      height: 320px;
+      left: -50%;
+      filter: blur(50px);
+      animation: bandFloat ease-in-out infinite;
+    }
+    .band-1 {
+      top: 8%;
+      background: linear-gradient(to right,transparent,rgba(16,185,129,.18),rgba(6,182,212,.14),transparent);
+      animation-duration: 16s;
+    }
+    .band-2 {
+      top: 38%;
+      background: linear-gradient(to right,transparent,rgba(124,58,237,.12),rgba(16,185,129,.1),transparent);
+      animation-duration: 21s;
+      animation-delay: -8s;
+    }
+    .band-3 {
+      top: 68%;
+      background: linear-gradient(to right,transparent,rgba(6,182,212,.1),rgba(16,185,129,.08),transparent);
+      animation-duration: 26s;
+      animation-delay: -13s;
+    }
+    @keyframes bandFloat {
+      0%,100% { transform: rotate(-12deg) translateY(0px); opacity: .7; }
+      50%      { transform: rotate(-9deg) translateY(-35px); opacity: 1; }
+    }
+
+    /* ===== PAGE LAYOUT ===== */
+    .page {
+      position: relative;
+      z-index: 2;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 40px 20px 24px;
+    }
+
+    /* ===== CARD ===== */
+    .card {
+      background: var(--card-bg);
+      border: 1px solid rgba(16,185,129,.22);
+      border-radius: 24px;
+      box-shadow: 0 0 80px rgba(16,185,129,.07), 0 24px 64px rgba(0,0,0,.5);
+      padding: 44px 44px 36px;
+      width: 100%;
+      max-width: 460px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0;
+      animation: cardFloat 7s ease-in-out 1s infinite;
+      will-change: transform;
+      transform-style: preserve-3d;
+      perspective: 800px;
+      transition: transform .15s ease-out;
+    }
+    @keyframes cardFloat {
+      0%,100% { transform: translateY(0px); }
+      50%      { transform: translateY(-8px); }
+    }
+
+    /* ===== LOGO AREA ===== */
+    .logo-area {
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 16px;
+    }
+    .logo-halo {
+      position: absolute;
+      width: 160px;
+      height: 100px;
+      background: radial-gradient(ellipse, rgba(16,185,129,.18) 0%, transparent 70%);
+      border-radius: 50%;
+      animation: haloBreath 5s ease-in-out infinite;
+    }
+    @keyframes haloBreath {
+      0%,100% { opacity: .6; transform: scale(1); }
+      50%      { opacity: 1;  transform: scale(1.15); }
+    }
+    .logo-frame {
+      position: relative;
+      background: rgba(16,185,129,.06);
+      border: 1px solid rgba(16,185,129,.18);
+      border-radius: 16px;
+      padding: 12px 18px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 90px;
+      min-height: 64px;
+      backdrop-filter: blur(8px);
+    }
+    .logo-frame img {
+      max-height: 48px;
+      max-width: 140px;
+      object-fit: contain;
+      display: block;
+    }
+    .logo-fallback {
+      font-size: 1.6rem;
+      font-weight: 900;
+      color: var(--green);
+      letter-spacing: 1px;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* ===== LIVE BADGE ===== */
+    .live-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      background: rgba(16,185,129,.08);
+      border: 1px solid rgba(16,185,129,.22);
+      border-radius: 100px;
+      padding: 4px 14px 4px 10px;
+      font-size: .78rem;
+      font-weight: 700;
+      color: rgba(52,211,153,.9);
+      margin-bottom: 20px;
+      letter-spacing: .5px;
+    }
+    .live-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: #10b981;
+      box-shadow: 0 0 8px #10b981;
+      flex-shrink: 0;
+      animation: livePulse 2s ease-in-out infinite;
+    }
+    @keyframes livePulse {
+      0%,100% { opacity: 1; transform: scale(1); }
+      50%      { opacity: .5; transform: scale(.75); }
+    }
+
+    /* ===== TAGLINE ===== */
+    .tagline {
+      font-size: .72rem;
+      font-weight: 700;
+      color: rgba(52,211,153,.6);
+      letter-spacing: 3.5px;
+      text-transform: uppercase;
+      margin-bottom: 10px;
+      text-align: center;
+    }
+
+    /* ===== TITLE ===== */
+    h1.title {
+      font-size: 2.3rem;
+      font-weight: 800;
+      color: #fff;
+      text-align: center;
+      line-height: 1.15;
+      margin-bottom: 10px;
+    }
+
+    /* ===== DIVIDER ===== */
+    .divider {
+      width: 40px;
+      height: 3px;
+      background: linear-gradient(to right, var(--green-dark), var(--green));
+      border-radius: 4px;
+      margin: 0 auto 14px;
+    }
+
+    /* ===== SUBTITLE / TYPEWRITER ===== */
+    .sub {
+      font-size: .95rem;
+      font-weight: 300;
+      color: rgba(255,255,255,.55);
+      text-align: center;
+      min-height: 1.5em;
+      margin-bottom: 30px;
+      letter-spacing: .3px;
+    }
+    .sub .cursor-blink {
+      display: inline-block;
+      width: 2px;
+      height: 1em;
+      background: var(--green);
+      vertical-align: middle;
+      margin-right: 1px;
+      animation: blinkCursor .7s step-end infinite;
+    }
+    @keyframes blinkCursor {
+      0%,100% { opacity: 1; } 50% { opacity: 0; }
+    }
+
+    /* ===== ACTIONS ===== */
+    .actions {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      width: 100%;
+      margin-bottom: 26px;
+    }
+    .btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      width: 100%;
+      padding: 14px 20px;
+      border-radius: 12px;
+      font-family: 'Heebo', sans-serif;
+      font-size: 1rem;
+      font-weight: 700;
+      cursor: pointer;
+      border: none;
+      transition: transform .15s, box-shadow .15s, opacity .15s;
+      position: relative;
+      overflow: hidden;
+      text-decoration: none;
+    }
+    .btn:active { transform: scale(.97); }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #059669, #047857);
+      color: #fff;
+      box-shadow: 0 4px 24px rgba(5,150,105,.35);
+    }
+    .btn-primary:hover {
+      box-shadow: 0 6px 32px rgba(5,150,105,.55);
+      transform: translateY(-1px);
+    }
+    /* shimmer */
+    .btn-primary::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(105deg, transparent 30%, rgba(255,255,255,.15) 50%, transparent 70%);
+      transform: translateX(-100%);
+      transition: transform .5s;
+    }
+    .btn-primary:hover::after { transform: translateX(100%); }
+
+    .btn-outline {
+      background: rgba(16,185,129,.08);
+      color: rgba(52,211,153,.9);
+      border: 1px solid rgba(16,185,129,.3);
+    }
+    .btn-outline:hover {
+      background: rgba(16,185,129,.14);
+      border-color: rgba(16,185,129,.5);
+      transform: translateY(-1px);
+    }
+
+    /* ===== BOTTOM STRIP ===== */
+    .bottom-strip {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 18px;
+      width: 100%;
+      border-top: 1px solid rgba(16,185,129,.1);
+      padding-top: 18px;
+    }
+    .strip-item {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      font-size: .74rem;
+      font-weight: 400;
+      color: rgba(255,255,255,.35);
+    }
+    .strip-icon {
+      font-size: .85rem;
+      opacity: .6;
+    }
+
+    /* ===== FOOTER ===== */
+    .footer {
+      margin-top: 22px;
+      font-size: .72rem;
+      font-weight: 300;
+      color: rgba(255,255,255,.2);
+      text-align: center;
+      letter-spacing: .3px;
+      line-height: 1.6;
+    }
+
+    /* ===================================================
+       MODALS
+    =================================================== */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(2,13,24,.78);
+      backdrop-filter: blur(6px);
+      z-index: 1000;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      animation: fadeIn .2s ease;
+    }
+    .modal-overlay.open { display: flex; }
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to   { opacity: 1; }
+    }
+
+    .modal-card {
+      background: #fff;
+      border-radius: 18px;
+      padding: 36px 32px 28px;
+      width: 100%;
+      max-width: 420px;
+      color: #1a1a1a;
+      box-shadow: 0 24px 80px rgba(0,0,0,.4);
+      animation: slideUp .25s ease;
+      position: relative;
+    }
+    @keyframes slideUp {
+      from { transform: translateY(20px); opacity: 0; }
+      to   { transform: translateY(0);    opacity: 1; }
+    }
+
+    .modal-close {
+      position: absolute;
+      top: 14px;
+      left: 16px;
+      background: none;
+      border: none;
+      font-size: 1.4rem;
+      cursor: pointer;
+      color: #888;
+      line-height: 1;
+      padding: 2px 6px;
+      border-radius: 6px;
+      transition: background .15s, color .15s;
+    }
+    .modal-close:hover { background: #f0f0f0; color: #333; }
+
+    .modal-title {
+      font-size: 1.35rem;
+      font-weight: 800;
+      color: #0f172a;
+      margin-bottom: 6px;
+      text-align: center;
+    }
+    .modal-sub {
+      font-size: .83rem;
+      color: #64748b;
+      text-align: center;
+      margin-bottom: 22px;
+    }
+
+    .form-group {
+      margin-bottom: 14px;
+    }
+    .form-group label {
+      display: block;
+      font-size: .82rem;
+      font-weight: 700;
+      color: #374151;
+      margin-bottom: 5px;
+    }
+    .form-group input,
+    .form-group select,
+    .form-group textarea {
+      width: 100%;
+      padding: 10px 13px;
+      border: 1.5px solid #e2e8f0;
+      border-radius: 10px;
+      font-family: 'Heebo', sans-serif;
+      font-size: .92rem;
+      color: #1a1a1a;
+      background: #f8fafc;
+      transition: border-color .15s, box-shadow .15s;
+      outline: none;
+      direction: rtl;
+    }
+    .form-group input:focus,
+    .form-group select:focus,
+    .form-group textarea:focus {
+      border-color: #059669;
+      box-shadow: 0 0 0 3px rgba(5,150,105,.1);
+      background: #fff;
+    }
+    .form-group textarea {
+      resize: vertical;
+      min-height: 80px;
+    }
+
+    .modal-actions {
+      display: flex;
+      gap: 10px;
+      margin-top: 18px;
+    }
+    .modal-actions .btn {
+      flex: 1;
+    }
+
+    .modal-error {
+      background: #fef2f2;
+      border: 1px solid #fecaca;
+      border-radius: 8px;
+      padding: 10px 13px;
+      font-size: .83rem;
+      color: #dc2626;
+      margin-bottom: 12px;
+      display: none;
+    }
+    .modal-error.show { display: block; }
+
+    .modal-success {
+      background: #f0fdf4;
+      border: 1px solid #bbf7d0;
+      border-radius: 8px;
+      padding: 10px 13px;
+      font-size: .83rem;
+      color: #16a34a;
+      margin-bottom: 12px;
+      display: none;
+      text-align: center;
+    }
+    .modal-success.show { display: block; }
+
+    /* change-password section inside login modal */
+    #changePwSection { display: none; }
+
+    .pw-toggle {
+      position: relative;
+    }
+    .pw-toggle input {
+      padding-left: 38px;
+    }
+    .pw-toggle .eye-btn {
+      position: absolute;
+      left: 10px;
+      top: 50%;
+      transform: translateY(-50%);
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: #94a3b8;
+      font-size: .95rem;
+      padding: 2px;
+    }
+    .pw-toggle .eye-btn:hover { color: #475569; }
+
+    .spinner {
+      display: inline-block;
+      width: 16px;
+      height: 16px;
+      border: 2px solid rgba(255,255,255,.3);
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: spin .6s linear infinite;
+      vertical-align: middle;
+      margin-left: 6px;
+    }
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    /* ===== RESPONSIVE ===== */
+    @media (max-width: 500px) {
+      .card { padding: 32px 22px 26px; }
+      h1.title { font-size: 1.8rem; }
+      .bottom-strip { gap: 10px; }
+      .strip-item { font-size: .68rem; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- Stars layer -->
+<div class="stars" id="stars"></div>
+
+<!-- Cursor spotlight -->
+<div class="cursor-light" id="cursorLight"></div>
+
+<!-- Aurora bands -->
+<div class="aurora-bands">
+  <div class="band band-1"></div>
+  <div class="band band-2"></div>
+  <div class="band band-3"></div>
+</div>
+
+<!-- Main page -->
+<div class="page">
+  <div class="card" id="mainCard">
+
+    <!-- Logo -->
+    <div class="logo-area">
+      <div class="logo-halo"></div>
+      <div class="logo-frame">
+        <img src="logo.png" alt="אפקון"
+             onerror="this.style.display='none';document.getElementById('logo-fb').style.display='flex'">
+        <div class="logo-fallback" id="logo-fb" style="display:none">אפקון</div>
+      </div>
+    </div>
+
+    <!-- Live badge -->
+    <div class="live-badge">
+      <span class="live-dot"></span>מערכת פעילה
+    </div>
+
+    <!-- Tagline -->
+    <div class="tagline">NUVO PLATFORM</div>
+
+    <!-- Title -->
+    <h1 class="title">ברוכים הבאים</h1>
+
+    <!-- Divider -->
+    <div class="divider"></div>
+
+    <!-- Typewriter subtitle -->
+    <div class="sub" id="subText">
+      <span id="twText"></span><span class="cursor-blink" id="twCursor"></span>
+    </div>
+
+    <!-- Action buttons -->
+    <div class="actions">
+      <button class="btn btn-primary" onclick="openLoginModal()">
+        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4M10 17l5-5-5-5M15 12H3"/></svg>
+        כניסה למערכת
+      </button>
+      <button class="btn btn-outline" onclick="openRequestModal()">
+        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M18 9v3m0 0v3m0-3h3m-3 0h-3M13 5a2 2 0 1 0-4 0 2 2 0 0 0 4 0zM7 20a7 7 0 0 1 12 0"/></svg>
+        בקשת גישה
+      </button>
+    </div>
+
+    <!-- Bottom strip -->
+    <div class="bottom-strip">
+      <div class="strip-item"><span class="strip-icon">🔒</span> SSL</div>
+      <div class="strip-item"><span class="strip-icon">📡</span> 24/7 ניטור</div>
+      <div class="strip-item"><span class="strip-icon">🛡</span> גישה מאובטחת</div>
+    </div>
+
+  </div><!-- /card -->
+
+  <div class="footer">
+    כל הזכויות שמורות ל-Rob X Systems ואפקון בקרה ואוטומציה<br>
+    <span style="opacity:.5">© 2024–2026</span>
+  </div>
+</div><!-- /page -->
+
+
+<!-- ============================================================
+     LOGIN MODAL
+============================================================ -->
+<div class="modal-overlay" id="loginModal" role="dialog" aria-modal="true" aria-labelledby="loginTitle">
+  <div class="modal-card">
+    <button class="modal-close" onclick="closeLoginModal()" aria-label="סגור">✕</button>
+
+    <!-- Login section -->
+    <div id="loginSection">
+      <div class="modal-title" id="loginTitle">כניסה למערכת</div>
+      <div class="modal-sub">הזן את פרטי הכניסה שלך</div>
+
+      <div class="modal-error" id="loginError"></div>
+      <div class="modal-success" id="loginSuccess"></div>
+
+      <form onsubmit="doLogin(event)" autocomplete="on" novalidate>
+        <div class="form-group">
+          <label for="loginUsername">שם משתמש</label>
+          <input type="text" id="loginUsername" name="username"
+                 autocomplete="username" placeholder="הכנס שם משתמש" required>
+        </div>
+        <div class="form-group">
+          <label for="loginPassword">סיסמה</label>
+          <div class="pw-toggle">
+            <input type="password" id="loginPassword" name="password"
+                   autocomplete="current-password" placeholder="הכנס סיסמה" required>
+            <button type="button" class="eye-btn" onclick="togglePwLogin('loginPassword', this)" aria-label="הצג/הסתר סיסמה">👁</button>
+          </div>
+        </div>
+        <div class="modal-actions">
+          <button type="submit" class="btn btn-primary" id="loginSubmitBtn">כניסה</button>
+          <button type="button" class="btn btn-outline" onclick="closeLoginModal()">ביטול</button>
+        </div>
+      </form>
+    </div>
+
+    <!-- Change password section (shown after first login with temp password) -->
+    <div id="changePwSection">
+      <div class="modal-title">עדכון סיסמה</div>
+      <div class="modal-sub">נדרש להגדיר סיסמה חדשה לפני הכניסה</div>
+
+      <div class="modal-error" id="changePwError"></div>
+      <div class="modal-success" id="changePwSuccess"></div>
+
+      <form onsubmit="doChangePassword(event)" autocomplete="off" novalidate>
+        <input type="hidden" id="changePwUsername">
+        <div class="form-group">
+          <label for="changePwNew">סיסמה חדשה</label>
+          <div class="pw-toggle">
+            <input type="password" id="changePwNew" autocomplete="new-password"
+                   placeholder="לפחות 8 תווים" required minlength="8">
+            <button type="button" class="eye-btn" onclick="togglePwLogin('changePwNew', this)" aria-label="הצג/הסתר">👁</button>
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="changePwConfirm">אימות סיסמה חדשה</label>
+          <div class="pw-toggle">
+            <input type="password" id="changePwConfirm" autocomplete="new-password"
+                   placeholder="הכנס שוב את הסיסמה החדשה" required>
+            <button type="button" class="eye-btn" onclick="togglePwLogin('changePwConfirm', this)" aria-label="הצג/הסתר">👁</button>
+          </div>
+        </div>
+        <div class="modal-actions">
+          <button type="submit" class="btn btn-primary" id="changePwSubmitBtn">שמור סיסמה</button>
+        </div>
+      </form>
+    </div>
+
+  </div>
+</div>
+
+
+<!-- ============================================================
+     REQUEST ACCESS MODAL
+============================================================ -->
+<div class="modal-overlay" id="requestModal" role="dialog" aria-modal="true" aria-labelledby="requestTitle">
+  <div class="modal-card">
+    <button class="modal-close" onclick="closeRequestModal()" aria-label="סגור">✕</button>
+
+    <div class="modal-title" id="requestTitle">בקשת גישה למערכת</div>
+    <div class="modal-sub">מלא את הטופס ונחזור אליך בהקדם</div>
+
+    <div class="modal-error" id="requestError"></div>
+    <div class="modal-success" id="requestSuccess"></div>
+
+    <form id="requestForm" onsubmit="submitRequest(event)" novalidate>
+      <div class="form-group">
+        <label for="reqName">שם מלא</label>
+        <input type="text" id="reqName" placeholder="שם פרטי ושם משפחה" required>
+      </div>
+      <div class="form-group">
+        <label for="reqEmail">כתובת אימייל</label>
+        <input type="email" id="reqEmail" placeholder="name@company.com" required dir="ltr">
+      </div>
+      <div class="form-group">
+        <label for="reqPhone">טלפון</label>
+        <input type="tel" id="reqPhone" placeholder="05X-XXXXXXX" dir="ltr">
+      </div>
+      <div class="form-group">
+        <label for="reqDivision">מחלקה</label>
+        <input list="divisionList" id="reqDivision" placeholder="בחר או הקלד מחלקה" required>
+        <datalist id="divisionList">
+          <option value="בקרה ואוטומציה">
+          <option value="CCTV ומצלמות">
+          <option value="כיבוי אש">
+          <option value="כניסה ובקרה">
+          <option value="רשתות תקשורת">
+          <option value="הנהלה">
+          <option value="כספים">
+          <option value="מנהלה">
+        </datalist>
+      </div>
+      <div class="form-group">
+        <label for="reqReason">סיבת הבקשה (אופציונלי)</label>
+        <textarea id="reqReason" placeholder="תאר בקצרה מדוע את/ה זקוק/ה לגישה..."></textarea>
+      </div>
+      <div class="modal-actions">
+        <button type="submit" class="btn btn-primary" id="requestSubmitBtn">שלח בקשה</button>
+        <button type="button" class="btn btn-outline" onclick="closeRequestModal()">ביטול</button>
+      </div>
+    </form>
+
+  </div>
+</div>
+
+
+<script>
+  /* =========================================================
+     STARS GENERATOR
+  ========================================================= */
+  (function generateStars() {
+    const container = document.getElementById('stars');
+    const count = 70;
+    for (let i = 0; i < count; i++) {
+      const star = document.createElement('div');
+      star.className = 'star';
+      const size = Math.random() * 2.2 + 0.6;
+      star.style.cssText = [
+        `width:${size}px`,
+        `height:${size}px`,
+        `top:${Math.random() * 100}%`,
+        `left:${Math.random() * 100}%`,
+        `animation-duration:${(Math.random() * 3 + 2).toFixed(1)}s`,
+        `animation-delay:${(Math.random() * 4).toFixed(1)}s`,
+        `opacity:${(Math.random() * 0.4 + 0.1).toFixed(2)}`
+      ].join(';');
+      container.appendChild(star);
+    }
+  })();
+
+
+  /* =========================================================
+     CURSOR SPOTLIGHT
+  ========================================================= */
+  (function setupCursorLight() {
+    const el = document.getElementById('cursorLight');
+    document.addEventListener('mousemove', function(e) {
+      el.style.setProperty('--cx', e.clientX + 'px');
+      el.style.setProperty('--cy', e.clientY + 'px');
+    });
+  })();
+
+
+  /* =========================================================
+     3D TILT (activated after 900ms)
+  ========================================================= */
+  (function setup3DTilt() {
+    const card = document.getElementById('mainCard');
+    let tiltActive = false;
+
+    setTimeout(function() {
+      tiltActive = true;
+    }, 900);
+
+    document.addEventListener('mousemove', function(e) {
+      if (!tiltActive) return;
+      const rect = card.getBoundingClientRect();
+      const cx = rect.left + rect.width / 2;
+      const cy = rect.top + rect.height / 2;
+      const dx = (e.clientX - cx) / (window.innerWidth / 2);
+      const dy = (e.clientY - cy) / (window.innerHeight / 2);
+      const rotY = dx * 5;   // ±5deg
+      const rotX = -dy * 5;
+      card.style.transform = `rotateX(${rotX}deg) rotateY(${rotY}deg) translateY(0px)`;
+    });
+
+    document.addEventListener('mouseleave', function() {
+      card.style.transform = '';
+    });
+  })();
+
+
+  /* =========================================================
+     TYPEWRITER
+  ========================================================= */
+  (function setupTypewriter() {
+    const phrases = [
+      'מערכת ניהול פרויקטים',
+      'ניהול · בקרה · תיעוד',
+      'פתרונות אבטחה מתקדמים'
+    ];
+    const el = document.getElementById('twText');
+    let phraseIdx = 0;
+    let charIdx = 0;
+    let isDeleting = false;
+    let paused = false;
+    const CHAR_SPEED = 80;
+    const DELETE_SPEED = 40;
+    const PAUSE_MS = 2200;
+
+    function tick() {
+      if (paused) return;
+      const phrase = phrases[phraseIdx];
+      if (!isDeleting) {
+        charIdx++;
+        el.textContent = phrase.substring(0, charIdx);
+        if (charIdx === phrase.length) {
+          paused = true;
+          setTimeout(function() {
+            paused = false;
+            isDeleting = true;
+            setTimeout(tick, DELETE_SPEED);
+          }, PAUSE_MS);
+          return;
+        }
+        setTimeout(tick, CHAR_SPEED);
+      } else {
+        charIdx--;
+        el.textContent = phrase.substring(0, charIdx);
+        if (charIdx === 0) {
+          isDeleting = false;
+          phraseIdx = (phraseIdx + 1) % phrases.length;
+          setTimeout(tick, CHAR_SPEED + 100);
+          return;
+        }
+        setTimeout(tick, DELETE_SPEED);
+      }
+    }
+
+    setTimeout(tick, 600);
+  })();
+
+
+  /* =========================================================
+     MODAL HELPERS
+  ========================================================= */
+  function _showError(id, msg) {
+    var el = document.getElementById(id);
+    el.textContent = msg;
+    el.classList.add('show');
+  }
+  function _hideError(id) {
+    var el = document.getElementById(id);
+    el.textContent = '';
+    el.classList.remove('show');
+  }
+  function _showSuccess(id, msg) {
+    var el = document.getElementById(id);
+    el.textContent = msg;
+    el.classList.add('show');
+  }
+  function _hideSuccess(id) {
+    var el = document.getElementById(id);
+    el.textContent = '';
+    el.classList.remove('show');
+  }
+  function _setLoading(btnId, loading, defaultText) {
+    var btn = document.getElementById(btnId);
+    if (loading) {
+      btn.disabled = true;
+      btn.innerHTML = defaultText + '<span class="spinner"></span>';
+    } else {
+      btn.disabled = false;
+      btn.innerHTML = defaultText;
+    }
+  }
+
+
+  /* =========================================================
+     LOGIN MODAL
+  ========================================================= */
+  function openLoginModal() {
+    document.getElementById('loginModal').classList.add('open');
+    document.getElementById('loginSection').style.display = '';
+    document.getElementById('changePwSection').style.display = 'none';
+    _hideError('loginError');
+    _hideSuccess('loginSuccess');
+    document.getElementById('loginUsername').value = '';
+    document.getElementById('loginPassword').value = '';
+    setTimeout(function() {
+      document.getElementById('loginUsername').focus();
+    }, 100);
+  }
+
+  function closeLoginModal() {
+    document.getElementById('loginModal').classList.remove('open');
+  }
+
+  async function doLogin(e) {
+    e.preventDefault();
+    _hideError('loginError');
+    _hideSuccess('loginSuccess');
+
+    var username = document.getElementById('loginUsername').value.trim();
+    var password = document.getElementById('loginPassword').value;
+
+    if (!username || !password) {
+      _showError('loginError', 'נא למלא שם משתמש וסיסמה.');
+      return;
+    }
+
+    _setLoading('loginSubmitBtn', true, 'כניסה');
+    try {
+      var res = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username: username, password: password })
+      });
+      var data = await res.json();
+
+      if (res.ok && data.token) {
+        if (data.requiresPasswordChange) {
+          // show change-password section
+          document.getElementById('changePwUsername').value = username;
+          document.getElementById('loginSection').style.display = 'none';
+          document.getElementById('changePwSection').style.display = '';
+          localStorage.setItem('_tempToken', data.token);
+        } else {
+          localStorage.setItem('token', data.token);
+          _showSuccess('loginSuccess', 'כניסה בוצעה בהצלחה, מעביר...');
+          setTimeout(function() {
+            window.location.href = data.redirect || '/dashboard.html';
+          }, 900);
+        }
+      } else {
+        _showError('loginError', data.message || 'שם משתמש או סיסמה שגויים.');
+      }
+    } catch (err) {
+      _showError('loginError', 'שגיאת תקשורת. נסה שוב.');
+    } finally {
+      _setLoading('loginSubmitBtn', false, 'כניסה');
+    }
+  }
+
+  async function doChangePassword(e) {
+    e.preventDefault();
+    _hideError('changePwError');
+    _hideSuccess('changePwSuccess');
+
+    var username = document.getElementById('changePwUsername').value;
+    var newPw    = document.getElementById('changePwNew').value;
+    var confirm  = document.getElementById('changePwConfirm').value;
+
+    if (newPw.length < 8) {
+      _showError('changePwError', 'הסיסמה חייבת להכיל לפחות 8 תווים.');
+      return;
+    }
+    if (newPw !== confirm) {
+      _showError('changePwError', 'הסיסמאות אינן תואמות.');
+      return;
+    }
+
+    _setLoading('changePwSubmitBtn', true, 'שמור סיסמה');
+    try {
+      var token = localStorage.getItem('_tempToken') || '';
+      var res = await fetch('/api/auth/change-password', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer ' + token
+        },
+        body: JSON.stringify({ username: username, newPassword: newPw })
+      });
+      var data = await res.json();
+
+      if (res.ok) {
+        localStorage.removeItem('_tempToken');
+        if (data.token) localStorage.setItem('token', data.token);
+        _showSuccess('changePwSuccess', 'הסיסמה עודכנה בהצלחה, מעביר...');
+        setTimeout(function() {
+          window.location.href = data.redirect || '/dashboard.html';
+        }, 1200);
+      } else {
+        _showError('changePwError', data.message || 'שגיאה בעדכון הסיסמה.');
+      }
+    } catch (err) {
+      _showError('changePwError', 'שגיאת תקשורת. נסה שוב.');
+    } finally {
+      _setLoading('changePwSubmitBtn', false, 'שמור סיסמה');
+    }
+  }
+
+
+  /* =========================================================
+     REQUEST ACCESS MODAL
+  ========================================================= */
+  function openRequestModal() {
+    document.getElementById('requestModal').classList.add('open');
+    document.getElementById('requestForm').reset();
+    _hideError('requestError');
+    _hideSuccess('requestSuccess');
+    setTimeout(function() {
+      document.getElementById('reqName').focus();
+    }, 100);
+  }
+
+  function closeRequestModal() {
+    document.getElementById('requestModal').classList.remove('open');
+  }
+
+  async function submitRequest(e) {
+    e.preventDefault();
+    _hideError('requestError');
+    _hideSuccess('requestSuccess');
+
+    var name     = document.getElementById('reqName').value.trim();
+    var email    = document.getElementById('reqEmail').value.trim();
+    var phone    = document.getElementById('reqPhone').value.trim();
+    var division = document.getElementById('reqDivision').value.trim();
+    var reason   = document.getElementById('reqReason').value.trim();
+
+    if (!name || !email || !division) {
+      _showError('requestError', 'נא למלא שם מלא, אימייל ומחלקה.');
+      return;
+    }
+    var emailRx = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRx.test(email)) {
+      _showError('requestError', 'כתובת האימייל אינה תקינה.');
+      return;
+    }
+
+    _setLoading('requestSubmitBtn', true, 'שלח בקשה');
+    try {
+      var res = await fetch('/api/user-requests', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, email, phone, division, reason })
+      });
+      var data = await res.json();
+
+      if (res.ok) {
+        _showSuccess('requestSuccess', 'הבקשה נשלחה בהצלחה! נחזור אליך בקרוב.');
+        document.getElementById('requestForm').reset();
+        setTimeout(closeRequestModal, 2800);
+      } else {
+        _showError('requestError', data.message || 'שגיאה בשליחת הבקשה.');
+      }
+    } catch (err) {
+      _showError('requestError', 'שגיאת תקשורת. נסה שוב.');
+    } finally {
+      _setLoading('requestSubmitBtn', false, 'שלח בקשה');
+    }
+  }
+
+
+  /* =========================================================
+     TOGGLE PASSWORD VISIBILITY
+  ========================================================= */
+  function togglePwLogin(inputId, btn) {
+    var input = document.getElementById(inputId);
+    if (input.type === 'password') {
+      input.type = 'text';
+      btn.textContent = '🙈';
+    } else {
+      input.type = 'password';
+      btn.textContent = '👁';
+    }
+  }
+
+
+  /* =========================================================
+     CLOSE MODALS ON OVERLAY CLICK
+  ========================================================= */
+  document.getElementById('loginModal').addEventListener('click', function(e) {
+    if (e.target === this) closeLoginModal();
+  });
+  document.getElementById('requestModal').addEventListener('click', function(e) {
+    if (e.target === this) closeRequestModal();
+  });
+
+  /* Keyboard: Escape closes any open modal */
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+      closeLoginModal();
+      closeRequestModal();
+    }
+  });
+</script>
+</body>
+</html>
