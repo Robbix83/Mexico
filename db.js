@@ -91,6 +91,23 @@ db.exec(`
   CREATE INDEX IF NOT EXISTS idx_doc_pack_shares_pack  ON doc_pack_shares(pack_id);
   CREATE INDEX IF NOT EXISTS idx_doc_pack_shares_token ON doc_pack_shares(token);
 
+  -- Background datasheet finder queue --
+  CREATE TABLE IF NOT EXISTS ds_queue (
+    id            INTEGER PRIMARY KEY AUTOINCREMENT,
+    model         TEXT    NOT NULL,
+    manufacturer  TEXT    NOT NULL,
+    source        TEXT    NOT NULL DEFAULT 'pricelist',
+    status        TEXT    NOT NULL DEFAULT 'pending',
+    attempts      INTEGER NOT NULL DEFAULT 0,
+    last_attempt  TEXT,
+    found_path    TEXT,
+    error_msg     TEXT,
+    next_retry_at TEXT    NOT NULL DEFAULT (datetime('now')),
+    created_at    TEXT    NOT NULL DEFAULT (datetime('now'))
+  );
+  CREATE UNIQUE INDEX IF NOT EXISTS idx_ds_queue_model_source ON ds_queue(model, source);
+  CREATE INDEX IF NOT EXISTS idx_ds_queue_pending ON ds_queue(status, next_retry_at);
+
   -- User join requests (public landing page form) --
   CREATE TABLE IF NOT EXISTS user_requests (
     id                   INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -268,6 +285,44 @@ const stmts = {
   revokeDocPackShare:   db.prepare("UPDATE doc_pack_shares SET revoked_at = datetime('now') WHERE id = ?"),
   touchDocPackShare:    db.prepare("UPDATE doc_pack_shares SET last_used_at = datetime('now') WHERE id = ?"),
 
+  // DS Finder queue
+  createDsQueueItem: db.prepare(
+    "INSERT OR IGNORE INTO ds_queue (model, manufacturer, source) VALUES (?, ?, ?)"
+  ),
+  getDsQueueStats: db.prepare(`
+    SELECT
+      SUM(CASE WHEN status='pending'   THEN 1 ELSE 0 END) AS pending,
+      SUM(CASE WHEN status='found'     THEN 1 ELSE 0 END) AS found,
+      SUM(CASE WHEN status='not_found' THEN 1 ELSE 0 END) AS not_found,
+      SUM(CASE WHEN status='error'     THEN 1 ELSE 0 END) AS error,
+      COUNT(*) AS total
+    FROM ds_queue
+  `),
+  listDsQueuePending: db.prepare(`
+    SELECT * FROM ds_queue
+    WHERE status IN ('pending','error') AND next_retry_at <= datetime('now')
+    ORDER BY next_retry_at ASC
+    LIMIT ?
+  `),
+  markDsQueueFound: db.prepare(`
+    UPDATE ds_queue SET status='found', found_path=?, last_attempt=datetime('now'), error_msg=NULL
+    WHERE id=?
+  `),
+  markDsQueueNotFound: db.prepare(
+    "UPDATE ds_queue SET status='not_found', last_attempt=datetime('now') WHERE id=?"
+  ),
+  markDsQueueError: db.prepare(`
+    UPDATE ds_queue SET status='error', attempts=attempts+1,
+      last_attempt=datetime('now'), error_msg=?, next_retry_at=?
+    WHERE id=?
+  `),
+  listDsQueue: db.prepare(`
+    SELECT * FROM ds_queue
+    WHERE (? IS NULL OR status=?)
+    ORDER BY created_at DESC
+    LIMIT ?
+  `),
+
   // User join requests
   createUserRequest: db.prepare(`INSERT INTO user_requests
     (first_name, last_name, email, phone, role_title, division) VALUES (?, ?, ?, ?, ?, ?)`),
@@ -380,6 +435,17 @@ module.exports = {
   getDocPackShareByToken:   (token)  => stmts.getDocPackShareByToken.get(token),
   revokeDocPackShare:       (id)     => stmts.revokeDocPackShare.run(id),
   touchDocPackShare:        (id)     => stmts.touchDocPackShare.run(id),
+
+  // DS Finder queue
+  createDsQueueItem: (model, manufacturer, source) =>
+    stmts.createDsQueueItem.run(model, manufacturer, source || 'pricelist'),
+  getDsQueueStats:    ()            => stmts.getDsQueueStats.get(),
+  listDsQueuePending: (limit = 50)  => stmts.listDsQueuePending.all(limit),
+  markDsQueueFound:   (id, p)       => stmts.markDsQueueFound.run(p, id),
+  markDsQueueNotFound:(id)          => stmts.markDsQueueNotFound.run(id),
+  markDsQueueError:   (id, msg, nextRetryAt) => stmts.markDsQueueError.run(msg || null, nextRetryAt, id),
+  listDsQueue: (status = null, limit = 200) =>
+    stmts.listDsQueue.all(status, status, limit),
 
   // User join requests
   createUserRequest:   (firstName, lastName, email, phone, roleTitle, division) =>

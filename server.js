@@ -13,8 +13,9 @@ const { v4: uuidv4 } = require('uuid');
 const crypto  = require('crypto');
 const nodemailer = require('nodemailer');
 
-const db      = require('./db');
-const docpack = require('./docpack');
+const db        = require('./db');
+const docpack   = require('./docpack');
+const dsFinder  = require('./ds-finder');
 
 const app  = express();
 const PORT = process.env.PORT || 3000;
@@ -928,6 +929,50 @@ app.post('/api/datasheets/reindex', requireAdmin, (req, res) => {
   res.json({ ok: true, count: n });
 });
 
+// ── DS Finder background worker routes ───────────────────────────────────────
+
+const dsfCatalogLimiter = rateLimit({
+  windowMs: 60 * 1000, max: 30,
+  standardHeaders: true, legacyHeaders: false,
+  message: { error: 'Too many catalog sync requests' },
+});
+
+// Status: pending/found/not_found/error counts + last-run timestamps
+app.get('/api/admin/ds-finder/status', requireAdmin, (_req, res) => {
+  res.json(dsFinder.getStatus());
+});
+
+// List queue items (most recent first, optional ?status= filter)
+app.get('/api/admin/ds-finder/list', requireAdmin, (req, res) => {
+  const status = req.query.status || null;
+  const items  = db.listDsQueue(status, 200);
+  res.json({ items });
+});
+
+// Manual trigger: populate queue + process 10 items immediately
+app.post('/api/admin/ds-finder/run', requireAdmin, (req, res) => {
+  setImmediate(async () => {
+    try {
+      await dsFinder.populateQueue();
+      await dsFinder.processQueue(10);
+    } catch (e) {
+      console.error('[ds-finder] manual run error:', e.message);
+    }
+  });
+  db.logAudit(req.user.id, req.user.username, 'ds_finder_run',
+    'Manual ds-finder triggered', getClientIp(req), '');
+  res.json({ ok: true });
+});
+
+// Catalog sync: browser sends catalog items missing datasheets
+app.post('/api/admin/ds-finder/catalog', requireAdmin, dsfCatalogLimiter, (req, res) => {
+  const { items } = req.body || {};
+  if (!Array.isArray(items)) return res.status(400).json({ error: 'items must be an array' });
+  if (items.length > 500)    return res.status(400).json({ error: 'too many items (max 500)' });
+  const added = dsFinder.addCatalogItems(items);
+  res.json({ ok: true, added });
+});
+
 // ── Equipment entry with auto-datasheet attach ──
 function _appendEquipment(packId, payload, contributor) {
   const pack = db.getDocPack(packId);
@@ -1343,4 +1388,10 @@ app.listen(PORT, () => {
   console.log(`[server] DS_PATH: ${DS_PATH}`);
   console.log(`[server] DB_PATH: ${process.env.DB_PATH || 'data/db.sqlite'}`);
   try { docpack.dryRenderAllTemplates(); } catch (e) { console.error('[docpack] dry-render error:', e.message); }
+  // Start the background datasheet-finder worker
+  // Runs in production automatically; set DS_FINDER_ENABLED=1 to test locally
+  if (process.env.NODE_ENV === 'production' || process.env.DS_FINDER_ENABLED === '1') {
+    try { dsFinder.startWorker(); }
+    catch (e) { console.error('[ds-finder] failed to start:', e.message); }
+  }
 });

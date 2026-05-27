@@ -1,0 +1,4032 @@
+[
+  {
+    "mfr": "Bosch",
+    "model": "NDI-3702-AL",
+    "ds": "datasheets/NDI-3702-AL.pdf"
+  },
+  {
+    "mfr": "Bosch",
+    "model": "NDI-3703-AL",
+    "ds": "datasheets/NDI-3703-AL.pdf"
+  },
+  {
+    "mfr": "Bosch",
+    "model": "NDE-3702-AL",
+    "ds": "datasheets/NDE-3702-AL.pdf"
+  },
+  {
+    "mfr": "Bosch",
+    "model": "NDE-3703-AL",
+    "ds": "datasheets/NDE-3703-AL.pdf"
+  },
+  {
+    "mfr": "Bosch",
+    "model": "NDE-5703-AL",
+    "ds": "datasheets/NDE-5703-AL.pdf"
+  },
+  {
+    "mfr": "Bosch",
+    "model": "NBE-3702-AL",
+    "ds": "datasheets/NBE-3702-AL.pdf"
+  },
+  {
+    "mfr": "Bosch",
+    "model": "NBE-3703-AL",
+    "ds": "datasheets/NBE-3703-AL.pdf"
+  },
+  {
+    "mfr": "Bosch",
+    "model": "NBE-5703-AL",
+    "ds": "datasheets/NBE-5703-AL.pdf"
+  },
+  {
+    "mfr": "Bosch",
+    "model": "NBE-7703-ALX",
+    "ds": "datasheets/NBE-7703-ALX.pdf"
+  },
+  {
+    "mfr": "Bosch",
+    "model": "NDP-5522-Z30",
+    "ds": "datasheets/NDP-5522-Z30.pdf"
+  },
+  {
+    "mfr": "Bosch",
+    "model": "NDP-5522-Z30L",
+    "ds": "datasheets/NDP-5522-Z30L.pdf"
+  },
+  {
+    "mfr": "Bosch",
+    "model": "NDP-5533-Z30L",
+    "ds": "datasheets/NDP-5533-Z30L.pdf"
+  },
+  {
+    "mfr": "Bosch",
+    "model": "PTZ 550",
+    "ds": ""
+  },
+  {
+    "mfr": "Bosch",
+    "model": "DIP-4420IG-00N",
+    "ds": "datasheets/DIP-4420IG-00N.pdf"
+  },
+  {
+    "mfr": "Bosch",
+    "model": "DIP-6440IG-00N",
+    "ds": "datasheets/DIP-6440IG-00N.pdf"
+  },
+  {
+    "mfr": "Bosch",
+    "model": "MB-BLIT-DIP",
+    "ds": ""
+  },
+  {
+    "mfr": "SIKLU",
+    "model": "MPL-260",
+    "ds": "datasheets/MPL-260.pdf"
+  },
+  {
+    "mfr": "SIKLU",
+    "model": "EH-600TX",
+    "ds": "datasheets/EH-600TX.pdf"
+  },
+  {
+    "mfr": "SIKLU",
+    "model": "T-280",
+    "ds": "datasheets/T-280.pdf"
+  },
+  {
+    "mfr": "SIKLU",
+    "model": "T-280+ANT",
+    "ds": "datasheets/T-280.pdf"
+  },
+  {
+    "mfr": "SIKLU",
+    "model": "EH-710TX-ODU-EXT",
+    "ds": "datasheets/EH-710TX.pdf"
+  },
+  {
+    "mfr": "SIKLU",
+    "model": "EH-8010FX+ANT",
+    "ds": "datasheets/EH-8010FX.pdf"
+  },
+  {
+    "mfr": "SIKLU",
+    "model": "EH1200FX",
+    "ds": "datasheets/EH1200FX.pdf"
+  },
+  {
+    "mfr": "SIKLU",
+    "model": "EH-ANT-1ft",
+    "ds": ""
+  },
+  {
+    "mfr": "SIKLU",
+    "model": "AX-ANT-1ft",
+    "ds": ""
+  },
+  {
+    "mfr": "SIKLU",
+    "model": "EH-ANT-2ft",
+    "ds": ""
+  },
+  {
+    "mfr": "SIKLU",
+    "model": "EH-ANT-1ft-B",
+    "ds": ""
+  },
+  {
+    "mfr": "SIKLU",
+    "model": "EH-ICAP8010-2000",
+    "ds": ""
+  },
+  {
+    "mfr": "SIKLU",
+    "model": "EH-UPG-500-1000",
+    "ds": ""
+  },
+  {
+    "mfr": "SIKLU",
+    "model": "EH-UPG8010-2000-5000",
+    "ds": ""
+  },
+  {
+    "mfr": "SIKLU",
+    "model": "EH-UPG8010-5000-10000",
+    "ds": ""
+  },
+  {
+    "mfr": "RADWIN",
+    "model": "RW-2250-6HC5",
+    "ds": "datasheets/RW-2250-6HC5.pdf"
+  },
+  {
+    "mfr": "RADWIN",
+    "model": "RW-2I58-62C5",
+    "ds": "datasheets/RW-2I58-62C5.pdf"
+  },
+  {
+    "mfr": "RADWIN",
+    "model": "RW-9613-4960",
+    "ds": "datasheets/RW-9613-4960.pdf"
+  },
+  {
+    "mfr": "RADWIN",
+    "model": "RW-9732-4965",
+    "ds": "datasheets/RW-9732-4965.pdf"
+  },
+  {
+    "mfr": "RADWIN",
+    "model": "RW-9721-5158",
+    "ds": "datasheets/RW-9721-5158.pdf"
+  },
+  {
+    "mfr": "RADWIN",
+    "model": "BRACKET-2M-2",
+    "ds": ""
+  },
+  {
+    "mfr": "RADWIN",
+    "model": "BRACKET-2M-3",
+    "ds": ""
+  },
+  {
+    "mfr": "Uniview",
+    "model": "IPC2124LB-ADF28KM-H",
+    "ds": "ds/Uniview/IPC2124LB-ADF28KM-H.pdf"
+  },
+  {
+    "mfr": "Uniview",
+    "model": "IPC2124LB-ADF40KM-H",
+    "ds": "ds/Uniview/IPC2124LB-ADF40KM-H.pdf"
+  },
+  {
+    "mfr": "Uniview",
+    "model": "IPC324LB-ADF28K-H",
+    "ds": "ds/Uniview/IPC324LB-ADF28K-H.pdf"
+  },
+  {
+    "mfr": "Uniview",
+    "model": "IPC3614LB-ADF28K-H",
+    "ds": "ds/Uniview/IPC3614LB-ADF28K-H.pdf"
+  },
+  {
+    "mfr": "Uniview",
+    "model": "IPC2324LB-ADZK-H",
+    "ds": "ds/Uniview/IPC2324LB-ADZK-H.pdf"
+  },
+  {
+    "mfr": "Uniview",
+    "model": "IPC3534LB-ADZK-H",
+    "ds": "ds/Uniview/IPC3534LB-ADZK-H.pdf"
+  },
+  {
+    "mfr": "Uniview",
+    "model": "IPC3634LB-ADZK-H",
+    "ds": "ds/Uniview/IPC3634LB-ADZK-H.pdf"
+  },
+  {
+    "mfr": "Uniview",
+    "model": "IPC2128LE-ADF28KM-H",
+    "ds": "ds/Uniview/IPC2128LE-ADF28KM-H.pdf"
+  },
+  {
+    "mfr": "Uniview",
+    "model": "IPC328LE-ADF28K-H",
+    "ds": "ds/Uniview/IPC328LE-ADF28K-H.pdf"
+  },
+  {
+    "mfr": "Uniview",
+    "model": "IPC3618LE-ADF28K-H",
+    "ds": "ds/Uniview/IPC3618LE-ADF28K-H.pdf"
+  },
+  {
+    "mfr": "Uniview",
+    "model": "IPC2124LE-ADF28KMC-DL",
+    "ds": "ds/Uniview/IPC2124LE-ADF28KMC-DL.pdf"
+  },
+  {
+    "mfr": "Uniview",
+    "model": "IPC3614LE-ADF28KC-DL",
+    "ds": "ds/Uniview/IPC3614LE-ADF28KC-DL.pdf"
+  },
+  {
+    "mfr": "Uniview",
+    "model": "IPC314LE-ADF28K-DL",
+    "ds": "https://sgcdn.uniview.com/Products/Network_Cameras/Easy_Series/EasyStar_Series/IPC314LE-ADF28K-DL/"
+  },
+  {
+    "mfr": "Uniview",
+    "model": "IPC2314LE-ADF28KM-WP",
+    "ds": "ds/Uniview/IPC2314LE-ADF28KM-WP.pdf"
+  },
+  {
+    "mfr": "Uniview",
+    "model": "IPC2318LE-ADF28KM-WP",
+    "ds": "ds/Uniview/IPC2318LE-ADF28KM-WP.pdf"
+  },
+  {
+    "mfr": "Uniview",
+    "model": "IPC3624LE-ADF28K-WP",
+    "ds": "ds/Uniview/IPC3624LE-ADF28K-WP.pdf"
+  },
+  {
+    "mfr": "Uniview",
+    "model": "IPC3628LE-ADF28K-WP",
+    "ds": "ds/Uniview/IPC3628LE-ADF28K-WP.pdf"
+  },
+  {
+    "mfr": "Uniview",
+    "model": "IPC3524LE-ADF28K-WP",
+    "ds": "ds/Uniview/IPC3524LE-ADF28K-WP.pdf"
+  },
+  {
+    "mfr": "Uniview",
+    "model": "IPC3528LE-ADF28K-WP",
+    "ds": "ds/Uniview/IPC3528LE-ADF28K-WP.pdf"
+  },
+  {
+    "mfr": "Uniview",
+    "model": "IPC2B14SS-ADF28KMC-I1",
+    "ds": "ds/Uniview/IPC2B14SS-ADF28KMC-I1.pdf"
+  },
+  {
+    "mfr": "Uniview",
+    "model": "IPC3634SS-ADF28KMC-I1",
+    "ds": "ds/Uniview/IPC3634SS-ADF28KMC-I1.pdf"
+  },
+  {
+    "mfr": "Uniview",
+    "model": "IPC2B18SS-ADF28KMC-I1",
+    "ds": "ds/Uniview/IPC2B18SS-ADF28KMC-I1.pdf"
+  },
+  {
+    "mfr": "Uniview",
+    "model": "IPC2B14SE-ADF28K-WP-I1",
+    "ds": "ds/Uniview/IPC2B14SE-ADF28K-WP-I1.pdf"
+  },
+  {
+    "mfr": "Uniview",
+    "model": "IPC3634SE-ADF28K-WP-I1",
+    "ds": "ds/Uniview/IPC3634SE-ADF28K-WP-I1.pdf"
+  },
+  {
+    "mfr": "Uniview",
+    "model": "IPC324SS-ADF28K-I1",
+    "ds": "ds/Uniview/IPC324SS-ADF28K-I1.pdf"
+  },
+  {
+    "mfr": "Uniview",
+    "model": "IPC2B24SS-ADZK-I1",
+    "ds": "ds/Uniview/IPC2B24SS-ADZK-I1.pdf"
+  },
+  {
+    "mfr": "Uniview",
+    "model": "IPC2B15SS-ADF28K-I1",
+    "ds": "ds/Uniview/IPC2B15SS-ADF28K-I1.pdf"
+  },
+  {
+    "mfr": "Uniview",
+    "model": "IPC815SB-ADF14K-I0",
+    "ds": "ds/Uniview/IPC815SB-ADF14K-I0.pdf"
+  },
+  {
+    "mfr": "Uniview",
+    "model": "IPC2105SB-ADF16KM-I0",
+    "ds": "ds/Uniview/IPC2105SB-ADF16KM-I0.pdf"
+  },
+  {
+    "mfr": "Uniview",
+    "model": "IPC3605SB-ADF16KM-I0",
+    "ds": "ds/Uniview/IPC3605SB-ADF16KM-I0.pdf"
+  },
+  {
+    "mfr": "Uniview",
+    "model": "IPC2K24SE-ADF40KMC-WL-I0",
+    "ds": "ds/Uniview/IPC2K24SE-ADF40KMC-WL-I0.pdf"
+  },
+  {
+    "mfr": "Uniview",
+    "model": "IPC2K28SE-ADF40KMC-WL-I0",
+    "ds": "ds/Uniview/IPC2K28SE-ADF40KMC-WL-I0.pdf"
+  },
+  {
+    "mfr": "Uniview",
+    "model": "IPC8645EA-ADZKM-I1",
+    "ds": "ds/Uniview/IPC8645EA-ADZKM-I1.pdf"
+  },
+  {
+    "mfr": "Uniview",
+    "model": "NVR301-04B-IQ",
+    "ds": "ds/Uniview/NVR301-B-IQ.pdf"
+  },
+  {
+    "mfr": "Uniview",
+    "model": "NVR301-08B-IQ",
+    "ds": "ds/Uniview/NVR301-B-IQ.pdf"
+  },
+  {
+    "mfr": "Uniview",
+    "model": "NVR301-16B-IQ",
+    "ds": "ds/Uniview/NVR301-B-IQ.pdf"
+  },
+  {
+    "mfr": "Uniview",
+    "model": "NVR301-08B-P8-IQ",
+    "ds": "ds/Uniview/NVR301-B-P8-IQ.pdf"
+  },
+  {
+    "mfr": "Uniview",
+    "model": "NVR302-32B-IQ",
+    "ds": "ds/Uniview/NVR302-B-IQ.pdf"
+  },
+  {
+    "mfr": "Uniview",
+    "model": "NVR501-08B-IQ",
+    "ds": "ds/Uniview/NVR501-B-IQ.pdf"
+  },
+  {
+    "mfr": "Uniview",
+    "model": "NVR501-16B-IQ",
+    "ds": "ds/Uniview/NVR501-B-IQ.pdf"
+  },
+  {
+    "mfr": "Uniview",
+    "model": "NVR502-32B-IQ",
+    "ds": "ds/Uniview/NVR502-32B-IQ.pdf"
+  },
+  {
+    "mfr": "Uniview",
+    "model": "NVR504-64E-IQ",
+    "ds": "ds/Uniview/NVR504-E-IQ.pdf"
+  },
+  {
+    "mfr": "Uniview",
+    "model": "IPC6324LWH-AX5C-VG2",
+    "ds": "ds/Uniview/IPC6324LWH-AX5C-VG2.pdf"
+  },
+  {
+    "mfr": "Uniview",
+    "model": "IPC6424SR-X25-VF-B",
+    "ds": "ds/Uniview/IPC6424SR-X25-VF-B.pdf"
+  },
+  {
+    "mfr": "Uniview",
+    "model": "IPC94144SR-X25-F40C",
+    "ds": "ds/Uniview/IPC94144SR-X25-F40C.pdf"
+  },
+  {
+    "mfr": "Uniview",
+    "model": "IPC6624SR-X33-VF",
+    "ds": "ds/Uniview/IPC6624SR-X33-VF.pdf"
+  },
+  {
+    "mfr": "Uniview",
+    "model": "IPC6824EL-X42-W-VH1",
+    "ds": "ds/Uniview/IPC6824EL-X42-W-VH1.pdf"
+  },
+  {
+    "mfr": "Uniview",
+    "model": "PKC2641-Z28-IR-P",
+    "ds": "ds/Uniview/PKC2641-Z28-IR-P.pdf"
+  },
+  {
+    "mfr": "Uniview",
+    "model": "PKC2641-Z100-IR-P",
+    "ds": "ds/Uniview/PKC2641-Z100-IR-P.pdf"
+  },
+  {
+    "mfr": "Uniview",
+    "model": "IPS-HC264@HDX4-IR-I1",
+    "ds": ""
+  },
+  {
+    "mfr": "Uniview",
+    "model": "UAC-P112-AF40-W",
+    "ds": "ds/Uniview/UAC-P112-AF40-W.pdf"
+  },
+  {
+    "mfr": "Uniview",
+    "model": "UAC-T315-ADZM",
+    "ds": "ds/Uniview/UAC-T315-ADZM.pdf"
+  },
+  {
+    "mfr": "Uniview",
+    "model": "UAC-B125-AF28M-W",
+    "ds": "ds/Uniview/UAC-B125-AF28M-W.pdf"
+  },
+  {
+    "mfr": "Uniview",
+    "model": "UAC-T125-AF28M-W",
+    "ds": "ds/Uniview/UAC-T125-AF28M-W.pdf"
+  },
+  {
+    "mfr": "Uniview",
+    "model": "UAC-B145-AF28LM-DL",
+    "ds": "ds/Uniview/UAC-B145-AF28LM-DL.pdf"
+  },
+  {
+    "mfr": "Uniview",
+    "model": "UAC-B145-AF40LM-DL",
+    "ds": "ds/Uniview/UAC-B145-AF28LM-DL.pdf"
+  },
+  {
+    "mfr": "Uniview",
+    "model": "UAC-T145-AF28LM-DL",
+    "ds": "ds/Uniview/UAC-T145-AF28LM-DL.pdf"
+  },
+  {
+    "mfr": "Uniview",
+    "model": "XVR301-04Q3",
+    "ds": "ds/Uniview/XVR301-Q3.pdf"
+  },
+  {
+    "mfr": "Uniview",
+    "model": "XVR301-08Q3",
+    "ds": "ds/Uniview/XVR301-Q3.pdf"
+  },
+  {
+    "mfr": "Uniview",
+    "model": "XVR301-16Q3",
+    "ds": "ds/Uniview/XVR301-Q3.pdf"
+  },
+  {
+    "mfr": "Uniview",
+    "model": "XVR302-32Q3",
+    "ds": "ds/Uniview/XVR302-32Q3.pdf"
+  },
+  {
+    "mfr": "Uniview",
+    "model": "TR-JB03-H-IN-V2",
+    "ds": "ds/Uniview/TR-JB03-H-IN-V2.pdf"
+  },
+  {
+    "mfr": "Uniview",
+    "model": "TR-JB03-I-IN",
+    "ds": "ds/Uniview/TR-JB03-I-IN.pdf"
+  },
+  {
+    "mfr": "Uniview",
+    "model": "TR-JB07-D-IN-V2",
+    "ds": "ds/Uniview/TR-JB07-D-IN-V2.pdf"
+  },
+  {
+    "mfr": "Uniview",
+    "model": "TR-JB07/WM03-F-IN-V2",
+    "ds": "ds/Uniview/TR-JB07-WM03-F-IN-V2.pdf"
+  },
+  {
+    "mfr": "Uniview",
+    "model": "TR-JB03-G-IN",
+    "ds": "ds/Uniview/TR-JB03-G-IN.pdf"
+  },
+  {
+    "mfr": "Uniview",
+    "model": "TR-JB05-A-IN",
+    "ds": "ds/Uniview/TR-JB05-A-IN.pdf"
+  },
+  {
+    "mfr": "Uniview",
+    "model": "TR-UC08-C-V2",
+    "ds": "ds/Uniview/TR-UC08-C-V2.pdf"
+  },
+  {
+    "mfr": "Uniview",
+    "model": "TR-JB07/WM03-G-IN-V2",
+    "ds": "ds/Uniview/TR-JB07-WM03-G-IN-V2.pdf"
+  },
+  {
+    "mfr": "Uniview",
+    "model": "TR-JB06-A-IN",
+    "ds": "ds/Uniview/TR-JB06-A-IN.pdf"
+  },
+  {
+    "mfr": "Uniview",
+    "model": "TR-JB05-B-IN",
+    "ds": "ds/Uniview/TR-JB05-B-IN.pdf"
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-2CD1021-I(2.8mm)",
+    "ds": "/ds/Hikvision/DS-2CD1021-I.pdf"
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-2CD1027G2-LUF",
+    "ds": "/ds/Hikvision/DS-2CD1027G2-LUF.pdf"
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-2CD1043G2-LIU2.8",
+    "ds": "/ds/Hikvision/DS-2CD1043G2-LIU2.8.pdf"
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-2CD1043G2-LIU2.8BLA",
+    "ds": "/ds/Hikvision/DS-2CD1043G2-LIU2.8BLA.pdf"
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-2CD1047G2-LUF",
+    "ds": "/ds/Hikvision/DS-2CD1047G2-LUF.pdf"
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-2CD1053G0-I",
+    "ds": "/ds/Hikvision/DS-2CD1053G0-I.pdf"
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-2CD1643G0-IZ",
+    "ds": "/ds/Hikvision/DS-2CD1643G0-IZ.pdf"
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-2CD1653G0-IZ",
+    "ds": "/ds/Hikvision/DS-2CD1653G0-IZ.pdf"
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-2CD1327G2-L",
+    "ds": "/ds/Hikvision/DS-2CD1327G2-L.pdf"
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-2CD1343G2-LIU(2.8m",
+    "ds": "/ds/Hikvision/DS-2CD1343G2-LIU.pdf"
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-2CD1343G2-I(2.8)BLA",
+    "ds": "/ds/Hikvision/DS-2CD1343G2-I.pdf"
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-2CD1353G0-I",
+    "ds": "/ds/Hikvision/DS-2CD1353G0-I.pdf"
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-2CD1121-I(2.8mm)",
+    "ds": "/ds/Hikvision/DS-2CD1121-I.pdf"
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-2CD1123G2-LIUF",
+    "ds": "/ds/Hikvision/DS-2CD1123G2-LIUF.pdf"
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-2CD1143G2-LIUF",
+    "ds": "/ds/Hikvision/DS-2CD1143G2-LIUF.pdf"
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-2CD1143G2-I(2.8)BLA",
+    "ds": "/ds/Hikvision/DS-2CD1143G2-I.pdf"
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-2CD1743G0-IZ",
+    "ds": "/ds/Hikvision/DS-2CD1743G0-IZ.pdf"
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-2CD1153G0-I",
+    "ds": "/ds/Hikvision/DS-2CD1153G0-I.pdf"
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-2CD1753G0-IZ",
+    "ds": "/ds/Hikvision/DS-2CD1753G0-IZ.pdf"
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-2CD2043G2-IU(2.8mm)",
+    "ds": "/ds/Hikvision/DS-2CD2043G2-IU.pdf"
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-2CD2043G2-LI2U(2.8m",
+    "ds": "/ds/Hikvision/DS-2CD2043G2-LI2U.pdf"
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-2CD2047G2H-LIU/SL(2",
+    "ds": "/ds/Hikvision/DS-2CD2047G2H-LIU.pdf"
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-2CD2047G2H-LIU/SLB",
+    "ds": "/ds/Hikvision/DS-2CD2047G2H-LIU.pdf"
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-2CD2047G3-LI2UY/S(L)(RB)",
+    "ds": "/ds/Hikvision/DS-2CD2047G3-LI2UY_S_L__RB_.pdf"
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-2CD2083G2-LI2U",
+    "ds": "/ds/Hikvision/DS-2CD2083G2-LI2U.pdf"
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-2CD2087G2H-LIU/SL",
+    "ds": "/ds/Hikvision/DS-2CD2087G2H-LIU.pdf"
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-2CD2087G3-LI2UY/SL",
+    "ds": "/ds/Hikvision/DS-2CD2087G3-LI2UY_SL.pdf"
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-2CD2T47G2P-LSU/SL",
+    "ds": "/ds/Hikvision/DS-2CD2T47G2P-LSU_SL.pdf"
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-2CD2T43G2-2I",
+    "ds": "/ds/Hikvision/DS-2CD2T43G2-2I.pdf"
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-2CD2T43G2-2LI2U(2.8",
+    "ds": "/ds/Hikvision/DS-2CD2T43G2-2LI2U_2.8.pdf"
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-2CD2T47G2H-LISU/SL2",
+    "ds": "/ds/Hikvision/DS-2CD2T47G2H-LISU_SL2.pdf"
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-2CD2T47G3-LIS2UY/SL",
+    "ds": "/ds/Hikvision/DS-2CD2T47G3-LIS2UY_SL.pdf"
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-2CD2643G2-IZS",
+    "ds": "/ds/Hikvision/DS-2CD2643G2-IZS.pdf"
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-2CD2646G2-IZS",
+    "ds": "/ds/Hikvision/DS-2CD2646G2-IZS.pdf"
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-2CD2646G2-IZSU/SL",
+    "ds": "/ds/Hikvision/DS-2CD2646G2-IZSU_SL.pdf"
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-2CD2647G2HT-LIZS",
+    "ds": "/ds/Hikvision/DS-2CD2647G2HT-LIZS.pdf"
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-2CD2T83G2-2I",
+    "ds": "/ds/Hikvision/DS-2CD2T83G2-2I.pdf"
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-2CD2T83G2-2LI2U(2.8",
+    "ds": "/ds/Hikvision/DS-2CD2T83G2-2LI2U_2.8.pdf"
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-2CD2T86G2-2I",
+    "ds": "/ds/Hikvision/DS-2CD2T86G2-2I.pdf"
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-2CD2T87G2H-LISU/SL2",
+    "ds": "/ds/Hikvision/DS-2CD2T87G2H-LISU_SL2.pdf"
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-2CD2T87G3-LIS2UY/SR",
+    "ds": "/ds/Hikvision/DS-2CD2T87G3-LIS2UY.pdf"
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-2CD2683G2-IZS",
+    "ds": "/ds/Hikvision/DS-2CD2683G2-IZS.pdf"
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-2CD2687G2HT-LIZS",
+    "ds": "/ds/Hikvision/DS-2CD2687G2HT-LIZS.pdf"
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-2CD2T87G2P-LSU/SL",
+    "ds": "/ds/Hikvision/DS-2CD2T87G2P-LSU.pdf"
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-2CD2343G2-IU",
+    "ds": "/ds/Hikvision/DS-2CD2343G2-IU.pdf"
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-2CD2343G2-LI2U(2.8m",
+    "ds": "/ds/Hikvision/DS-2CD2343G2-LI2U.pdf"
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-2CD2347G2H-LISU/SL2",
+    "ds": "/ds/Hikvision/DS-2CD2347G2H-LISU.pdf"
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-2CD2347G3-LIS2UY/SL",
+    "ds": "/ds/Hikvision/DS-2CD2347G3-LIS2UY.pdf"
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-2CD2347G2P-LSU/SL",
+    "ds": "/ds/Hikvision/DS-2CD2347G2P-LSU.pdf"
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-2CD2383G2-LI2U(2.8m",
+    "ds": "/ds/Hikvision/DS-2CD2383G2-LI2U.pdf"
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-2CD2387G2H-LISU/SL2",
+    "ds": "/ds/Hikvision/DS-2CD2387G2H-LISU.pdf"
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-2CD2387G3-LIS2UY/SR",
+    "ds": "/ds/Hikvision/DS-2CD2387G3-LIS2UY.pdf"
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-2CD2387G2P-LSU/SL",
+    "ds": "/ds/Hikvision/DS-2CD2387G2P-LSU.pdf"
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-2CD2523G2-I(2.8mm)D",
+    "ds": ""
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-2CD2543G2-I",
+    "ds": "/ds/Hikvision/DS-2CD2543G2-I.pdf"
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-2CD2E43G2-U",
+    "ds": "/ds/Hikvision/DS-2CD2E43G2-U.pdf"
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-2CD2543G2-IS",
+    "ds": "/ds/Hikvision/DS-2CD2543G2-IS.pdf"
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-2CD2543G2-IS(2.8)BL",
+    "ds": ""
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-2CD2547G2-LS",
+    "ds": "/ds/Hikvision/DS-2CD2547G2-LS.pdf"
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-2CD2143G2-I",
+    "ds": "/ds/Hikvision/DS-2CD2143G2-I.pdf"
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-2CD2143G2-IS",
+    "ds": "/ds/Hikvision/DS-2CD2143G2-IS.pdf"
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-2CD2743G2-IZS",
+    "ds": "/ds/Hikvision/DS-2CD2743G2-IZS.pdf"
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-2CD2747G2HT-LIZS",
+    "ds": "/ds/Hikvision/DS-2CD2747G2HT-LIZS.pdf"
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-2CD3766G2T-IZS(H)2",
+    "ds": "/ds/Hikvision/DS-2CD3766G2T-IZS-H2.pdf"
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-2CD3766G2T-IZS(H)7",
+    "ds": "/ds/Hikvision/DS-2CD3766G2T-IZS-H7.pdf"
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-2CD2183G2-IU",
+    "ds": "/ds/Hikvision/DS-2CD2183G2-IU.pdf"
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-2CD2187G2H-LISU",
+    "ds": "/ds/Hikvision/DS-2CD2187G2H-LISU.pdf"
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-2CD2783G2-IZS",
+    "ds": "/ds/Hikvision/DS-2CD2783G2-IZS.pdf"
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-2CD2787G2H-LIPTRZS2",
+    "ds": ""
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-2CD2421G0-IW",
+    "ds": "/ds/Hikvision/DS-2CD2421G0-IW.pdf"
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-2CD2D25G1-D/NF",
+    "ds": "/ds/Hikvision/DS-2CD2D25G1-DNF.pdf"
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-2CD2955G0-ISU",
+    "ds": "/ds/Hikvision/DS-2CD2955G0-ISU.pdf"
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-2CD3T23G1-I/4G",
+    "ds": "/ds/Hikvision/DS-2CD3T23G1-I4G.pdf"
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-2CD3646G2/P-IZS",
+    "ds": "/ds/Hikvision/DS-2CD3646G2P-IZS.pdf"
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-2CD3666G2T-IZS 2.7-13.5",
+    "ds": "/ds/Hikvision/DS-2CD3666G2T-IZS.pdf"
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-2CD3666G2T-IZS 7-35",
+    "ds": "/ds/Hikvision/DS-2CD3666G2T-IZS.pdf"
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-2XC3646G0H-LIZSU(PA",
+    "ds": "/ds/Hikvision/DS-2XC3646G0H-LIZSUPA.pdf"
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-2CD3843G0-AP",
+    "ds": "/ds/Hikvision/DS-2CD3843G0-AP.pdf"
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-2XC6047G0-LS",
+    "ds": "/ds/Hikvision/DS-2XC6047G0-LS.pdf"
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-2CD6825G0/C-IVS",
+    "ds": "/ds/Hikvision/DS-2CD6825G0C-IVS.pdf"
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-2CD6425G1-20(2.8/2m",
+    "ds": "/ds/Hikvision/DS-2CD6425G1-202.82m.pdf"
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-2CD6445G1-30(2.8/2M",
+    "ds": ""
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-2CD6365G1-IVS",
+    "ds": "/ds/Hikvision/DS-2CD6365G1-IVS.pdf"
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-2CD63C5G1-IVS",
+    "ds": "/ds/Hikvision/DS-2CD63C5G1-IVS.pdf"
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "iDS-2CD7A46G2-IZHSY(2.8-12)",
+    "ds": "/ds/Hikvision/iDS-2CD7A46G2-IZHSY2.8-12.pdf"
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "iDS-2CD7A45G0-IZS",
+    "ds": "/ds/Hikvision/iDS-2CD7A45G0-IZS.pdf"
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "iDS-2CD7A46G0-IZHS(8-32)",
+    "ds": "/ds/Hikvision/iDS-2CD7A46G0-IZHS8-32.pdf"
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "iDS-2CD7A46G2/P-IZHSY(2.8-12)",
+    "ds": "/ds/Hikvision/iDS-2CD7A46G2P-IZHSY2.8-12.pdf"
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "iDS-2CD7A46G2/P-IZHSY(8-32)",
+    "ds": "/ds/Hikvision/iDS-2CD7A46G2P-IZHSY8-32.pdf"
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "iDS-2CD7A45G0/P-IZHS",
+    "ds": "/ds/Hikvision/iDS-2CD7A45G0P-IZHS.pdf"
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "iDS-2CD7A86G2-IZHSY(2.8-12)",
+    "ds": "/ds/Hikvision/iDS-2CD7A86G2-IZHSY2.8-12.pdf"
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "iDS-2CD7A46G2/V-XZHSY(2.8-12)",
+    "ds": ""
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "iDS-2CD7A86G2-IZHS(Y) (8-32)",
+    "ds": "/ds/Hikvision/iDS-2CD7A86G2-IZHSY8-32.pdf"
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "iDS-2CD7146G0-IZ(H)S(Y",
+    "ds": "/ds/Hikvision/iDS-2CD7146G0-IZHSY.pdf"
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "iDS-2CD7586G0-IZHS(2.8-12)",
+    "ds": "/ds/Hikvision/iDS-2CD7586G0-IZHS.pdf"
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "iDS-2CD7586G0-IZHS(8-32)",
+    "ds": "/ds/Hikvision/iDS-2CD7586G0-IZHS.pdf"
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-2DE2C400IWG-K/4G/C0",
+    "ds": ""
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-2XS2T47G1-LD/C18S40",
+    "ds": "/ds/Hikvision/DS-2XS2T47G1-LD-C18S40.pdf"
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-2XS3Q47G1-LDH/4G/C1",
+    "ds": ""
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-2XS6A47G1-LS/C36S80",
+    "ds": "/ds/Hikvision/DS-2XS6A47G1-LS-C36S80.pdf"
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-2XS6A87G1-LS/C36S80",
+    "ds": "/ds/Hikvision/DS-2XS6A87G1-LS.pdf"
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-2CV2Q21FD-IW",
+    "ds": "/ds/Hikvision/DS-2CV2Q21FD-IW.pdf"
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-2DE2A404IW-DE3(S6)",
+    "ds": "/ds/Hikvision/DS-2DE2A404IW-DE3.pdf"
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-2DE4225IW-DE(T5)",
+    "ds": "/ds/Hikvision/DS-2DE4225IW-DE.pdf"
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-2DE4A425IWG-E",
+    "ds": "/ds/Hikvision/DS-2DE4A425IWG-E.pdf"
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-2SE4C425MWG-E",
+    "ds": "/ds/Hikvision/DS-2SE4C425MWG-E.pdf"
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-2DE5232W-AE(S6)",
+    "ds": "/ds/Hikvision/DS-2DE5232W-AE.pdf"
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-2DE5425IW-AE(S6)",
+    "ds": "/ds/Hikvision/DS-2DE5425IW-AE.pdf"
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-2DE5432IWG-E",
+    "ds": "/ds/Hikvision/DS-2DE5432IWG-E.pdf"
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-2DT5432MWG-T(O-(PA",
+    "ds": "/ds/Hikvision/DS-2DT5432MWG-T.pdf"
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-2DE5425IWG-K/4G",
+    "ds": "/ds/Hikvision/DS-2DE5425IWG-K.pdf"
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-2DE7A432IW-AEB(T5)",
+    "ds": "/ds/Hikvision/DS-2DE7A432IW-AEB.pdf"
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-2SE7C432MWG-EB/26(F",
+    "ds": "/ds/Hikvision/DS-2SE7C432MWG-EB.pdf"
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-2DF7C445IXR-AEL(T5)",
+    "ds": "/ds/Hikvision/DS-2DF7C445IXR-AEL.pdf"
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-2DE7A825IW-AEB(T5)",
+    "ds": "/ds/Hikvision/DS-2DE7A825IW-AEB.pdf"
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-2DE7A812MCG-EB",
+    "ds": "/ds/Hikvision/DS-2DE7A812MCG-EB.pdf"
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-2DF8242IX-AEL(T5)",
+    "ds": "/ds/Hikvision/DS-2DF8242IX-AEL.pdf"
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-2DF8242IX-AELW(T5)",
+    "ds": "/ds/Hikvision/DS-2DF8242IX-AELW.pdf"
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-2DF8C260I5XG1-ELW",
+    "ds": "/ds/Hikvision/DS-2DF8C260I5XG1-ELW.pdf"
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-2DF8C442IXG1-EL(+PS",
+    "ds": "/ds/Hikvision/DS-2DF8C442IXG1-EL.pdf"
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-2SF8C442MXG1-EL/14",
+    "ds": "/ds/Hikvision/DS-2SF8C442MXG1-EL.pdf"
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-2SF8C442MXG1-ELW/14(F1)(O-STD)",
+    "ds": "/ds/Hikvision/DS-2SF8C442MXG1-ELW.pdf"
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-2SF8C442MXG1-EL/26",
+    "ds": "/ds/Hikvision/DS-2SF8C442MXG1-EL.pdf"
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-2DT8C442MXG-LWT",
+    "ds": "/ds/Hikvision/DS-2DT8C442MXG-LWT.pdf"
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-2DF8C842IXG1-EL",
+    "ds": "/ds/Hikvision/DS-2DF8C842IXG1-EL.pdf"
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-2DF8C842IXG1-ELW",
+    "ds": "/ds/Hikvision/DS-2DF8C842IXG1-ELW.pdf"
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-2DF9C848LXG1-LW",
+    "ds": "/ds/Hikvision/DS-2DF9C848LXG1-LW.pdf"
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-2DF9C453LXG1-LW+PSU",
+    "ds": "/ds/Hikvision/DS-2DF9C453LXG1-LW.pdf"
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-E04NI-Q1-1T",
+    "ds": "/ds/Hikvision/DS-E04NI-Q1.pdf"
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-E04NI-Q1/4P-1T",
+    "ds": "/ds/Hikvision/DS-E04NI-Q1.pdf"
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-E08NI-Q1-1T",
+    "ds": "/ds/Hikvision/DS-E08NI-Q1.pdf"
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-E08NI-Q1/8P-1T",
+    "ds": "/ds/Hikvision/DS-E08NI-Q1.pdf"
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-7604NXI-K1(D)-2T",
+    "ds": "/ds/Hikvision/DS-7604NXI-K1.pdf"
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-7608NXI-K2-2T",
+    "ds": "/ds/Hikvision/DS-7608NXI-K2.pdf"
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-7604NXI-K1/4P-2T",
+    "ds": "/ds/Hikvision/DS-7604NXI-K1.pdf"
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-7608NXI-K2/8P-2T",
+    "ds": "/ds/Hikvision/DS-7608NXI-K2.pdf"
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-7608NXI-I2/S(E)-2T",
+    "ds": "/ds/Hikvision/DS-7608NXI-I2.pdf"
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-7608NXI-I2/VPro-2T",
+    "ds": "/ds/Hikvision/DS-7608NXI-I2.pdf"
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-7616NXI-K2(STD)-2T",
+    "ds": "/ds/Hikvision/DS-7616NXI-K2.pdf"
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-7616NXI-K2/16P-2T",
+    "ds": "/ds/Hikvision/DS-7616NXI-K2.pdf"
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-7616NXI-I2/S-2T",
+    "ds": "/ds/Hikvision/DS-7616NXI-I2.pdf"
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-7616NXI-I2/16P/S-2T",
+    "ds": "/ds/Hikvision/DS-7616NXI-I2.pdf"
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-7616NXI-I2/VPro-2T",
+    "ds": "/ds/Hikvision/DS-7616NXI-I2.pdf"
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-7632NXI-K2 -4T",
+    "ds": "/ds/Hikvision/DS-7632NXI-K2.pdf"
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-7632NI-M2(STD)-4T",
+    "ds": "/ds/Hikvision/DS-7632NI-M2.pdf"
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-7716NXI-I4/S(STD)(E-2T",
+    "ds": "/ds/Hikvision/DS-7716NXI-I4.pdf"
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-7716NI-M4-2TB",
+    "ds": "/ds/Hikvision/DS-7716NI-M4.pdf"
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-7732NI-M4(STD)-4T",
+    "ds": "/ds/Hikvision/DS-7732NI-M4.pdf"
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "iDS-7732NXI-M4/X(ST-4T",
+    "ds": "/ds/Hikvision/iDS-7732NXI-M4.pdf"
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-7732NXI-I4/Vpro-4T",
+    "ds": "/ds/Hikvision/DS-7732NXI-I4.pdf"
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-7764NI-M4",
+    "ds": "/ds/Hikvision/DS-7764NI-M4.pdf"
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-8664NXI-I8/S",
+    "ds": "/ds/Hikvision/DS-8664NXI-I8.pdf"
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-9632NI-M8",
+    "ds": "/ds/Hikvision/DS-9632NI-M8.pdf"
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-9632NI-M16",
+    "ds": "/ds/Hikvision/DS-9632NI-M16.pdf"
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-9664NI-M8",
+    "ds": "/ds/Hikvision/DS-9664NI-M8.pdf"
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-9664NXI-I8/VPro(STD",
+    "ds": "/ds/Hikvision/DS-9664NXI-I8.pdf"
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-9664NI-M16",
+    "ds": "/ds/Hikvision/DS-9664NI-M16.pdf"
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-96128NI-I16",
+    "ds": "/ds/Hikvision/DS-96128NI-I16.pdf"
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-96256NI-I16",
+    "ds": "/ds/Hikvision/DS-96256NI-I16.pdf"
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-2AE4225TI-D(E)",
+    "ds": "/ds/Hikvision/DS-2AE4225TI-D.pdf"
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-2AE5232TI-A",
+    "ds": "/ds/Hikvision/DS-2AE5232T-A.pdf"
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-2AE7232TI-A(D)",
+    "ds": "/ds/Hikvision/DS-2AE7232TI-A.pdf"
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-2AE7232ITG",
+    "ds": "/ds/Hikvision/DS-2AE7232ITG.pdf"
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "iDS-E04HQHI-XD-1T",
+    "ds": "/ds/Hikvision/iDS-E04HQHI-XD.pdf"
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "iDS-E08HQHI-XB-1T",
+    "ds": "/ds/Hikvision/iDS-E08HQHI-XB.pdf"
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "iDS-7204HQHI-M1/XT-2T",
+    "ds": "/ds/Hikvision/iDS-7204HQHI-M1.pdf"
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "iDS-7204HUHI-M1/XT(2T)",
+    "ds": "/ds/Hikvision/DS-7204HUHI-M1.pdf"
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "iDS-7208HQHI-M1/XT-2T",
+    "ds": "/ds/Hikvision/iDS-7208HQHI-M1.pdf"
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "iDS-7208HUHI-M1/X(STD)-2T",
+    "ds": "/ds/Hikvision/DS-7208HUHI-M1.pdf"
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "iDS-7216HQHI-M1/XT-2T",
+    "ds": "/ds/Hikvision/DS-7216HQHI-M1.pdf"
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "iDS-7216HUHI-M2/XT-2T",
+    "ds": "/ds/Hikvision/DS-7216HUHI-M2.pdf"
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "iDS-7232HQHI-M2/XT/4T",
+    "ds": "/ds/Hikvision/DS-7232HQHI-M2.pdf"
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "iDS-7316HQHI-M4/S-1T",
+    "ds": "/ds/Hikvision/DS-7316HQHI-M4.pdf"
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "iDS-7316HUHI-M4/S-1T",
+    "ds": "/ds/Hikvision/DS-7316HUHI-M4.pdf"
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "iDS-7332HQHI-M4/S-1T",
+    "ds": "/ds/Hikvision/iDS-7332HQHI-M4.pdf"
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "iDS-7332HUHI-M4/S-1T",
+    "ds": "/ds/Hikvision/iDS-7332HUHI-M4.pdf"
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-KV6113-WPE1(C)",
+    "ds": "/ds/Hikvision/DS-KV6113-WPE1.pdf"
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-KV8113-WME1(C)",
+    "ds": "/ds/Hikvision/DS-KV8113-WME1.pdf"
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-KV8213-WME1(C)",
+    "ds": "/ds/Hikvision/DS-KV8213-WME1.pdf"
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-KV8413-WME1(C)",
+    "ds": "/ds/Hikvision/DS-KV8413-WME1.pdf"
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-KV9503-WBE1",
+    "ds": "/ds/Hikvision/DS-KV9503-WBE1.pdf"
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-KD9403-E6",
+    "ds": "/ds/Hikvision/DS-KD9403-E6.pdf"
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-KD9633-WBE6",
+    "ds": "/ds/Hikvision/DS-KD9633-WBE6.pdf"
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-KIS8003-ACF2",
+    "ds": "/ds/Hikvision/DS-KIS8003-ACF2.pdf"
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-KIS8003-ACW2",
+    "ds": "/ds/Hikvision/DS-KIS8003-ACW2.pdf"
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-KD8003-IME1",
+    "ds": "/ds/Hikvision/DS-KD8003-IME1.pdf"
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-KIS704EY-ACW2/Al",
+    "ds": "/ds/Hikvision/DS-KIS704EY-ACW2.pdf"
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-KIS704EY-ACF2/Al",
+    "ds": "/ds/Hikvision/DS-KIS704EY-ACF2.pdf"
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-KIS706EY",
+    "ds": "/ds/Hikvision/DS-KIS706EY.pdf"
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-KH7300EY-TE2/White",
+    "ds": "/ds/Hikvision/DS-KH7300EY-TE2.pdf"
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-KH7300EY-TE2",
+    "ds": "/ds/Hikvision/DS-KH7300EY-TE2.pdf"
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-KH7300EY-WTE2",
+    "ds": "/ds/Hikvision/DS-KH7300EY-WTE2.pdf"
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-KH7300EY-WTE2/White",
+    "ds": "/ds/Hikvision/DS-KH7300EY-WTE2.pdf"
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-KD7003EY-IME2",
+    "ds": "/ds/Hikvision/DS-KD7003EY-IME2.pdf"
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-KAD7061EY",
+    "ds": "/ds/Hikvision/DS-KAD7061EY.pdf"
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-KAD7060EY",
+    "ds": "/ds/Hikvision/DS-KAD7060EY.pdf"
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-KAW150-4N",
+    "ds": "/ds/Hikvision/DS-KAW150-4N.pdf"
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-KD-TDM",
+    "ds": "/ds/Hikvision/DS-KD-TDM.pdf"
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-KD-TDE",
+    "ds": "/ds/Hikvision/DS-KD-TDE.pdf"
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-KD-KP",
+    "ds": "/ds/Hikvision/DS-KD-KP.pdf"
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-KD-DIS",
+    "ds": "/ds/Hikvision/DS-KD-DIS.pdf"
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-KD-KK",
+    "ds": "/ds/Hikvision/DS-KD-KK.pdf"
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-KD-K12",
+    "ds": "/ds/Hikvision/DS-KD-K12.pdf"
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-KD-IN",
+    "ds": "/ds/Hikvision/DS-KD-IN.pdf"
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-KD-E",
+    "ds": "/ds/Hikvision/DS-KD-E.pdf"
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-KD-M",
+    "ds": "/ds/Hikvision/DS-KD-M.pdf"
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-KD-MFB",
+    "ds": "/ds/Hikvision/DS-KD-MFB.pdf"
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-KD-BK",
+    "ds": "/ds/Hikvision/DS-KD-BK.pdf"
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-KH6000-E1",
+    "ds": "/ds/Hikvision/DS-KH6000-E1.pdf"
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-KH7000EY-E2",
+    "ds": "/ds/Hikvision/DS-KH7000EY-E2.pdf"
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-KH6320-TE1 שחור",
+    "ds": ""
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-KH6320-WTE1 שחור או לבן",
+    "ds": ""
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-KH8381-WTE1",
+    "ds": ""
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-KH9510-WTE1(B)",
+    "ds": ""
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-KABV6113-RS",
+    "ds": ""
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-KABV8113-RS/Surface",
+    "ds": ""
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-KD-ACW1",
+    "ds": ""
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-KD-ACW2",
+    "ds": ""
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-KD-ACW3",
+    "ds": ""
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-KABD8003-RS1",
+    "ds": ""
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-KABD8003-RS2",
+    "ds": ""
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-KABD8003-RS3",
+    "ds": ""
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-KABV9503-RS",
+    "ds": ""
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-KD-ACF1",
+    "ds": "/ds/Hikvision/DS-KD-ACF1.pdf"
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-KD-ACF2",
+    "ds": "/ds/Hikvision/DS-KD-ACF2.pdf"
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-KD-ACF2/S",
+    "ds": "/ds/Hikvision/DS-KD-ACF2.pdf"
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-KD-ACF3",
+    "ds": "/ds/Hikvision/DS-KD-ACF3.pdf"
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-K7M102-M",
+    "ds": ""
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-KM9503",
+    "ds": ""
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-KABH6320-T",
+    "ds": ""
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-PWA96-M-WB",
+    "ds": "/ds/Hikvision/DS-PWA96-M-WB.pdf"
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-PK1-E-WB",
+    "ds": "/ds/Hikvision/DS-PK1-E-WB.pdf"
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-PR1-WB",
+    "ds": "/ds/Hikvision/DS-PR1-WB.pdf"
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-PKF1-WB",
+    "ds": "/ds/Hikvision/DS-PKF1-WB.pdf"
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-PS1-I-WB-Red",
+    "ds": "/ds/Hikvision/DS-PS1-I-WB-Red.pdf"
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-PS1-E-WB-red",
+    "ds": "/ds/Hikvision/DS-PS1-E-WB-red.pdf"
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-PDMCS-EG2-WB",
+    "ds": "/ds/Hikvision/DS-PDMCS-EG2-WB.pdf"
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-PDMCX-E-WB(O-STD)",
+    "ds": ""
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-PDP15P-EG2-WB(B)",
+    "ds": ""
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-PDPG12P-EG2-WB",
+    "ds": ""
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-PDD12P-EG2-WB",
+    "ds": ""
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-PDPC12P-EG2-WB",
+    "ds": ""
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-PDC10DM-EG2-WB",
+    "ds": ""
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-PDTT15AM-LM-WB",
+    "ds": ""
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-PDCM15PF-IR",
+    "ds": ""
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-PDSMK-S-WB",
+    "ds": ""
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-PDWL-E-WB",
+    "ds": "/ds/Hikvision/DS-PDWL-E-WB.pdf"
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-PDEBP1-EG2-WB",
+    "ds": ""
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-PDEB1-EG2-WB",
+    "ds": ""
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-PDB-IN-Wristband",
+    "ds": ""
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-PM1-O1H-WB",
+    "ds": ""
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-PM1-O1L-WB",
+    "ds": ""
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-PDB-IN-Ceilingbrack",
+    "ds": ""
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-PDB-IN-Wallbracket",
+    "ds": ""
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-PHA64-LP",
+    "ds": ""
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-PHA48-EP",
+    "ds": ""
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-PM1-I8O2-H",
+    "ds": ""
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-PM1-RT-HWB(O-STD)",
+    "ds": ""
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-PK1-LRT-HWB",
+    "ds": ""
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-PM2-G",
+    "ds": "/ds/Hikvision/DS-PM2-G.pdf"
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-PM2-S(EU)",
+    "ds": "/ds/Hikvision/DS-PM2-S.pdf"
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-PM2-P",
+    "ds": "/ds/Hikvision/DS-PM2-P.pdf"
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-PDP18-EG2",
+    "ds": "/ds/Hikvision/DS-PDP18-EG2.pdf"
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-PDD15AM-EG2",
+    "ds": "/ds/Hikvision/DS-PDD15AM-EG2.pdf"
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-PDPG12P-EG2",
+    "ds": "/ds/Hikvision/DS-PDPG12P-EG2.pdf"
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-PDD12P-EG2",
+    "ds": "/ds/Hikvision/DS-PDD12P-EG2.pdf"
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-PDD12-EG2",
+    "ds": "/ds/Hikvision/DS-PDD12-EG2.pdf"
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-PDPC12P-EG2",
+    "ds": "/ds/Hikvision/DS-PDPC12P-EG2.pdf"
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-PDTT15AM-LM",
+    "ds": "/ds/Hikvision/DS-PDTT15AM-LM.pdf"
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-PS1-B",
+    "ds": "/ds/Hikvision/DS-PS1-B.pdf"
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-PS1-R",
+    "ds": "/ds/Hikvision/DS-PS1-R.pdf"
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-PS102X(O-STD)RED",
+    "ds": ""
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-PDCL12-EG2",
+    "ds": ""
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-PDC15-EG2",
+    "ds": ""
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-PDCL12DT-EG2",
+    "ds": ""
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-PDC10DM-VG3",
+    "ds": ""
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-PDB-IN-Universalbra",
+    "ds": ""
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-PDSKM-VG3",
+    "ds": ""
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-PDSK-P",
+    "ds": ""
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-PDBGTS",
+    "ds": ""
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-PM1-O4L-H",
+    "ds": ""
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-PM1-O4H-H",
+    "ds": ""
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-PD1-MC-WS",
+    "ds": ""
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-PD1-MC-MS",
+    "ds": ""
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-PD1-MC-RS",
+    "ds": "/ds/Hikvision/DS-PD1-MC-RS.pdf"
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-PD1-EB-PF",
+    "ds": "/ds/Hikvision/DS-PD1-EB-PF.pdf"
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-PD1-EB",
+    "ds": "/ds/Hikvision/DS-PD1-EB.pdf"
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-PDBG8-EG2",
+    "ds": "/ds/Hikvision/DS-PDBG8-EG2.pdf"
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-PDC5NC-EG2",
+    "ds": "/ds/Hikvision/DS-PDC5NC-EG2.pdf"
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-QAZ1325G1T-EY",
+    "ds": "/ds/Hikvision/DS-QAZ1325G1T-EY.pdf"
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-QAZ1307G1T-E",
+    "ds": "/ds/Hikvision/DS-QAZ1307G1T-E.pdf"
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-QAZ1203G1-BE",
+    "ds": "/ds/Hikvision/DS-QAZ1203G1-BE.pdf"
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-QAZ0203G1-S",
+    "ds": "/ds/Hikvision/DS-QAZ0203G1-S.pdf"
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-QAZ1206G1-BE",
+    "ds": "/ds/Hikvision/DS-QAZ1206G1-BE.pdf"
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-QAZ0206G1-S",
+    "ds": "/ds/Hikvision/DS-QAZ0206G1-S.pdf"
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-QAZ1610G1-BE",
+    "ds": ""
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-QAZ0610G1-S",
+    "ds": ""
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-QAZ1110G1-B",
+    "ds": ""
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-QAZ1430G1",
+    "ds": ""
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-QAE1A80G1-VB",
+    "ds": ""
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-QAE0420G1-V",
+    "ds": ""
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-QAE0A60G1-VB",
+    "ds": ""
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-QAE0120G1R",
+    "ds": ""
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-QAE0206G1-V",
+    "ds": ""
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-QAE0330G1T-V",
+    "ds": ""
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-2DY5225IX-AE(T5)",
+    "ds": "/ds/Hikvision/DS-2DY5225IX-AE-T5.pdf"
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-2DY7236IX-A(T5)",
+    "ds": "/ds/Hikvision/DS-2DY7236IX-A-T5.pdf"
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-2DY9240IX-A(T5)",
+    "ds": "/ds/Hikvision/DS-2DY9240IX-A-T5.pdf"
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-2DY9250IAX-A(T5)",
+    "ds": "/ds/Hikvision/DS-2DY9250IAX-A-T5.pdf"
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-2DYH2A0LXG-LW/12",
+    "ds": "/ds/Hikvision/DS-2DYH2A0LXG-LW.pdf"
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-1227ZJ",
+    "ds": "/ds/Hikvision/DS-1227ZJ.pdf"
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-1240ZJ",
+    "ds": "/ds/Hikvision/DS-1240ZJ.pdf"
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-1253ZJ-M",
+    "ds": "/ds/Hikvision/DS-1253ZJ-M.pdf"
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-1258ZJ",
+    "ds": "/ds/Hikvision/DS-1258ZJ.pdf"
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-1259ZJ",
+    "ds": "/ds/Hikvision/DS-1259ZJ.pdf"
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-1260ZJ",
+    "ds": "/ds/Hikvision/DS-1260ZJ.pdf"
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-1271ZJ-110",
+    "ds": "/ds/Hikvision/DS-1271ZJ-110.pdf"
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-1271ZJ-DM25",
+    "ds": "/ds/Hikvision/DS-1271ZJ-DM25.pdf"
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-1272ZJ-110",
+    "ds": "/ds/Hikvision/DS-1272ZJ-110.pdf"
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-1272ZJ-110B",
+    "ds": "/ds/Hikvision/DS-1272ZJ-110B.pdf"
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-1272ZJ-110-TRS",
+    "ds": "/ds/Hikvision/DS-1272ZJ-110-TRS.pdf"
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-1272ZJ-120",
+    "ds": "/ds/Hikvision/DS-1272ZJ-120.pdf"
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-1273ZJ-130-TRL",
+    "ds": "/ds/Hikvision/DS-1273ZJ-130-TRL.pdf"
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-1273ZJ-135",
+    "ds": "/ds/Hikvision/DS-1273ZJ-135.pdf"
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-1273ZJ-135B",
+    "ds": "/ds/Hikvision/DS-1273ZJ-135B.pdf"
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-1273ZJ-140",
+    "ds": "/ds/Hikvision/DS-1273ZJ-140.pdf"
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-1273ZJ-160",
+    "ds": "/ds/Hikvision/DS-1273ZJ-160.pdf"
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-1273ZJ-DM25",
+    "ds": "/ds/Hikvision/DS-1273ZJ-DM25.pdf"
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-1273ZJ-DM26-B",
+    "ds": "/ds/Hikvision/DS-1273ZJ-DM26-B.pdf"
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-1275ZJ",
+    "ds": "/ds/Hikvision/DS-1275ZJ.pdf"
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-1275ZJ/HWB",
+    "ds": "/ds/Hikvision/DS-1275ZJ.pdf"
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-1275ZJ-S-SUS",
+    "ds": "/ds/Hikvision/DS-1275ZJ-S-SUS.pdf"
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-1275ZJ-SUS",
+    "ds": "/ds/Hikvision/DS-1275ZJ-SUS.pdf"
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-1673ZJ-P",
+    "ds": "/ds/Hikvision/DS-1673ZJ-P.pdf"
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-2115ZJ-P",
+    "ds": "/ds/Hikvision/DS-2115ZJ-P.pdf"
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-1276ZJ",
+    "ds": "/ds/Hikvision/DS-1276ZJ.pdf"
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-1276ZJ-P",
+    "ds": "/ds/Hikvision/DS-1276ZJ-P.pdf"
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-1280ZJ-DM18",
+    "ds": ""
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-1280ZJ-DM20",
+    "ds": ""
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-1280ZJ-DM21",
+    "ds": ""
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-1280ZJ-DM22",
+    "ds": ""
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-1280ZJ-DM25",
+    "ds": ""
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-1280ZJ-DM26",
+    "ds": ""
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-1280ZJ-DM45",
+    "ds": ""
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-1280ZJ-DM46",
+    "ds": ""
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-1280ZJ-DM46(Black)",
+    "ds": ""
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-1280ZJ-DM55",
+    "ds": ""
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-1280ZJ-DM8",
+    "ds": ""
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-1280ZJ-M",
+    "ds": ""
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-1280ZJ-PT6",
+    "ds": ""
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-1280ZJ-S",
+    "ds": ""
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-1280ZJ-S-428C-ACY",
+    "ds": ""
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-1280ZJ-S(Black)",
+    "ds": ""
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-1280ZJ-XS",
+    "ds": ""
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-1280ZJ-XS(Black)",
+    "ds": ""
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-1281ZJ-DM25",
+    "ds": ""
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-1281ZJ-DM26",
+    "ds": ""
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-1284ZJ-M",
+    "ds": ""
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-1292ZJ",
+    "ds": "/ds/Hikvision/DS-1292ZJ.pdf"
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-1294ZJ",
+    "ds": "/ds/Hikvision/DS-1294ZJ.pdf"
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-1294ZJ-PT",
+    "ds": "/ds/Hikvision/DS-1294ZJ-PT.pdf"
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-1297ZJ-ES",
+    "ds": "/ds/Hikvision/DS-1297ZJ-ES.pdf"
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-1299ZJ",
+    "ds": "/ds/Hikvision/DS-1299ZJ.pdf"
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-4612ZJ-PA",
+    "ds": ""
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-4614ZJ-PA",
+    "ds": ""
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-1331HZ-H",
+    "ds": "/ds/Hikvision/DS-1331HZ-H.pdf"
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-1331HZ-HW",
+    "ds": "/ds/Hikvision/DS-1331HZ-HW.pdf"
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-1331HZ-W",
+    "ds": "/ds/Hikvision/DS-1331HZ-W.pdf"
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-1340HZ",
+    "ds": ""
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-1471ZJ-155",
+    "ds": "/ds/Hikvision/DS-1471ZJ-155.pdf"
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-1473ZJ-135",
+    "ds": "/ds/Hikvision/DS-1473ZJ-135.pdf"
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-1473ZJ-155",
+    "ds": "/ds/Hikvision/DS-1473ZJ-155.pdf"
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-1475ZJ-SUS",
+    "ds": "/ds/Hikvision/DS-1475ZJ-SUS.pdf"
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-1475ZJ-Y",
+    "ds": "/ds/Hikvision/DS-1475ZJ-Y.pdf"
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-1602ZJ",
+    "ds": "/ds/Hikvision/DS-1602ZJ.pdf"
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-1602ZJ-Box",
+    "ds": "/ds/Hikvision/DS-1602ZJ-Box.pdf"
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-1602ZJ-Corner",
+    "ds": "/ds/Hikvision/DS-1602ZJ-Corner.pdf"
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-1602ZJ-Pole",
+    "ds": "/ds/Hikvision/DS-1602ZJ-Pole.pdf"
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-1602ZJ-P",
+    "ds": "/ds/Hikvision/DS-1602ZJ-P.pdf"
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-1603ZJ",
+    "ds": "/ds/Hikvision/DS-1603ZJ.pdf"
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-1603ZJ-P",
+    "ds": "/ds/Hikvision/DS-1603ZJ-P.pdf"
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-1603ZJ-Pole-P",
+    "ds": "/ds/Hikvision/DS-1603ZJ-Pole-P.pdf"
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-1604ZJ",
+    "ds": "/ds/Hikvision/DS-1604ZJ.pdf"
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-1604ZJ-box",
+    "ds": "/ds/Hikvision/DS-1604ZJ-box.pdf"
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-1604ZJ-box-pole",
+    "ds": "/ds/Hikvision/DS-1604ZJ-box-pole.pdf"
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-1604ZJ-P",
+    "ds": "/ds/Hikvision/DS-1604ZJ-P.pdf"
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-1604ZJ-Pole",
+    "ds": "/ds/Hikvision/DS-1604ZJ-Pole.pdf"
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-1604ZJ-Pole-P",
+    "ds": ""
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-4603ZJ-PA",
+    "ds": ""
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-4604ZJ-PA",
+    "ds": ""
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-4600ZJ-GSAC",
+    "ds": ""
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-1605ZJ",
+    "ds": ""
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-1618ZJ",
+    "ds": ""
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-1619ZJ",
+    "ds": ""
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-1661ZJ",
+    "ds": ""
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-1662ZJ",
+    "ds": ""
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-1662ZJ-P",
+    "ds": ""
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-1663ZJ",
+    "ds": ""
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-1667ZJ-P",
+    "ds": ""
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-1671ZJ-SD11",
+    "ds": ""
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-1703ZJ",
+    "ds": ""
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-1293ZJ",
+    "ds": "/ds/Hikvision/DS-1293ZJ.pdf"
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-1278ZJ-HWB/HG /60-3",
+    "ds": ""
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-4680ZJ-GP",
+    "ds": ""
+  },
+  {
+    "mfr": "Hikvision",
+    "model": "DS-1284ZJ-M-AC3(OS)",
+    "ds": ""
+  },
+  {
+    "mfr": "Uniview",
+    "model": "TR-UP06-C-IN-V2",
+    "ds": "ds/Uniview/TR-UP06-C-IN-V2.pdf"
+  },
+  {
+    "mfr": "Avigilon",
+    "model": "8C-H5PRO-B",
+    "ds": "https://www.avigilon.com/fs/documents/avigilon-h5-pro-camera-datasheet-en.pdf"
+  },
+  {
+    "mfr": "Avigilon",
+    "model": "16C-H5PRO-B",
+    "ds": "https://www.avigilon.com/fs/documents/avigilon-h5-pro-camera-datasheet-en.pdf"
+  },
+  {
+    "mfr": "Avigilon",
+    "model": "26C-H5PRO-B",
+    "ds": "https://www.avigilon.com/fs/documents/avigilon-h5-pro-camera-datasheet-en.pdf"
+  },
+  {
+    "mfr": "Avigilon",
+    "model": "40C-H5PRO-B",
+    "ds": "https://www.avigilon.com/fs/documents/avigilon-h5-pro-camera-datasheet-en.pdf"
+  },
+  {
+    "mfr": "Avigilon",
+    "model": "61C-H5PRO-B",
+    "ds": "https://www.avigilon.com/fs/documents/avigilon-h5-pro-camera-datasheet-en.pdf"
+  },
+  {
+    "mfr": "Avigilon",
+    "model": "2.0C-H6X-B",
+    "ds": "https://www.avigilon.com/fs/documents/avigilon-h6x-box-camera-datasheet-en.pdf"
+  },
+  {
+    "mfr": "Avigilon",
+    "model": "4.0C-H6X-B",
+    "ds": "https://www.avigilon.com/fs/documents/avigilon-h6x-box-camera-datasheet-en.pdf"
+  },
+  {
+    "mfr": "Avigilon",
+    "model": "6.0C-H6X-B",
+    "ds": "https://www.avigilon.com/fs/documents/avigilon-h6x-box-camera-datasheet-en.pdf"
+  },
+  {
+    "mfr": "Avigilon",
+    "model": "8.0C-H6X-B",
+    "ds": "https://www.avigilon.com/fs/documents/avigilon-h6x-box-camera-datasheet-en.pdf"
+  },
+  {
+    "mfr": "Avigilon",
+    "model": "2.0C-H5A-B1",
+    "ds": "https://www.avigilon.com/fs/documents/avigilon-h5a-line-camera-datasheet-en.pdf"
+  },
+  {
+    "mfr": "Avigilon",
+    "model": "2.0C-H5A-BO2-IR",
+    "ds": "https://www.avigilon.com/fs/documents/avigilon-h5a-line-camera-datasheet-en.pdf"
+  },
+  {
+    "mfr": "Avigilon",
+    "model": "4.0C-H5A-BO1-IR",
+    "ds": "https://www.avigilon.com/fs/documents/avigilon-h5a-line-camera-datasheet-en.pdf"
+  },
+  {
+    "mfr": "Avigilon",
+    "model": "2.0C-H6A-BO1-IR",
+    "ds": "https://www.avigilon.com/fs/documents/avigilon-unity-h6a-h6x-bullet-camera-datasheet-en.pdf"
+  },
+  {
+    "mfr": "Avigilon",
+    "model": "2.0C-H6A-BO2-IR",
+    "ds": "https://www.avigilon.com/fs/documents/avigilon-unity-h6a-h6x-bullet-camera-datasheet-en.pdf"
+  },
+  {
+    "mfr": "Avigilon",
+    "model": "4.0C-H6A-BO1-IR",
+    "ds": "https://www.avigilon.com/fs/documents/avigilon-unity-h6a-h6x-bullet-camera-datasheet-en.pdf"
+  },
+  {
+    "mfr": "Avigilon",
+    "model": "4.0C-H6A-BO2-IR",
+    "ds": "https://www.avigilon.com/fs/documents/avigilon-unity-h6a-h6x-bullet-camera-datasheet-en.pdf"
+  },
+  {
+    "mfr": "Avigilon",
+    "model": "6.0C-H6A-BO1-IR",
+    "ds": "https://www.avigilon.com/fs/documents/avigilon-unity-h6a-h6x-bullet-camera-datasheet-en.pdf"
+  },
+  {
+    "mfr": "Avigilon",
+    "model": "6.0C-H6A-BO2-IR",
+    "ds": "https://www.avigilon.com/fs/documents/avigilon-unity-h6a-h6x-bullet-camera-datasheet-en.pdf"
+  },
+  {
+    "mfr": "Avigilon",
+    "model": "8.0C-H6A-BO1-IR",
+    "ds": "https://www.avigilon.com/fs/documents/avigilon-unity-h6a-h6x-bullet-camera-datasheet-en.pdf"
+  },
+  {
+    "mfr": "Avigilon",
+    "model": "8.0C-H6A-BO2-IR",
+    "ds": "https://www.avigilon.com/fs/documents/avigilon-unity-h6a-h6x-bullet-camera-datasheet-en.pdf"
+  },
+  {
+    "mfr": "Avigilon",
+    "model": "4.0C-H6X-BO1-IR",
+    "ds": "https://www.avigilon.com/fs/documents/avigilon-unity-h6a-h6x-bullet-camera-datasheet-en.pdf"
+  },
+  {
+    "mfr": "Avigilon",
+    "model": "4.0C-H6X-BO2-IR",
+    "ds": "https://www.avigilon.com/fs/documents/avigilon-unity-h6a-h6x-bullet-camera-datasheet-en.pdf"
+  },
+  {
+    "mfr": "Avigilon",
+    "model": "8.0C-H6X-BO1-IR",
+    "ds": "https://www.avigilon.com/fs/documents/avigilon-unity-h6a-h6x-bullet-camera-datasheet-en.pdf"
+  },
+  {
+    "mfr": "Avigilon",
+    "model": "8.0C-H6X-BO2-IR",
+    "ds": "https://www.avigilon.com/fs/documents/avigilon-unity-h6a-h6x-bullet-camera-datasheet-en.pdf"
+  },
+  {
+    "mfr": "Avigilon",
+    "model": "2.0C-H6SL-BO1-IR",
+    "ds": "https://www.avigilon.com/fs/documents/avigilon-h6sl-datasheet-en.pdf"
+  },
+  {
+    "mfr": "Avigilon",
+    "model": "3.0C-H6SL-BO1-IR",
+    "ds": "https://www.avigilon.com/fs/documents/avigilon-h6sl-datasheet-en.pdf"
+  },
+  {
+    "mfr": "Avigilon",
+    "model": "3.0C-H6SL-BO2-IR",
+    "ds": "https://www.avigilon.com/fs/documents/avigilon-h6sl-datasheet-en.pdf"
+  },
+  {
+    "mfr": "Avigilon",
+    "model": "5.0C-H6SL-BO1-IR",
+    "ds": "https://www.avigilon.com/fs/documents/avigilon-h6sl-datasheet-en.pdf"
+  },
+  {
+    "mfr": "Avigilon",
+    "model": "5.0C-H6SL-BO2-IR",
+    "ds": "https://www.avigilon.com/fs/documents/avigilon-h6sl-datasheet-en.pdf"
+  },
+  {
+    "mfr": "Avigilon",
+    "model": "8.0C-H6SL-BO1-IR",
+    "ds": "https://www.avigilon.com/fs/documents/avigilon-h6sl-datasheet-en.pdf"
+  },
+  {
+    "mfr": "Avigilon",
+    "model": "2.0C-H6A-D1",
+    "ds": "https://www.avigilon.com/fs/documents/avigilon-h6a-dome-camera-datasheet-en.pdf"
+  },
+  {
+    "mfr": "Avigilon",
+    "model": "2.0C-H6A-D1-IR",
+    "ds": "https://www.avigilon.com/fs/documents/avigilon-h6a-dome-camera-datasheet-en.pdf"
+  },
+  {
+    "mfr": "Avigilon",
+    "model": "2.0C-H6A-D2",
+    "ds": "https://www.avigilon.com/fs/documents/avigilon-h6a-dome-camera-datasheet-en.pdf"
+  },
+  {
+    "mfr": "Avigilon",
+    "model": "2.0C-H6A-D2-IR",
+    "ds": "https://www.avigilon.com/fs/documents/avigilon-h6a-dome-camera-datasheet-en.pdf"
+  },
+  {
+    "mfr": "Avigilon",
+    "model": "4.0C-H6A-D1",
+    "ds": "https://www.avigilon.com/fs/documents/avigilon-h6a-dome-camera-datasheet-en.pdf"
+  },
+  {
+    "mfr": "Avigilon",
+    "model": "4.0C-H6A-D1-IR",
+    "ds": "https://www.avigilon.com/fs/documents/avigilon-h6a-dome-camera-datasheet-en.pdf"
+  },
+  {
+    "mfr": "Avigilon",
+    "model": "4.0C-H6A-D2",
+    "ds": "https://www.avigilon.com/fs/documents/avigilon-h6a-dome-camera-datasheet-en.pdf"
+  },
+  {
+    "mfr": "Avigilon",
+    "model": "4.0C-H6A-D2-IR",
+    "ds": "https://www.avigilon.com/fs/documents/avigilon-h6a-dome-camera-datasheet-en.pdf"
+  },
+  {
+    "mfr": "Avigilon",
+    "model": "6.0C-H6A-D1",
+    "ds": "https://www.avigilon.com/fs/documents/avigilon-h6a-dome-camera-datasheet-en.pdf"
+  },
+  {
+    "mfr": "Avigilon",
+    "model": "6.0C-H6A-D1-IR",
+    "ds": "https://www.avigilon.com/fs/documents/avigilon-h6a-dome-camera-datasheet-en.pdf"
+  },
+  {
+    "mfr": "Avigilon",
+    "model": "6.0C-H6A-D2",
+    "ds": "https://www.avigilon.com/fs/documents/avigilon-h6a-dome-camera-datasheet-en.pdf"
+  },
+  {
+    "mfr": "Avigilon",
+    "model": "6.0C-H6A-D2-IR",
+    "ds": "https://www.avigilon.com/fs/documents/avigilon-h6a-dome-camera-datasheet-en.pdf"
+  },
+  {
+    "mfr": "Avigilon",
+    "model": "8.0C-H6A-D1",
+    "ds": "https://www.avigilon.com/fs/documents/avigilon-h6a-dome-camera-datasheet-en.pdf"
+  },
+  {
+    "mfr": "Avigilon",
+    "model": "8.0C-H6A-D1-IR",
+    "ds": "https://www.avigilon.com/fs/documents/avigilon-h6a-dome-camera-datasheet-en.pdf"
+  },
+  {
+    "mfr": "Avigilon",
+    "model": "8.0C-H6A-D2",
+    "ds": "https://www.avigilon.com/fs/documents/avigilon-h6a-dome-camera-datasheet-en.pdf"
+  },
+  {
+    "mfr": "Avigilon",
+    "model": "8.0C-H6A-D2-IR",
+    "ds": "https://www.avigilon.com/fs/documents/avigilon-h6a-dome-camera-datasheet-en.pdf"
+  },
+  {
+    "mfr": "Avigilon",
+    "model": "2.0C-H6SL-D1",
+    "ds": "https://www.avigilon.com/fs/documents/avigilon-h6sl-datasheet-en.pdf"
+  },
+  {
+    "mfr": "Avigilon",
+    "model": "2.0C-H6SL-D1-IR",
+    "ds": "https://www.avigilon.com/fs/documents/avigilon-h6sl-datasheet-en.pdf"
+  },
+  {
+    "mfr": "Avigilon",
+    "model": "3.0C-H6SL-D1",
+    "ds": "https://www.avigilon.com/fs/documents/avigilon-h6sl-datasheet-en.pdf"
+  },
+  {
+    "mfr": "Avigilon",
+    "model": "3.0C-H6SL-D1-IR",
+    "ds": "https://www.avigilon.com/fs/documents/avigilon-h6sl-datasheet-en.pdf"
+  },
+  {
+    "mfr": "Avigilon",
+    "model": "5.0C-H6SL-D1",
+    "ds": "https://www.avigilon.com/fs/documents/avigilon-h6sl-datasheet-en.pdf"
+  },
+  {
+    "mfr": "Avigilon",
+    "model": "5.0C-H6SL-D1-IR",
+    "ds": "https://www.avigilon.com/fs/documents/avigilon-h6sl-datasheet-en.pdf"
+  },
+  {
+    "mfr": "Avigilon",
+    "model": "2.0C-H5A-DC2",
+    "ds": "https://www.avigilon.com/fs/documents/avigilon-h5a-line-camera-datasheet-en.pdf"
+  },
+  {
+    "mfr": "Avigilon",
+    "model": "2.0C-H6A-DO1",
+    "ds": "https://www.avigilon.com/fs/documents/avigilon-h6a-dome-camera-datasheet-en.pdf"
+  },
+  {
+    "mfr": "Avigilon",
+    "model": "2.0C-H6A-DO1-IR",
+    "ds": "https://www.avigilon.com/fs/documents/avigilon-h6a-dome-camera-datasheet-en.pdf"
+  },
+  {
+    "mfr": "Avigilon",
+    "model": "2.0C-H6A-DO2",
+    "ds": "https://www.avigilon.com/fs/documents/avigilon-h6a-dome-camera-datasheet-en.pdf"
+  },
+  {
+    "mfr": "Avigilon",
+    "model": "2.0C-H6A-DO2-IR",
+    "ds": "https://www.avigilon.com/fs/documents/avigilon-h6a-dome-camera-datasheet-en.pdf"
+  },
+  {
+    "mfr": "Avigilon",
+    "model": "4.0C-H6A-DO1",
+    "ds": "https://www.avigilon.com/fs/documents/avigilon-h6a-dome-camera-datasheet-en.pdf"
+  },
+  {
+    "mfr": "Avigilon",
+    "model": "4.0C-H6A-DO1-IR",
+    "ds": "https://www.avigilon.com/fs/documents/avigilon-h6a-dome-camera-datasheet-en.pdf"
+  },
+  {
+    "mfr": "Avigilon",
+    "model": "4.0C-H6A-DO2",
+    "ds": "https://www.avigilon.com/fs/documents/avigilon-h6a-dome-camera-datasheet-en.pdf"
+  },
+  {
+    "mfr": "Avigilon",
+    "model": "4.0C-H6A-DO2-IR",
+    "ds": "https://www.avigilon.com/fs/documents/avigilon-h6a-dome-camera-datasheet-en.pdf"
+  },
+  {
+    "mfr": "Avigilon",
+    "model": "6.0C-H6A-DO1",
+    "ds": "https://www.avigilon.com/fs/documents/avigilon-h6a-dome-camera-datasheet-en.pdf"
+  },
+  {
+    "mfr": "Avigilon",
+    "model": "6.0C-H6A-DO1-IR",
+    "ds": "https://www.avigilon.com/fs/documents/avigilon-h6a-dome-camera-datasheet-en.pdf"
+  },
+  {
+    "mfr": "Avigilon",
+    "model": "6.0C-H6A-DO2",
+    "ds": "https://www.avigilon.com/fs/documents/avigilon-h6a-dome-camera-datasheet-en.pdf"
+  },
+  {
+    "mfr": "Avigilon",
+    "model": "6.0C-H6A-DO2-IR",
+    "ds": "https://www.avigilon.com/fs/documents/avigilon-h6a-dome-camera-datasheet-en.pdf"
+  },
+  {
+    "mfr": "Avigilon",
+    "model": "8.0C-H6A-DO1",
+    "ds": "https://www.avigilon.com/fs/documents/avigilon-h6a-dome-camera-datasheet-en.pdf"
+  },
+  {
+    "mfr": "Avigilon",
+    "model": "8.0C-H6A-DO1-IR",
+    "ds": "https://www.avigilon.com/fs/documents/avigilon-h6a-dome-camera-datasheet-en.pdf"
+  },
+  {
+    "mfr": "Avigilon",
+    "model": "8.0C-H6A-DO2",
+    "ds": "https://www.avigilon.com/fs/documents/avigilon-h6a-dome-camera-datasheet-en.pdf"
+  },
+  {
+    "mfr": "Avigilon",
+    "model": "8.0C-H6A-DO2-IR",
+    "ds": "https://www.avigilon.com/fs/documents/avigilon-h6a-dome-camera-datasheet-en.pdf"
+  },
+  {
+    "mfr": "Avigilon",
+    "model": "4.0C-H6X-DO1-IR",
+    "ds": "https://www.avigilon.com/fs/documents/avigilon-h6a-dome-camera-datasheet-en.pdf"
+  },
+  {
+    "mfr": "Avigilon",
+    "model": "4.0C-H6X-DO2-IR",
+    "ds": "https://www.avigilon.com/fs/documents/avigilon-h6a-dome-camera-datasheet-en.pdf"
+  },
+  {
+    "mfr": "Avigilon",
+    "model": "8.0C-H6X-DO1-IR",
+    "ds": "https://www.avigilon.com/fs/documents/avigilon-h6a-dome-camera-datasheet-en.pdf"
+  },
+  {
+    "mfr": "Avigilon",
+    "model": "8.0C-H6X-DO2-IR",
+    "ds": "https://www.avigilon.com/fs/documents/avigilon-h6a-dome-camera-datasheet-en.pdf"
+  },
+  {
+    "mfr": "Avigilon",
+    "model": "2.0C-H6SL-DO1-IR",
+    "ds": "https://www.avigilon.com/fs/documents/avigilon-h6sl-datasheet-en.pdf"
+  },
+  {
+    "mfr": "Avigilon",
+    "model": "3.0C-H6SL-DO1-IR",
+    "ds": "https://www.avigilon.com/fs/documents/avigilon-h6sl-datasheet-en.pdf"
+  },
+  {
+    "mfr": "Avigilon",
+    "model": "5.0C-H6SL-DO1-IR",
+    "ds": "https://www.avigilon.com/fs/documents/avigilon-h6sl-datasheet-en.pdf"
+  },
+  {
+    "mfr": "Avigilon",
+    "model": "8.0C-H6SL-DO1-IR",
+    "ds": "https://www.avigilon.com/fs/documents/avigilon-h6sl-datasheet-en.pdf"
+  },
+  {
+    "mfr": "Avigilon",
+    "model": "6.0C-H5A-DO1",
+    "ds": "https://www.avigilon.com/fs/documents/avigilon-h5a-line-camera-datasheet-en.pdf"
+  },
+  {
+    "mfr": "Avigilon",
+    "model": "4.0C-H5A-DO1-IR",
+    "ds": "https://www.avigilon.com/fs/documents/avigilon-h5a-line-camera-datasheet-en.pdf"
+  },
+  {
+    "mfr": "Avigilon",
+    "model": "2.0C-H6M-D1",
+    "ds": "https://www.avigilon.com/fs/documents/avigilon-h6m-dome-datasheet-en.pdf"
+  },
+  {
+    "mfr": "Avigilon",
+    "model": "2.0C-H6M-D1-IR",
+    "ds": "https://www.avigilon.com/fs/documents/avigilon-h6m-dome-datasheet-en.pdf"
+  },
+  {
+    "mfr": "Avigilon",
+    "model": "2.0C-H6M-DO1-IR",
+    "ds": "https://www.avigilon.com/fs/documents/avigilon-h6m-dome-datasheet-en.pdf"
+  },
+  {
+    "mfr": "Avigilon",
+    "model": "3.0C-H6M-D1",
+    "ds": "https://www.avigilon.com/fs/documents/avigilon-h6m-dome-datasheet-en.pdf"
+  },
+  {
+    "mfr": "Avigilon",
+    "model": "3.0C-H6M-D1-IR",
+    "ds": "https://www.avigilon.com/fs/documents/avigilon-h6m-dome-datasheet-en.pdf"
+  },
+  {
+    "mfr": "Avigilon",
+    "model": "3.0C-H6M-D2-IR",
+    "ds": "https://www.avigilon.com/fs/documents/avigilon-h6m-dome-datasheet-en.pdf"
+  },
+  {
+    "mfr": "Avigilon",
+    "model": "5.0C-H6M-D1-IR",
+    "ds": "https://www.avigilon.com/fs/documents/avigilon-h6m-dome-datasheet-en.pdf"
+  },
+  {
+    "mfr": "Avigilon",
+    "model": "5.0C-H6M-D2-IR",
+    "ds": "https://www.avigilon.com/fs/documents/avigilon-h6m-dome-datasheet-en.pdf"
+  },
+  {
+    "mfr": "Avigilon",
+    "model": "5.0C-H6M-DO1-IR",
+    "ds": "https://www.avigilon.com/fs/documents/avigilon-h6m-dome-datasheet-en.pdf"
+  },
+  {
+    "mfr": "Avigilon",
+    "model": "2.0C-H5M-DO1-IR",
+    "ds": "https://www.avigilon.com/fs/documents/avigilon-h5m-dome-datasheet-en.pdf"
+  },
+  {
+    "mfr": "Avigilon",
+    "model": "5.0C-H5M-DO1-IR",
+    "ds": "https://www.avigilon.com/fs/documents/avigilon-h5m-dome-datasheet-en.pdf"
+  },
+  {
+    "mfr": "Avigilon",
+    "model": "3.0C-H5A-CR1-IR",
+    "ds": "https://www.avigilon.com/fs/documents/avigilon-h5a-line-camera-datasheet-en.pdf"
+  },
+  {
+    "mfr": "Avigilon",
+    "model": "3.0C-H5A-CR1-IR-SS",
+    "ds": "https://www.avigilon.com/fs/documents/avigilon-h5a-line-camera-datasheet-en.pdf"
+  },
+  {
+    "mfr": "Avigilon",
+    "model": "3.0C-H5A-CR2-IR",
+    "ds": "https://www.avigilon.com/fs/documents/avigilon-h5a-line-camera-datasheet-en.pdf"
+  },
+  {
+    "mfr": "Avigilon",
+    "model": "3.0C-H5A-CR2-IR-SS",
+    "ds": "https://www.avigilon.com/fs/documents/avigilon-h5a-line-camera-datasheet-en.pdf"
+  },
+  {
+    "mfr": "Avigilon",
+    "model": "5.0C-H5A-CR1-IR",
+    "ds": "https://www.avigilon.com/fs/documents/avigilon-h5a-line-camera-datasheet-en.pdf"
+  },
+  {
+    "mfr": "Avigilon",
+    "model": "5.0C-H5A-CR1-IR-SS",
+    "ds": "https://www.avigilon.com/fs/documents/avigilon-h5a-line-camera-datasheet-en.pdf"
+  },
+  {
+    "mfr": "Avigilon",
+    "model": "5.0C-H5A-CR2-IR",
+    "ds": "https://www.avigilon.com/fs/documents/avigilon-h5a-line-camera-datasheet-en.pdf"
+  },
+  {
+    "mfr": "Avigilon",
+    "model": "5.0C-H5A-CR2-IR-SS",
+    "ds": "https://www.avigilon.com/fs/documents/avigilon-h5a-line-camera-datasheet-en.pdf"
+  },
+  {
+    "mfr": "Avigilon",
+    "model": "2.0C-H6A-PTZ-DC30",
+    "ds": "https://docs.avigilon.com/bundle/h6-a-ptz-camera-datasheet/resource/h6-a-ptz-camera-datasheet.pdf"
+  },
+  {
+    "mfr": "Avigilon",
+    "model": "2.0C-H6A-PTZ-DP30",
+    "ds": "https://docs.avigilon.com/bundle/h6-a-ptz-camera-datasheet/resource/h6-a-ptz-camera-datasheet.pdf"
+  },
+  {
+    "mfr": "Avigilon",
+    "model": "4.0C-H6A-PTZ-DC30",
+    "ds": "https://docs.avigilon.com/bundle/h6-a-ptz-camera-datasheet/resource/h6-a-ptz-camera-datasheet.pdf"
+  },
+  {
+    "mfr": "Avigilon",
+    "model": "4.0C-H6A-PTZ-DP30",
+    "ds": "https://docs.avigilon.com/bundle/h6-a-ptz-camera-datasheet/resource/h6-a-ptz-camera-datasheet.pdf"
+  },
+  {
+    "mfr": "Avigilon",
+    "model": "8.0C-H5A-PTZ-DC36",
+    "ds": "https://www.avigilon.com/fs/documents/avigilon-h5a-ptz-camera-datasheet-en.pdf"
+  },
+  {
+    "mfr": "Avigilon",
+    "model": "8.0C-H5A-PTZ-DP36",
+    "ds": "https://www.avigilon.com/fs/documents/avigilon-h5a-ptz-camera-datasheet-en.pdf"
+  },
+  {
+    "mfr": "Avigilon",
+    "model": "2.0C-H5A-IRPTZ-DP40-WP",
+    "ds": "https://www.avigilon.com/fs/documents/avigilon-h5airptz-camera-datasheet-en.pdf"
+  },
+  {
+    "mfr": "Avigilon",
+    "model": "4.0C-H5A-IRPTZ-DP36-WP",
+    "ds": "https://www.avigilon.com/fs/documents/avigilon-h5airptz-camera-datasheet-en.pdf"
+  },
+  {
+    "mfr": "Avigilon",
+    "model": "8.0C-H5A-IRPTZ-DP36-WP",
+    "ds": "https://www.avigilon.com/fs/documents/avigilon-h5airptz-camera-datasheet-en.pdf"
+  },
+  {
+    "mfr": "Avigilon",
+    "model": "8.0C-H6A-FE-180-DO2",
+    "ds": "https://www.avigilon.com/fs/documents/avigilon-h6f-fisheye-camera-datasheet-en.pdf"
+  },
+  {
+    "mfr": "Avigilon",
+    "model": "8.0C-H6A-FE-180-DO2-IR",
+    "ds": "https://www.avigilon.com/fs/documents/avigilon-h6f-fisheye-camera-datasheet-en.pdf"
+  },
+  {
+    "mfr": "Avigilon",
+    "model": "8.0C-H6A-FE-360-DO1",
+    "ds": "https://www.avigilon.com/fs/documents/avigilon-h6f-fisheye-camera-datasheet-en.pdf"
+  },
+  {
+    "mfr": "Avigilon",
+    "model": "8.0C-H6A-FE-360-DO1-IR",
+    "ds": "https://www.avigilon.com/fs/documents/avigilon-h6f-fisheye-camera-datasheet-en.pdf"
+  },
+  {
+    "mfr": "Avigilon",
+    "model": "8.0C-H6A-FE-DC1",
+    "ds": "https://www.avigilon.com/fs/documents/avigilon-h6f-fisheye-camera-datasheet-en.pdf"
+  },
+  {
+    "mfr": "Avigilon",
+    "model": "12.0C-H6A-FE-360-DO1",
+    "ds": "https://www.avigilon.com/fs/documents/avigilon-h6f-fisheye-camera-datasheet-en.pdf"
+  },
+  {
+    "mfr": "Avigilon",
+    "model": "12.0C-H6A-FE-360-DO1-IR",
+    "ds": "https://www.avigilon.com/fs/documents/avigilon-h6f-fisheye-camera-datasheet-en.pdf"
+  },
+  {
+    "mfr": "Avigilon",
+    "model": "12.0C-H6A-FE-DC1",
+    "ds": "https://www.avigilon.com/fs/documents/avigilon-h6f-fisheye-camera-datasheet-en.pdf"
+  },
+  {
+    "mfr": "Avigilon",
+    "model": "8.0C-H5A-FE-DC1",
+    "ds": "https://www.avigilon.com/fs/documents/avigilon-h5a-line-camera-datasheet-en.pdf"
+  },
+  {
+    "mfr": "Avigilon",
+    "model": "9C-H5A-3MH",
+    "ds": "https://www.avigilon.com/fs/documents/avigilon-h5a-mh-datasheet-en.pdf"
+  },
+  {
+    "mfr": "Avigilon",
+    "model": "9C-H5A-3MH-DP1",
+    "ds": "https://www.avigilon.com/fs/documents/avigilon-h5a-mh-datasheet-en.pdf"
+  },
+  {
+    "mfr": "Avigilon",
+    "model": "15C-H5A-3MH",
+    "ds": "https://www.avigilon.com/fs/documents/avigilon-h5a-mh-datasheet-en.pdf"
+  },
+  {
+    "mfr": "Avigilon",
+    "model": "15C-H5A-3MH-DP1",
+    "ds": "https://www.avigilon.com/fs/documents/avigilon-h5a-mh-datasheet-en.pdf"
+  },
+  {
+    "mfr": "Avigilon",
+    "model": "24C-H5A-3MH",
+    "ds": "https://www.avigilon.com/fs/documents/avigilon-h5a-mh-datasheet-en.pdf"
+  },
+  {
+    "mfr": "Avigilon",
+    "model": "24C-H5A-3MH-DP1",
+    "ds": "https://www.avigilon.com/fs/documents/avigilon-h5a-mh-datasheet-en.pdf"
+  },
+  {
+    "mfr": "Avigilon",
+    "model": "12C-H5A-4MH",
+    "ds": "https://www.avigilon.com/fs/documents/avigilon-h5a-mh-datasheet-en.pdf"
+  },
+  {
+    "mfr": "Avigilon",
+    "model": "12C-H5A-4MH-DP1",
+    "ds": "https://www.avigilon.com/fs/documents/avigilon-h5a-mh-datasheet-en.pdf"
+  },
+  {
+    "mfr": "Avigilon",
+    "model": "20C-H5A-4MH",
+    "ds": "https://www.avigilon.com/fs/documents/avigilon-h5a-mh-datasheet-en.pdf"
+  },
+  {
+    "mfr": "Avigilon",
+    "model": "20C-H5A-4MH-DP1",
+    "ds": "https://www.avigilon.com/fs/documents/avigilon-h5a-mh-datasheet-en.pdf"
+  },
+  {
+    "mfr": "Avigilon",
+    "model": "32C-H5A-4MH",
+    "ds": "https://www.avigilon.com/fs/documents/avigilon-h5a-mh-datasheet-en.pdf"
+  },
+  {
+    "mfr": "Avigilon",
+    "model": "32C-H5A-4MH-DP1",
+    "ds": "https://www.avigilon.com/fs/documents/avigilon-h5a-mh-datasheet-en.pdf"
+  },
+  {
+    "mfr": "Avigilon",
+    "model": "6.0C-H6ADH-DO1-IR",
+    "ds": "https://docs.avigilon.com/bundle/avigilon-h6a-dual-head-camera-datasheet-en/resource/avigilon-h6a-dual-head-camera-datasheet-en.pdf"
+  },
+  {
+    "mfr": "Avigilon",
+    "model": "10.0C-H6ADH-DO1-IR",
+    "ds": "https://docs.avigilon.com/bundle/avigilon-h6a-dual-head-camera-datasheet-en/resource/avigilon-h6a-dual-head-camera-datasheet-en.pdf"
+  },
+  {
+    "mfr": "Avigilon",
+    "model": "16.0C-H6ADH-DO1-IR",
+    "ds": "https://docs.avigilon.com/bundle/avigilon-h6a-dual-head-camera-datasheet-en/resource/avigilon-h6a-dual-head-camera-datasheet-en.pdf"
+  },
+  {
+    "mfr": "Avigilon",
+    "model": "320F-H5A-THC-BO12",
+    "ds": "https://www.avigilon.com/fs/documents/avigilon-h5a-thermal-datasheet-en.pdf"
+  },
+  {
+    "mfr": "Avigilon",
+    "model": "320F-H5A-THC-BO16",
+    "ds": "https://www.avigilon.com/fs/documents/avigilon-h5a-thermal-datasheet-en.pdf"
+  },
+  {
+    "mfr": "Avigilon",
+    "model": "320F-H5A-THC-BO24",
+    "ds": "https://www.avigilon.com/fs/documents/avigilon-h5a-thermal-datasheet-en.pdf"
+  },
+  {
+    "mfr": "Avigilon",
+    "model": "320F-H5A-THC-BO50",
+    "ds": "https://www.avigilon.com/fs/documents/avigilon-h5a-thermal-datasheet-en.pdf"
+  },
+  {
+    "mfr": "Avigilon",
+    "model": "640F-H5A-THC-BO12",
+    "ds": "https://www.avigilon.com/fs/documents/avigilon-h5a-thermal-datasheet-en.pdf"
+  },
+  {
+    "mfr": "Avigilon",
+    "model": "640F-H5A-THC-BO18",
+    "ds": "https://www.avigilon.com/fs/documents/avigilon-h5a-thermal-datasheet-en.pdf"
+  },
+  {
+    "mfr": "Avigilon",
+    "model": "640F-H5A-THC-BO24",
+    "ds": "https://www.avigilon.com/fs/documents/avigilon-h5a-thermal-datasheet-en.pdf"
+  },
+  {
+    "mfr": "Avigilon",
+    "model": "640F-H5A-THR-BO32",
+    "ds": "https://www.avigilon.com/fs/documents/avigilon-h5a-thermal-datasheet-en.pdf"
+  },
+  {
+    "mfr": "Avigilon",
+    "model": "640F-H5A-THR-BO50",
+    "ds": "https://www.avigilon.com/fs/documents/avigilon-h5a-thermal-datasheet-en.pdf"
+  },
+  {
+    "mfr": "Avigilon",
+    "model": "VB-440-64-QR-N",
+    "ds": "https://d8eqw8u9b6kgn.cloudfront.net/documents/avigilon_vb400_data-sheet.pdf"
+  },
+  {
+    "mfr": "Avigilon",
+    "model": "VB-440-64-VF-N",
+    "ds": "https://d8eqw8u9b6kgn.cloudfront.net/documents/avigilon_vb400_data-sheet.pdf"
+  },
+  {
+    "mfr": "Avigilon",
+    "model": "VB-440-64-KF-N",
+    "ds": "https://d8eqw8u9b6kgn.cloudfront.net/documents/avigilon_vb400_data-sheet.pdf"
+  },
+  {
+    "mfr": "Avigilon",
+    "model": "VT-100-N",
+    "ds": "https://d8eqw8u9b6kgn.cloudfront.net/file_library/pdf/integrations/vt100_data-sheet_nam.pdf"
+  },
+  {
+    "mfr": "Avigilon",
+    "model": "VB-400-DOCK14-US",
+    "ds": "https://d8eqw8u9b6kgn.cloudfront.net/documents/avigilon_vb400_data-sheet.pdf"
+  },
+  {
+    "mfr": "Avigilon",
+    "model": "VB-400-DOCK-SOLO",
+    "ds": "https://d8eqw8u9b6kgn.cloudfront.net/documents/avigilon_vb400_data-sheet.pdf"
+  },
+  {
+    "mfr": "Avigilon",
+    "model": "DC-200-US",
+    "ds": "https://d8eqw8u9b6kgn.cloudfront.net/file_library/pdf/integrations/dockcontroller-dc-200_data-sheet_nam.pdf"
+  },
+  {
+    "mfr": "Avigilon",
+    "model": "VM-EPL-VB-1-N",
+    "ds": "https://www.avigilon.com/fs/documents/avigilon_videomanager-on-premises-license-offerings_sales_data-sheet.pdf"
+  },
+  {
+    "mfr": "Avigilon",
+    "model": "VM-EPL-VB-CONNECT-1",
+    "ds": "https://www.avigilon.com/fs/documents/avigilon_videomanager-on-premises-license-offerings_sales_data-sheet.pdf"
+  },
+  {
+    "mfr": "Avigilon",
+    "model": "VM-EPL-VB-PLUS-1",
+    "ds": "https://www.avigilon.com/fs/documents/avigilon_videomanager-on-premises-license-offerings_sales_data-sheet.pdf"
+  },
+  {
+    "mfr": "Avigilon",
+    "model": "VM-EPL-VT-1-N",
+    "ds": "https://www.avigilon.com/fs/documents/avigilon_videomanager-on-premises-license-offerings_sales_data-sheet.pdf"
+  },
+  {
+    "mfr": "Avigilon",
+    "model": "VM-EPL-VT-CONNECT-1",
+    "ds": "https://www.avigilon.com/fs/documents/avigilon_videomanager-on-premises-license-offerings_sales_data-sheet.pdf"
+  },
+  {
+    "mfr": "Avigilon",
+    "model": "3C-H5MOD-MB2",
+    "ds": "https://www.avigilon.com/fs/documents/avigilon-h5a-line-camera-datasheet-en.pdf"
+  },
+  {
+    "mfr": "Avigilon",
+    "model": "3C-H5MOD-RP4",
+    "ds": "https://www.avigilon.com/fs/documents/avigilon-h5a-line-camera-datasheet-en.pdf"
+  },
+  {
+    "mfr": "Avigilon",
+    "model": "5C-H5MOD-MB2",
+    "ds": "https://www.avigilon.com/fs/documents/avigilon-h5a-line-camera-datasheet-en.pdf"
+  },
+  {
+    "mfr": "Avigilon",
+    "model": "H5A-MOD-2P",
+    "ds": "https://www.avigilon.com/fs/documents/avigilon-h5a-line-camera-datasheet-en.pdf"
+  },
+  {
+    "mfr": "Avigilon",
+    "model": "3.0C-H4VI-RO1-IR",
+    "ds": "https://www.avigilon.com/fs/documents/avigilon-h4vi-datasheet-en.pdf"
+  },
+  {
+    "mfr": "Avigilon",
+    "model": "AG3Z2812KCS-MPWIR-MSI",
+    "ds": "https://www.avigilon.com/fs/documents/avigilon-h6x-box-camera-datasheet-en.pdf"
+  },
+  {
+    "mfr": "Avigilon",
+    "model": "AG3Z2812TCS-MPWIR-MSI",
+    "ds": "https://www.avigilon.com/fs/documents/avigilon-h6x-box-camera-datasheet-en.pdf"
+  },
+  {
+    "mfr": "Avigilon",
+    "model": "EG3Z3915KCS-MPWIR-MSI",
+    "ds": "https://www.avigilon.com/fs/documents/avigilon-h6x-box-camera-datasheet-en.pdf"
+  },
+  {
+    "mfr": "Avigilon",
+    "model": "EG3Z3915TCS-MPWIR-MSI",
+    "ds": "https://www.avigilon.com/fs/documents/avigilon-h6x-box-camera-datasheet-en.pdf"
+  },
+  {
+    "mfr": "Avigilon",
+    "model": "EG6Z0915TCS-MPWIR-MSI",
+    "ds": "https://www.avigilon.com/fs/documents/avigilon-h6x-box-camera-datasheet-en.pdf"
+  },
+  {
+    "mfr": "Avigilon",
+    "model": "FG50020P.IR-MSI",
+    "ds": "https://www.avigilon.com/fs/documents/avigilon-h6x-box-camera-datasheet-en.pdf"
+  },
+  {
+    "mfr": "Avigilon",
+    "model": "HV03610P.IR-MSI",
+    "ds": "https://www.avigilon.com/fs/documents/avigilon-h6x-box-camera-datasheet-en.pdf"
+  },
+  {
+    "mfr": "Avigilon",
+    "model": "M117VG3817IR-MSI",
+    "ds": "https://www.avigilon.com/fs/documents/avigilon-h6x-box-camera-datasheet-en.pdf"
+  },
+  {
+    "mfr": "Avigilon",
+    "model": "M13VG2713IR-MSI",
+    "ds": "https://www.avigilon.com/fs/documents/avigilon-h6x-box-camera-datasheet-en.pdf"
+  },
+  {
+    "mfr": "Avigilon",
+    "model": "SL1250P-MSI",
+    "ds": "https://www.avigilon.com/fs/documents/avigilon-h6x-box-camera-datasheet-en.pdf"
+  },
+  {
+    "mfr": "Avigilon",
+    "model": "SL183A-MSI",
+    "ds": "https://www.avigilon.com/fs/documents/avigilon-h6x-box-camera-datasheet-en.pdf"
+  },
+  {
+    "mfr": "Avigilon",
+    "model": "SL940P-MSI",
+    "ds": "https://www.avigilon.com/fs/documents/avigilon-h6x-box-camera-datasheet-en.pdf"
+  },
+  {
+    "mfr": "Avigilon",
+    "model": "LEF5018CA2",
+    "ds": "https://d8eqw8u9b6kgn.cloudfront.net/file_library/pdf/h4-pro/avigilon-h4pro-analytics-datasheet-en-rev12.pdf"
+  },
+  {
+    "mfr": "Avigilon",
+    "model": "LEF7020028CA3",
+    "ds": "https://media.mayflex.com/downloads/SAVI002/CANON%2070-200mm%20F2.8.pdf"
+  },
+  {
+    "mfr": "Avigilon",
+    "model": "LEF7030040CA",
+    "ds": "https://media.mayflex.com/downloads/SAVI002/LEF7030040CA.pdf"
+  },
+  {
+    "mfr": "Avigilon",
+    "model": "LEFS183518SI",
+    "ds": "https://d8eqw8u9b6kgn.cloudfront.net/file_library/pdf/h4-pro/avigilon-h4pro-analytics-datasheet-en-rev12.pdf"
+  },
+  {
+    "mfr": "Avigilon",
+    "model": "LEF20028CA",
+    "ds": "https://d8eqw8u9b6kgn.cloudfront.net/file_library/pdf/h4-pro/avigilon-h4pro-analytics-datasheet-en-rev12.pdf"
+  },
+  {
+    "mfr": "Avigilon",
+    "model": "LEF3514TA",
+    "ds": "https://d8eqw8u9b6kgn.cloudfront.net/file_library/pdf/h4-pro/avigilon-h4pro-analytics-datasheet-en-rev12.pdf"
+  },
+  {
+    "mfr": "Avigilon",
+    "model": "LEF247028TA2",
+    "ds": "https://d8eqw8u9b6kgn.cloudfront.net/file_library/pdf/h4-pro/avigilon-h4pro-analytics-datasheet-en-rev12.pdf"
+  },
+  {
+    "mfr": "Avigilon",
+    "model": "LEF163528CA2",
+    "ds": "https://d8eqw8u9b6kgn.cloudfront.net/file_library/pdf/h4-pro/avigilon-h4pro-analytics-datasheet-en-rev12.pdf"
+  },
+  {
+    "mfr": "Avigilon",
+    "model": "LEF1506005TA",
+    "ds": "https://d8eqw8u9b6kgn.cloudfront.net/file_library/pdf/h4-pro/avigilon-h4pro-analytics-datasheet-en-rev12.pdf"
+  },
+  {
+    "mfr": "Avigilon",
+    "model": "NVR6-VAL-FORM-D-6TB-C13-C14",
+    "ds": "https://docs.avigilon.com/bundle/avigilon-nvr6-value-datasheet/resource/avigilon-nvr6-value-datasheet.pdf"
+  },
+  {
+    "mfr": "Avigilon",
+    "model": "NVR6-VAL-FORM-D-12TB-C13-C14",
+    "ds": "https://docs.avigilon.com/bundle/avigilon-nvr6-value-datasheet/resource/avigilon-nvr6-value-datasheet.pdf"
+  },
+  {
+    "mfr": "Avigilon",
+    "model": "NVR6-VAL-FORM-D-16TB-C13-C14",
+    "ds": "https://docs.avigilon.com/bundle/avigilon-nvr6-value-datasheet/resource/avigilon-nvr6-value-datasheet.pdf"
+  },
+  {
+    "mfr": "Avigilon",
+    "model": "NVR6-VAL-FORM-D-24TB-C13-C14",
+    "ds": "https://docs.avigilon.com/bundle/avigilon-nvr6-value-datasheet/resource/avigilon-nvr6-value-datasheet.pdf"
+  },
+  {
+    "mfr": "Avigilon",
+    "model": "AINVR2X-VAL-FORM-D-6TB-C13-C14",
+    "ds": "https://docs.avigilon.com/bundle/avigilon-ai-nvr-2-value-datasheet/resource/avigilon-ai-nvr-2-value-datasheet.pdf"
+  },
+  {
+    "mfr": "Avigilon",
+    "model": "AINVR2X-VAL-FORM-D-12TB-C13-C14",
+    "ds": "https://docs.avigilon.com/bundle/avigilon-ai-nvr-2-value-datasheet/resource/avigilon-ai-nvr-2-value-datasheet.pdf"
+  },
+  {
+    "mfr": "Avigilon",
+    "model": "AINVR2X-VAL-FORM-D-16TB-C13-C14",
+    "ds": "https://docs.avigilon.com/bundle/avigilon-ai-nvr-2-value-datasheet/resource/avigilon-ai-nvr-2-value-datasheet.pdf"
+  },
+  {
+    "mfr": "Avigilon",
+    "model": "AINVR2X-VAL-FORM-D-24TB-C13-C14",
+    "ds": "https://docs.avigilon.com/bundle/avigilon-ai-nvr-2-value-datasheet/resource/avigilon-ai-nvr-2-value-datasheet.pdf"
+  },
+  {
+    "mfr": "Avigilon",
+    "model": "AIA2X-FORM-D-CG2-HW-C19-C20",
+    "ds": "https://docs.avigilon.com/bundle/avigilon-ai-appliance-2x-datasheet/resource/avigilon-ai-appliance-2x-datasheet.pdf"
+  },
+  {
+    "mfr": "Avigilon",
+    "model": "AIA2X-FORM-D-CG3-HW-C19-C20",
+    "ds": "https://docs.avigilon.com/bundle/avigilon-ai-appliance-2x-datasheet/resource/avigilon-ai-appliance-2x-datasheet.pdf"
+  },
+  {
+    "mfr": "Avigilon",
+    "model": "NVR6-STD-FORM-D-16TB-S22-NA",
+    "ds": "https://docs.avigilon.com/bundle/avigilon-nvr6-standard-datasheet/resource/avigilon-nvr6-standard-datasheet.pdf"
+  },
+  {
+    "mfr": "Avigilon",
+    "model": "NVR6-STD-FORM-D-24TB-S22-NA",
+    "ds": "https://docs.avigilon.com/bundle/avigilon-nvr6-standard-datasheet/resource/avigilon-nvr6-standard-datasheet.pdf"
+  },
+  {
+    "mfr": "Avigilon",
+    "model": "NVR6-STD-FORM-D-32TB-S22-NA",
+    "ds": "https://docs.avigilon.com/bundle/avigilon-nvr6-standard-datasheet/resource/avigilon-nvr6-standard-datasheet.pdf"
+  },
+  {
+    "mfr": "Avigilon",
+    "model": "NVR6-STD-FORM-D-48TB-S22-NA",
+    "ds": "https://docs.avigilon.com/bundle/avigilon-nvr6-standard-datasheet/resource/avigilon-nvr6-standard-datasheet.pdf"
+  },
+  {
+    "mfr": "Avigilon",
+    "model": "NVR6-STD-FORM-D-64TB-S22-NA",
+    "ds": "https://docs.avigilon.com/bundle/avigilon-nvr6-standard-datasheet/resource/avigilon-nvr6-standard-datasheet.pdf"
+  },
+  {
+    "mfr": "Avigilon",
+    "model": "NVR6-PRM-FORM-D-72TB-S22-NA",
+    "ds": "https://docs.avigilon.com/bundle/avigilon-nvr6-premium-datasheet/resource/avigilon-nvr6-premium-datasheet.pdf"
+  },
+  {
+    "mfr": "Avigilon",
+    "model": "NVR6-PRM-FORM-D-96TB-S22-NA",
+    "ds": "https://docs.avigilon.com/bundle/avigilon-nvr6-premium-datasheet/resource/avigilon-nvr6-premium-datasheet.pdf"
+  },
+  {
+    "mfr": "Avigilon",
+    "model": "NVR6-PRM-FORM-D-120TB-S22-NA",
+    "ds": "https://docs.avigilon.com/bundle/avigilon-nvr6-premium-datasheet/resource/avigilon-nvr6-premium-datasheet.pdf"
+  },
+  {
+    "mfr": "Avigilon",
+    "model": "NVR6-PRM-FORM-D-160TB-S22-NA",
+    "ds": "https://docs.avigilon.com/bundle/avigilon-nvr6-premium-datasheet/resource/avigilon-nvr6-premium-datasheet.pdf"
+  },
+  {
+    "mfr": "Avigilon",
+    "model": "NVR6-PRM-FORM-D-200TB-S22-NA",
+    "ds": "https://docs.avigilon.com/bundle/avigilon-nvr6-premium-datasheet/resource/avigilon-nvr6-premium-datasheet.pdf"
+  },
+  {
+    "mfr": "Avigilon",
+    "model": "NVR6-PRM-PLUS-FORM-H-200TB-S22-NA",
+    "ds": "https://docs.avigilon.com/bundle/avigilon-nvr6-premium-datasheet/resource/avigilon-nvr6-premium-datasheet.pdf"
+  },
+  {
+    "mfr": "Avigilon",
+    "model": "NVR6-PRM-PLUS-FORM-H-240TB-S22-NA",
+    "ds": "https://docs.avigilon.com/bundle/avigilon-nvr6-premium-datasheet/resource/avigilon-nvr6-premium-datasheet.pdf"
+  },
+  {
+    "mfr": "Avigilon",
+    "model": "NVR6-PRM-PLUS-FORM-H-280TB-S22-NA",
+    "ds": "https://docs.avigilon.com/bundle/avigilon-nvr6-premium-datasheet/resource/avigilon-nvr6-premium-datasheet.pdf"
+  },
+  {
+    "mfr": "Avigilon",
+    "model": "NVR6-PRM-PLUS-FORM-H-360TB-S22-NA",
+    "ds": "https://docs.avigilon.com/bundle/avigilon-nvr6-premium-datasheet/resource/avigilon-nvr6-premium-datasheet.pdf"
+  },
+  {
+    "mfr": "Avigilon",
+    "model": "NVR6-PRM-PLUS-FORM-H-440TB-S22-NA",
+    "ds": "https://docs.avigilon.com/bundle/avigilon-nvr6-premium-datasheet/resource/avigilon-nvr6-premium-datasheet.pdf"
+  },
+  {
+    "mfr": "Avigilon",
+    "model": "AINVR2-STD-FORM-D-16TB-NA",
+    "ds": "https://docs.avigilon.com/bundle/avigilon-ai-nvr-2-standard-datasheet/resource/avigilon-ai-nvr-2-standard-datasheet.pdf"
+  },
+  {
+    "mfr": "Avigilon",
+    "model": "AINVR2-STD-FORM-D-24TB-NA",
+    "ds": "https://docs.avigilon.com/bundle/avigilon-ai-nvr-2-standard-datasheet/resource/avigilon-ai-nvr-2-standard-datasheet.pdf"
+  },
+  {
+    "mfr": "Avigilon",
+    "model": "AINVR2-STD-FORM-D-32TB-NA",
+    "ds": "https://docs.avigilon.com/bundle/avigilon-ai-nvr-2-standard-datasheet/resource/avigilon-ai-nvr-2-standard-datasheet.pdf"
+  },
+  {
+    "mfr": "Avigilon",
+    "model": "AINVR2-STD-FORM-D-48TB-NA",
+    "ds": "https://docs.avigilon.com/bundle/avigilon-ai-nvr-2-standard-datasheet/resource/avigilon-ai-nvr-2-standard-datasheet.pdf"
+  },
+  {
+    "mfr": "Avigilon",
+    "model": "AINVR2-STD-FORM-D-64TB-NA",
+    "ds": "https://docs.avigilon.com/bundle/avigilon-ai-nvr-2-standard-datasheet/resource/avigilon-ai-nvr-2-standard-datasheet.pdf"
+  },
+  {
+    "mfr": "Avigilon",
+    "model": "AINVR2-PRM-FORM-D-72TB-NA",
+    "ds": "https://docs.avigilon.com/bundle/avigilon-ai-nvr-2-premium-datasheet/resource/avigilon-ai-nvr-2-premium-datasheet.pdf"
+  },
+  {
+    "mfr": "Avigilon",
+    "model": "AINVR2-PRM-FORM-D-96TB-NA",
+    "ds": "https://docs.avigilon.com/bundle/avigilon-ai-nvr-2-premium-datasheet/resource/avigilon-ai-nvr-2-premium-datasheet.pdf"
+  },
+  {
+    "mfr": "Avigilon",
+    "model": "AINVR2-PRM-FORM-D-120TB-NA",
+    "ds": "https://docs.avigilon.com/bundle/avigilon-ai-nvr-2-premium-datasheet/resource/avigilon-ai-nvr-2-premium-datasheet.pdf"
+  },
+  {
+    "mfr": "Avigilon",
+    "model": "AINVR2-PRM-FORM-D-160TB-NA",
+    "ds": "https://docs.avigilon.com/bundle/avigilon-ai-nvr-2-premium-datasheet/resource/avigilon-ai-nvr-2-premium-datasheet.pdf"
+  },
+  {
+    "mfr": "Avigilon",
+    "model": "AINVR2-PRM-FORM-D-200TB-NA",
+    "ds": "https://docs.avigilon.com/bundle/avigilon-ai-nvr-2-premium-datasheet/resource/avigilon-ai-nvr-2-premium-datasheet.pdf"
+  },
+  {
+    "mfr": "Avigilon",
+    "model": "AINVR2-PRM-PLUS-FORM-H-200TB-NA",
+    "ds": "https://docs.avigilon.com/bundle/avigilon-ai-nvr-2-premium-datasheet/resource/avigilon-ai-nvr-2-premium-datasheet.pdf"
+  },
+  {
+    "mfr": "Avigilon",
+    "model": "AINVR2-PRM-PLUS-FORM-H-240TB-NA",
+    "ds": "https://docs.avigilon.com/bundle/avigilon-ai-nvr-2-premium-datasheet/resource/avigilon-ai-nvr-2-premium-datasheet.pdf"
+  },
+  {
+    "mfr": "Avigilon",
+    "model": "AINVR2-PRM-PLUS-FORM-H-280TB-NA",
+    "ds": "https://docs.avigilon.com/bundle/avigilon-ai-nvr-2-premium-datasheet/resource/avigilon-ai-nvr-2-premium-datasheet.pdf"
+  },
+  {
+    "mfr": "Avigilon",
+    "model": "AINVR2-PRM-PLUS-FORM-H-360TB-NA",
+    "ds": "https://docs.avigilon.com/bundle/avigilon-ai-nvr-2-premium-datasheet/resource/avigilon-ai-nvr-2-premium-datasheet.pdf"
+  },
+  {
+    "mfr": "Avigilon",
+    "model": "AINVR2-PRM-PLUS-FORM-H-440TB-NA",
+    "ds": "https://docs.avigilon.com/bundle/avigilon-ai-nvr-2-premium-datasheet/resource/avigilon-ai-nvr-2-premium-datasheet.pdf"
+  },
+  {
+    "mfr": "Avigilon",
+    "model": "VMA-AS3X-16P06-NA",
+    "ds": "https://docs.avigilon.com/bundle/avigilon-hdva3xl-datasheet/resource/avigilon-hdva3xl-datasheet.pdf"
+  },
+  {
+    "mfr": "Avigilon",
+    "model": "VMA-AS3X-16P12-NA",
+    "ds": "https://docs.avigilon.com/bundle/avigilon-hdva3xl-datasheet/resource/avigilon-hdva3xl-datasheet.pdf"
+  },
+  {
+    "mfr": "Avigilon",
+    "model": "VMA-AS3XL-24P06-NA",
+    "ds": "https://docs.avigilon.com/bundle/avigilon-hdva3xl-datasheet/resource/avigilon-hdva3xl-datasheet.pdf"
+  },
+  {
+    "mfr": "Avigilon",
+    "model": "VMA-AS3XL-24P12-NA",
+    "ds": "https://docs.avigilon.com/bundle/avigilon-hdva3xl-datasheet/resource/avigilon-hdva3xl-datasheet.pdf"
+  },
+  {
+    "mfr": "Avigilon",
+    "model": "VMA-AS3XL-24P18-NA",
+    "ds": "https://docs.avigilon.com/bundle/avigilon-hdva3xl-datasheet/resource/avigilon-hdva3xl-datasheet.pdf"
+  },
+  {
+    "mfr": "Avigilon",
+    "model": "VMA-AS3XL-24P24-NA",
+    "ds": "https://docs.avigilon.com/bundle/avigilon-hdva3xl-datasheet/resource/avigilon-hdva3xl-datasheet.pdf"
+  },
+  {
+    "mfr": "Avigilon",
+    "model": "VMA-AS3XL-24P48-NA",
+    "ds": "https://docs.avigilon.com/bundle/avigilon-hdva3xl-datasheet/resource/avigilon-hdva3xl-datasheet.pdf"
+  },
+  {
+    "mfr": "Avigilon",
+    "model": "VMA-AS3XL-8P2-NA",
+    "ds": "https://docs.avigilon.com/bundle/avigilon-hdva3xl-datasheet/resource/avigilon-hdva3xl-datasheet.pdf"
+  },
+  {
+    "mfr": "Avigilon",
+    "model": "VMA-AS3XL-8P4-NA",
+    "ds": "https://docs.avigilon.com/bundle/avigilon-hdva3xl-datasheet/resource/avigilon-hdva3xl-datasheet.pdf"
+  },
+  {
+    "mfr": "Avigilon",
+    "model": "VMA-AS3XL-8P8-NA",
+    "ds": "https://docs.avigilon.com/bundle/avigilon-hdva3xl-datasheet/resource/avigilon-hdva3xl-datasheet.pdf"
+  },
+  {
+    "mfr": "Avigilon",
+    "model": "VMA-AS3XL-8P16-NA",
+    "ds": "https://docs.avigilon.com/bundle/avigilon-hdva3xl-datasheet/resource/avigilon-hdva3xl-datasheet.pdf"
+  },
+  {
+    "mfr": "Avigilon",
+    "model": "ENVR2-PLUS-8P4-NA",
+    "ds": "https://www.avigilon.com/fs/documents/avigilon-envr2-datasheet-en.pdf"
+  },
+  {
+    "mfr": "Avigilon",
+    "model": "ENVR2-PLUS-8P8-NA",
+    "ds": "https://www.avigilon.com/fs/documents/avigilon-envr2-datasheet-en.pdf"
+  },
+  {
+    "mfr": "Avigilon",
+    "model": "RM7-WKS-2MN-NA",
+    "ds": "https://www.avigilon.com/fs/documents/avigilon-rm7-wks-datasheet-en.pdf"
+  },
+  {
+    "mfr": "Avigilon",
+    "model": "RM7-WKS-4MN-NA",
+    "ds": "https://www.avigilon.com/fs/documents/avigilon-rm7-wks-datasheet-en.pdf"
+  },
+  {
+    "mfr": "Avigilon",
+    "model": "NVR5-WKS-4TB-NA",
+    "ds": "https://www.avigilon.com/fs/documents/avigilon-nvr5-wks-datasheet-en.pdf"
+  },
+  {
+    "mfr": "Avigilon",
+    "model": "NVR5-WKS-8TB-NA",
+    "ds": "https://www.avigilon.com/fs/documents/avigilon-nvr5-wks-datasheet-en.pdf"
+  },
+  {
+    "mfr": "Avigilon",
+    "model": "M4K32-G3-NA",
+    "ds": ""
+  },
+  {
+    "mfr": "Avigilon",
+    "model": "M4K43-G2-NA",
+    "ds": ""
+  },
+  {
+    "mfr": "Avigilon",
+    "model": "MHD19-G3-NA",
+    "ds": ""
+  },
+  {
+    "mfr": "Avigilon",
+    "model": "MHD24-G3-NA",
+    "ds": ""
+  },
+  {
+    "mfr": "Avigilon",
+    "model": "HALO-V3.00C-BACKBOX",
+    "ds": "https://www.avigilon.com/fs/documents/halo-iot-sensor-3c-datasheet-en.pdf"
+  },
+  {
+    "mfr": "Avigilon",
+    "model": "HALO-CLOUD-1YR",
+    "ds": "https://www.avigilon.com/fs/documents/halo-iot-sensor-3c-datasheet-en.pdf"
+  },
+  {
+    "mfr": "Avigilon",
+    "model": "HALO-CLOUD-3YR",
+    "ds": "https://www.avigilon.com/fs/documents/halo-iot-sensor-3c-datasheet-en.pdf"
+  },
+  {
+    "mfr": "Avigilon",
+    "model": "HALO-CLOUD-5YR",
+    "ds": "https://www.avigilon.com/fs/documents/halo-iot-sensor-3c-datasheet-en.pdf"
+  },
+  {
+    "mfr": "Avigilon",
+    "model": "HALO-CLOUD-10YR",
+    "ds": "https://www.avigilon.com/fs/documents/halo-iot-sensor-3c-datasheet-en.pdf"
+  },
+  {
+    "mfr": "Avigilon",
+    "model": "ACC7-COR",
+    "ds": "https://www.avigilon.com/fs/documents/avigilon-acc7-datasheet-en.pdf"
+  },
+  {
+    "mfr": "Avigilon",
+    "model": "ACC7-STD",
+    "ds": "https://www.avigilon.com/fs/documents/avigilon-acc7-datasheet-en.pdf"
+  },
+  {
+    "mfr": "Avigilon",
+    "model": "ACC7-ENT",
+    "ds": "https://www.avigilon.com/fs/documents/avigilon-acc7-datasheet-en.pdf"
+  },
+  {
+    "mfr": "Avigilon",
+    "model": "ACC7-ENT-BUNDLE-1YR",
+    "ds": "https://www.avigilon.com/fs/documents/avigilon-acc7-datasheet-en.pdf"
+  },
+  {
+    "mfr": "Avigilon",
+    "model": "ACC7-ENT-BUNDLE-3YR",
+    "ds": "https://www.avigilon.com/fs/documents/avigilon-acc7-datasheet-en.pdf"
+  },
+  {
+    "mfr": "Avigilon",
+    "model": "ACC7-ENT-BUNDLE-5YR",
+    "ds": "https://www.avigilon.com/fs/documents/avigilon-acc7-datasheet-en.pdf"
+  },
+  {
+    "mfr": "Avigilon",
+    "model": "ACC7-STD-BUNDLE-1YR",
+    "ds": "https://www.avigilon.com/fs/documents/avigilon-acc7-datasheet-en.pdf"
+  },
+  {
+    "mfr": "Avigilon",
+    "model": "ACC7-STD-BUNDLE-3YR",
+    "ds": "https://www.avigilon.com/fs/documents/avigilon-acc7-datasheet-en.pdf"
+  },
+  {
+    "mfr": "Avigilon",
+    "model": "ACC7-STD-BUNDLE-5YR",
+    "ds": "https://www.avigilon.com/fs/documents/avigilon-acc7-datasheet-en.pdf"
+  },
+  {
+    "mfr": "Avigilon",
+    "model": "ACC7-VAC",
+    "ds": "https://www.avigilon.com/fs/documents/avigilon-acc7-datasheet-en.pdf"
+  },
+  {
+    "mfr": "Avigilon",
+    "model": "ACC7-FACE",
+    "ds": "https://www.avigilon.com/fs/documents/avigilon-acc7-datasheet-en.pdf"
+  },
+  {
+    "mfr": "Avigilon",
+    "model": "ACC7-FACE-10C",
+    "ds": "https://www.avigilon.com/fs/documents/avigilon-acc7-datasheet-en.pdf"
+  },
+  {
+    "mfr": "Avigilon",
+    "model": "ACC7-LPR",
+    "ds": "https://www.avigilon.com/fs/documents/avigilon-acc7-datasheet-en.pdf"
+  },
+  {
+    "mfr": "Avigilon",
+    "model": "ACC7-ENT-FO",
+    "ds": "https://www.avigilon.com/fs/documents/avigilon-acc7-datasheet-en.pdf"
+  },
+  {
+    "mfr": "Avigilon",
+    "model": "ACC7-MEDIA",
+    "ds": "https://www.avigilon.com/fs/documents/avigilon-acc7-datasheet-en.pdf"
+  },
+  {
+    "mfr": "Avigilon",
+    "model": "UNITY8-COR",
+    "ds": "https://www.avigilon.com/products/unity-video"
+  },
+  {
+    "mfr": "Avigilon",
+    "model": "UNITY8-STD",
+    "ds": "https://www.avigilon.com/products/unity-video"
+  },
+  {
+    "mfr": "Avigilon",
+    "model": "UNITY8-ENT",
+    "ds": "https://www.avigilon.com/products/unity-video"
+  },
+  {
+    "mfr": "Avigilon",
+    "model": "UNITY8-VAC",
+    "ds": "https://www.avigilon.com/products/unity-video"
+  },
+  {
+    "mfr": "Avigilon",
+    "model": "UNITY8-FACE",
+    "ds": "https://www.avigilon.com/products/unity-video"
+  },
+  {
+    "mfr": "Avigilon",
+    "model": "UNITY8-FACE-10",
+    "ds": "https://www.avigilon.com/products/unity-video"
+  },
+  {
+    "mfr": "Avigilon",
+    "model": "UNITY8-LPR",
+    "ds": "https://www.avigilon.com/products/unity-video"
+  },
+  {
+    "mfr": "Avigilon",
+    "model": "UNITY8-ENT-FO",
+    "ds": "https://www.avigilon.com/products/unity-video"
+  },
+  {
+    "mfr": "Avigilon",
+    "model": "UNITY8-ENT-RD",
+    "ds": "https://www.avigilon.com/products/unity-video"
+  },
+  {
+    "mfr": "Avigilon",
+    "model": "ACC-USB-JOY",
+    "ds": "https://d8eqw8u9b6kgn.cloudfront.net/file_library/pdf/accessories/avigilon-acc-usb-joy-keyb-pro-en-v3.pdf"
+  },
+  {
+    "mfr": "Avigilon",
+    "model": "ACC-USB-JOY-PRO",
+    "ds": "https://d8eqw8u9b6kgn.cloudfront.net/file_library/pdf/accessories/avigilon-acc-usb-joy-keyb-pro-en-v3.pdf"
+  },
+  {
+    "mfr": "Avigilon",
+    "model": "ACC-MIC",
+    "ds": "https://d8eqw8u9b6kgn.cloudfront.net/file_library/pdf/accessories/ACC-MIC+Datasheet.pdf"
+  },
+  {
+    "mfr": "Avigilon",
+    "model": "ACC-SPEAKER-2",
+    "ds": "https://www.hattelandtechnology.fi/media/multicase/documents//avigilon/acc-speaker.pdf"
+  },
+  {
+    "mfr": "Avigilon",
+    "model": "PD-9001GR/AT/AC-NA-MSI",
+    "ds": ""
+  },
+  {
+    "mfr": "Avigilon",
+    "model": "POE-INJ2-60W-NA",
+    "ds": ""
+  },
+  {
+    "mfr": "Avigilon",
+    "model": "POE90U-1BT",
+    "ds": ""
+  },
+  {
+    "mfr": "Avigilon",
+    "model": "EX1",
+    "ds": ""
+  },
+  {
+    "mfr": "Avigilon",
+    "model": "CBS350-24FP-4G-NA",
+    "ds": ""
+  },
+  {
+    "mfr": "Avigilon",
+    "model": "ES-PS-S4-NPC",
+    "ds": ""
+  },
+  {
+    "mfr": "Avigilon",
+    "model": "ENC-4P-H264",
+    "ds": "https://www.avigilon.com/fs/documents/avigilon-enc-4p-h264-datasheet-en-rev15_2025-10-15-160506_kepm.pdf"
+  },
+  {
+    "mfr": "Avigilon",
+    "model": "ES-HD-CWS",
+    "ds": "https://www.avigilon.com/fs/documents/avigilon-outdoor-hd-sm-enclosure-datasheet-en.pdf"
+  },
+  {
+    "mfr": "Avigilon",
+    "model": "ES-HD-CWS-LG",
+    "ds": "https://d8eqw8u9b6kgn.cloudfront.net/file_library/pdf/accessories/avigilon-outdoor-hd-lg-enclosure-datasheet-en-rev2.pdf"
+  },
+  {
+    "mfr": "Avigilon",
+    "model": "ES-HD-HWS",
+    "ds": "https://www.avigilon.com/fs/documents/avigilon-outdoor-hd-sm-enclosure-datasheet-en.pdf"
+  },
+  {
+    "mfr": "Avigilon",
+    "model": "ES-HD-HWS-LG",
+    "ds": "https://d8eqw8u9b6kgn.cloudfront.net/file_library/pdf/accessories/avigilon-outdoor-hd-lg-enclosure-datasheet-en-rev2.pdf"
+  },
+  {
+    "mfr": "Avigilon",
+    "model": "ES-HD-IPM",
+    "ds": "https://d8eqw8u9b6kgn.cloudfront.net/file_library/pdf/accessories/avigilon-outdoor-poe-enclosure-datasheet-en.pdf"
+  },
+  {
+    "mfr": "Avigilon",
+    "model": "H4-MT-POLE1",
+    "ds": "https://d8eqw8u9b6kgn.cloudfront.net/file_library/pdf/accessories/avigilon-h4-mt-pole1-datasheet-en-rev3.pdf"
+  },
+  {
+    "mfr": "Avigilon",
+    "model": "WLMT-1001",
+    "ds": ""
+  },
+  {
+    "mfr": "Avigilon",
+    "model": "PLMT-1001",
+    "ds": "https://d8eqw8u9b6kgn.cloudfront.net/documents/msi-pole-mount-datasheet-en.pdf"
+  },
+  {
+    "mfr": "Avigilon",
+    "model": "H4A-MT-WALL1",
+    "ds": ""
+  },
+  {
+    "mfr": "Avigilon",
+    "model": "PPMNT-2001",
+    "ds": "https://d8eqw8u9b6kgn.cloudfront.net/file_library/pdf/accessories/parapet-rooftop-mount-install-en.pdf"
+  },
+  {
+    "mfr": "Avigilon",
+    "model": "RFMNT-1001",
+    "ds": "https://d8eqw8u9b6kgn.cloudfront.net/file_library/pdf/accessories/parapet-rooftop-mount-install-en.pdf"
+  },
+  {
+    "mfr": "Avigilon",
+    "model": "RFMNT-2001",
+    "ds": "https://d8eqw8u9b6kgn.cloudfront.net/file_library/pdf/accessories/parapet-rooftop-mount-install-en.pdf"
+  }
+]

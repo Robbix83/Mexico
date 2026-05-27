@@ -108,6 +108,7 @@ tr:hover td{background:#f8fafc}
   <div class="tab active" onclick="switchTab('users',this)">👥 משתמשים</div>
   <div class="tab" id="tab-requests" onclick="switchTab('requests',this)">📋 בקשות הצטרפות</div>
   <div class="tab" onclick="switchTab('audit',this)">📋 יומן פעילות</div>
+  <div class="tab" id="tab-dsfinder" onclick="switchTab('dsfinder',this)">🔍 דאטה שיטס</div>
 </div>
 
 <!-- ── USERS PANEL ── -->
@@ -141,6 +142,49 @@ tr:hover td{background:#f8fafc}
       </tr></thead>
       <tbody id="requests-tbody"><tr><td colspan="8" class="empty">טוען...</td></tr></tbody>
     </table>
+  </div>
+</div>
+
+<!-- ── DS FINDER PANEL ── -->
+<div class="panel" id="panel-dsfinder">
+  <div class="card">
+    <div class="card-head">
+      <h2>🔍 חיפוש דאטה שיטס חסרים</h2>
+      <button class="btn btn-sm" style="background:#f1f5f9;color:#475569" onclick="dsfRefresh()">🔄 רענן</button>
+      <button class="btn btn-primary btn-sm" onclick="dsfRunNow()" id="dsf-run-btn">▶ הפעל עכשיו</button>
+    </div>
+
+    <!-- Stats bar -->
+    <div id="dsf-stats-bar" style="display:flex;gap:18px;flex-wrap:wrap;padding:14px 0 8px;font-size:.9rem;direction:rtl">
+      <span>טוען...</span>
+    </div>
+
+    <!-- Progress bar -->
+    <div id="dsf-progress-wrap" style="background:#f1f5f9;border-radius:6px;height:10px;overflow:hidden;margin-bottom:14px">
+      <div id="dsf-progress-bar" style="height:100%;background:#10b981;transition:width .4s;width:0%"></div>
+    </div>
+
+    <!-- Status message -->
+    <div id="dsf-msg" style="font-size:.8rem;color:#64748b;min-height:18px;margin-bottom:12px;direction:rtl"></div>
+
+    <!-- Recent items table -->
+    <div style="overflow-x:auto">
+      <table style="width:100%;border-collapse:collapse;font-size:.8rem;direction:rtl">
+        <thead>
+          <tr style="background:#f8fafc">
+            <th style="padding:7px 10px;text-align:right;border-bottom:2px solid #e2e8f0;white-space:nowrap">מותג</th>
+            <th style="padding:7px 10px;text-align:right;border-bottom:2px solid #e2e8f0">מודל</th>
+            <th style="padding:7px 10px;text-align:right;border-bottom:2px solid #e2e8f0">מקור</th>
+            <th style="padding:7px 10px;text-align:right;border-bottom:2px solid #e2e8f0">סטטוס</th>
+            <th style="padding:7px 10px;text-align:right;border-bottom:2px solid #e2e8f0">ניסיונות</th>
+            <th style="padding:7px 10px;text-align:right;border-bottom:2px solid #e2e8f0">עדכון אחרון</th>
+          </tr>
+        </thead>
+        <tbody id="dsf-tbody">
+          <tr><td colspan="6" style="text-align:center;padding:20px;color:#a0aec0">לחץ על הטאב לטעינה</td></tr>
+        </tbody>
+      </table>
+    </div>
   </div>
 </div>
 
@@ -626,6 +670,93 @@ async function logout() {
   await fetch('/api/auth/logout',{method:'POST'});
   window.location.href='/login';
 }
+
+// ── DS Finder ────────────────────────────────────────────────────────────────
+const DSF_STATUS_LABELS = {
+  pending:'ממתין', found:'נמצא', not_found:'לא נמצא', error:'שגיאה'
+};
+const DSF_STATUS_COLORS = {
+  pending:'#f59e0b', found:'#10b981', not_found:'#ef4444', error:'#f97316'
+};
+const DSF_SOURCE_LABELS = {
+  pricelist:'מחירון', warehouse:'מחסן', catalog:'קטלוג'
+};
+
+let _dsfItems = [];
+
+async function dsfRefresh() {
+  try {
+    const [statusRes, listRes] = await Promise.all([
+      fetch('/api/admin/ds-finder/status'),
+      fetch('/api/admin/ds-finder/list'),
+    ]);
+    const status = await statusRes.json();
+    const { items } = listRes.ok ? await listRes.json() : { items: [] };
+    _dsfItems = items || [];
+    _dsfRenderStats(status.stats || {});
+    _dsfRenderTable(_dsfItems);
+  } catch (e) {
+    document.getElementById('dsf-msg').textContent = 'שגיאה בטעינה: ' + e.message;
+  }
+}
+
+function _dsfRenderStats(s) {
+  const total = s.total || 0;
+  const found = s.found || 0;
+  const pct   = total ? Math.round(found / total * 100) : 0;
+  document.getElementById('dsf-progress-bar').style.width = pct + '%';
+  document.getElementById('dsf-stats-bar').innerHTML = `
+    <span style="font-weight:700;color:#1a2a4a">סה"כ: ${total}</span>
+    <span style="color:#10b981">✅ נמצאו: ${found} (${pct}%)</span>
+    <span style="color:#f59e0b">⏳ ממתין: ${s.pending || 0}</span>
+    <span style="color:#ef4444">❌ לא נמצא: ${s.not_found || 0}</span>
+    <span style="color:#f97316">⚠️ שגיאה: ${s.error || 0}</span>
+  `;
+}
+
+function _dsfRenderTable(items) {
+  const tbody = document.getElementById('dsf-tbody');
+  if (!items.length) {
+    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:20px;color:#a0aec0">אין פריטים</td></tr>';
+    return;
+  }
+  tbody.innerHTML = items.slice(0, 200).map(it => {
+    const color  = DSF_STATUS_COLORS[it.status]  || '#718096';
+    const sLabel = DSF_STATUS_LABELS[it.status]  || it.status;
+    const src    = DSF_SOURCE_LABELS[it.source]  || it.source;
+    const date   = it.last_attempt ? fmtDate(it.last_attempt) : '—';
+    return `<tr style="border-bottom:1px solid #f1f5f9">
+      <td style="padding:6px 10px">${esc(it.manufacturer||'')}</td>
+      <td style="padding:6px 10px;font-family:monospace;font-size:.75rem">${esc(it.model||'')}</td>
+      <td style="padding:6px 10px">${src}</td>
+      <td style="padding:6px 10px"><span style="color:${color};font-weight:600">${sLabel}</span></td>
+      <td style="padding:6px 10px;text-align:center">${it.attempts||0}</td>
+      <td style="padding:6px 10px;font-size:.72rem;color:#718096">${date}</td>
+    </tr>`;
+  }).join('');
+}
+
+async function dsfRunNow() {
+  const btn = document.getElementById('dsf-run-btn');
+  btn.disabled = true; btn.textContent = 'מפעיל...';
+  document.getElementById('dsf-msg').textContent = '';
+  try {
+    const r = await api('POST', '/api/admin/ds-finder/run');
+    document.getElementById('dsf-msg').textContent = r.ok ? 'הופעל! יתחיל לעבד בעוד כמה שניות.' : 'שגיאה';
+    setTimeout(() => {
+      dsfRefresh();
+      document.getElementById('dsf-msg').textContent = '';
+    }, 8000);
+  } catch { document.getElementById('dsf-msg').textContent = 'שגיאת תקשורת'; }
+  finally { btn.disabled = false; btn.textContent = '▶ הפעל עכשיו'; }
+}
+
+// Hook into tab switch
+const _origSwitchTab = switchTab;
+window.switchTab = function(name, el) {
+  _origSwitchTab(name, el);
+  if (name === 'dsfinder') dsfRefresh();
+};
 
 // Close modals on background click
 document.querySelectorAll('.modal-bg').forEach(el=>{
