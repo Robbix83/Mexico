@@ -893,15 +893,20 @@
 <script>
   /* =========================================================
      ISRAEL TIME HELPER  (Asia/Jerusalem — handles DST automatically)
+     Uses formatToParts() so hours/minutes are labelled by type,
+     never depend on the locale's separator or field order.
   ========================================================= */
   function ilTime() {
-    var fmt = new Intl.DateTimeFormat('en-GB', {
+    var parts = new Intl.DateTimeFormat('en-GB', {
       timeZone: 'Asia/Jerusalem',
       hour: '2-digit', minute: '2-digit', hour12: false
-    });
-    var s = fmt.format(new Date()); // "23:45"
-    var p = s.split(':');
-    return { h: parseInt(p[0], 10), m: parseInt(p[1], 10), hStr: p[0], mStr: p[1] };
+    }).formatToParts(new Date());
+    var h = '', m = '';
+    for (var i = 0; i < parts.length; i++) {
+      if (parts[i].type === 'hour')   h = parts[i].value;
+      if (parts[i].type === 'minute') m = parts[i].value;
+    }
+    return { h: parseInt(h, 10), hStr: h, mStr: m };
   }
 
 
