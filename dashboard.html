@@ -563,9 +563,9 @@ kbd{background:#edf2f7;border:1px solid #cbd5e0;border-radius:4px;padding:1px 5p
 .wh-unit-badge.unit{background:#e2e8f0;color:#4a5568}
 .wh-unit-badge.meter{background:#dbeafe;color:#1d4ed8}
 /* ─── DOC PACK (תיק תיעוד) ─── */
-.dp-shell{display:grid;grid-template-columns:1fr 260px;gap:18px;align-items:start}
-.dp-side{grid-column:2;background:#fff;border:1px solid #e2e8f0;border-radius:10px;padding:12px;position:sticky;top:14px;max-height:calc(100vh - 130px);overflow-y:auto}
-.dp-main{grid-column:1;background:#fff;border:1px solid #e2e8f0;border-radius:10px;padding:18px 20px;min-height:400px}
+.dp-shell{display:grid;grid-template-columns:260px 1fr;gap:18px;align-items:start}
+.dp-side{grid-column:1;background:#fff;border:1px solid #e2e8f0;border-radius:10px;padding:12px;position:sticky;top:14px;max-height:calc(100vh - 130px);overflow-y:auto}
+.dp-main{grid-column:2;background:#fff;border:1px solid #e2e8f0;border-radius:10px;padding:18px 20px;min-height:400px}
 .dp-list-item{padding:8px 10px;border-radius:7px;cursor:pointer;font-size:.85rem;display:flex;flex-direction:row-reverse;justify-content:space-between;align-items:center;gap:6px;border:1px solid transparent}
 .dp-list-item:hover{background:#f7fafc}
 .dp-list-item.active{background:#eef4ff;border-color:#bfdbfe;color:#1d4ed8;font-weight:700}
@@ -6339,7 +6339,7 @@ function renderDocPackForm(){
   const main=document.getElementById('dp-main');
   if(!main) return;
   if(!_currentDocPack){
-    main.innerHTML='<div style="text-align:center;padding:60px 20px;color:#a0aec0;font-size:.9rem">בחר פרויקט מהרשימה משמאל, או צור חדש.</div>';
+    main.innerHTML='<div style="text-align:center;padding:60px 20px;color:#a0aec0;font-size:.9rem">בחר פרויקט מהרשימה מימין, או צור חדש.</div>';
     return;
   }
   const d=_currentDocPack.data||{};
