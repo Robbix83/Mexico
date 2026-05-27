@@ -745,11 +745,16 @@ async function _dsfPollStatus() {
     const res = await fetch('/api/admin/ds-finder/status');
     if (!res.ok) return;
     const status = await res.json();
+    const prevModel = _dsfCurrentModel;
     _dsfCurrentModel = status.currentModel || null;
     _dsfRenderLiveIndicator(status);
-    // If currently processing, highlight the active row without re-rendering the whole table
-    if (_dsfCurrentModel) _dsfHighlightActiveRow(_dsfCurrentModel);
-    else _dsfClearRowHighlights();
+    if (_dsfCurrentModel) {
+      _dsfHighlightActiveRow(_dsfCurrentModel);
+    } else {
+      _dsfClearRowHighlights();
+      // A model just finished processing → refresh table so status cell shows updated DB value
+      if (prevModel) dsfRefresh();
+    }
   } catch { /* ignore poll errors */ }
 }
 
@@ -794,7 +799,13 @@ function _dsfRenderLiveIndicator(status) {
     liveText.textContent = 'פעיל';
     liveDiv.style.color  = '#10b981';
   } else {
-    liveText.textContent = status.workerRunning ? 'ממתין לסבב הבא' : 'לא פעיל';
+    if (status.workerRunning && status.lastProcessAt) {
+      const elapsed = Math.floor((Date.now() - new Date(status.lastProcessAt).getTime()) / 1000);
+      const nextIn  = Math.max(0, 30 - elapsed);
+      liveText.textContent = nextIn > 2 ? `הסבב הבא בעוד ${nextIn} שנ'` : 'מתחיל סבב...';
+    } else {
+      liveText.textContent = status.workerRunning ? 'ממתין לסבב הבא' : 'לא פעיל';
+    }
     liveDiv.style.color  = '#64748b';
   }
 
