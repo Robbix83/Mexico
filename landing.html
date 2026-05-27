@@ -510,6 +510,12 @@
       color: #374151;
       margin-bottom: 5px;
     }
+    /* Login form — LTR override */
+    #loginSection .form-group label { text-align: left; }
+    #loginSection .form-group input {
+      direction: ltr;
+      text-align: left;
+    }
     .form-group input,
     .form-group select,
     .form-group textarea {
@@ -782,16 +788,16 @@
       <div class="modal-error" id="loginError"></div>
       <div class="modal-success" id="loginSuccess"></div>
 
-      <form onsubmit="doLogin(event)" autocomplete="on" novalidate>
+      <form onsubmit="doLogin(event)" autocomplete="on" novalidate dir="ltr" style="text-align:left">
         <div class="form-group">
           <label for="loginUsername">Username</label>
-          <input type="text" id="loginUsername" name="username" dir="ltr"
+          <input type="text" id="loginUsername" name="username"
                  autocomplete="username" placeholder="Enter username" required>
         </div>
         <div class="form-group">
           <label for="loginPassword">Password</label>
           <div class="pw-toggle">
-            <input type="password" id="loginPassword" name="password" dir="ltr"
+            <input type="password" id="loginPassword" name="password"
                    autocomplete="current-password" placeholder="Enter password" required>
             <button type="button" class="eye-btn" onclick="togglePwLogin('loginPassword', this)" aria-label="Show/hide password">👁</button>
           </div>
@@ -1139,21 +1145,19 @@
       });
       var data = await res.json();
 
-      if (res.ok && data.token) {
-        if (data.requiresPasswordChange) {
+      if (res.ok && data.ok) {
+        if (data.must_change_password) {
           document.getElementById('changePwUsername').value = username;
           document.getElementById('loginSection').style.display = 'none';
           document.getElementById('changePwSection').style.display = '';
-          localStorage.setItem('_tempToken', data.token);
         } else {
-          localStorage.setItem('token', data.token);
           _showSuccess('loginSuccess', 'Login successful, redirecting...');
           setTimeout(function() {
-            window.location.href = data.redirect || '/dashboard.html';
+            window.location.href = '/dashboard.html';
           }, 900);
         }
       } else {
-        _showError('loginError', data.message || 'Invalid username or password.');
+        _showError('loginError', data.error || 'Invalid username or password.');
       }
     } catch (err) {
       _showError('loginError', 'שגיאת תקשורת. נסה שוב.');
