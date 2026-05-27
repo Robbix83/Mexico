@@ -686,7 +686,7 @@
 <div class="orb"></div>
 
 <!-- Watermark -->
-<div class="watermark">AFKON</div>
+<div class="watermark">AFCON</div>
 
 <!-- Stars -->
 <div class="stars" id="starsContainer"></div>
@@ -721,7 +721,7 @@
     </div>
 
     <!-- Tagline -->
-    <div class="tagline">NUVO PLATFORM</div>
+    <div class="tagline">By RobXSystems</div>
 
     <!-- Title -->
     <h1 class="title">ברוכים הבאים</h1>
@@ -776,29 +776,29 @@
 
     <!-- Login section -->
     <div id="loginSection">
-      <div class="modal-title" id="loginTitle">כניסה למערכת</div>
-      <div class="modal-sub">הזן את פרטי הכניסה שלך</div>
+      <div class="modal-title" id="loginTitle">Login</div>
+      <div class="modal-sub">Enter your credentials</div>
 
       <div class="modal-error" id="loginError"></div>
       <div class="modal-success" id="loginSuccess"></div>
 
       <form onsubmit="doLogin(event)" autocomplete="on" novalidate>
         <div class="form-group">
-          <label for="loginUsername">שם משתמש</label>
-          <input type="text" id="loginUsername" name="username"
-                 autocomplete="username" placeholder="הכנס שם משתמש" required>
+          <label for="loginUsername">Username</label>
+          <input type="text" id="loginUsername" name="username" dir="ltr"
+                 autocomplete="username" placeholder="Enter username" required>
         </div>
         <div class="form-group">
-          <label for="loginPassword">סיסמה</label>
+          <label for="loginPassword">Password</label>
           <div class="pw-toggle">
-            <input type="password" id="loginPassword" name="password"
-                   autocomplete="current-password" placeholder="הכנס סיסמה" required>
-            <button type="button" class="eye-btn" onclick="togglePwLogin('loginPassword', this)" aria-label="הצג/הסתר סיסמה">👁</button>
+            <input type="password" id="loginPassword" name="password" dir="ltr"
+                   autocomplete="current-password" placeholder="Enter password" required>
+            <button type="button" class="eye-btn" onclick="togglePwLogin('loginPassword', this)" aria-label="Show/hide password">👁</button>
           </div>
         </div>
         <div class="modal-actions">
-          <button type="submit" class="btn btn-primary" id="loginSubmitBtn">כניסה</button>
-          <button type="button" class="btn btn-outline" onclick="closeLoginModal()">ביטול</button>
+          <button type="submit" class="btn btn-primary" id="loginSubmitBtn">Login</button>
+          <button type="button" class="btn btn-outline" onclick="closeLoginModal()">Cancel</button>
         </div>
       </form>
     </div>
@@ -1126,11 +1126,11 @@
     var password = document.getElementById('loginPassword').value;
 
     if (!username || !password) {
-      _showError('loginError', 'נא למלא שם משתמש וסיסמה.');
+      _showError('loginError', 'Please enter username and password.');
       return;
     }
 
-    _setLoading('loginSubmitBtn', true, 'כניסה');
+    _setLoading('loginSubmitBtn', true, 'Logging in...');
     try {
       var res = await fetch('/api/auth/login', {
         method: 'POST',
@@ -1147,18 +1147,18 @@
           localStorage.setItem('_tempToken', data.token);
         } else {
           localStorage.setItem('token', data.token);
-          _showSuccess('loginSuccess', 'כניסה בוצעה בהצלחה, מעביר...');
+          _showSuccess('loginSuccess', 'Login successful, redirecting...');
           setTimeout(function() {
             window.location.href = data.redirect || '/dashboard.html';
           }, 900);
         }
       } else {
-        _showError('loginError', data.message || 'שם משתמש או סיסמה שגויים.');
+        _showError('loginError', data.message || 'Invalid username or password.');
       }
     } catch (err) {
       _showError('loginError', 'שגיאת תקשורת. נסה שוב.');
     } finally {
-      _setLoading('loginSubmitBtn', false, 'כניסה');
+      _setLoading('loginSubmitBtn', false, 'Login');
     }
   }
 
