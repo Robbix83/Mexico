@@ -562,6 +562,19 @@ kbd{background:#edf2f7;border:1px solid #cbd5e0;border-radius:4px;padding:1px 5p
 .wh-unit-badge{display:inline-block;padding:2px 8px;border-radius:10px;font-size:.72rem;font-weight:700}
 .wh-unit-badge.unit{background:#e2e8f0;color:#4a5568}
 .wh-unit-badge.meter{background:#dbeafe;color:#1d4ed8}
+.wh-cat-bar{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px;padding:2px 0}
+.wh-cat-chip{display:inline-flex;align-items:center;gap:5px;padding:4px 12px;border-radius:20px;
+  font-size:.78rem;font-weight:600;cursor:pointer;border:1px solid #e2e8f0;
+  background:#f7fafc;color:#4a5568;transition:background .15s,color .15s,border-color .15s}
+.wh-cat-chip:hover{background:#eef4ff;border-color:#bfdbfe;color:#1d4ed8}
+.wh-cat-chip.active{background:#1d4ed8;color:#fff;border-color:#1d4ed8}
+.wh-cat-count{background:rgba(0,0,0,.1);border-radius:10px;padding:1px 6px;font-size:.68rem;font-weight:700}
+.wh-cat-chip.active .wh-cat-count{background:rgba(255,255,255,.25)}
+.wh-group-row td{background:#eef4fb;font-weight:700;color:#1a2a4a;font-size:.82rem;
+  padding:7px 12px;cursor:pointer;border-bottom:1px solid #bfdbfe;user-select:none}
+.wh-group-row:hover td{background:#dbeafe}
+.wh-mfr-badge{display:inline-block;padding:1px 6px;border-radius:8px;font-size:.65rem;
+  font-weight:700;background:#e2e8f0;color:#4a5568;margin-left:5px;vertical-align:middle}
 /* ─── DOC PACK (תיק תיעוד) ─── */
 .dp-shell{display:grid;grid-template-columns:260px 1fr;gap:18px;align-items:start}
 .dp-side{grid-column:1;background:#fff;border:1px solid #e2e8f0;border-radius:10px;padding:12px;position:sticky;top:14px;max-height:calc(100vh - 130px);overflow-y:auto}
@@ -1073,6 +1086,7 @@ tr:hover .pl-edit-btn{opacity:.65}
       </div>
       <span id="wh-stats" style="font-size:.8rem;color:#718096"></span>
     </div>
+    <div id="wh-cat-bar" class="wh-cat-bar"></div>
     <div id="wh-grid"></div>
   </section>
 
@@ -4352,6 +4366,66 @@ let _whLoaded=false;
 let _whSortCol=''; // '' | 'sku' | 'desc' | 'qty' | 'unit' | 'cost'
 let _whSortDir=1;  // 1 = asc, -1 = desc
 let _whLoadingPromise=null;
+let _whCatFilter=null;      // null = all, string = active primary category
+let _whCollapsed=new Set(); // set of collapsed category names in overview mode
+const _WH_CATS=[
+  {name:'מצלמות',  icon:'🎥', skuRe:/^(DS-2[CXAD]|IPC|PKC|NDI-|NDE-|NDP-|DIP-|\d+\.?\d*C-H)/i, descRe:/מצלמ|camera|ptz|bullet|dome|fisheye/i},
+  {name:'מקלטים',  icon:'🖥', skuRe:/^(DS-[79]|NVR|XVR|DVR)/i,                                   descRe:/nvr|dvr|xvr|מקלט|רשם|recorder/i},
+  {name:'עורקים',  icon:'📡', skuRe:/^(RW-|EH-|MPL-|T-280|AX-)/i,                                descRe:/radwin|siklu|אלחוט|wireless|backhaul|עורק|ptmp/i},
+  {name:'רשת',     icon:'🔌', skuRe:/^(SFP|POE)/i,                                                descRe:/switch|מתג|patch|sfp|poe|vlan|router|firewall|ממסר/i},
+  {name:'ספקי כח', icon:'🔋', skuRe:null,                                                          descRe:/ups|ספק.?כח|power.?supply|סוללה|battery|12v|24v|adaptor|adapter/i},
+  {name:'כבלים',   icon:'🪛', skuRe:null,                                                          descRe:/כבל|cable|rj45|cat[56]|fiber|אופטי|bnc|coax/i},
+  {name:'אביזרים', icon:'🔧', skuRe:null,                                                          descRe:/מתלה|bracket|housing|קופסה|junction|כיסוי|חיבור|connector|mount/i},
+  {name:'אחר',     icon:'📦', skuRe:null,                                                          descRe:null},
+];
+function _whGetCat(item){
+  const sku=String(item.sku||''), desc=String(item.desc||'').toLowerCase();
+  for(const c of _WH_CATS){
+    if(c.name==='אחר') return 'אחר';
+    if(c.skuRe && c.skuRe.test(sku)) return c.name;
+    if(c.descRe && c.descRe.test(desc)) return c.name;
+  }
+  return 'אחר';
+}
+function _whGetMfr(sku){
+  if(!sku) return null;
+  if(/^DS-/i.test(sku))                       return 'Hikvision';
+  if(/^(IPC|NVR|XVR|UAC|PKC)\d/i.test(sku))  return 'Uniview';
+  if(/^(NDI|NDE|NBE|NDP|DIP)-/i.test(sku))   return 'Bosch';
+  if(/^(EH-|MPL-|T-280|AX-)/i.test(sku))     return 'SIKLU';
+  if(/^RW-/i.test(sku))                       return 'RADWIN';
+  if(/^\d+\.?\d*C-H\d/i.test(sku))           return 'Avigilon';
+  return null;
+}
+function _whSetCat(name){
+  _whCatFilter=(name===null||name===_whCatFilter)?null:name;
+  _whCollapsed.clear();
+  renderWarehouse();
+}
+function _whToggleGroup(name){
+  if(_whCollapsed.has(name)) _whCollapsed.delete(name);
+  else _whCollapsed.add(name);
+  renderWarehouse();
+}
+function renderWhCatBar(){
+  const bar=document.getElementById('wh-cat-bar');
+  if(!bar||!_whLoaded||whItems.length===0){if(bar)bar.innerHTML='';return;}
+  const counts={};
+  for(const c of _WH_CATS) counts[c.name]=0;
+  for(const it of whItems) counts[_whGetCat(it)]=(counts[_whGetCat(it)]||0)+1;
+  const allActive=_whCatFilter===null?'active':'';
+  const chips=_WH_CATS
+    .filter(c=>counts[c.name]>0)
+    .map(c=>{
+      const active=_whCatFilter===c.name?'active':'';
+      return `<span class="wh-cat-chip ${active}" onclick="_whSetCat('${c.name}')">
+        ${c.icon} ${c.name} <span class="wh-cat-count">${counts[c.name].toLocaleString('he-IL')}</span>
+      </span>`;
+    });
+  bar.innerHTML=`<span class="wh-cat-chip ${allActive}" onclick="_whSetCat(null)">
+      הכל <span class="wh-cat-count">${whItems.length.toLocaleString('he-IL')}</span>
+    </span>${chips.join('')}`;
+}
 let _whParsed=[];
 async function ensureWarehouseLoaded(force){
   if(_whLoaded && !force) return;
@@ -5806,6 +5880,7 @@ function whSort(col){
 }
 
 function renderWarehouse(){
+  renderWhCatBar();
   const q=(document.getElementById('wh-search')?.value||'').trim().toLowerCase();
   const meta=_whMeta||{};
   let items=q
@@ -5813,6 +5888,8 @@ function renderWarehouse(){
         x.sku.toLowerCase().includes(q)||
         x.desc.toLowerCase().includes(q))
     : whItems.slice();
+  // Apply category filter
+  if(_whCatFilter) items=items.filter(x=>_whGetCat(x)===_whCatFilter);
   if(_whSortCol){
     const col=_whSortCol, dir=_whSortDir;
     items.sort((a,b)=>{
@@ -5834,8 +5911,9 @@ function renderWarehouse(){
     const dateStr=d
       ?d.toLocaleDateString('he-IL')+' '+d.toLocaleTimeString('he-IL',{hour:'2-digit',minute:'2-digit'})
       :'';
-    statsEl.innerHTML=`<b>${items.length.toLocaleString('he-IL')}</b> פריטים`+
-      (q?` (מתוך ${whItems.length.toLocaleString('he-IL')})`:'')
+    const catLabel=_whCatFilter?` · ${_whCatFilter}`:'';
+    statsEl.innerHTML=`<b>${items.length.toLocaleString('he-IL')}</b> פריטים${catLabel}`+
+      (q?` (מסונן)`:'')
       +(dateStr?` · עודכן ${dateStr}`:'');
   }
 
@@ -5859,7 +5937,8 @@ function renderWarehouse(){
     return;
   }
 
-  const tableRows=items.map(it=>{
+  // Helper: build a single table row
+  const buildRow=(it, showMfr=false)=>{
     const unitBadge=it.unit==='מטר'
       ?`<span class="wh-unit-badge meter">מטר</span>`
       :`<span class="wh-unit-badge unit">יח'</span>`;
@@ -5875,29 +5954,61 @@ function renderWarehouse(){
       costCell='<span style="color:#a0aec0">—</span>';
     }
     const skuEsc=it.sku.replace(/'/g,"\\'");
+    const mfr=showMfr?_whGetMfr(it.sku):null;
+    const mfrBadge=mfr?`<span class="wh-mfr-badge">${mfr}</span>`:'';
     return `<tr>
-      <td><span class="sku-badge" onclick="copySkuNum('${skuEsc}',this)">${it.sku||'—'}</span></td>
+      <td>${mfrBadge}<span class="sku-badge" onclick="copySkuNum('${skuEsc}',this)">${it.sku||'—'}</span></td>
       <td>${it.desc}</td>
       <td style="text-align:center;font-weight:700">${it.qty.toLocaleString('he-IL')}</td>
       <td style="text-align:center">${unitBadge}</td>
       <td style="text-align:right">${costCell}</td>
     </tr>`;
-  }).join('');
+  };
 
   const arrow=col=>{
     if(_whSortCol!==col) return '<span style="opacity:.25;font-size:.7rem;margin-right:4px">⇅</span>';
     return `<span style="color:#1d4ed8;font-size:.75rem;margin-right:4px">${_whSortDir===1?'▲':'▼'}</span>`;
   };
-  grid.innerHTML=`<table class="wh-table">
-    <thead><tr>
-      <th style="width:130px;cursor:pointer;user-select:none" onclick="whSort('sku')">${arrow('sku')}מק"ט</th>
-      <th style="cursor:pointer;user-select:none" onclick="whSort('desc')">${arrow('desc')}תיאור</th>
-      <th style="text-align:center;width:90px;cursor:pointer;user-select:none" onclick="whSort('qty')">${arrow('qty')}כמות</th>
-      <th style="text-align:center;width:80px;cursor:pointer;user-select:none" onclick="whSort('unit')">${arrow('unit')}יחידה</th>
-      <th style="text-align:right;width:140px;cursor:pointer;user-select:none" onclick="whSort('cost')">${arrow('cost')}עלות</th>
-    </tr></thead>
-    <tbody>${tableRows}</tbody>
-  </table>`;
+  const thead=`<thead><tr>
+    <th style="width:130px;cursor:pointer;user-select:none" onclick="whSort('sku')">${arrow('sku')}מק"ט</th>
+    <th style="cursor:pointer;user-select:none" onclick="whSort('desc')">${arrow('desc')}תיאור</th>
+    <th style="text-align:center;width:90px;cursor:pointer;user-select:none" onclick="whSort('qty')">${arrow('qty')}כמות</th>
+    <th style="text-align:center;width:80px;cursor:pointer;user-select:none" onclick="whSort('unit')">${arrow('unit')}יחידה</th>
+    <th style="text-align:right;width:140px;cursor:pointer;user-select:none" onclick="whSort('cost')">${arrow('cost')}עלות</th>
+  </tr></thead>`;
+
+  // Drill-down mode (category filter active OR search active): flat table + mfr badges
+  const drillDown=_whCatFilter!==null||q!=='';
+  if(drillDown){
+    const showMfr=_whCatFilter!==null; // badges only when drilling into a category
+    const tableRows=items.map(it=>buildRow(it, showMfr)).join('');
+    grid.innerHTML=`<table class="wh-table">${thead}<tbody>${tableRows}</tbody></table>`;
+    return;
+  }
+
+  // Overview mode: group by primary category with collapsible section headers
+  // Build a map: catName → items[]
+  const grouped=new Map();
+  for(const c of _WH_CATS) grouped.set(c.name,[]);
+  for(const it of items) grouped.get(_whGetCat(it)).push(it);
+
+  let bodyHtml='';
+  for(const c of _WH_CATS){
+    const catItems=grouped.get(c.name);
+    if(!catItems||catItems.length===0) continue;
+    const collapsed=_whCollapsed.has(c.name);
+    const arrow2=collapsed?'▶':'▼';
+    const hint=collapsed
+      ?`<small style="font-weight:400;color:#718096;margin-right:8px">לחץ להרחבה</small>`
+      :`<small style="font-weight:400;color:#718096;margin-right:8px">לחץ לכיווץ</small>`;
+    bodyHtml+=`<tr class="wh-group-row" onclick="_whToggleGroup('${c.name.replace(/'/g,"\\'")}')">
+      <td colspan="5">${arrow2} ${c.icon} ${c.name} — ${catItems.length.toLocaleString('he-IL')} פריטים ${hint}</td>
+    </tr>`;
+    if(!collapsed){
+      bodyHtml+=catItems.map(it=>buildRow(it,false)).join('');
+    }
+  }
+  grid.innerHTML=`<table class="wh-table">${thead}<tbody>${bodyHtml}</tbody></table>`;
 }
 // ════════════════════════════════════════════════════════════
 
