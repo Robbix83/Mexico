@@ -1414,7 +1414,12 @@ app.get('/ds/*', requireAuth, (req, res) => {
   res.sendFile(filePath);
 });
 
-// Static assets (logo, etc.) — auth required
+// Public: logo served without auth (needed on landing page before login)
+app.get('/logo.png', (req, res) => {
+  res.sendFile(path.join(STATIC_DIR, 'logo.png'));
+});
+
+// Static assets — auth required
 app.use(requireAuth, express.static(STATIC_DIR, {
   index: false,
   dotfiles: 'deny',
