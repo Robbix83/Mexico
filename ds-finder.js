@@ -82,6 +82,77 @@ function _safeSave(manufacturer, model, buffer) {
 // ── Low-level HTTP fetch ──────────────────────────────────────────────────────
 // Returns a Buffer with valid PDF content, or null on any failure.
 // Follows up to 5 redirects (handles multi-hop CDN chains).
+// Fetch a URL and return the response body as a UTF-8 string (for HTML pages)
+function _fetchHtml(rawUrl, timeoutMs = 15000) {
+  return new Promise((resolve) => {
+    let parsed;
+    try { parsed = new URL(rawUrl); } catch { return resolve(null); }
+
+    const mod = parsed.protocol === 'https:' ? https : http;
+    const options = {
+      hostname: parsed.hostname,
+      port:     parsed.port || undefined,
+      path:     parsed.pathname + parsed.search,
+      method:   'GET',
+      headers: {
+        'User-Agent':      BROWSER_UA,
+        'Accept':          'text/html,application/xhtml+xml',
+        'Accept-Language': 'en-US,en;q=0.9',
+      },
+    };
+
+    const req = mod.request(options, (res) => {
+      // Follow one redirect only
+      if ([301, 302, 303, 307, 308].includes(res.statusCode) && res.headers.location) {
+        res.resume();
+        try {
+          const loc = new URL(res.headers.location, rawUrl).href;
+          return _fetchHtml(loc, timeoutMs).then(resolve);
+        } catch { return resolve(null); }
+      }
+      if (res.statusCode !== 200) { res.resume(); return resolve(null); }
+      const chunks = [];
+      res.on('data',  (c) => { if (Buffer.concat(chunks).length < 512 * 1024) chunks.push(c); });
+      res.on('end',   () => resolve(Buffer.concat(chunks).toString('utf8')));
+      res.on('error', () => resolve(null));
+    });
+
+    req.setTimeout(timeoutMs, () => { req.destroy(); resolve(null); });
+    req.on('error', () => resolve(null));
+    req.end();
+  });
+}
+
+// Search DuckDuckGo HTML for "<model>.PDF" and return up to maxResults direct PDF URLs.
+// DuckDuckGo HTML endpoint returns links encoded as uddg= query params — no JS required.
+async function _searchPdfUrls(model, maxResults = 5) {
+  const query = encodeURIComponent(model + '.PDF');
+  const searchUrl = `https://html.duckduckgo.com/html/?q=${query}`;
+  try {
+    const html = await _fetchHtml(searchUrl, 15000);
+    if (!html) return [];
+
+    const urls = [];
+    // Each result link looks like: href="//duckduckgo.com/l/?uddg=https%3A%2F%2F...&rut=..."
+    const uddgRe = /uddg=([^&"'\s>]+)/gi;
+    let m;
+    while ((m = uddgRe.exec(html)) !== null) {
+      try {
+        const decoded = decodeURIComponent(m[1]);
+        if (/^https?:\/\/.+\.pdf(\?|#|$)/i.test(decoded) && !urls.includes(decoded)) {
+          urls.push(decoded);
+        }
+      } catch { /* bad encoding, skip */ }
+      if (urls.length >= maxResults) break;
+    }
+    if (urls.length) console.log(`[ds-finder] 🔍 DDG "${model}.PDF" → ${urls.length} PDF URL(s)`);
+    return urls;
+  } catch (e) {
+    console.warn('[ds-finder] DDG search error:', e.message);
+    return [];
+  }
+}
+
 function _fetchPdf(rawUrl, timeoutMs = 25000, _redirects = 0) {
   if (_redirects > 5) return Promise.resolve(null); // redirect loop guard
 
@@ -373,7 +444,22 @@ async function downloadDatasheet(model, manufacturer, dsHint = '') {
     } catch { /* puppeteer failed, fall through */ }
   }
 
-  return { success: false, path: null, error: `No PDF found (tried ${urls.length} URLs)` };
+  // Universal last resort: search DuckDuckGo for "<model>.PDF" and try the first results
+  try {
+    const searchUrls = await _searchPdfUrls(model, 5);
+    for (const sUrl of searchUrls) {
+      try {
+        const buf = await _fetchPdf(sUrl, 20000);
+        if (buf) {
+          const savedPath = _safeSave(manufacturer, model, buf);
+          console.log(`[ds-finder] ✅ ${manufacturer}/${model} via DDG search <- ${sUrl.slice(0, 80)}`);
+          return { success: true, path: savedPath, url: sUrl };
+        }
+      } catch { /* try next search result */ }
+    }
+  } catch { /* search failed entirely */ }
+
+  return { success: false, path: null, error: `No PDF found (tried ${urls.length} direct URLs + DDG search)` };
 }
 
 // ── Populate queue from price list + warehouse ────────────────────────────────
