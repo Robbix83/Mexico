@@ -210,13 +210,21 @@ tr:hover td{background:#f8fafc}
 
     <!-- Manual PDF URL download -->
     <div id="dsf-manual-section" style="margin-top:22px;padding:14px 16px;border:1.5px dashed #bfdbfe;border-radius:10px;background:#f8fbff;direction:rtl">
-      <div style="font-weight:700;color:#1a2a4a;margin-bottom:10px;font-size:.88rem">📎 הורד PDF ידנית — הדבק לינק ישיר לקובץ</div>
+      <div style="font-weight:700;color:#1a2a4a;margin-bottom:10px;font-size:.88rem">📎 הורד PDF ידנית</div>
+      <div style="font-size:.77rem;color:#64748b;margin-bottom:10px;line-height:1.5">
+        1. לחץ 🔍 בשורה הרצויה — ייפתח חיפוש גוגל עם שם המודל<br>
+        2. בגוגל: מצא תוצאה עם תג <span style="background:#e2e8f0;padding:1px 5px;border-radius:3px;font-size:.75rem">PDF</span> → לחץ ימני → העתק כתובת קישור<br>
+        3. הדבק את הכתובת בשדה URL למטה ולחץ הורד
+      </div>
       <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
         <input id="dsf-manual-model" placeholder="מודל (DS-2CD2143G2-I)"
                style="flex:2;min-width:140px;padding:6px 10px;border:1px solid #e2e8f0;border-radius:6px;font-size:.82rem">
         <input id="dsf-manual-mfr"   placeholder="יצרן (Hikvision)"
                style="flex:1;min-width:100px;padding:6px 10px;border:1px solid #e2e8f0;border-radius:6px;font-size:.82rem">
-        <input id="dsf-manual-url"   placeholder="https://www.hikvision.com/.../file.pdf"
+        <button title="פתח חיפוש גוגל לפי המודל שמעל"
+                style="padding:5px 10px;font-size:.8rem;background:#fff;border:1px solid #e2e8f0;border-radius:6px;cursor:pointer;white-space:nowrap"
+                onclick="dsfOpenSearch()">🔍 חפש</button>
+        <input id="dsf-manual-url"   placeholder="הדבק כאן URL של קובץ PDF"
                style="flex:4;min-width:220px;padding:6px 10px;border:1px solid #e2e8f0;border-radius:6px;font-size:.82rem">
         <button class="btn btn-primary btn-sm" onclick="dsfManualDownload()" id="dsf-manual-btn">⬇ הורד</button>
       </div>
@@ -931,10 +939,13 @@ function _dsfRenderTable(items) {
       <td class="dsf-status-cell" style="padding:6px 10px"><span style="color:${color};font-weight:600">${sLabel}</span></td>
       <td style="padding:6px 10px;text-align:center">${it.attempts||0}</td>
       <td style="padding:6px 10px;font-size:.72rem;color:#718096">${date}</td>
-      <td style="padding:4px 8px;text-align:center">
-        <button title="הכנס לינק PDF ידני" style="padding:2px 8px;font-size:.75rem;
-                background:#eff6ff;color:#1d4ed8;border:1px solid #bfdbfe;border-radius:5px;cursor:pointer"
-                onclick="dsfPrefillManual('${mEsc}','${mfrEsc}')">🔗</button>
+      <td style="padding:4px 6px;text-align:center;white-space:nowrap">
+        <button title="חפש בגוגל + מלא טופס" style="padding:2px 7px;font-size:.75rem;
+                background:#eff6ff;color:#1d4ed8;border:1px solid #bfdbfe;border-radius:5px;cursor:pointer;margin-left:3px"
+                onclick="dsfPrefillManual('${mEsc}','${mfrEsc}',true)">🔍</button>
+        <button title="מלא טופס בלי לפתוח גוגל" style="padding:2px 7px;font-size:.75rem;
+                background:#f8fafc;color:#475569;border:1px solid #e2e8f0;border-radius:5px;cursor:pointer"
+                onclick="dsfPrefillManual('${mEsc}','${mfrEsc}',false)">🔗</button>
       </td>
     </tr>`;
   }).join('');
@@ -978,9 +989,22 @@ async function dsfManualDownload() {
   const msgEl = document.getElementById('dsf-manual-msg');
   const btn   = document.getElementById('dsf-manual-btn');
 
-  if (!model || !mfr || !url) {
-    msgEl.textContent = '⚠️ יש למלא מודל, יצרן ו-URL';
+  if (!model) {
+    msgEl.textContent = '⚠️ חסר שם מודל';
     msgEl.style.color = '#f59e0b';
+    document.getElementById('dsf-manual-model').focus();
+    return;
+  }
+  if (!mfr) {
+    msgEl.textContent = '⚠️ חסר שם יצרן';
+    msgEl.style.color = '#f59e0b';
+    document.getElementById('dsf-manual-mfr').focus();
+    return;
+  }
+  if (!url) {
+    msgEl.textContent = '⚠️ חסר URL — חפש בגוגל, העתק את כתובת ה-PDF, הדבק כאן';
+    msgEl.style.color = '#f59e0b';
+    document.getElementById('dsf-manual-url').focus();
     return;
   }
   if (!url.startsWith('http')) {
@@ -1032,14 +1056,28 @@ async function dsfResetErrors() {
   }
 }
 
-function dsfPrefillManual(model, mfr) {
+function dsfPrefillManual(model, mfr, openSearch = false) {
   document.getElementById('dsf-manual-model').value = model;
   document.getElementById('dsf-manual-mfr').value   = mfr;
   document.getElementById('dsf-manual-url').value   = '';
   document.getElementById('dsf-manual-msg').textContent = '';
   const section = document.getElementById('dsf-manual-section');
   if (section) section.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  if (openSearch) {
+    window.open('https://www.google.com/search?q=' + encodeURIComponent(model + '.PDF'), '_blank');
+  }
   setTimeout(() => document.getElementById('dsf-manual-url').focus(), 350);
+}
+
+function dsfOpenSearch() {
+  const model = (document.getElementById('dsf-manual-model').value || '').trim();
+  if (!model) {
+    document.getElementById('dsf-manual-msg').textContent = '⚠️ יש להכניס שם מודל תחילה';
+    document.getElementById('dsf-manual-msg').style.color = '#f59e0b';
+    document.getElementById('dsf-manual-model').focus();
+    return;
+  }
+  window.open('https://www.google.com/search?q=' + encodeURIComponent(model + '.PDF'), '_blank');
 }
 
 // Hook into tab switch — start/stop live polling with the DS-Finder tab
