@@ -78,7 +78,10 @@ function _safeSave(manufacturer, model, buffer) {
 
 // ── Low-level HTTP fetch ──────────────────────────────────────────────────────
 // Returns a Buffer with valid PDF content, or null on any failure.
-function _fetchPdf(rawUrl, timeoutMs = 25000) {
+// Follows up to 5 redirects (handles multi-hop CDN chains).
+function _fetchPdf(rawUrl, timeoutMs = 25000, _redirects = 0) {
+  if (_redirects > 5) return Promise.resolve(null); // redirect loop guard
+
   return new Promise((resolve) => {
     let parsed;
     try { parsed = new URL(rawUrl); } catch { return resolve(null); }
@@ -90,18 +93,23 @@ function _fetchPdf(rawUrl, timeoutMs = 25000) {
       path:     parsed.pathname + parsed.search,
       method:   'GET',
       headers: {
-        'User-Agent': BROWSER_UA,
-        'Accept':     'application/pdf,*/*',
-        'Referer':    `${parsed.protocol}//${parsed.hostname}/`,
+        'User-Agent':      BROWSER_UA,
+        'Accept':          'application/pdf,*/*',
+        'Accept-Language': 'en-US,en;q=0.9',
+        'Referer':         `${parsed.protocol}//${parsed.hostname}/`,
       },
       rejectUnauthorized: false, // some manufacturer CDNs have chain issues
     };
 
     const req = mod.request(options, (res) => {
-      // Follow one level of redirect
-      if ((res.statusCode === 301 || res.statusCode === 302 || res.statusCode === 307) && res.headers.location) {
+      // Follow redirects (301/302/303/307/308)
+      const isRedirect = [301, 302, 303, 307, 308].includes(res.statusCode);
+      if (isRedirect && res.headers.location) {
         res.resume();
-        return _fetchPdf(res.headers.location, timeoutMs).then(resolve);
+        // Resolve relative redirect URLs against original host
+        let loc = res.headers.location;
+        try { loc = new URL(loc, rawUrl).href; } catch { return resolve(null); }
+        return _fetchPdf(loc, timeoutMs, _redirects + 1).then(resolve);
       }
       if (res.statusCode !== 200) { res.resume(); return resolve(null); }
 
@@ -134,22 +142,41 @@ function _fetchPdf(rawUrl, timeoutMs = 25000) {
 // ── Per-manufacturer URL builders ─────────────────────────────────────────────
 
 function _hikvisionUrls(model) {
-  const urls = [];
-  const variants = [model, model.toUpperCase()];
-  const stripped = model.replace(/\s*\(.*$/, ''); // strip "(2.8mm)" etc.
-  if (stripped !== model) variants.push(stripped, stripped.toUpperCase());
+  // Build model variants to try (small set — each costs 2s in the queue)
+  const variants = new Set([model]);
+  const upper = model.toUpperCase();
+  if (upper !== model) variants.add(upper);
 
-  for (const v of variants) {
+  // Strip trailing lens suffix like "(2.8mm)", "(F2.8)", "(2.8-12mm)"
+  const stripped = model.replace(/\s*\([^)]*\)\s*$/, '').trim();
+  if (stripped !== model) {
+    variants.add(stripped);
+    if (stripped.toUpperCase() !== upper) variants.add(stripped.toUpperCase());
+  }
+
+  const urls = [];
+  const BASE = 'content/dam/hikvision/en/support/resources/datasheet';
+
+  for (const v of [...variants]) {
     const enc = encodeURIComponent(v);
+    // www and EU domains — most datasheets are on one of these two
+    for (const domain of ['https://www.hikvision.com', 'https://eu.hikvision.com']) {
+      urls.push(
+        `${domain}/${BASE}/${enc}-Datasheet.pdf`,    // most common
+        `${domain}/${BASE}/${enc}_Datasheet.pdf`,    // some newer models use underscore
+        `${domain}/${BASE}/${enc}.pdf`,              // bare filename fallback
+        `${domain}/${BASE}/${enc}-Datasheet-EN.pdf`, // English-tagged variant
+      );
+    }
+    // APAC mirror (covers ANZ / SEA region stock)
     urls.push(
-      `https://www.hikvision.com/content/dam/hikvision/en/support/resources/datasheet/${enc}-Datasheet.pdf`,
-      `https://www.hikvision.com/content/dam/hikvision/en/support/resources/datasheet/${enc}.pdf`,
-      `https://eu.hikvision.com/content/dam/hikvision/en/support/resources/datasheet/${enc}-Datasheet.pdf`,
-      `https://eu.hikvision.com/content/dam/hikvision/en/support/resources/datasheet/${enc}.pdf`,
+      `https://www.hikvision.com/content/dam/hikvision/apac/en/support/resources/datasheet/${enc}-Datasheet.pdf`,
       `https://www.hikvision.com/content/dam/hikvision/apac/en/support/resources/datasheet/${enc}.pdf`,
     );
   }
-  return urls;
+
+  // Deduplicate while preserving order
+  return [...new Set(urls)];
 }
 
 function _univiewUrls(model) {
