@@ -928,6 +928,10 @@ body.viewer-mode .dp-title input{pointer-events:none;background:#f7fafc}
   transition:opacity .15s;padding:3px 5px;border-radius:6px;line-height:1}
 .pl-edit-btn:hover{opacity:1;background:#F0FDFA}
 tr:hover .pl-edit-btn{opacity:.65}
+.pl-row-ds-btn{background:none;border:none;cursor:pointer;font-size:.82rem;opacity:0;
+  transition:opacity .15s;padding:3px 4px;border-radius:6px;line-height:1}
+tr:hover .pl-row-ds-btn{opacity:.6}
+.pl-row-ds-btn:hover{opacity:1!important;background:#EFF6FF}
 .pl-row-modified .td-model::after{content:'●';color:#f6ad55;font-size:.5rem;vertical-align:super;margin-right:2px}
 /* ── price list edit modal ── */
 .pl-edit-overlay{display:none;position:fixed;inset:0;z-index:10100;background:rgba(0,0,0,.48);
@@ -5416,6 +5420,67 @@ async function pleDlAndSave(){
     btn.disabled=false; btn.textContent='📥 הורד';
   }
 }
+
+// ── Inline row DS buttons (🔍 Google / 📥 download from clipboard) ────────
+function plRowSearch(mfr, model){
+  const q=encodeURIComponent(mfr+' '+model);
+  window.open('https://www.google.com/search?q='+q,'_blank','noopener');
+}
+async function plRowDownload(mfr, model){
+  const key=_plKey(mfr,model);
+  let url='';
+  try{
+    url=(await navigator.clipboard.readText()).trim();
+  }catch(e){
+    _plToast('לא ניתן לקרוא קליפבורד — הדבק URL בעריכה','warn');
+    openPlEdit(mfr,model); return;
+  }
+  if(!url||!/^https?:\/\//i.test(url)){
+    _plToast('אין URL בקליפבורד — העתק קישור PDF תחילה','warn');
+    return;
+  }
+  _plToast('מוריד...','info');
+  try{
+    const r=await fetch('/api/ds-finder/download',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({url,manufacturer:mfr,model})
+    });
+    const d=await r.json();
+    if(d.ok&&d.filename){
+      const dsUrl='/ds/'+encodeURIComponent(mfr)+'/'+d.filename;
+      const ov=JSON.parse(localStorage.getItem('afkon_pl_overrides')||'{}');
+      ov[key]=Object.assign({},ov[key]||{},{ds:dsUrl});
+      localStorage.setItem('afkon_pl_overrides',JSON.stringify(ov));
+      loadPlOverrides(); renderPl();
+      _plToast('✓ '+model+' — Datasheet נשמר','ok');
+    }else{
+      _plToast('שגיאה: '+(d.error||'הורדה נכשלה'),'err');
+    }
+  }catch(e){
+    _plToast('שגיאת רשת: '+e.message,'err');
+  }
+}
+function _plToast(msg,type){
+  let el=document.getElementById('_pl-toast');
+  if(!el){
+    el=document.createElement('div');
+    el.id='_pl-toast';
+    el.style.cssText='position:fixed;bottom:24px;right:24px;z-index:9999;padding:10px 18px;border-radius:10px;font-size:.88rem;font-weight:600;box-shadow:0 4px 16px rgba(0,0,0,.18);transition:opacity .35s;pointer-events:none;direction:rtl;max-width:320px';
+    document.body.appendChild(el);
+  }
+  const styles={
+    ok:'background:#dcfce7;color:#166534;border:1.5px solid #bbf7d0',
+    err:'background:#fee2e2;color:#991b1b;border:1.5px solid #fecaca',
+    warn:'background:#fef3c7;color:#92400e;border:1.5px solid #fde68a',
+    info:'background:#e0f2fe;color:#0369a1;border:1.5px solid #bae6fd'
+  };
+  el.setAttribute('style',el.style.cssText+';'+styles[type||'info']);
+  el.textContent=msg; el.style.opacity='1';
+  clearTimeout(el._t);
+  el._t=setTimeout(()=>{el.style.opacity='0';},3200);
+}
+
 function pleDsTab(mode){
   _pleDsMode=mode; _pleDsTabUpdate();
 }
@@ -8625,8 +8690,8 @@ function renderPriceList(){
         <td class="td-savings" id="pl-sav-${sid}">${savingsCell}</td>
         <td class="td-ds">${dsCell}</td>
         <td class="td-desc" title="${ep.desc}">${ep.desc}${ep.compat&&ep.compat.length?`<div style="font-size:.72rem;color:#9ca3af;margin-top:2px;line-height:1.3">תואם: ${ep.compat.join(' · ')}</div>`:''}</td>
-        <td style="text-align:center;padding:4px 2px;overflow:visible">
-          <button class="pl-edit-btn" data-mfr="${_rqEsc(p.mfr)}" data-model="${_rqEsc(p.model)}" onclick="openPlEdit(this.dataset.mfr,this.dataset.model)" title="ערוך פריט">✏️</button>
+        <td style="text-align:center;padding:4px 2px;overflow:visible;white-space:nowrap">
+          <button class="pl-edit-btn" data-mfr="${_rqEsc(p.mfr)}" data-model="${_rqEsc(p.model)}" onclick="openPlEdit(this.dataset.mfr,this.dataset.model)" title="ערוך פריט">✏️</button><button class="pl-row-ds-btn" onclick="plRowSearch('${_rqEsc(p.mfr)}','${_rqEsc(p.model)}')" title="חפש ב-Google">🔍</button><button class="pl-row-ds-btn" onclick="plRowDownload('${_rqEsc(p.mfr)}','${_rqEsc(p.model)}')" title="הורד Datasheet מקליפבורד">📥</button>
         </td>
       </tr>`;
     }).join('');
