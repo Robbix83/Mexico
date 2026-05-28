@@ -12,8 +12,6 @@ const { v4: uuidv4 } = require('uuid');
 
 const crypto  = require('crypto');
 const nodemailer = require('nodemailer');
-const { totp: _totp } = require('otplib');
-const QRCode = require('qrcode');
 
 const db        = require('./db');
 const docpack   = require('./docpack');
@@ -154,8 +152,7 @@ function getClientIp(req) {
 function requireAuth(req, res, next) {
   const token = req.cookies?.token;
   const payload = verifyToken(token);
-  // Reject pending/intermediate TOTP tokens — they cannot access protected APIs
-  if (!payload || payload.step) {
+  if (!payload) {
     if (req.path.startsWith('/api/')) return res.status(401).json({ error: 'Unauthorized' });
     return res.redirect('/login');
   }
@@ -167,104 +164,6 @@ function requireAuth(req, res, next) {
   }
   req.user = { id: user.id, username: user.username, role: user.role };
   next();
-}
-
-// Middleware for TOTP intermediate steps (pendingToken in request body)
-function requirePendingToken(expectedStep) {
-  return (req, res, next) => {
-    const tok = req.body?.pendingToken;
-    const p = tok ? verifyToken(tok) : null;
-    if (!p || p.step !== expectedStep) {
-      return res.status(401).json({ error: 'Invalid or expired session. Please log in again.' });
-    }
-    req.pendingUserId = p.id;
-    next();
-  };
-}
-
-// TOTP helpers
-// Generate a TOTP-compatible base32 secret using Node crypto directly.
-// Avoids otplib's generateSecret() which can fail if its internal options
-// state is corrupted by the options-spread pattern used in _verifyTotpCode.
-function _generateSecret() {
-  const bytes = crypto.randomBytes(20);
-  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567';
-  let result = '', bits = 0, value = 0;
-  for (const byte of bytes) {
-    value = (value << 8) | byte;
-    bits += 8;
-    while (bits >= 5) { result += chars[(value >>> (bits - 5)) & 31]; bits -= 5; }
-  }
-  if (bits > 0) result += chars[(value << (5 - bits)) & 31];
-  return result;
-}
-// Pure Node.js TOTP verification (RFC 6238 / HOTP RFC 4226).
-// Does NOT use otplib at all, so there is no risk of options-state corruption.
-function _base32Decode(str) {
-  const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567';
-  let bits = 0, value = 0;
-  const output = [];
-  for (const char of str.toUpperCase().replace(/=+$/, '').replace(/\s/g, '')) {
-    const idx = alphabet.indexOf(char);
-    if (idx < 0) continue;
-    value = (value << 5) | idx;
-    bits += 5;
-    if (bits >= 8) { output.push((value >>> (bits - 8)) & 0xff); bits -= 8; }
-  }
-  return Buffer.from(output);
-}
-function _hotpCode(secretBuf, counter) {
-  const msg = Buffer.allocUnsafe(8);
-  msg.writeUInt32BE(0, 0);
-  msg.writeUInt32BE(counter >>> 0, 4);
-  const hmac = crypto.createHmac('sha1', secretBuf).update(msg).digest();
-  const offset = hmac[hmac.length - 1] & 0x0f;
-  const code = (
-    ((hmac[offset]     & 0x7f) << 24) |
-    ((hmac[offset + 1] & 0xff) << 16) |
-    ((hmac[offset + 2] & 0xff) <<  8) |
-     (hmac[offset + 3] & 0xff)
-  ) % 1000000;
-  return String(code).padStart(6, '0');
-}
-function _verifyTotpCode(secret, code) {
-  try {
-    const clean = String(code || '').replace(/\s/g, '');
-    if (!/^\d{6}$/.test(clean)) return false;
-    const key = _base32Decode(secret);
-    const counter = Math.floor(Date.now() / 1000 / 30);
-    // Allow ±1 window (±30 s) to account for clock skew
-    for (let delta = -1; delta <= 1; delta++) {
-      if (_hotpCode(key, counter + delta) === clean) return true;
-    }
-    return false;
-  } catch (e) {
-    console.error('[verifyTotpCode]', e.message);
-    return false;
-  }
-}
-function _generateBackupCodes() {
-  return Array.from({ length: 8 }, () => {
-    const raw = crypto.randomBytes(4).toString('hex').toUpperCase();
-    return raw.slice(0, 4) + '-' + raw.slice(4);
-  });
-}
-function _verifyTotpOrBackup(user, rawCode) {
-  const code = String(rawCode || '').replace(/\s/g, '').toUpperCase();
-  // 6-digit TOTP
-  if (/^\d{6}$/.test(code)) return _verifyTotpCode(user.totp_secret, code);
-  // Backup code (XXXX-XXXX)
-  if (!user.totp_backup_codes) return false;
-  let stored;
-  try { stored = JSON.parse(user.totp_backup_codes); } catch { return false; }
-  for (let i = 0; i < stored.length; i++) {
-    if (bcrypt.compareSync(code, stored[i])) {
-      stored.splice(i, 1);
-      db.updateUserBackupCodes(user.id, JSON.stringify(stored));
-      return true;
-    }
-  }
-  return false;
 }
 
 function requireAdmin(req, res, next) {
@@ -318,7 +217,7 @@ const requestLimiter = rateLimit({
 app.get('/login', (req, res) => {
   const token = req.cookies?.token;
   if (verifyToken(token)) return res.redirect('/dashboard');
-  res.sendFile(path.join(STATIC_DIR, 'login.html'));
+  res.redirect('/');   // Login is now a modal on the landing page
 });
 
 app.post('/api/auth/login', loginLimiter, (req, res) => {
@@ -364,16 +263,14 @@ app.post('/api/auth/login', loginLimiter, (req, res) => {
   db.updateLastLogin(user.id);
   db.logAudit(user.id, user.username, 'login', null, ip, ua);
 
-  // ── 2FA gate ──────────────────────────────────────────────────────────────
-  // Issue a short-lived pending token instead of a full session token.
-  // The full JWT cookie is only set after TOTP is verified.
-  if (user.totp_enabled) {
-    const pendingToken = jwt.sign({ id: user.id, step: 'totp_verify' }, JWT_SECRET, { expiresIn: '5m' });
-    return res.json({ ok: true, requires2fa: true, pendingToken });
-  }
-  // No 2FA set up yet — force enrollment before granting access
-  const pendingToken = jwt.sign({ id: user.id, step: 'totp_setup' }, JWT_SECRET, { expiresIn: '30m' });
-  return res.json({ ok: true, needsTotpSetup: true, pendingToken, must_change_password: !!user.must_change_password });
+  const token = signToken(user);
+  res.cookie('token', token, {
+    httpOnly: true,
+    secure:   process.env.NODE_ENV === 'production',
+    sameSite: 'strict',
+    maxAge:   8 * 60 * 60 * 1000,   // 8 hours
+  });
+  res.json({ ok: true, role: user.role, must_change_password: !!user.must_change_password });
 });
 
 app.post('/api/auth/logout', requireAuth, (req, res) => {
@@ -384,155 +281,6 @@ app.post('/api/auth/logout', requireAuth, (req, res) => {
   res.json({ ok: true });
 });
 
-// ── TOTP 2FA routes ───────────────────────────────────────────────────────────
-
-// Rate limiter for TOTP verification (prevent brute force on the 6-digit code)
-const totpLimiter = rateLimit({
-  windowMs: 2 * 60 * 1000,  // 2 minutes
-  max: 8,
-  message: { error: 'יותר מדי ניסיונות — נסה שנית בעוד 2 דקות' },
-  standardHeaders: true, legacyHeaders: false,
-});
-
-// Change password during TOTP setup flow (before full JWT is issued)
-// Used when must_change_password=1 AND totp not yet configured
-app.post('/api/auth/totp/change-password', (req, res) => {
-  const { pendingToken, currentPassword, newPassword } = req.body || {};
-  if (!pendingToken || !currentPassword || !newPassword)
-    return res.status(400).json({ error: 'Missing fields' });
-  const pending = verifyToken(pendingToken);
-  if (!pending || pending.step !== 'totp_setup')
-    return res.status(401).json({ error: 'Invalid or expired session. Please log in again.' });
-  const user = db.getUserById(pending.id);
-  if (!user || !user.active) return res.status(401).json({ error: 'Unauthorized' });
-  if (!bcrypt.compareSync(currentPassword, user.password_hash))
-    return res.status(401).json({ error: 'הסיסמה הנוכחית שגויה' });
-  const pwErr = validatePassword(newPassword);
-  if (pwErr) return res.status(400).json({ error: pwErr });
-  if (currentPassword === newPassword)
-    return res.status(400).json({ error: 'הסיסמה החדשה זהה לישנה' });
-  db.setPassword(user.id, newPassword);
-  db.setMustChangePassword(user.id, 0);
-  db.logAudit(user.id, user.username, 'change_password', 'Password changed during TOTP setup', null, '');
-  // Issue fresh pending token (extends window after password change)
-  const newPendingToken = jwt.sign({ id: user.id, step: 'totp_setup' }, JWT_SECRET, { expiresIn: '30m' });
-  res.json({ ok: true, pendingToken: newPendingToken });
-});
-
-// Step 1b: Return TOTP secret + otpauth URL (QR is generated client-side)
-// Accepts EITHER a pending setup token (body.pendingToken) OR a logged-in session (cookie)
-app.post('/api/auth/totp/setup', (req, res) => {
-  try {
-    let userId;
-    const tok = req.body?.pendingToken;
-    const pending = tok ? verifyToken(tok) : null;
-    if (pending && pending.step === 'totp_setup') {
-      userId = pending.id;
-    } else {
-      const cookiePayload = verifyToken(req.cookies?.token);
-      if (!cookiePayload || cookiePayload.step) return res.status(401).json({ error: 'Unauthorized' });
-      userId = cookiePayload.id;
-    }
-    const user = db.getUserById(userId);
-    if (!user || !user.active) return res.status(401).json({ error: 'Unauthorized' });
-
-    // Reuse an existing pending secret so the user's already-scanned QR stays valid.
-    // Only generate a new one if none is stored yet.
-    const secret = user.totp_secret || _generateSecret();
-    if (!user.totp_secret) db.setUserTotpSecret(userId, secret);
-
-    const label = encodeURIComponent(`Afcon (${user.username})`);
-    const issuer = encodeURIComponent('Afcon');
-    const otpauthUrl = `otpauth://totp/${label}?secret=${secret}&issuer=${issuer}&algorithm=SHA1&digits=6&period=30`;
-
-    // QR code is generated client-side (browser canvas via qrcodejs CDN)
-    // Server only returns the raw values — no QR library needed here
-    res.json({ ok: true, secret, otpauthUrl });
-  } catch (e) {
-    console.error('[totp/setup] error:', e.message, e.stack);
-    if (!res.headersSent) res.status(500).json({ error: 'שגיאת שרת: ' + e.message });
-  }
-});
-
-// Step 1c: Activate TOTP — verify code, store backup codes, issue full JWT
-app.post('/api/auth/totp/activate', totpLimiter, (req, res) => {
-  const { code, pendingToken } = req.body || {};
-  let userId;
-  const pending = pendingToken ? verifyToken(pendingToken) : null;
-  if (pending && pending.step === 'totp_setup') {
-    userId = pending.id;
-  } else {
-    const cookiePayload = verifyToken(req.cookies?.token);
-    if (!cookiePayload || cookiePayload.step) return res.status(401).json({ error: 'Unauthorized' });
-    userId = cookiePayload.id;
-  }
-  const user = db.getUserById(userId);
-  if (!user || !user.active || !user.totp_secret) return res.status(401).json({ error: 'Unauthorized' });
-
-  if (!_verifyTotpCode(user.totp_secret, code)) {
-    return res.status(400).json({ error: 'קוד שגוי — בדוק שהשעה מסונכרנת ונסה שנית' });
-  }
-
-  // Generate and hash backup codes
-  const rawCodes = _generateBackupCodes();
-  const hashedCodes = rawCodes.map(c => bcrypt.hashSync(c, 10));
-  db.enableUserTotp(userId, JSON.stringify(hashedCodes));
-  db.logAudit(userId, user.username, 'totp_enabled', 'TOTP 2FA activated', null, '');
-
-  // Issue full JWT cookie now that 2FA is confirmed
-  const token = signToken(user);
-  res.cookie('token', token, {
-    httpOnly: true,
-    secure:   process.env.NODE_ENV === 'production',
-    sameSite: 'strict',
-    maxAge:   8 * 60 * 60 * 1000,
-  });
-  res.json({ ok: true, backupCodes: rawCodes, role: user.role, must_change_password: !!user.must_change_password });
-});
-
-// Step 2: Verify TOTP code after password login (totp_enabled=1 path)
-app.post('/api/auth/totp/verify', totpLimiter, (req, res) => {
-  const { pendingToken, code } = req.body || {};
-  if (!pendingToken || !code) return res.status(400).json({ error: 'Missing fields' });
-
-  const pending = verifyToken(pendingToken);
-  if (!pending || pending.step !== 'totp_verify') {
-    return res.status(401).json({ error: 'Invalid or expired session. Please log in again.' });
-  }
-
-  const user = db.getUserById(pending.id);
-  if (!user || !user.active) return res.status(401).json({ error: 'Unauthorized' });
-  if (!user.totp_enabled || !user.totp_secret) return res.status(400).json({ error: '2FA not configured' });
-
-  if (!_verifyTotpOrBackup(user, code)) {
-    db.logAudit(user.id, user.username, 'totp_fail', 'Wrong TOTP code', null, '');
-    return res.status(401).json({ error: 'קוד שגוי — בדוק את האפליקציה ונסה שנית' });
-  }
-
-  db.logAudit(user.id, user.username, 'login_totp', 'TOTP verified', null, '');
-  const token = signToken(user);
-  res.cookie('token', token, {
-    httpOnly: true,
-    secure:   process.env.NODE_ENV === 'production',
-    sameSite: 'strict',
-    maxAge:   8 * 60 * 60 * 1000,
-  });
-  res.json({ ok: true, role: user.role, must_change_password: !!user.must_change_password });
-});
-
-// Admin: reset 2FA for any user
-app.post('/api/admin/users/:id/reset-2fa', requireAdmin, (req, res) => {
-  const id = parseInt(req.params.id);
-  const target = db.getUserById(id);
-  if (!target) return res.status(404).json({ error: 'User not found' });
-  db.disableUserTotp(id);
-  db.logAudit(req.user.id, req.user.username, 'totp_reset',
-    `Reset 2FA for user: ${target.username}`, getClientIp(req), '');
-  res.json({ ok: true });
-});
-
-// ── General auth routes ────────────────────────────────────────────────────────
-
 app.get('/api/auth/me', requireAuth, (req, res) => {
   const user = db.getUserById(req.user.id);
   if (!user) return res.status(404).json({ error: 'User not found' });
@@ -541,7 +289,7 @@ app.get('/api/auth/me', requireAuth, (req, res) => {
   if (user.role !== 'admin') {
     sections = user.sections ? JSON.parse(user.sections) : [];
   }
-  res.json({ id: user.id, username: user.username, role: user.role, sections, totp_enabled: !!user.totp_enabled });
+  res.json({ id: user.id, username: user.username, role: user.role, sections });
 });
 
 app.post('/api/auth/change-password', requireAuth, (req, res) => {
@@ -561,6 +309,26 @@ app.post('/api/auth/change-password', requireAuth, (req, res) => {
   res.json({ ok: true });
 });
 
+// ── Weather proxy — Tel Aviv via Open-Meteo, cached 10 min ───────────────────
+let _wxCache = null, _wxCacheAt = 0;
+app.get('/api/weather', requireAuth, (req, res) => {
+  const now = Date.now();
+  if (_wxCache && now - _wxCacheAt < 10 * 60 * 1000) return res.json(_wxCache);
+  const https = require('https');
+  const url = 'https://api.open-meteo.com/v1/forecast?latitude=32.0853&longitude=34.7818&current_weather=true&timezone=Asia%2FJerusalem';
+  https.get(url, resp => {
+    let raw = '';
+    resp.on('data', c => raw += c);
+    resp.on('end', () => {
+      try {
+        const d = JSON.parse(raw);
+        _wxCache = d; _wxCacheAt = now;
+        res.json(d);
+      } catch { res.status(500).json({ error: 'parse' }); }
+    });
+  }).on('error', e => res.status(502).json({ error: e.message }));
+});
+
 // ── Audit event from client ───────────────────────────────────────────────────
 
 app.post('/api/audit/event', requireAuth, (req, res) => {
@@ -576,7 +344,7 @@ app.post('/api/audit/event', requireAuth, (req, res) => {
 // ── User management (admin only) ──────────────────────────────────────────────
 
 app.get('/api/users', requireAdmin, (req, res) => {
-  res.json(db.listUsersWithTotp());
+  res.json(db.listUsers());
 });
 
 app.post('/api/users', requireAdmin, (req, res) => {
@@ -1329,17 +1097,8 @@ app.get('/api/admin/ds-finder/status', requireAdmin, (_req, res) => {
 
 // List queue items (most recent first, optional ?status= filter)
 app.get('/api/admin/ds-finder/list', requireAdmin, (req, res) => {
-  // By default exclude 'found' items — they don't need attention.
-  // Pass ?status=found or ?status=all to include them.
-  const status = req.query.status;
-  let items;
-  if (status === 'all') {
-    items = db.listDsQueue(null, 2000);
-  } else if (status) {
-    items = db.listDsQueue(status, 500);
-  } else {
-    items = db.listDsQueueActive(500); // default: pending + error + not_found only
-  }
+  const status = req.query.status || null;
+  const items  = db.listDsQueue(status, 200);
   res.json({ items });
 });
 
@@ -1356,63 +1115,6 @@ app.post('/api/admin/ds-finder/run', requireAdmin, (req, res) => {
   db.logAudit(req.user.id, req.user.username, 'ds_finder_run',
     'Manual ds-finder triggered', getClientIp(req), '');
   res.json({ ok: true });
-});
-
-// Pause the background worker (intervals keep running, processQueue no-ops)
-app.post('/api/admin/ds-finder/pause', requireAdmin, (req, res) => {
-  dsFinder.pauseWorker();
-  db.logAudit(req.user.id, req.user.username, 'ds_finder_pause', 'Worker paused', getClientIp(req), '');
-  res.json({ ok: true, paused: true });
-});
-
-// Resume the background worker
-app.post('/api/admin/ds-finder/resume', requireAdmin, (req, res) => {
-  dsFinder.resumeWorker();
-  db.logAudit(req.user.id, req.user.username, 'ds_finder_resume', 'Worker resumed', getClientIp(req), '');
-  res.json({ ok: true, paused: false });
-});
-
-// Manual URL download: admin provides model + manufacturer + PDF URL, download happens immediately
-app.post('/api/admin/ds-finder/manual', requireAdmin, async (req, res) => {
-  const { model, manufacturer, url } = req.body || {};
-  if (!model || !manufacturer || !url) {
-    return res.status(400).json({ error: 'model, manufacturer and url are required' });
-  }
-  try {
-    const result = await dsFinder.downloadFromUrl(model.trim(), manufacturer.trim(), url.trim());
-    if (result.success) {
-      const filename = path.basename(result.path);
-      db.logAudit(req.user.id, req.user.username, 'ds_finder_manual',
-        `${manufacturer}/${model} → ${filename}`, getClientIp(req), url);
-      res.json({ ok: true, path: result.path, filename, foundViaSearch: result.foundViaSearch || false });
-    } else {
-      res.status(422).json({ ok: false, error: result.error });
-    }
-  } catch (e) {
-    res.status(500).json({ ok: false, error: e.message });
-  }
-});
-
-// Per-manufacturer settings: list with per-manufacturer stats
-app.get('/api/admin/ds-finder/manufacturers', requireAdmin, (_req, res) => {
-  res.json({ manufacturers: db.listDsFinderManufacturers() });
-});
-
-// Per-manufacturer settings: toggle enabled/disabled
-app.put('/api/admin/ds-finder/manufacturers/:mfr', requireAdmin, (req, res) => {
-  const mfr     = req.params.mfr;
-  const enabled = req.body.enabled !== false && req.body.enabled !== 0;
-  db.setDsFinderSetting(mfr, enabled);
-  db.logAudit(req.user.id, req.user.username, 'ds_finder_setting',
-    `${mfr}: ${enabled ? 'enabled' : 'disabled'}`, getClientIp(req), '');
-  res.json({ ok: true, manufacturer: mfr, enabled });
-});
-
-// Reset backoff: set next_retry_at=now for all error items so they get processed on next run
-app.post('/api/admin/ds-finder/reset-errors', requireAdmin, (req, res) => {
-  const info = db.resetDsQueueErrors();
-  db.logAudit(req.user.id, req.user.username, 'ds_finder_reset', `Reset ${info.changes} error items`, getClientIp(req), '');
-  res.json({ ok: true, count: info.changes });
 });
 
 // Catalog sync: browser sends catalog items missing datasheets
@@ -1814,7 +1516,27 @@ app.get('/logo.png', (req, res) => {
   res.sendFile(path.join(STATIC_DIR, 'logo.png'));
 });
 
-// Static assets — auth required
+// Public: design preview — no sensitive data, just CSS mockups for stakeholder review
+app.get('/design-preview.html', (req, res) => {
+  res.sendFile(path.join(STATIC_DIR, 'design-preview.html'));
+});
+app.get('/design-preview-2.html', (req, res) => {
+  res.sendFile(path.join(STATIC_DIR, 'design-preview-2.html'));
+});
+app.get('/design-preview-3.html', (req, res) => {
+  res.sendFile(path.join(STATIC_DIR, 'design-preview-3.html'));
+});
+app.get('/design-preview-4.html', (req, res) => {
+  res.sendFile(path.join(STATIC_DIR, 'design-preview-4.html'));
+});
+app.get('/design-preview-5.html', (req, res) => {
+  res.sendFile(path.join(STATIC_DIR, 'design-preview-5.html'));
+});
+app.get('/design-preview-6.html', (req, res) => {
+  res.sendFile(path.join(STATIC_DIR, 'design-preview-6.html'));
+});
+
+// Static assets (logo, etc.) — auth required
 app.use(requireAuth, express.static(STATIC_DIR, {
   index: false,
   dotfiles: 'deny',
