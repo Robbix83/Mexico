@@ -956,6 +956,8 @@ tr:hover .pl-edit-btn{opacity:.65}
 .rq-hist-table th{background:#f1f5f9;font-size:.74rem;color:#475569;font-weight:600}
 .rq-hist-row{cursor:pointer}
 .rq-hist-row:hover td{background:#eff6ff}
+.rq-hist-row--active td{background:#eff6ff;border-top:1px solid #bfdbfe;border-bottom:1px solid #bfdbfe}
+.rq-hist-row--active td:first-child{border-right:3px solid #1d4ed8}
 .rq-empty{text-align:center;padding:20px;color:#94a3b8;font-size:.85rem}
 /* sticky summary bar */
 .rq-sticky-bar{position:fixed;bottom:0;left:0;right:0;z-index:8100;
@@ -976,8 +978,9 @@ tr:hover .pl-edit-btn{opacity:.65}
 .rq-table thead th{position:sticky;top:0;z-index:2;background:#f1f5f9}
 /* history inline status dropdown */
 .rq-hist-status-sel{border:none;outline:none;font-size:.72rem;font-weight:700;
-  border-radius:12px;padding:2px 10px 2px 6px;cursor:pointer;
-  -webkit-appearance:none;appearance:none;font-family:inherit}
+  border-radius:12px;padding:2px 10px;cursor:pointer;
+  -webkit-appearance:none;appearance:none;font-family:inherit;
+  text-align:center;text-align-last:center;display:block;margin:0 auto}
 .rq-hist-status-sel.draft{background:#f1f5f9;color:#475569}
 .rq-hist-status-sel.pending{background:#fef3c7;color:#92400e}
 .rq-hist-status-sel.approved{background:#d1fae5;color:#065f46}
@@ -7563,9 +7566,9 @@ function rqUpdateMeta(){
   if(!el) return;
   if(rqDraft.id && rqDraft.req_number){
     const stLbl=_RQ_STATUS_LBL&&_RQ_STATUS_LBL[rqDraft.status||'draft']||'טיוטה';
-    el.textContent=`נטען: ${rqDraft.req_number} · ${stLbl}`;
+    el.innerHTML=`<span style="background:#dbeafe;color:#1e40af;border-radius:999px;padding:2px 10px;font-size:.75rem;font-weight:700;display:inline-block;margin-right:4px">📋 ${_rqEsc(rqDraft.req_number)}</span><span style="color:#64748b;font-size:.78rem">${stLbl}</span>`;
   } else {
-    el.textContent='דרישה חדשה — לא נשמרה';
+    el.innerHTML='<span style="color:#94a3b8;font-size:.78rem">דרישה חדשה — לא נשמרה</span>';
   }
 }
 
@@ -7821,11 +7824,12 @@ function rqRenderHistory(){
       const d=h.created_at?new Date(h.created_at).toLocaleDateString('he-IL'):'';
       const st=h.status||'draft';
       const stCls=_RQ_STATUS_CLS[st]||'draft';
+      const isActive=String(h.id)===String(rqDraft.id);
       const stOpts=['draft','pending','approved','done']
         .map(s=>`<option value="${s}"${s===st?' selected':''}>${_RQ_STATUS_LBL[s]||s}</option>`)
         .join('');
-      return `<tr class="rq-hist-row" onclick="rqLoadInto('${h.id}')">
-        <td><b>${_rqEsc(h.req_number)}</b></td>
+      return `<tr class="rq-hist-row${isActive?' rq-hist-row--active':''}" onclick="rqLoadInto('${h.id}')">
+        <td><b>${_rqEsc(h.req_number)}</b>${isActive?'<span style="margin-right:6px;font-size:.65rem;color:#1d4ed8;font-weight:700">● מוצג</span>':''}</td>
         <td>${_rqEsc(h.supplier||'—')}</td>
         <td>${_rqEsc(h.requester||'—')}</td>
         <td style="text-align:center" onclick="event.stopPropagation()">
@@ -7836,8 +7840,10 @@ function rqRenderHistory(){
         </td>
         <td style="text-align:center">${h.item_count||0}</td>
         <td>${d}</td>
-        <td><button class="rq-btn rq-btn-danger" style="font-size:.7rem;padding:3px 8px"
-          onclick="event.stopPropagation();rqDelete('${h.id}')">מחק</button></td>
+        <td onclick="event.stopPropagation()" style="white-space:nowrap">
+          <button class="rq-btn rq-btn-danger" style="font-size:.7rem;padding:3px 8px"
+            onclick="rqDelete('${h.id}')">מחק</button>
+        </td>
       </tr>`;
     }).join('')}
     </tbody></table>`;
@@ -7876,11 +7882,8 @@ async function rqLoadInto(id){
     requestAnimationFrame(()=>{
       document.querySelector('#requisition-view .rq-card')?.scrollIntoView({behavior:'smooth',block:'start'});
     });
-    // Brief toast confirmation
-    const _t=document.createElement('div');
-    _t.style.cssText='position:fixed;top:68px;left:50%;transform:translateX(-50%);background:#1a2a4a;color:#fff;padding:8px 20px;border-radius:16px;font-size:.84rem;font-weight:700;z-index:9999;box-shadow:0 4px 18px rgba(0,0,0,.22);direction:rtl;pointer-events:none';
-    _t.textContent='נטענה דרישה '+(_rqEsc(j.req_number||''))+' ✓';
-    document.body.appendChild(_t); setTimeout(()=>_t.remove(),2200);
+    // Re-render history table to reflect the new active row highlight
+    rqRenderHistory();
   }catch(e){ alert('שגיאה בטעינה'); }
 }
 
