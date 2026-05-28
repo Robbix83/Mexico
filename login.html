@@ -7,6 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;700;800;900&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js" crossorigin="anonymous"></script>
 <style>
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -298,9 +299,10 @@ input:focus {
   font-size: .82rem;
   overflow: hidden;
 }
-#qr-svg-holder svg {
-  width: 200px; height: 200px;
+#qr-svg-holder img,
+#qr-svg-holder canvas {
   display: block;
+  border-radius: 6px;
 }
 /* Always-visible manual secret */
 .secret-always {
@@ -739,7 +741,7 @@ async function loadTotpSetup() {
   qrHolder.style.display   = 'none';
   qrHolder.innerHTML       = '';
   loadingTxt.style.display = '';
-  loadingTxt.textContent   = '⏳ טוען QR...';
+  loadingTxt.textContent   = '⏳ טוען...';
   retryWrap.style.display  = 'none';
   manual.textContent       = '⏳ טוען...';
   errEl.classList.remove('show');
@@ -753,7 +755,7 @@ async function loadTotpSetup() {
 
   try {
     const ctrl = new AbortController();
-    const tid  = setTimeout(() => ctrl.abort(), 20000);
+    const tid  = setTimeout(() => ctrl.abort(), 15000);
     let res;
     try {
       res = await fetch('/api/auth/totp/setup', {
@@ -768,21 +770,34 @@ async function loadTotpSetup() {
 
     let data;
     try { data = await res.json(); }
-    catch { _showErr('שגיאה בפענוח תגובת השרת (HTTP ' + res.status + ')'); return; }
+    catch { _showErr('שגיאה בפענוח התגובה (HTTP ' + res.status + ')'); return; }
 
-    // Always populate the manual secret first
-    manual.textContent = data.secret || '(לא התקבל — נסה שנית)';
+    // Always show the manual secret immediately
+    manual.textContent = data.secret || '(שגיאה — נסה שנית)';
 
     if (!res.ok) {
-      _showErr(data.error || 'שגיאה ' + res.status + ' מהשרת');
+      _showErr(data.error || 'שגיאה ' + res.status);
       return;
     }
 
-    if (data.qrSvg) {
-      // Inject the SVG string directly — no img/data-URL browser quirks
-      qrHolder.innerHTML       = data.qrSvg;
-      loadingTxt.style.display = 'none';
-      qrHolder.style.display   = 'block';
+    // Generate QR code in the browser using qrcodejs (no server-side library needed)
+    if (data.otpauthUrl && typeof QRCode !== 'undefined') {
+      try {
+        loadingTxt.style.display = 'none';
+        qrHolder.style.display   = 'block';
+        // eslint-disable-next-line no-new
+        new QRCode(qrHolder, {
+          text:         data.otpauthUrl,
+          width:        200,
+          height:       200,
+          colorDark:    '#000000',
+          colorLight:   '#ffffff',
+          correctLevel: QRCode.CorrectLevel.M
+        });
+      } catch (qrErr) {
+        loadingTxt.style.display = '';
+        loadingTxt.textContent   = '⚠ השתמש בקוד הידני למטה';
+      }
     } else {
       loadingTxt.textContent = '⚠ השתמש בקוד הידני למטה';
     }

@@ -369,39 +369,36 @@ app.post('/api/auth/totp/change-password', (req, res) => {
   res.json({ ok: true, pendingToken: newPendingToken });
 });
 
-// Step 1b: Generate TOTP secret + QR code (called during setup flow)
+// Step 1b: Return TOTP secret + otpauth URL (QR is generated client-side)
 // Accepts EITHER a pending setup token (body.pendingToken) OR a logged-in session (cookie)
-app.post('/api/auth/totp/setup', async (req, res) => {
-  let userId;
-  // Try pending token first
-  const tok = req.body?.pendingToken;
-  const pending = tok ? verifyToken(tok) : null;
-  if (pending && pending.step === 'totp_setup') {
-    userId = pending.id;
-  } else {
-    // Fall back to full session (user re-triggering setup from dashboard)
-    const cookiePayload = verifyToken(req.cookies?.token);
-    if (!cookiePayload || cookiePayload.step) return res.status(401).json({ error: 'Unauthorized' });
-    userId = cookiePayload.id;
-  }
-  const user = db.getUserById(userId);
-  if (!user || !user.active) return res.status(401).json({ error: 'Unauthorized' });
-
-  const secret = _generateSecret();
-  db.setUserTotpSecret(userId, secret);
-
-  const label = encodeURIComponent(`Afkon (${user.username})`);
-  const issuer = encodeURIComponent('Afkon');
-  const otpauthUrl = `otpauth://totp/${label}?secret=${secret}&issuer=${issuer}&algorithm=SHA1&digits=6&period=30`;
+app.post('/api/auth/totp/setup', (req, res) => {
   try {
-    // SVG output — pure JS, no native canvas module required (safe for Render)
-    // Returned as a raw SVG string so the client can inject it directly into the DOM
-    // (avoids data-URL + <img> browser-security edge-cases with SVG)
-    const qrSvg = await QRCode.toString(otpauthUrl, { type: 'svg', errorCorrectionLevel: 'M', width: 240 });
-    res.json({ ok: true, secret, qrSvg, otpauthUrl });
+    let userId;
+    const tok = req.body?.pendingToken;
+    const pending = tok ? verifyToken(tok) : null;
+    if (pending && pending.step === 'totp_setup') {
+      userId = pending.id;
+    } else {
+      const cookiePayload = verifyToken(req.cookies?.token);
+      if (!cookiePayload || cookiePayload.step) return res.status(401).json({ error: 'Unauthorized' });
+      userId = cookiePayload.id;
+    }
+    const user = db.getUserById(userId);
+    if (!user || !user.active) return res.status(401).json({ error: 'Unauthorized' });
+
+    const secret = _generateSecret();
+    db.setUserTotpSecret(userId, secret);
+
+    const label = encodeURIComponent(`Afkon (${user.username})`);
+    const issuer = encodeURIComponent('Afkon');
+    const otpauthUrl = `otpauth://totp/${label}?secret=${secret}&issuer=${issuer}&algorithm=SHA1&digits=6&period=30`;
+
+    // QR code is generated client-side (browser canvas via qrcodejs CDN)
+    // Server only returns the raw values — no QR library needed here
+    res.json({ ok: true, secret, otpauthUrl });
   } catch (e) {
-    console.error('[totp/setup] QR generation failed:', e.message);
-    res.json({ ok: true, secret, qrSvg: null, otpauthUrl });
+    console.error('[totp/setup] error:', e.message, e.stack);
+    if (!res.headersSent) res.status(500).json({ error: 'שגיאת שרת — נסה שנית' });
   }
 });
 
