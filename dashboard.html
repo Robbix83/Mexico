@@ -5454,7 +5454,7 @@ function pleGoogleSearch(){
   const model=(parts[1]||'').replace(/"/g,'');
   const term=(mfr+' '+model).trim();
   const q=encodeURIComponent(term);
-  window.open('https://www.google.com/search?q='+q+'&as_filetype=pdf','_blank','noopener');
+  window.open('https://www.google.com/search?q='+q,'_blank','noopener');
 }
 async function pleDlAndSave(){
   const url=document.getElementById('ple-ds-url').value.trim();
