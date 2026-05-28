@@ -396,8 +396,14 @@ const stmts = {
   `),
   getRequisition: db.prepare('SELECT * FROM requisitions WHERE id = ?'),
   updateRequisitionStatus: db.prepare(`UPDATE requisitions SET status=?, updated_at=datetime('now') WHERE id=?`),
-  maxReqNumberForYear: db.prepare(
-    "SELECT MAX(req_number) AS m FROM requisitions WHERE req_number LIKE ?"
+  maxReqNumberGlobal: db.prepare(
+    // Handles both old format (REQ-YYYY-NNNN) and new plain format (NNNN)
+    `SELECT MAX(CAST(
+       CASE WHEN req_number GLOB 'REQ-????-*'
+            THEN substr(req_number, 10)
+            ELSE req_number
+       END AS INTEGER)) AS m
+     FROM requisitions`
   ),
   insertRequisition: db.prepare(`INSERT INTO requisitions
     (id, req_number, supplier, requester, notes, items_json, show_prices, status, created_by)
@@ -546,16 +552,9 @@ module.exports = {
   listRequisitions: () => stmts.listRequisitions.all(),
   getRequisition:   (id) => stmts.getRequisition.get(id),
   nextReqNumber: () => {
-    const year = new Date().getFullYear();
-    const prefix = `REQ-${year}-`;
-    const row = stmts.maxReqNumberForYear.get(`${prefix}%`);
-    let seq = 1;
-    if (row && row.m) {
-      const tail = String(row.m).slice(prefix.length);
-      const n = parseInt(tail, 10);
-      if (!isNaN(n)) seq = n + 1;
-    }
-    return `${prefix}${String(seq).padStart(4, '0')}`;
+    const row = stmts.maxReqNumberGlobal.get();
+    const seq = (row?.m || 0) + 1;
+    return String(seq).padStart(4, '0');
   },
   createRequisition: ({ id, reqNumber, supplier, requester, notes, itemsJson, showPrices, status, createdBy }) =>
     stmts.insertRequisition.run(

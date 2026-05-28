@@ -1431,6 +1431,14 @@ tr:hover .pl-edit-btn{opacity:.65}
         </h3>
         <div id="rq-history-wrap"></div>
       </div>
+
+      <!-- Saved certificates -->
+      <div class="rq-card" id="rq-certs-card">
+        <h3>📋 תעודות שמורות
+          <button class="rq-btn rq-btn-ghost" style="float:left;font-size:.75rem;padding:4px 10px" onclick="rqRenderCerts()">🔄 רענן</button>
+        </h3>
+        <div id="rq-certs-wrap"></div>
+      </div>
     </div>
   </section>
 
@@ -2497,6 +2505,7 @@ function setView(v){
   else if(v==='pricelist') renderPriceList();
   else if(v==='requisition'){
     rqRender();
+    rqRenderCerts();
     Promise.all([ensureWarehouseLoaded(), rqLoadHistory()]).then(()=>rqRender());
   }
   else{
@@ -7859,6 +7868,15 @@ async function rqLoadInto(id){
     }
     rqSaveDraft();
     rqRender();
+    // Scroll back up to the header form so the user sees the loaded data
+    requestAnimationFrame(()=>{
+      document.querySelector('#requisition-view .rq-card')?.scrollIntoView({behavior:'smooth',block:'start'});
+    });
+    // Brief toast confirmation
+    const _t=document.createElement('div');
+    _t.style.cssText='position:fixed;top:68px;left:50%;transform:translateX(-50%);background:#1a2a4a;color:#fff;padding:8px 20px;border-radius:16px;font-size:.84rem;font-weight:700;z-index:9999;box-shadow:0 4px 18px rgba(0,0,0,.22);direction:rtl;pointer-events:none';
+    _t.textContent='נטענה דרישה '+(_rqEsc(j.req_number||''))+' ✓';
+    document.body.appendChild(_t); setTimeout(()=>_t.remove(),2200);
   }catch(e){ alert('שגיאה בטעינה'); }
 }
 
@@ -7909,15 +7927,16 @@ async function rqHistChangeStatus(id, newStatus){
   }
 }
 
+// ── Certificate management ────────────────────────────────────
+const _RQ_CERTS_KEY='afkon_rq_certs';
+
+function _rqLoadCerts(){ try{ return JSON.parse(localStorage.getItem(_RQ_CERTS_KEY)||'[]'); }catch{ return []; } }
+function _rqSaveCertsStore(arr){ try{ localStorage.setItem(_RQ_CERTS_KEY, JSON.stringify(arr)); }catch{} }
+
 function rqExportCertificate(){
   const items=rqBuildItems().filter(x=>x.qty>0);
-  if(!items.length){ alert('בחר לפחות פריט אחד עם כמות לפני ייצוא תעודה.'); return; }
-  const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-  const today=new Date().toLocaleDateString('he-IL');
-  const reqNumber=rqDraft.req_number||'—';
-  const statusLbl=_RQ_STATUS_LBL[rqDraft.status]||rqDraft.status||'טיוטה';
-  const showPrices=rqDraft.show_prices!==false;
-  // Build totals
+  if(!items.length){ alert('בחר לפחות פריט אחד עם כמות לפני שמירת תעודה.'); return; }
+  // Build totals snapshot
   const totals={};
   let totalIlsEquiv=0;
   for(const it of items){
@@ -7930,14 +7949,52 @@ function rqExportCertificate(){
       totalIlsEquiv+=ils;
     }
   }
+  const snap={
+    id: Date.now().toString(36)+Math.random().toString(36).slice(2,6),
+    req_number: rqDraft.req_number||'—',
+    saved_at: new Date().toISOString(),
+    supplier: rqDraft.supplier||'',
+    requester: rqDraft.requester||'',
+    notes: rqDraft.notes||'',
+    status: rqDraft.status||'draft',
+    show_prices: rqDraft.show_prices!==false,
+    items,
+    totals,
+    totalIlsEquiv,
+    usdRate: plUsdRate||3.7,
+    eurRate: plEurRate||4.0,
+  };
+  const certs=_rqLoadCerts();
+  certs.unshift(snap); // newest first
+  _rqSaveCertsStore(certs);
+  rqRenderCerts();
+  // Toast
+  const _t=document.createElement('div');
+  _t.style.cssText='position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:#065f46;color:#fff;padding:10px 24px;border-radius:20px;font-size:.88rem;font-weight:700;z-index:9999;box-shadow:0 4px 20px rgba(0,0,0,.22);direction:rtl';
+  _t.textContent='✅ תעודה נשמרה — ניתן לייצא בכל עת מרשימת התעודות';
+  document.body.appendChild(_t); setTimeout(()=>_t.remove(),3500);
+  // Scroll to certs card
+  setTimeout(()=>document.getElementById('rq-certs-card')?.scrollIntoView({behavior:'smooth',block:'start'}), 300);
+}
+
+function _rqBuildCertHtml(snap){
+  const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const savedDate=new Date(snap.saved_at).toLocaleDateString('he-IL');
+  const savedTime=new Date(snap.saved_at).toLocaleTimeString('he-IL',{hour:'2-digit',minute:'2-digit'});
+  const statusLbl=_RQ_STATUS_LBL[snap.status]||snap.status||'טיוטה';
+  const showPrices=snap.show_prices!==false;
+  const items=snap.items||[];
+  const totals=snap.totals||{};
+  const totalIlsEquiv=snap.totalIlsEquiv||0;
   const colHeads=showPrices
     ?'<th>מק"ט</th><th>מקור</th><th>תיאור</th><th>יח׳</th><th>כמות</th><th>מחיר יח׳</th><th>סה"כ</th>'
     :'<th>מק"ט</th><th>מקור</th><th>תיאור</th><th>יח׳</th><th>כמות</th>';
   const rowsHtml=items.map((it,i)=>{
     const srcLbl=it.source==='warehouse'?'מחסן':'מחירון';
-    const priceTxt=(!it.price)?'—':`${it.cur==='USD'?'$':it.cur==='EUR'?'€':'₪'}${(+it.price).toLocaleString('he-IL',{minimumFractionDigits:0,maximumFractionDigits:2})}`;
+    const sym=it.cur==='USD'?'$':it.cur==='EUR'?'€':'₪';
+    const priceTxt=(!it.price)?'—':`${sym}${(+it.price).toLocaleString('he-IL',{minimumFractionDigits:0,maximumFractionDigits:2})}`;
     const sub=it.qty*(+it.price||0);
-    const subTxt=(!it.price)?'—':`${it.cur==='USD'?'$':it.cur==='EUR'?'€':'₪'}${sub.toLocaleString('he-IL',{minimumFractionDigits:0,maximumFractionDigits:2})}`;
+    const subTxt=(!it.price)?'—':`${sym}${sub.toLocaleString('he-IL',{minimumFractionDigits:0,maximumFractionDigits:2})}`;
     const priceCells=showPrices?`<td>${esc(priceTxt)}</td><td><b>${esc(subTxt)}</b></td>`:'';
     const descTxt=it.source==='pricelist'&&it.mfr?`${esc(it.mfr)} · ${esc(it.desc||'')}`:esc(it.desc||'');
     const bg=i%2===0?'#fff':'#f8fafc';
@@ -7956,8 +8013,8 @@ function rqExportCertificate(){
     totalsHtml=`<table style="width:100%;margin-top:8px;font-size:10pt;border-collapse:collapse">${lines.join('')}</table>`;
   }
   const vatNote=showPrices?'<p style="font-size:8.5pt;color:#dc2626;margin:6px 0 0">⚠ כל המחירים לפני מע"מ</p>':'';
-  const certHtml=`<!DOCTYPE html><html dir="rtl" lang="he"><head><meta charset="UTF-8">
-<title>תעודת דרישת רכש — ${esc(reqNumber)}</title>
+  return `<!DOCTYPE html><html dir="rtl" lang="he"><head><meta charset="UTF-8">
+<title>תעודת דרישת רכש — ${esc(snap.req_number)}</title>
 <style>
   @page{size:A4;margin:18mm 15mm}
   *{box-sizing:border-box}
@@ -7970,7 +8027,7 @@ function rqExportCertificate(){
   .cert-meta{font-size:9.5pt;color:#374151;line-height:1.7;min-width:140px;text-align:right}
   .cert-meta b{color:#1a2a4a}
   .cert-logo{height:52px;width:auto;object-fit:contain}
-  .cert-stamp{border:2px dashed #1d4ed8;border-radius:50%;width:70px;height:70px;display:flex;align-items:center;justify-content:center;font-size:8pt;font-weight:700;color:#1d4ed8;text-align:center;flex-shrink:0;line-height:1.2}
+  .cert-stamp{border:2px dashed #1d4ed8;border-radius:50%;width:70px;height:70px;display:flex;align-items:center;justify-content:center;font-size:8pt;font-weight:700;color:#1d4ed8;text-align:center;flex-shrink:0;line-height:1.2;padding:4px}
   .info-table{width:100%;border-collapse:collapse;margin-bottom:14px;font-size:10pt}
   .info-table td{padding:6px 10px;border:1px solid #c8d5e8}
   .info-table td.lbl{background:#e8eef7;font-weight:700;color:#1a2a4a;width:110px;white-space:nowrap}
@@ -7982,8 +8039,9 @@ function rqExportCertificate(){
   .footer{margin-top:20px;font-size:7.5pt;color:#94a3b8;text-align:center;border-top:1px solid #e2e8f0;padding-top:8px}
   @media print{.no-print{display:none}}
 </style></head><body>
-<div class="no-print" style="background:#1a2a4a;color:#fff;padding:10px 20px;display:flex;justify-content:space-between;align-items:center;font-family:Arial">
-  <span style="font-weight:700">📋 תעודת דרישת רכש — ${esc(reqNumber)}</span>
+<div class="no-print" style="background:#1a2a4a;color:#fff;padding:10px 20px;display:flex;justify-content:space-between;align-items:center;font-family:Arial;gap:12px">
+  <span style="font-weight:700">📋 תעודת דרישת רכש — ${esc(snap.req_number)}</span>
+  <span style="font-size:.8rem;opacity:.7">נשמרה: ${esc(savedDate)} ${esc(savedTime)}</span>
   <button onclick="window.print()" style="background:#1d4ed8;color:#fff;border:none;padding:7px 18px;border-radius:6px;cursor:pointer;font-weight:700;font-size:.9rem">🖨 הדפס / שמור PDF</button>
 </div>
 <div class="cert-wrap" style="padding-top:14px">
@@ -7994,36 +8052,85 @@ function rqExportCertificate(){
       <div class="sub">Purchase Requisition Certificate</div>
     </div>
     <div class="cert-meta">
-      <div><b>מס׳ דרישה:</b> ${esc(reqNumber)}</div>
-      <div><b>תאריך:</b> ${esc(today)}</div>
+      <div><b>מס׳ דרישה:</b> ${esc(snap.req_number)}</div>
+      <div><b>תאריך שמירה:</b> ${esc(savedDate)}</div>
       <div><b>סטטוס:</b> ${esc(statusLbl)}</div>
     </div>
     <div class="cert-stamp">${esc(statusLbl)}</div>
   </div>
   <table class="info-table">
-    <tr><td class="lbl">ספק / יצרן</td><td>${esc(rqDraft.supplier||'—')}</td>
-        <td class="lbl">מזמין</td><td>${esc(rqDraft.requester||'—')}</td></tr>
-    ${rqDraft.notes?`<tr><td class="lbl">הערות</td><td colspan="3" style="white-space:pre-wrap;font-size:9.5pt">${esc(rqDraft.notes)}</td></tr>`:''}
+    <tr><td class="lbl">ספק / יצרן</td><td>${esc(snap.supplier||'—')}</td>
+        <td class="lbl">מזמין</td><td>${esc(snap.requester||'—')}</td></tr>
+    ${snap.notes?`<tr><td class="lbl">הערות</td><td colspan="3" style="white-space:pre-wrap;font-size:9.5pt">${esc(snap.notes)}</td></tr>`:''}
   </table>
   <table class="items-table">
     <thead><tr>${colHeads}</tr></thead>
-    <tbody>${rowsHtml||`<tr><td colspan="7" style="padding:12px;color:#94a3b8;text-align:center">אין פריטים</td></tr>`}</tbody>
+    <tbody>${rowsHtml||'<tr><td colspan="7" style="padding:12px;color:#94a3b8;text-align:center">אין פריטים</td></tr>'}</tbody>
   </table>
   ${totalsHtml}
   ${vatNote}
   <div class="sig-row">
-    <div class="sig-box">חתימת מזמין<br><span style="color:#94a3b8;font-size:8pt">${esc(rqDraft.requester||'_____________')}</span></div>
+    <div class="sig-box">חתימת מזמין<br><span style="color:#94a3b8;font-size:8pt">${esc(snap.requester||'_____________')}</span></div>
     <div class="sig-box">אישור מנהל / רכש<br><span style="color:#94a3b8;font-size:8pt">_____________</span></div>
     <div class="sig-box">תאריך אישור<br><span style="color:#94a3b8;font-size:8pt">_____________</span></div>
   </div>
-  <div class="footer">אפקון בקרה ואוטומציה · מסמך זה הופק אוטומטית במערכת ניהול הפרויקטים · ${esc(today)}</div>
+  <div class="footer">אפקון בקרה ואוטומציה · מסמך זה הופק אוטומטית במערכת ניהול הפרויקטים · ${esc(savedDate)}</div>
 </div>
-<script>window.onload=()=>window.print();<\/script>
 </body></html>`;
+}
+
+function rqExportCertById(id){
+  const certs=_rqLoadCerts();
+  const snap=certs.find(c=>c.id===id);
+  if(!snap){ alert('תעודה לא נמצאה.'); return; }
+  const html=_rqBuildCertHtml(snap);
   const w=window.open('','_blank');
   if(!w){ alert('לא ניתן לפתוח חלון חדש — אפשר חלונות קופצים בדפדפן.'); return; }
-  w.document.write(certHtml);
+  w.document.write(html);
   w.document.close();
+  // trigger print after content loads
+  w.onload=()=>w.print();
+}
+
+function rqDeleteCert(id){
+  if(!confirm('למחוק תעודה זו מהרשימה?')) return;
+  const certs=_rqLoadCerts().filter(c=>c.id!==id);
+  _rqSaveCertsStore(certs);
+  rqRenderCerts();
+}
+
+function rqRenderCerts(){
+  const wrap=document.getElementById('rq-certs-wrap');
+  if(!wrap) return;
+  const certs=_rqLoadCerts();
+  if(!certs.length){
+    wrap.innerHTML='<div class="rq-empty">אין תעודות שמורות. לחץ "📋 שמור תעודה" כדי לשמור תמונת מצב של הדרישה הנוכחית.</div>';
+    return;
+  }
+  wrap.innerHTML=`<table class="rq-hist-table">
+    <thead><tr>
+      <th>מס׳ דרישה</th><th>ספק / יצרן</th><th>סטטוס</th>
+      <th style="text-align:center">פריטים</th><th>נשמרה</th><th style="width:140px"></th>
+    </tr></thead><tbody>
+    ${certs.map(c=>{
+      const d=new Date(c.saved_at).toLocaleDateString('he-IL');
+      const t=new Date(c.saved_at).toLocaleTimeString('he-IL',{hour:'2-digit',minute:'2-digit'});
+      const stCls=_RQ_STATUS_CLS[c.status]||'draft';
+      return `<tr>
+        <td><b>${_rqEsc(c.req_number)}</b></td>
+        <td>${_rqEsc(c.supplier||'—')}</td>
+        <td><span class="rq-hist-status ${stCls}">${_RQ_STATUS_LBL[c.status]||'טיוטה'}</span></td>
+        <td style="text-align:center">${c.items?.length||0}</td>
+        <td style="font-size:.78rem;color:#64748b">${d} ${t}</td>
+        <td>
+          <button class="rq-btn rq-btn-secondary" style="font-size:.7rem;padding:3px 8px"
+            onclick="rqExportCertById('${c.id}')">🖨 ייצא PDF</button>
+          <button class="rq-btn rq-btn-danger" style="font-size:.7rem;padding:3px 6px;margin-right:4px"
+            onclick="rqDeleteCert('${c.id}')">🗑</button>
+        </td>
+      </tr>`;
+    }).join('')}
+    </tbody></table>`;
 }
 
 function rqBuildItems(){
