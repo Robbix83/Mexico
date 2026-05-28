@@ -188,7 +188,8 @@ function _generateSecret() {
 }
 function _verifyTotpCode(secret, code) {
   try {
-    _totp.options = { window: 1 }; // allow ±30s drift
+    // Spread existing options to avoid wiping algorithm/digits/period defaults
+    _totp.options = { ..._totp.options, window: 1 };
     return _totp.check(String(code).replace(/\s/g, ''), secret);
   } catch { return false; }
 }

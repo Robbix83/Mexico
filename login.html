@@ -293,18 +293,19 @@ input:focus {
 /* ── QR box ── */
 .qr-box {
   margin: 16px auto;
-  width: 200px; height: 200px;
+  width: 210px; height: 210px;
   display: flex; align-items: center; justify-content: center;
-  background: rgba(255,255,255,.04);
-  border: 1px solid rgba(var(--gold-rgb),.18);
+  background: #fff;
+  border: 2px solid rgba(var(--gold-rgb),.35);
   border-radius: 12px;
-  color: rgba(255,255,255,.3);
+  color: #6b7280;
   font-size: .82rem;
+  overflow: hidden;
 }
 .qr-box img {
-  width: 200px; height: 200px;
-  border-radius: 10px;
+  width: 210px; height: 210px;
   display: none;
+  border-radius: 10px;
 }
 .secret-wrap { margin: 8px 0 16px; }
 .secret-wrap summary {
@@ -730,46 +731,81 @@ document.getElementById('totp-code').addEventListener('keydown', e => {
 
 // ── Step 4: TOTP setup ────────────────────────────────────────────────────────
 async function loadTotpSetup() {
-  const qrBox      = document.getElementById('qr-box');
   const qrImg      = document.getElementById('totp-qr');
   const loadingTxt = document.getElementById('qr-loading-text');
   const retryWrap  = document.getElementById('qr-retry-wrap');
   const manual     = document.getElementById('totp-manual');
   const errEl      = document.getElementById('totp-setup-err');
-  qrImg.style.display    = 'none';
+  // Reset UI
+  qrImg.style.display      = 'none';
   loadingTxt.style.display = '';
-  loadingTxt.textContent = '⏳ טוען...';
-  retryWrap.style.display = 'none';
+  loadingTxt.textContent   = '⏳ טוען QR...';
+  retryWrap.style.display  = 'none';
   errEl.classList.remove('show');
+
+  const _showErr = (msg) => {
+    loadingTxt.textContent = '❌';
+    errEl.textContent = msg;
+    errEl.classList.add('show');
+    retryWrap.style.display = '';
+  };
+
   try {
-    const res = await fetch('/api/auth/totp/setup', {
-      method: 'POST', headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({ pendingToken: _pendingToken })
-    });
-    const data = await res.json();
+    // 15-second timeout
+    const ctrl = new AbortController();
+    const tid  = setTimeout(() => ctrl.abort(), 15000);
+    let res;
+    try {
+      res = await fetch('/api/auth/totp/setup', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({ pendingToken: _pendingToken }),
+        signal: ctrl.signal
+      });
+    } finally {
+      clearTimeout(tid);
+    }
+
+    let data;
+    try { data = await res.json(); }
+    catch (e) { _showErr('שגיאה בפענוח תגובת השרת (HTTP ' + res.status + ')'); return; }
+
+    console.log('[totp/setup] response:', res.status, data);
+
     if (!res.ok) {
-      loadingTxt.textContent = '❌ ' + (data.error || 'שגיאה');
-      errEl.textContent = data.error || 'שגיאה בטעינת QR — נסה שנית';
-      errEl.classList.add('show');
-      retryWrap.style.display = '';
+      _showErr(data.error || 'שגיאה ' + res.status + ' מהשרת');
       return;
     }
-    manual.textContent = data.secret || '';
+
+    // Show manual secret regardless
+    if (data.secret) {
+      manual.textContent = data.secret;
+    } else {
+      manual.textContent = '(לא התקבל סוד — נסה שנית)';
+    }
+
     if (!data.qrDataUrl) {
-      loadingTxt.textContent = '⚠ QR לא זמין — השתמש בהזנה ידנית';
-      document.querySelector('.secret-wrap').setAttribute('open','');
+      // QR generation failed — show manual entry
+      loadingTxt.textContent = '⚠ סרוק ידנית';
+      document.querySelector('.secret-wrap')?.setAttribute('open', '');
       setTimeout(() => document.getElementById('totp-setup-code').focus(), 50);
       return;
     }
+
+    // Success — show QR image
     loadingTxt.style.display = 'none';
-    qrImg.src = data.qrDataUrl;
-    qrImg.style.display = 'block';
-    setTimeout(() => document.getElementById('totp-setup-code').focus(), 100);
+    qrImg.onload  = () => { qrImg.style.display = 'block'; };
+    qrImg.onerror = () => { loadingTxt.style.display=''; loadingTxt.textContent='❌ תמונה שגויה'; document.querySelector('.secret-wrap')?.setAttribute('open',''); };
+    qrImg.src     = data.qrDataUrl;
+    setTimeout(() => document.getElementById('totp-setup-code').focus(), 200);
+
   } catch (ex) {
-    loadingTxt.textContent = '❌ שגיאת רשת';
-    errEl.textContent = 'שגיאת רשת — נסה שנית';
-    errEl.classList.add('show');
-    retryWrap.style.display = '';
+    console.error('[totp/setup] fetch error:', ex);
+    if (ex.name === 'AbortError') {
+      _showErr('פג זמן הבקשה (15 שניות) — נסה שנית');
+    } else {
+      _showErr('שגיאת רשת: ' + ex.message);
+    }
   }
 }
 
