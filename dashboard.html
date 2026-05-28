@@ -940,8 +940,11 @@ tr:hover .pl-edit-btn{opacity:.65}
 .rq-qty-btn:hover{background:#e2e8f0}
 .rq-qty-inp{width:46px;height:24px;border:1px solid var(--border);border-radius:5px;text-align:center;font-size:.8rem}
 .rq-qty-inp.qty-active{background:#fef3c7;font-weight:700;border-color:#f59e0b}
-/* RQ ds link — shares pl-ds-link style; extra margin for inline placement */
+/* RQ ds link — plain emoji, no pill background (avoids overflow in narrow fixed column) */
 .rq-ds-link{margin-right:5px;vertical-align:middle}
+.rq-table td .ci-datasheet{background:none;border:none;padding:0 2px;border-radius:0;
+  font-size:1rem;opacity:.72;display:inline}
+.rq-table td .ci-datasheet:hover{opacity:1;transform:scale(1.18);display:inline-block}
 .rq-table-wrap{max-height:520px;overflow-y:auto;border:1px solid var(--border);border-radius:8px}
 .rq-actions{display:flex;gap:8px;align-items:center;justify-content:space-between;flex-wrap:wrap;margin-top:10px}
 .rq-btn{padding:8px 16px;border-radius:7px;border:1px solid transparent;font-size:.85rem;font-weight:700;cursor:pointer}
@@ -4483,18 +4486,25 @@ function _getDsPreviewSrc(link,cb){
     _dsBlobUrl=URL.createObjectURL(new Blob([u8],{type:mime}));
     cb(_dsBlobUrl,mime);
   } else {
-    // Requisition table DS link: resolve via API, cache result back to href
+    // Requisition table DS link: resolve local /ds/ path via API, cache result back to href
     const rqSku=link.dataset.rqSku;
     if(rqSku){
       const cached=link.getAttribute('href');
-      if(cached&&cached!=='#'){ cb(cached,'application/pdf'); return; }
+      // Use cached value only when already resolved to a local path (starts with /ds/)
+      if(cached&&cached.startsWith('/ds/')){ cb(cached,'application/pdf'); return; }
       fetch('/api/datasheets/search?q='+encodeURIComponent(rqSku))
         .then(r=>r.json())
         .then(j=>{
           const m=j.matches&&j.matches[0];
-          if(m&&m.url){ link.setAttribute('href',m.url); cb(m.url,'application/pdf',m.model+'.pdf'); }
+          if(m&&m.url){
+            link.setAttribute('href',m.url); // cache for subsequent hovers
+            cb(m.url,'application/pdf',m.model+'.pdf');
+          } else if(cached&&cached!=='#'){
+            // No local file indexed — fall back to external URL (shows info card)
+            cb(cached,'application/pdf');
+          }
         })
-        .catch(()=>{});
+        .catch(()=>{ if(cached&&cached!=='#') cb(cached,'application/pdf'); });
       return;
     }
     const href=link.getAttribute('href');
@@ -7824,7 +7834,7 @@ function rqRender(){
       // Warehouse items with numeric internal SKUs have no DS → empty cell.
       // Async-lookup buttons were shown but resolved to nothing → confusing.
       const dsCell=r.ds
-        ?`<a class="ci-datasheet pl-ds-link" href="${_rqEsc(r.ds)}" target="_blank" rel="noopener" title="פתח Datasheet">📄</a>`
+        ?`<a class="ci-datasheet pl-ds-link" href="${_rqEsc(r.ds)}" data-rq-sku="${_rqEsc(r.sku)}" target="_blank" rel="noopener" title="פתח Datasheet">📄</a>`
         :'';
       return `<tr>
         <td style="text-align:center">${badge}</td>
