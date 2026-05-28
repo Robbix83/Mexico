@@ -309,6 +309,26 @@ app.post('/api/auth/change-password', requireAuth, (req, res) => {
   res.json({ ok: true });
 });
 
+// ── Weather proxy — Tel Aviv via Open-Meteo, cached 10 min ───────────────────
+let _wxCache = null, _wxCacheAt = 0;
+app.get('/api/weather', requireAuth, (req, res) => {
+  const now = Date.now();
+  if (_wxCache && now - _wxCacheAt < 10 * 60 * 1000) return res.json(_wxCache);
+  const https = require('https');
+  const url = 'https://api.open-meteo.com/v1/forecast?latitude=32.0853&longitude=34.7818&current_weather=true&timezone=Asia%2FJerusalem';
+  https.get(url, resp => {
+    let raw = '';
+    resp.on('data', c => raw += c);
+    resp.on('end', () => {
+      try {
+        const d = JSON.parse(raw);
+        _wxCache = d; _wxCacheAt = now;
+        res.json(d);
+      } catch { res.status(500).json({ error: 'parse' }); }
+    });
+  }).on('error', e => res.status(502).json({ error: e.message }));
+});
+
 // ── Audit event from client ───────────────────────────────────────────────────
 
 app.post('/api/audit/event', requireAuth, (req, res) => {
@@ -1494,6 +1514,26 @@ app.get('/ds/*', requireAuth, (req, res) => {
 // Public: logo served without auth (needed on landing page before login)
 app.get('/logo.png', (req, res) => {
   res.sendFile(path.join(STATIC_DIR, 'logo.png'));
+});
+
+// Public: design preview — no sensitive data, just CSS mockups for stakeholder review
+app.get('/design-preview.html', (req, res) => {
+  res.sendFile(path.join(STATIC_DIR, 'design-preview.html'));
+});
+app.get('/design-preview-2.html', (req, res) => {
+  res.sendFile(path.join(STATIC_DIR, 'design-preview-2.html'));
+});
+app.get('/design-preview-3.html', (req, res) => {
+  res.sendFile(path.join(STATIC_DIR, 'design-preview-3.html'));
+});
+app.get('/design-preview-4.html', (req, res) => {
+  res.sendFile(path.join(STATIC_DIR, 'design-preview-4.html'));
+});
+app.get('/design-preview-5.html', (req, res) => {
+  res.sendFile(path.join(STATIC_DIR, 'design-preview-5.html'));
+});
+app.get('/design-preview-6.html', (req, res) => {
+  res.sendFile(path.join(STATIC_DIR, 'design-preview-6.html'));
 });
 
 // Static assets (logo, etc.) — auth required

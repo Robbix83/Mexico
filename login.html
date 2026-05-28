@@ -8,7 +8,7 @@
   *{box-sizing:border-box;margin:0;padding:0}
   body{
     min-height:100vh;display:flex;align-items:center;justify-content:center;
-    background:linear-gradient(135deg,#1a2a4a 0%,#2d4a7a 100%);
+    background:linear-gradient(135deg,#0F4C5C 0%,#0D9488 100%);
     font-family:'Segoe UI',system-ui,Arial,sans-serif;
   }
   .card{
@@ -17,28 +17,28 @@
   }
   .logo{display:flex;align-items:center;justify-content:center;margin-bottom:28px;gap:12px}
   .logo img{height:48px}
-  .logo-text{font-size:1.3rem;font-weight:700;color:#1a2a4a;letter-spacing:-.5px}
+  .logo-text{font-size:1.3rem;font-weight:700;color:#0F4C5C;letter-spacing:-.5px}
   h1{font-size:1.05rem;font-weight:600;color:#374151;text-align:center;margin-bottom:24px}
   label{display:block;font-size:.82rem;font-weight:600;color:#4b5563;margin-bottom:5px}
   input{
     width:100%;padding:11px 14px;border:1.5px solid #d1d5db;border-radius:8px;
     font-size:.93rem;outline:none;transition:border-color .2s;direction:ltr;text-align:left;
   }
-  input:focus{border-color:#4f86f7}
+  input:focus{border-color:#0D9488;box-shadow:0 0 0 3px rgba(13,148,136,.12)}
   .field{margin-bottom:18px}
   .btn{
-    width:100%;padding:12px;background:#4f86f7;color:#fff;border:none;border-radius:8px;
+    width:100%;padding:12px;background:#0F766E;color:#fff;border:none;border-radius:8px;
     font-size:.95rem;font-weight:700;cursor:pointer;transition:background .2s;margin-top:4px;
   }
-  .btn:hover{background:#3b73e5}
-  .btn:disabled{background:#93c5fd;cursor:not-allowed}
+  .btn:hover{background:#0D9488}
+  .btn:disabled{background:#5EEAD4;cursor:not-allowed;color:#0F4C5C}
   .err{
     display:none;background:#fef2f2;border:1px solid #fca5a5;color:#dc2626;
     border-radius:8px;padding:10px 14px;font-size:.83rem;margin-top:14px;text-align:center;
   }
   .err.show{display:block}
   .hint{
-    background:#eff6ff;border:1px solid #bfdbfe;color:#1d4ed8;
+    background:#F0FDFA;border:1px solid #5EEAD4;color:#0F4C5C;
     border-radius:8px;padding:10px 14px;font-size:.78rem;margin-bottom:18px;line-height:1.6;
   }
   .step{display:none}
@@ -49,7 +49,7 @@
     background:#fef3c7;border:1px solid #fde68a;border-radius:8px;padding:8px 12px;
   }
   .back-link{display:block;text-align:center;margin-top:18px;font-size:.82rem;color:#6b7280;text-decoration:none}
-  .back-link:hover{color:#4f86f7}
+  .back-link:hover{color:#0D9488}
 
   /* Password visibility toggle */
   .pw-wrap{position:relative}
@@ -59,7 +59,7 @@
     background:none;border:none;cursor:pointer;padding:4px;color:#9ca3af;
     line-height:1;transition:color .2s;outline:none;
   }
-  .pw-toggle:hover{color:#4f86f7}
+  .pw-toggle:hover{color:#0D9488}
   .pw-toggle svg{width:18px;height:18px;display:block}
 </style>
 </head>
