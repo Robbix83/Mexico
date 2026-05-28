@@ -5450,8 +5450,10 @@ function closePlEdit(){
 }
 function pleGoogleSearch(){
   const parts=_pleKey.split('||');
-  const mfr=parts[0]||'', model=parts[1]||'';
-  const q=encodeURIComponent(mfr+' '+model+' filetype:pdf');
+  const mfr=(parts[0]||'').replace(/"/g,'');
+  const model=(parts[1]||'').replace(/"/g,'');
+  const term=(mfr+' '+model).trim();
+  const q=encodeURIComponent('"'+term+'" filetype:pdf');
   window.open('https://www.google.com/search?q='+q,'_blank','noopener');
 }
 async function pleDlAndSave(){
