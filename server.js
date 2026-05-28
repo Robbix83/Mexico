@@ -183,8 +183,20 @@ function requirePendingToken(expectedStep) {
 }
 
 // TOTP helpers
+// Generate a TOTP-compatible base32 secret using Node crypto directly.
+// Avoids otplib's generateSecret() which can fail if its internal options
+// state is corrupted by the options-spread pattern used in _verifyTotpCode.
 function _generateSecret() {
-  return _totp.generateSecret();
+  const bytes = crypto.randomBytes(20);
+  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567';
+  let result = '', bits = 0, value = 0;
+  for (const byte of bytes) {
+    value = (value << 8) | byte;
+    bits += 8;
+    while (bits >= 5) { result += chars[(value >>> (bits - 5)) & 31]; bits -= 5; }
+  }
+  if (bits > 0) result += chars[(value << (5 - bits)) & 31];
+  return result;
 }
 function _verifyTotpCode(secret, code) {
   try {
@@ -398,7 +410,7 @@ app.post('/api/auth/totp/setup', (req, res) => {
     res.json({ ok: true, secret, otpauthUrl });
   } catch (e) {
     console.error('[totp/setup] error:', e.message, e.stack);
-    if (!res.headersSent) res.status(500).json({ error: 'שגיאת שרת — נסה שנית' });
+    if (!res.headersSent) res.status(500).json({ error: 'שגיאת שרת: ' + e.message });
   }
 });
 
