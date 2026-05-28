@@ -4,257 +4,570 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>כניסה — אפקון</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;700;800;900&display=swap" rel="stylesheet">
 <style>
-  *{box-sizing:border-box;margin:0;padding:0}
-  body{
-    min-height:100vh;display:flex;align-items:center;justify-content:center;
-    background:linear-gradient(135deg,#1a2a4a 0%,#2d4a7a 100%);
-    font-family:'Segoe UI',system-ui,Arial,sans-serif;
-  }
-  .card{
-    background:#fff;border-radius:16px;padding:40px 36px;
-    width:400px;box-shadow:0 20px 60px rgba(0,0,0,.35);
-  }
-  .logo{display:flex;align-items:center;justify-content:center;margin-bottom:28px;gap:12px}
-  .logo img{height:48px}
-  .logo-text{font-size:1.3rem;font-weight:700;color:#1a2a4a;letter-spacing:-.5px}
-  h1{font-size:1.05rem;font-weight:600;color:#374151;text-align:center;margin-bottom:24px}
-  label{display:block;font-size:.82rem;font-weight:600;color:#4b5563;margin-bottom:5px}
-  input{
-    width:100%;padding:11px 14px;border:1.5px solid #d1d5db;border-radius:8px;
-    font-size:.93rem;outline:none;transition:border-color .2s;direction:ltr;text-align:left;
-  }
-  input:focus{border-color:#4f86f7}
-  .field{margin-bottom:18px}
-  .btn{
-    width:100%;padding:12px;background:#4f86f7;color:#fff;border:none;border-radius:8px;
-    font-size:.95rem;font-weight:700;cursor:pointer;transition:background .2s;margin-top:4px;
-  }
-  .btn:hover{background:#3b73e5}
-  .btn:disabled{background:#93c5fd;cursor:not-allowed}
-  .err{
-    display:none;background:#fef2f2;border:1px solid #fca5a5;color:#dc2626;
-    border-radius:8px;padding:10px 14px;font-size:.83rem;margin-top:14px;text-align:center;
-  }
-  .err.show{display:block}
-  .hint{
-    background:#eff6ff;border:1px solid #bfdbfe;color:#1d4ed8;
-    border-radius:8px;padding:10px 14px;font-size:.78rem;margin-bottom:18px;line-height:1.6;
-  }
-  .step{display:none}
-  .step.active{display:block}
-  .change-title{font-size:1rem;font-weight:700;color:#b45309;text-align:center;margin-bottom:8px}
-  .change-sub{
-    font-size:.8rem;color:#92400e;text-align:center;margin-bottom:18px;
-    background:#fef3c7;border:1px solid #fde68a;border-radius:8px;padding:8px 12px;
-  }
-  .back-link{display:block;text-align:center;margin-top:18px;font-size:.82rem;color:#6b7280;text-decoration:none}
-  .back-link:hover{color:#4f86f7}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-  /* Password visibility toggle */
-  .pw-wrap{position:relative}
-  .pw-wrap input{padding-left:40px}
-  .pw-toggle{
-    position:absolute;top:50%;left:11px;transform:translateY(-50%);
-    background:none;border:none;cursor:pointer;padding:4px;color:#9ca3af;
-    line-height:1;transition:color .2s;outline:none;
-  }
-  .pw-toggle:hover{color:#4f86f7}
-  .pw-toggle svg{width:18px;height:18px;display:block}
+:root {
+  --bg: #060402;
+  --gold: #c9a227;
+  --gold-rgb: 201,162,39;
+  --card-bg: rgba(10,7,4,.92);
+}
 
-  /* TOTP styles */
-  .totp-icon{font-size:2.5rem;text-align:center;margin-bottom:12px}
-  .totp-title{font-size:1.05rem;font-weight:700;color:#1a2a4a;text-align:center;margin-bottom:6px}
-  .totp-sub{font-size:.82rem;color:#6b7280;text-align:center;margin-bottom:20px;line-height:1.5}
-  .totp-inp{
-    width:100%;padding:14px 16px;border:2px solid #d1d5db;border-radius:10px;
-    font-size:1.6rem;font-weight:700;letter-spacing:.25em;outline:none;
-    transition:border-color .2s;text-align:center;direction:ltr;
-    font-variant-numeric:tabular-nums;
-  }
-  .totp-inp:focus{border-color:#4f86f7}
-  .totp-inp.backup-mode{font-size:1.1rem;letter-spacing:.1em}
-  .backup-toggle{
-    display:block;text-align:center;margin-top:10px;font-size:.78rem;
-    color:#6b7280;cursor:pointer;text-decoration:underline;
-    background:none;border:none;width:100%;padding:0;
-  }
-  .backup-toggle:hover{color:#4f86f7}
+html, body {
+  height: 100%;
+  font-family: 'Heebo', 'Segoe UI', sans-serif;
+  background: var(--bg);
+  color: #fff;
+  overflow-x: hidden;
+}
 
-  /* QR code */
-  .qr-wrap{text-align:center;margin:16px 0}
-  .qr-wrap img{width:200px;height:200px;border-radius:10px;border:1px solid #e5e7eb}
-  .qr-loading{width:200px;height:200px;display:flex;align-items:center;justify-content:center;
-    margin:0 auto;background:#f9fafb;border-radius:10px;border:1px solid #e5e7eb;
-    color:#9ca3af;font-size:.85rem}
-  .secret-wrap{margin:10px 0 16px}
-  .secret-wrap summary{font-size:.77rem;color:#6b7280;cursor:pointer;text-align:center;margin-bottom:4px}
-  .secret-code{
-    font-family:monospace;font-size:.82rem;background:#f3f4f6;
-    border:1px solid #e5e7eb;border-radius:6px;padding:8px 12px;text-align:center;
-    word-break:break-all;color:#374151;direction:ltr;
-  }
-  .steps-ol{font-size:.8rem;color:#4b5563;line-height:1.8;padding-right:16px;margin-bottom:16px}
+/* ── Background orb ── */
+.orb {
+  position: fixed;
+  bottom: -280px; left: -200px;
+  width: 800px; height: 800px;
+  border-radius: 50%;
+  background: radial-gradient(ellipse, rgba(180,130,20,.12) 0%, transparent 70%);
+  filter: blur(120px);
+  pointer-events: none;
+  z-index: 0;
+  animation: orbBreathe 9s ease-in-out infinite;
+}
+@keyframes orbBreathe {
+  0%,100%{transform:scale(1);opacity:1}50%{transform:scale(1.1);opacity:.75}
+}
 
-  /* Backup codes display */
-  .backup-codes-grid{
-    display:grid;grid-template-columns:1fr 1fr;gap:8px;
-    margin:16px 0;direction:ltr;
-  }
-  .backup-code-item{
-    background:#f3f4f6;border:1px solid #d1d5db;border-radius:6px;
-    padding:8px;font-family:monospace;font-size:.9rem;font-weight:700;
-    text-align:center;color:#111827;letter-spacing:.08em;
-  }
-  .backup-warn{
-    background:#fef2f2;border:1px solid #fca5a5;border-radius:8px;
-    padding:10px 14px;font-size:.8rem;color:#dc2626;margin-bottom:14px;
-    text-align:center;line-height:1.5;
-  }
-  .backup-actions{display:flex;gap:8px;margin-bottom:16px}
-  .backup-actions button{
-    flex:1;padding:8px;background:#f3f4f6;border:1px solid #d1d5db;
-    border-radius:8px;font-size:.8rem;cursor:pointer;color:#374151;
-    transition:background .15s;
-  }
-  .backup-actions button:hover{background:#e5e7eb}
+/* ── Page layout ── */
+.page {
+  position: relative;
+  z-index: 2;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 32px 20px;
+}
+
+/* ── Card ── */
+.card {
+  background: rgba(10,7,4,.92);
+  border: 1px solid rgba(var(--gold-rgb),.32);
+  border-radius: 22px;
+  padding: 40px 40px 32px;
+  max-width: 420px;
+  width: 100%;
+  text-align: center;
+  backdrop-filter: blur(24px);
+  position: relative;
+  overflow: hidden;
+  animation: cardIn .9s cubic-bezier(.22,1,.36,1) both, goldBreath 6s ease-in-out 1s infinite;
+  box-shadow:
+    0 0 0 1px rgba(var(--gold-rgb),.10),
+    0 0 18px rgba(var(--gold-rgb),.13),
+    0 0 48px rgba(var(--gold-rgb),.08),
+    0 30px 90px rgba(0,0,0,.65),
+    inset 0 1px 0 rgba(var(--gold-rgb),.18);
+}
+@keyframes cardIn {
+  from{opacity:0;transform:translateY(28px) scale(.97)}
+  to{opacity:1;transform:translateY(0) scale(1)}
+}
+@keyframes goldBreath {
+  0%,100%{box-shadow:0 0 0 1px rgba(var(--gold-rgb),.10),0 0 18px rgba(var(--gold-rgb),.13),0 0 48px rgba(var(--gold-rgb),.08),0 30px 90px rgba(0,0,0,.65),inset 0 1px 0 rgba(var(--gold-rgb),.18)}
+  50%{box-shadow:0 0 0 1px rgba(var(--gold-rgb),.22),0 0 22px rgba(var(--gold-rgb),.22),0 0 60px rgba(var(--gold-rgb),.13),0 30px 90px rgba(0,0,0,.65),inset 0 1px 0 rgba(var(--gold-rgb),.26)}
+}
+.card::after {
+  content:'';position:absolute;inset:0;pointer-events:none;
+  background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,.03) 2px,rgba(0,0,0,.03) 4px);
+  border-radius:22px;z-index:1;
+}
+
+/* ── Logo ── */
+.logo-frame {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255,255,255,.94);
+  border: 1px solid rgba(var(--gold-rgb),.35);
+  border-radius: 14px;
+  padding: 10px 20px;
+  margin-bottom: 22px;
+  box-shadow: 0 2px 16px rgba(0,0,0,.35);
+}
+.logo-frame img {
+  height: 52px;
+  max-width: 160px;
+  object-fit: contain;
+  display: block;
+}
+
+/* ── Step heading ── */
+.step-title {
+  font-size: 1.3rem;
+  font-weight: 800;
+  color: #fff;
+  margin-bottom: 6px;
+}
+.step-sub {
+  font-size: .82rem;
+  font-weight: 300;
+  color: rgba(255,255,255,.4);
+  margin-bottom: 24px;
+  line-height: 1.5;
+}
+
+/* ── Divider ── */
+.divider {
+  width: 44px; height: 2px;
+  background: linear-gradient(90deg,transparent,rgba(var(--gold-rgb),.45),transparent);
+  border-radius: 4px;
+  margin: 0 auto 22px;
+}
+
+/* ── Form elements ── */
+.field { margin-bottom: 14px; text-align: right; }
+label {
+  display: block;
+  font-size: .78rem;
+  font-weight: 700;
+  color: rgba(var(--gold-rgb),.65);
+  margin-bottom: 5px;
+  letter-spacing: .3px;
+}
+input {
+  width: 100%;
+  padding: 11px 14px;
+  background: rgba(255,255,255,.05);
+  border: 1px solid rgba(var(--gold-rgb),.18);
+  border-radius: 10px;
+  font-size: .93rem;
+  font-family: 'Heebo', sans-serif;
+  color: #fff;
+  outline: none;
+  transition: border-color .2s, background .2s;
+  direction: ltr;
+  text-align: left;
+}
+input::placeholder { color: rgba(255,255,255,.2); }
+input:focus {
+  border-color: rgba(var(--gold-rgb),.55);
+  background: rgba(255,255,255,.08);
+}
+
+/* ── Primary gold button ── */
+.btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  padding: 13px 20px;
+  border-radius: 12px;
+  font-family: 'Heebo', sans-serif;
+  font-size: .97rem;
+  font-weight: 800;
+  cursor: pointer;
+  border: none;
+  transition: transform .15s, box-shadow .15s, filter .15s;
+  position: relative;
+  overflow: hidden;
+  text-decoration: none;
+  margin-top: 4px;
+}
+.btn-gold {
+  background: linear-gradient(135deg, #c9a227 0%, #8b6914 100%);
+  color: #0a0602;
+  box-shadow: 0 4px 20px rgba(var(--gold-rgb),.2);
+}
+.btn-gold:hover {
+  box-shadow: 0 8px 28px rgba(var(--gold-rgb),.35);
+  transform: translateY(-1px);
+  filter: brightness(1.06);
+}
+.btn-gold::after {
+  content:'';position:absolute;inset:0;
+  background:linear-gradient(105deg,transparent 30%,rgba(255,255,255,.18) 50%,transparent 70%);
+  transform:translateX(-120%);transition:transform .5s;
+}
+.btn-gold:hover::after{transform:translateX(120%)}
+.btn-gold:disabled { opacity: .45; cursor: not-allowed; filter: none; transform: none; }
+
+.btn-outline {
+  background: rgba(var(--gold-rgb),.07);
+  color: rgba(var(--gold-rgb),.7);
+  border: 1px solid rgba(var(--gold-rgb),.2);
+  font-size: .82rem;
+  font-weight: 700;
+  margin-top: 8px;
+}
+.btn-outline:hover {
+  background: rgba(var(--gold-rgb),.12);
+  border-color: rgba(var(--gold-rgb),.35);
+}
+
+/* ── Error box ── */
+.err {
+  display: none;
+  background: rgba(220,38,38,.12);
+  border: 1px solid rgba(220,38,38,.35);
+  color: #fca5a5;
+  border-radius: 8px;
+  padding: 9px 13px;
+  font-size: .8rem;
+  margin-top: 12px;
+  text-align: center;
+}
+.err.show { display: block; }
+
+/* ── Hint box (password requirements) ── */
+.hint-box {
+  background: rgba(var(--gold-rgb),.06);
+  border: 1px solid rgba(var(--gold-rgb),.15);
+  color: rgba(var(--gold-rgb),.7);
+  border-radius: 8px;
+  padding: 10px 13px;
+  font-size: .77rem;
+  margin-bottom: 18px;
+  text-align: right;
+  line-height: 1.7;
+}
+
+/* ── Steps ── */
+.step { display: none }
+.step.active { display: block }
+
+/* ── Password toggle ── */
+.pw-wrap { position: relative }
+.pw-wrap input { padding-left: 40px }
+.pw-toggle {
+  position: absolute; top: 50%; left: 11px;
+  transform: translateY(-50%);
+  background: none; border: none; cursor: pointer;
+  padding: 4px; color: rgba(255,255,255,.25);
+  line-height: 1; transition: color .2s; outline: none;
+}
+.pw-toggle:hover { color: rgba(var(--gold-rgb),.8) }
+.pw-toggle svg { width: 17px; height: 17px; display: block }
+
+/* ── TOTP code input ── */
+.totp-inp {
+  width: 100%;
+  padding: 14px 16px;
+  background: rgba(255,255,255,.05);
+  border: 2px solid rgba(var(--gold-rgb),.25);
+  border-radius: 12px;
+  font-size: 1.7rem;
+  font-weight: 800;
+  letter-spacing: .28em;
+  color: #fff;
+  font-family: monospace;
+  text-align: center;
+  direction: ltr;
+  outline: none;
+  transition: border-color .2s;
+}
+.totp-inp:focus { border-color: rgba(var(--gold-rgb),.65) }
+.totp-inp.backup-mode { font-size: 1.1rem; letter-spacing: .1em; font-family: monospace }
+
+.backup-toggle {
+  display: block;
+  text-align: center;
+  margin-top: 12px;
+  font-size: .78rem;
+  color: rgba(var(--gold-rgb),.4);
+  cursor: pointer;
+  text-decoration: underline;
+  background: none;
+  border: none;
+  width: 100%;
+  padding: 0;
+  font-family: 'Heebo', sans-serif;
+}
+.backup-toggle:hover { color: rgba(var(--gold-rgb),.7) }
+
+/* ── QR box ── */
+.qr-box {
+  margin: 16px auto;
+  width: 200px; height: 200px;
+  display: flex; align-items: center; justify-content: center;
+  background: rgba(255,255,255,.04);
+  border: 1px solid rgba(var(--gold-rgb),.18);
+  border-radius: 12px;
+  color: rgba(255,255,255,.3);
+  font-size: .82rem;
+}
+.qr-box img {
+  width: 200px; height: 200px;
+  border-radius: 10px;
+  display: none;
+}
+.secret-wrap { margin: 8px 0 16px; }
+.secret-wrap summary {
+  font-size: .75rem;
+  color: rgba(var(--gold-rgb),.45);
+  cursor: pointer;
+  text-align: center;
+  margin-bottom: 6px;
+}
+.secret-code {
+  font-family: monospace;
+  font-size: .8rem;
+  background: rgba(255,255,255,.06);
+  border: 1px solid rgba(var(--gold-rgb),.12);
+  border-radius: 7px;
+  padding: 8px 12px;
+  text-align: center;
+  word-break: break-all;
+  color: rgba(var(--gold-rgb),.7);
+  direction: ltr;
+  margin-top: 6px;
+}
+.setup-steps {
+  font-size: .79rem;
+  color: rgba(255,255,255,.35);
+  line-height: 1.9;
+  text-align: right;
+  padding-right: 14px;
+  margin-bottom: 16px;
+  list-style: none;
+  counter-reset: step;
+}
+.setup-steps li::before {
+  counter-increment: step;
+  content: counter(step) ". ";
+  color: rgba(var(--gold-rgb),.5);
+  font-weight: 700;
+}
+
+/* ── Backup codes ── */
+.backup-codes-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin: 14px 0;
+  direction: ltr;
+}
+.backup-code-item {
+  background: rgba(255,255,255,.06);
+  border: 1px solid rgba(var(--gold-rgb),.15);
+  border-radius: 7px;
+  padding: 8px;
+  font-family: monospace;
+  font-size: .88rem;
+  font-weight: 700;
+  text-align: center;
+  color: rgba(var(--gold-rgb),.85);
+  letter-spacing: .06em;
+}
+.backup-warn {
+  background: rgba(220,38,38,.1);
+  border: 1px solid rgba(220,38,38,.25);
+  border-radius: 8px;
+  padding: 9px 13px;
+  font-size: .78rem;
+  color: #fca5a5;
+  margin-bottom: 14px;
+  text-align: center;
+  line-height: 1.5;
+}
+.backup-actions {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+.backup-actions button {
+  flex: 1;
+  padding: 8px;
+  background: rgba(var(--gold-rgb),.07);
+  border: 1px solid rgba(var(--gold-rgb),.18);
+  border-radius: 8px;
+  font-size: .79rem;
+  cursor: pointer;
+  color: rgba(var(--gold-rgb),.7);
+  font-family: 'Heebo', sans-serif;
+  transition: background .15s;
+}
+.backup-actions button:hover { background: rgba(var(--gold-rgb),.14) }
+
+/* ── Retry ── */
+#qr-retry-wrap { display:none; text-align:center; margin-bottom:10px }
+#qr-retry-wrap button {
+  background: none;
+  border: 1px solid rgba(var(--gold-rgb),.25);
+  border-radius: 8px;
+  padding: 6px 18px;
+  font-size: .8rem;
+  color: rgba(var(--gold-rgb),.6);
+  cursor: pointer;
+  font-family: 'Heebo', sans-serif;
+}
+#qr-retry-wrap button:hover { background: rgba(var(--gold-rgb),.08) }
+
+/* ── Warning banner (password change) ── */
+.change-banner {
+  background: rgba(var(--gold-rgb),.07);
+  border: 1px solid rgba(var(--gold-rgb),.2);
+  border-radius: 10px;
+  padding: 10px 14px;
+  font-size: .8rem;
+  color: rgba(var(--gold-rgb),.7);
+  margin-bottom: 18px;
+  line-height: 1.5;
+}
+
+/* ── Back link ── */
+.back-link {
+  display: block;
+  text-align: center;
+  margin-top: 18px;
+  font-size: .78rem;
+  color: rgba(var(--gold-rgb),.3);
+  text-decoration: none;
+  font-family: 'Heebo', sans-serif;
+}
+.back-link:hover { color: rgba(var(--gold-rgb),.6) }
 </style>
 </head>
 <body>
-<div class="card">
-  <div class="logo" style="justify-content:center">
-    <img src="/logo.png" alt="אפקון" style="height:56px" onerror="this.style.display='none'">
-  </div>
+<div class="orb"></div>
 
-  <!-- Step 1: Login -->
-  <div id="step-login" class="step active">
-    <h1>כניסה למערכת</h1>
-    <form id="form" onsubmit="doLogin(event)">
-      <div class="field">
-        <label for="u">שם משתמש</label>
-        <input id="u" name="username" type="text" autocomplete="username" required autofocus>
-      </div>
-      <div class="field">
-        <label for="p">סיסמה</label>
-        <div class="pw-wrap">
-          <input id="p" name="password" type="password" autocomplete="current-password" required>
-          <button type="button" class="pw-toggle" onclick="togglePw('p')" tabindex="-1" aria-label="הצג סיסמה">
-            <svg id="eye-p" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
-            <svg id="eye-off-p" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none"><path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19m-6.72-1.07a3 3 0 11-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
-          </button>
+<div class="page">
+  <div class="card">
+
+    <!-- Logo -->
+    <div class="logo-frame">
+      <img src="/logo.png" alt="אפקון" onerror="this.style.display='none'">
+    </div>
+
+    <!-- ── Step 1: Login ─────────────────────────────── -->
+    <div id="step-login" class="step active">
+      <div class="step-title">כניסה למערכת</div>
+      <div class="divider"></div>
+      <form id="form" onsubmit="doLogin(event)">
+        <div class="field">
+          <label for="u">שם משתמש</label>
+          <input id="u" name="username" type="text" autocomplete="username" required autofocus placeholder="username">
         </div>
-      </div>
-      <button class="btn" type="submit" id="btn">כניסה</button>
-      <div class="err" id="err"></div>
-    </form>
-  </div>
-
-  <!-- Step 2: Forced password change -->
-  <div id="step-change" class="step">
-    <p class="change-title">🔒 נדרש שינוי סיסמה</p>
-    <p class="change-sub">עליך להגדיר סיסמה חדשה לפני הכניסה למערכת</p>
-    <div class="hint">
-      דרישות סיסמה:<br>
-      ✓ לפחות 8 תווים &nbsp;·&nbsp; ✓ אות גדולה באנגלית<br>
-      ✓ אות קטנה באנגלית &nbsp;·&nbsp; ✓ ספרה אחת לפחות
-    </div>
-    <form id="change-form" onsubmit="doChangePassword(event)">
-      <div class="field">
-        <label for="cp-new">סיסמה חדשה</label>
-        <div class="pw-wrap">
-          <input id="cp-new" type="password" autocomplete="new-password" required placeholder="לפחות 8 תווים...">
-          <button type="button" class="pw-toggle" onclick="togglePw('cp-new')" tabindex="-1" aria-label="הצג סיסמה">
-            <svg id="eye-cp-new" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
-            <svg id="eye-off-cp-new" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none"><path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19m-6.72-1.07a3 3 0 11-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
-          </button>
+        <div class="field">
+          <label for="p">סיסמה</label>
+          <div class="pw-wrap">
+            <input id="p" name="password" type="password" autocomplete="current-password" required placeholder="••••••••">
+            <button type="button" class="pw-toggle" onclick="togglePw('p')" tabindex="-1">
+              <svg id="eye-p" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+              <svg id="eye-off-p" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none"><path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19m-6.72-1.07a3 3 0 11-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+            </button>
+          </div>
         </div>
+        <button class="btn btn-gold" type="submit" id="btn">🔐 כניסה</button>
+        <div class="err" id="err"></div>
+      </form>
+    </div>
+
+    <!-- ── Step 2: Password change ───────────────────── -->
+    <div id="step-change" class="step">
+      <div class="step-title">🔒 שינוי סיסמה</div>
+      <div class="divider"></div>
+      <div class="change-banner">
+        נדרש להגדיר סיסמה חדשה לפני הכניסה.<br>
+        ✓ 8 תווים לפחות &nbsp;·&nbsp; ✓ אות גדולה &nbsp;·&nbsp; ✓ ספרה
       </div>
-      <div class="field">
-        <label for="cp-confirm">אישור סיסמה חדשה</label>
-        <div class="pw-wrap">
-          <input id="cp-confirm" type="password" autocomplete="new-password" required placeholder="חזור על הסיסמה החדשה">
-          <button type="button" class="pw-toggle" onclick="togglePw('cp-confirm')" tabindex="-1" aria-label="הצג סיסמה">
-            <svg id="eye-cp-confirm" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
-            <svg id="eye-off-cp-confirm" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none"><path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19m-6.72-1.07a3 3 0 11-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
-          </button>
+      <form id="change-form" onsubmit="doChangePassword(event)">
+        <div class="field">
+          <label for="cp-new">סיסמה חדשה</label>
+          <div class="pw-wrap">
+            <input id="cp-new" type="password" autocomplete="new-password" required placeholder="לפחות 8 תווים...">
+            <button type="button" class="pw-toggle" onclick="togglePw('cp-new')" tabindex="-1">
+              <svg id="eye-cp-new" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+              <svg id="eye-off-cp-new" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none"><path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19m-6.72-1.07a3 3 0 11-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+            </button>
+          </div>
         </div>
+        <div class="field">
+          <label for="cp-confirm">אישור סיסמה</label>
+          <div class="pw-wrap">
+            <input id="cp-confirm" type="password" autocomplete="new-password" required placeholder="חזור על הסיסמה">
+            <button type="button" class="pw-toggle" onclick="togglePw('cp-confirm')" tabindex="-1">
+              <svg id="eye-cp-confirm" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+              <svg id="eye-off-cp-confirm" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none"><path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19m-6.72-1.07a3 3 0 11-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+            </button>
+          </div>
+        </div>
+        <button class="btn btn-gold" type="submit" id="cp-btn">שמור והמשך</button>
+        <div class="err" id="cp-err"></div>
+      </form>
+    </div>
+
+    <!-- ── Step 3: TOTP verify (has 2FA) ────────────── -->
+    <div id="step-totp" class="step">
+      <div class="step-title">אימות דו-שלבי</div>
+      <div class="step-sub" id="totp-sub-text">הזן את הקוד מ-Google Authenticator / Authy</div>
+      <div class="divider"></div>
+      <div class="field">
+        <input id="totp-code" class="totp-inp" type="text" inputmode="numeric" maxlength="6"
+          placeholder="000000" autocomplete="one-time-code"
+          oninput="this.value=this.value.replace(/[^0-9]/g,'').slice(0,6)">
       </div>
-      <button class="btn" type="submit" id="cp-btn">שנה סיסמה</button>
-      <div class="err" id="cp-err"></div>
-    </form>
-  </div>
-
-  <!-- Step 3: TOTP verify (for users who already have 2FA set up) -->
-  <div id="step-totp" class="step">
-    <div class="totp-icon">🔐</div>
-    <p class="totp-title">אימות דו-שלבי</p>
-    <p class="totp-sub" id="totp-sub-text">הזן את הקוד מאפליקציית האימות שלך<br>(Google Authenticator / Authy)</p>
-    <div class="field">
-      <input id="totp-code" class="totp-inp" type="text" inputmode="numeric" maxlength="6"
-        pattern="\d{6}" placeholder="000000" autocomplete="one-time-code"
-        oninput="this.value=this.value.replace(/[^0-9]/g,'').slice(0,6)">
+      <button class="btn btn-gold" id="totp-btn" onclick="doTotp()">אמת →</button>
+      <button type="button" class="backup-toggle" onclick="toggleBackupMode()">שכחתי — השתמש בקוד גיבוי</button>
+      <div class="err" id="totp-err"></div>
     </div>
-    <button class="btn" id="totp-btn" onclick="doTotp()">אמת</button>
-    <button type="button" class="backup-toggle" onclick="toggleBackupMode()">שכחתי — השתמש בקוד גיבוי</button>
-    <div class="err" id="totp-err"></div>
-  </div>
 
-  <!-- Step 4: First-time TOTP setup (QR scan) -->
-  <div id="step-totp-setup" class="step">
-    <div class="totp-icon">📱</div>
-    <p class="totp-title">הגדרת אימות דו-שלבי</p>
-    <ol class="steps-ol">
-      <li>התקן Google Authenticator או Authy בטלפון</li>
-      <li>לחץ "+" ובחר "סרוק קוד QR"</li>
-      <li>סרוק את הקוד למטה</li>
-      <li>הזן את הקוד בן 6 הספרות מהאפליקציה</li>
-    </ol>
-    <div class="qr-wrap">
-      <div class="qr-loading" id="qr-loading">
-        <span id="qr-loading-text">⏳ טוען QR...</span>
+    <!-- ── Step 4: First-time TOTP setup ────────────── -->
+    <div id="step-totp-setup" class="step">
+      <div class="step-title">הגדרת 2FA</div>
+      <div class="step-sub">סרוק עם Google Authenticator או Authy</div>
+      <div class="divider"></div>
+      <ol class="setup-steps">
+        <li>התקן Google Authenticator / Authy בטלפון</li>
+        <li>לחץ "+" ← "סרוק קוד QR"</li>
+        <li>סרוק את הקוד למטה</li>
+        <li>הזן את הקוד מהאפליקציה</li>
+      </ol>
+      <div class="qr-box" id="qr-box">
+        <span id="qr-loading-text">⏳ טוען...</span>
+        <img id="totp-qr" alt="QR Code">
       </div>
-      <img id="totp-qr" style="display:none" alt="QR Code">
+      <div id="qr-retry-wrap">
+        <button type="button" onclick="loadTotpSetup()">🔄 נסה שוב</button>
+      </div>
+      <details class="secret-wrap">
+        <summary>הזנה ידנית (ללא מצלמה)</summary>
+        <div class="secret-code" id="totp-manual"></div>
+      </details>
+      <div class="field" style="text-align:right">
+        <label for="totp-setup-code">קוד מהאפליקציה (6 ספרות)</label>
+        <input id="totp-setup-code" class="totp-inp" type="text" inputmode="numeric" maxlength="6"
+          placeholder="000000" autocomplete="one-time-code"
+          oninput="this.value=this.value.replace(/[^0-9]/g,'').slice(0,6)">
+      </div>
+      <button class="btn btn-gold" id="totp-activate-btn" onclick="doTotpActivate()">אפשר 2FA →</button>
+      <div class="err" id="totp-setup-err"></div>
     </div>
-    <div id="qr-retry-wrap" style="display:none;text-align:center;margin-bottom:12px">
-      <button type="button" onclick="loadTotpSetup()" style="
-        background:none;border:1px solid #bfdbfe;border-radius:8px;
-        padding:7px 18px;font-size:.82rem;color:#1d4ed8;cursor:pointer;
-      ">🔄 נסה שוב</button>
-    </div>
-    <details class="secret-wrap">
-      <summary>הזנה ידנית (ללא מצלמה)</summary>
-      <div class="secret-code" id="totp-manual"></div>
-    </details>
-    <div class="field">
-      <label for="totp-setup-code">קוד אימות מהאפליקציה (6 ספרות)</label>
-      <input id="totp-setup-code" class="totp-inp" type="text" inputmode="numeric" maxlength="6"
-        pattern="\d{6}" placeholder="000000" autocomplete="one-time-code"
-        oninput="this.value=this.value.replace(/[^0-9]/g,'').slice(0,6)">
-    </div>
-    <button class="btn" id="totp-activate-btn" onclick="doTotpActivate()">אפשר 2FA</button>
-    <div class="err" id="totp-setup-err"></div>
-  </div>
 
-  <!-- Step 5: Backup codes display (shown once after setup) -->
-  <div id="step-backup-codes" class="step">
-    <div class="totp-icon">🔑</div>
-    <p class="totp-title">קודי גיבוי — שמור אותם!</p>
-    <div class="backup-warn">
-      ⚠ כל קוד תקף לשימוש <strong>חד פעמי</strong> בלבד.<br>
-      שמור אותם במקום בטוח — לא תוצג רשימה זו שוב.
+    <!-- ── Step 5: Backup codes ──────────────────────── -->
+    <div id="step-backup-codes" class="step">
+      <div class="step-title">🔑 קודי גיבוי</div>
+      <div class="divider"></div>
+      <div class="backup-warn">⚠ כל קוד תקף לשימוש <strong>חד פעמי</strong>.<br>שמור אותם — לא יוצגו שוב.</div>
+      <div class="backup-codes-grid" id="backup-codes-grid"></div>
+      <div class="backup-actions">
+        <button onclick="copyBackupCodes()">📋 העתק</button>
+        <button onclick="downloadBackupCodes()">⬇ הורד</button>
+      </div>
+      <button class="btn btn-gold" onclick="doFinishSetup()">כנס למערכת →</button>
     </div>
-    <div class="backup-codes-grid" id="backup-codes-grid"></div>
-    <div class="backup-actions">
-      <button onclick="copyBackupCodes()">📋 העתק</button>
-      <button onclick="downloadBackupCodes()">⬇ הורד TXT</button>
-    </div>
-    <button class="btn" onclick="doFinishSetup()">המשך למערכת</button>
-  </div>
-</div>
 
-<a href="/" class="back-link">← חזרה לדף הבית</a>
+  </div><!-- /card -->
+  <a href="/" class="back-link">← חזרה לדף הבית</a>
+</div><!-- /page -->
 
 <script>
+// ── helpers ───────────────────────────────────────────────────────────────────
 function togglePw(id) {
   const inp = document.getElementById(id);
   const show = inp.type === 'password';
@@ -262,19 +575,18 @@ function togglePw(id) {
   document.getElementById('eye-' + id).style.display     = show ? 'none' : '';
   document.getElementById('eye-off-' + id).style.display = show ? '' : 'none';
 }
-
 function showStep(id) {
   document.querySelectorAll('.step').forEach(s => s.classList.remove('active'));
   document.getElementById(id).classList.add('active');
 }
 
-// ── State ──────────────────────────────────────────────────────────────────────
-let _pendingToken = '';       // short-lived JWT (step:'totp_verify' or 'totp_setup')
-let _loginPassword = '';      // stored temporarily for password-change flow
-let _inBackupMode  = false;   // true when user is entering a backup code
-let _backupCodes   = [];      // stored after setup for display / copy / download
+// ── state ─────────────────────────────────────────────────────────────────────
+let _pendingToken  = '';
+let _loginPassword = '';
+let _inBackupMode  = false;
+let _backupCodes   = [];
 
-// ── Step 1: Login ──────────────────────────────────────────────────────────────
+// ── Step 1: Login ─────────────────────────────────────────────────────────────
 async function doLogin(e) {
   e.preventDefault();
   const btn = document.getElementById('btn');
@@ -282,51 +594,43 @@ async function doLogin(e) {
   err.classList.remove('show');
   btn.disabled = true; btn.textContent = 'מתחבר...';
   try {
-    const pw = document.getElementById('p').value;
+    const pw  = document.getElementById('p').value;
     const res = await fetch('/api/auth/login', {
       method: 'POST',
       headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({
-        username: document.getElementById('u').value.trim(),
-        password: pw
-      })
+      body: JSON.stringify({ username: document.getElementById('u').value.trim(), password: pw })
     });
     const data = await res.json();
     if (!res.ok) {
       err.textContent = data.error || 'שגיאה בכניסה';
       err.classList.add('show');
-      btn.disabled = false; btn.textContent = 'כניסה';
+      btn.disabled = false; btn.textContent = '🔐 כניסה';
       return;
     }
     _pendingToken = data.pendingToken || '';
     if (data.requires2fa) {
-      // User has 2FA — go to verify step
       showStep('step-totp');
       setTimeout(() => document.getElementById('totp-code').focus(), 50);
     } else if (data.needsTotpSetup) {
-      // First time — must set up 2FA
       if (data.must_change_password) {
-        // Change password first, then set up 2FA
         _loginPassword = pw;
         showStep('step-change');
         setTimeout(() => document.getElementById('cp-new').focus(), 50);
       } else {
-        // Go straight to 2FA setup
         showStep('step-totp-setup');
         loadTotpSetup();
       }
     } else {
-      // Fully authenticated (shouldn't happen with mandatory 2FA, but handle gracefully)
       window.location.href = '/dashboard';
     }
   } catch {
     err.textContent = 'שגיאת רשת — נסה שנית';
     err.classList.add('show');
-    btn.disabled = false; btn.textContent = 'כניסה';
+    btn.disabled = false; btn.textContent = '🔐 כניסה';
   }
 }
 
-// ── Step 2: Password change ────────────────────────────────────────────────────
+// ── Step 2: Password change ───────────────────────────────────────────────────
 async function doChangePassword(e) {
   e.preventDefault();
   const btn    = document.getElementById('cp-btn');
@@ -334,42 +638,24 @@ async function doChangePassword(e) {
   const newPw  = document.getElementById('cp-new').value;
   const confPw = document.getElementById('cp-confirm').value;
   err.classList.remove('show');
-
-  if (newPw !== confPw) {
-    err.textContent = 'הסיסמאות אינן תואמות';
-    err.classList.add('show');
-    return;
-  }
-
+  if (newPw !== confPw) { err.textContent = 'הסיסמאות אינן תואמות'; err.classList.add('show'); return; }
   btn.disabled = true; btn.textContent = 'שומר...';
   try {
-    let endpoint, body;
-    if (_pendingToken) {
-      // In TOTP setup flow — use the pending-token endpoint
-      endpoint = '/api/auth/totp/change-password';
-      body = JSON.stringify({ pendingToken: _pendingToken, currentPassword: _loginPassword, newPassword: newPw });
-    } else {
-      // Normal change-password (legacy, with full JWT cookie)
-      endpoint = '/api/auth/change-password';
-      body = JSON.stringify({ currentPassword: _loginPassword, newPassword: newPw });
-    }
-    const res = await fetch(endpoint, {
-      method: 'POST',
-      headers: {'Content-Type': 'application/json'},
-      body
-    });
+    const endpoint = _pendingToken ? '/api/auth/totp/change-password' : '/api/auth/change-password';
+    const body = _pendingToken
+      ? JSON.stringify({ pendingToken: _pendingToken, currentPassword: _loginPassword, newPassword: newPw })
+      : JSON.stringify({ currentPassword: _loginPassword, newPassword: newPw });
+    const res = await fetch(endpoint, { method: 'POST', headers: {'Content-Type': 'application/json'}, body });
     const data = await res.json();
     if (!res.ok) {
       err.textContent = data.error || 'שגיאה בשינוי סיסמה';
       err.classList.add('show');
-      btn.disabled = false; btn.textContent = 'שנה סיסמה';
+      btn.disabled = false; btn.textContent = 'שמור והמשך';
       return;
     }
     if (_pendingToken) {
-      // Update pending token (server issued a fresh one after password change)
       _pendingToken = data.pendingToken || _pendingToken;
-      // Now proceed to 2FA setup
-      btn.disabled = false; btn.textContent = 'שנה סיסמה';
+      btn.disabled = false; btn.textContent = 'שמור והמשך';
       showStep('step-totp-setup');
       loadTotpSetup();
     } else {
@@ -378,11 +664,11 @@ async function doChangePassword(e) {
   } catch {
     err.textContent = 'שגיאת רשת — נסה שנית';
     err.classList.add('show');
-    btn.disabled = false; btn.textContent = 'שנה סיסמה';
+    btn.disabled = false; btn.textContent = 'שמור והמשך';
   }
 }
 
-// ── Step 3: TOTP verify (existing 2FA users) ──────────────────────────────────
+// ── Step 3: Verify TOTP ───────────────────────────────────────────────────────
 function toggleBackupMode() {
   _inBackupMode = !_inBackupMode;
   const inp = document.getElementById('totp-code');
@@ -393,19 +679,19 @@ function toggleBackupMode() {
     inp.maxLength = 9;
     inp.placeholder = 'XXXX-XXXX';
     inp.oninput = () => {
-      let v = inp.value.replace(/[^A-Za-z0-9]/g, '').toUpperCase().slice(0, 8);
-      if (v.length > 4) v = v.slice(0, 4) + '-' + v.slice(4);
+      let v = inp.value.replace(/[^A-Za-z0-9]/g,'').toUpperCase().slice(0,8);
+      if (v.length > 4) v = v.slice(0,4) + '-' + v.slice(4);
       inp.value = v;
     };
-    sub.innerHTML = 'הזן קוד גיבוי בפורמט <code>XXXX-XXXX</code>';
+    sub.textContent = 'הזן קוד גיבוי בפורמט XXXX-XXXX';
     tog.textContent = '← חזרה לקוד אימות רגיל';
   } else {
     inp.classList.remove('backup-mode');
     inp.maxLength = 6;
     inp.placeholder = '000000';
-    inp.oninput = () => { inp.value = inp.value.replace(/[^0-9]/g, '').slice(0, 6); };
+    inp.oninput = () => { inp.value = inp.value.replace(/[^0-9]/g,'').slice(0,6); };
     inp.value = '';
-    sub.innerHTML = 'הזן את הקוד מאפליקציית האימות שלך<br>(Google Authenticator / Authy)';
+    sub.textContent = 'הזן את הקוד מ-Google Authenticator / Authy';
     tog.textContent = 'שכחתי — השתמש בקוד גיבוי';
   }
   inp.value = '';
@@ -422,77 +708,66 @@ async function doTotp() {
   btn.disabled = true; btn.textContent = 'מאמת...';
   try {
     const res = await fetch('/api/auth/totp/verify', {
-      method: 'POST',
-      headers: {'Content-Type': 'application/json'},
+      method: 'POST', headers: {'Content-Type': 'application/json'},
       body: JSON.stringify({ pendingToken: _pendingToken, code })
     });
     const data = await res.json();
-    if (res.ok) {
-      window.location.href = '/dashboard';
-    } else {
-      err.textContent = data.error || 'קוד שגוי — נסה שנית';
-      err.classList.add('show');
-      btn.disabled = false; btn.textContent = 'אמת';
-      document.getElementById('totp-code').value = '';
-      document.getElementById('totp-code').focus();
-    }
-  } catch {
-    err.textContent = 'שגיאת רשת — נסה שנית';
+    if (res.ok) { window.location.href = '/dashboard'; return; }
+    err.textContent = data.error || 'קוד שגוי — נסה שנית';
     err.classList.add('show');
-    btn.disabled = false; btn.textContent = 'אמת';
+    btn.disabled = false; btn.textContent = 'אמת →';
+    document.getElementById('totp-code').value = '';
+    document.getElementById('totp-code').focus();
+  } catch {
+    err.textContent = 'שגיאת רשת';
+    err.classList.add('show');
+    btn.disabled = false; btn.textContent = 'אמת →';
   }
 }
-
-// Allow pressing Enter in the TOTP input to submit
 document.getElementById('totp-code').addEventListener('keydown', e => {
   if (e.key === 'Enter') { e.preventDefault(); doTotp(); }
 });
 
-// ── Step 4: First-time TOTP setup ─────────────────────────────────────────────
+// ── Step 4: TOTP setup ────────────────────────────────────────────────────────
 async function loadTotpSetup() {
+  const qrBox      = document.getElementById('qr-box');
   const qrImg      = document.getElementById('totp-qr');
-  const qrLoading  = document.getElementById('qr-loading');
   const loadingTxt = document.getElementById('qr-loading-text');
   const retryWrap  = document.getElementById('qr-retry-wrap');
   const manual     = document.getElementById('totp-manual');
   const errEl      = document.getElementById('totp-setup-err');
-  // Reset state
   qrImg.style.display    = 'none';
-  qrLoading.style.display = 'flex';
+  loadingTxt.style.display = '';
+  loadingTxt.textContent = '⏳ טוען...';
   retryWrap.style.display = 'none';
   errEl.classList.remove('show');
-  if (loadingTxt) loadingTxt.textContent = '⏳ טוען QR...';
   try {
     const res = await fetch('/api/auth/totp/setup', {
-      method: 'POST',
-      headers: {'Content-Type': 'application/json'},
+      method: 'POST', headers: {'Content-Type': 'application/json'},
       body: JSON.stringify({ pendingToken: _pendingToken })
     });
     const data = await res.json();
     if (!res.ok) {
-      if (loadingTxt) loadingTxt.textContent = '❌ ' + (data.error || 'שגיאה');
-      errEl.textContent = data.error || 'שגיאה בטעינת קוד QR — נסה שנית';
+      loadingTxt.textContent = '❌ ' + (data.error || 'שגיאה');
+      errEl.textContent = data.error || 'שגיאה בטעינת QR — נסה שנית';
       errEl.classList.add('show');
       retryWrap.style.display = '';
       return;
     }
     manual.textContent = data.secret || '';
     if (!data.qrDataUrl) {
-      // QR generation failed — show manual entry prominently
-      if (loadingTxt) loadingTxt.textContent = '⚠ QR לא זמין — השתמש בהזנה ידנית';
-      // Auto-open the manual-entry details
-      const det = document.querySelector('.secret-wrap');
-      if (det) det.setAttribute('open', '');
-      setTimeout(() => document.getElementById('totp-setup-code').focus(), 100);
+      loadingTxt.textContent = '⚠ QR לא זמין — השתמש בהזנה ידנית';
+      document.querySelector('.secret-wrap').setAttribute('open','');
+      setTimeout(() => document.getElementById('totp-setup-code').focus(), 50);
       return;
     }
-    qrLoading.style.display = 'none';
+    loadingTxt.style.display = 'none';
     qrImg.src = data.qrDataUrl;
-    qrImg.style.display = '';
+    qrImg.style.display = 'block';
     setTimeout(() => document.getElementById('totp-setup-code').focus(), 100);
-  } catch (e) {
-    if (loadingTxt) loadingTxt.textContent = '❌ שגיאת רשת';
-    errEl.textContent = 'שגיאת רשת — בדוק חיבור ונסה שנית';
+  } catch (ex) {
+    loadingTxt.textContent = '❌ שגיאת רשת';
+    errEl.textContent = 'שגיאת רשת — נסה שנית';
     errEl.classList.add('show');
     retryWrap.style.display = '';
   }
@@ -503,65 +778,51 @@ async function doTotpActivate() {
   const err  = document.getElementById('totp-setup-err');
   const code = document.getElementById('totp-setup-code').value.trim();
   err.classList.remove('show');
-  if (!code || code.length < 6) { err.textContent = 'הזן קוד 6 ספרות מהאפליקציה'; err.classList.add('show'); return; }
+  if (!code || code.length < 6) { err.textContent = 'הזן קוד 6 ספרות'; err.classList.add('show'); return; }
   btn.disabled = true; btn.textContent = 'מאמת...';
   try {
     const res = await fetch('/api/auth/totp/activate', {
-      method: 'POST',
-      headers: {'Content-Type': 'application/json'},
+      method: 'POST', headers: {'Content-Type': 'application/json'},
       body: JSON.stringify({ pendingToken: _pendingToken, code })
     });
     const data = await res.json();
     if (!res.ok) {
       err.textContent = data.error || 'קוד שגוי — נסה שנית';
       err.classList.add('show');
-      btn.disabled = false; btn.textContent = 'אפשר 2FA';
+      btn.disabled = false; btn.textContent = 'אפשר 2FA →';
       document.getElementById('totp-setup-code').value = '';
       document.getElementById('totp-setup-code').focus();
       return;
     }
-    // Show backup codes
     _backupCodes = data.backupCodes || [];
     const grid = document.getElementById('backup-codes-grid');
     grid.innerHTML = _backupCodes.map(c => `<div class="backup-code-item">${c}</div>`).join('');
     showStep('step-backup-codes');
   } catch {
-    err.textContent = 'שגיאת רשת — נסה שנית';
+    err.textContent = 'שגיאת רשת';
     err.classList.add('show');
-    btn.disabled = false; btn.textContent = 'אפשר 2FA';
+    btn.disabled = false; btn.textContent = 'אפשר 2FA →';
   }
 }
-
-// Allow pressing Enter in the setup code input
 document.getElementById('totp-setup-code').addEventListener('keydown', e => {
   if (e.key === 'Enter') { e.preventDefault(); doTotpActivate(); }
 });
 
 // ── Step 5: Backup codes ──────────────────────────────────────────────────────
 function copyBackupCodes() {
-  const text = _backupCodes.join('\n');
-  navigator.clipboard.writeText(text).then(() => {
-    const btn = event.target;
-    btn.textContent = '✓ הועתק!';
-    setTimeout(() => { btn.textContent = '📋 העתק'; }, 2000);
-  }).catch(() => {
-    prompt('העתק את הקודים:', _backupCodes.join('  '));
-  });
+  navigator.clipboard.writeText(_backupCodes.join('\n')).catch(() => {});
+  const btn = event.target;
+  btn.textContent = '✓ הועתק!';
+  setTimeout(() => { btn.textContent = '📋 העתק'; }, 2000);
 }
-
 function downloadBackupCodes() {
-  const text = `קודי גיבוי — אפקון\nשמור אותם במקום בטוח!\nכל קוד חד פעמי.\n\n${_backupCodes.join('\n')}`;
-  const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
-  const url  = URL.createObjectURL(blob);
-  const a    = document.createElement('a');
-  a.href = url; a.download = 'afkon-backup-codes.txt';
+  const text = `קודי גיבוי — אפקון\nכל קוד חד פעמי.\n\n${_backupCodes.join('\n')}`;
+  const url  = URL.createObjectURL(new Blob([text], { type: 'text/plain;charset=utf-8' }));
+  const a    = Object.assign(document.createElement('a'), { href: url, download: 'afkon-backup-codes.txt' });
   a.click();
   setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
-
-function doFinishSetup() {
-  window.location.href = '/dashboard';
-}
+function doFinishSetup() { window.location.href = '/dashboard'; }
 </script>
 </body>
 </html>
