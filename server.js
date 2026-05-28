@@ -12,6 +12,8 @@ const { v4: uuidv4 } = require('uuid');
 
 const crypto  = require('crypto');
 const nodemailer = require('nodemailer');
+const { totp: _totp } = require('otplib');
+const QRCode = require('qrcode');
 
 const db        = require('./db');
 const docpack   = require('./docpack');
@@ -152,7 +154,8 @@ function getClientIp(req) {
 function requireAuth(req, res, next) {
   const token = req.cookies?.token;
   const payload = verifyToken(token);
-  if (!payload) {
+  // Reject pending/intermediate TOTP tokens — they cannot access protected APIs
+  if (!payload || payload.step) {
     if (req.path.startsWith('/api/')) return res.status(401).json({ error: 'Unauthorized' });
     return res.redirect('/login');
   }
@@ -164,6 +167,53 @@ function requireAuth(req, res, next) {
   }
   req.user = { id: user.id, username: user.username, role: user.role };
   next();
+}
+
+// Middleware for TOTP intermediate steps (pendingToken in request body)
+function requirePendingToken(expectedStep) {
+  return (req, res, next) => {
+    const tok = req.body?.pendingToken;
+    const p = tok ? verifyToken(tok) : null;
+    if (!p || p.step !== expectedStep) {
+      return res.status(401).json({ error: 'Invalid or expired session. Please log in again.' });
+    }
+    req.pendingUserId = p.id;
+    next();
+  };
+}
+
+// TOTP helpers
+function _generateSecret() {
+  return _totp.generateSecret();
+}
+function _verifyTotpCode(secret, code) {
+  try {
+    _totp.options = { window: 1 }; // allow ±30s drift
+    return _totp.check(String(code).replace(/\s/g, ''), secret);
+  } catch { return false; }
+}
+function _generateBackupCodes() {
+  return Array.from({ length: 8 }, () => {
+    const raw = crypto.randomBytes(4).toString('hex').toUpperCase();
+    return raw.slice(0, 4) + '-' + raw.slice(4);
+  });
+}
+function _verifyTotpOrBackup(user, rawCode) {
+  const code = String(rawCode || '').replace(/\s/g, '').toUpperCase();
+  // 6-digit TOTP
+  if (/^\d{6}$/.test(code)) return _verifyTotpCode(user.totp_secret, code);
+  // Backup code (XXXX-XXXX)
+  if (!user.totp_backup_codes) return false;
+  let stored;
+  try { stored = JSON.parse(user.totp_backup_codes); } catch { return false; }
+  for (let i = 0; i < stored.length; i++) {
+    if (bcrypt.compareSync(code, stored[i])) {
+      stored.splice(i, 1);
+      db.updateUserBackupCodes(user.id, JSON.stringify(stored));
+      return true;
+    }
+  }
+  return false;
 }
 
 function requireAdmin(req, res, next) {
@@ -263,14 +313,16 @@ app.post('/api/auth/login', loginLimiter, (req, res) => {
   db.updateLastLogin(user.id);
   db.logAudit(user.id, user.username, 'login', null, ip, ua);
 
-  const token = signToken(user);
-  res.cookie('token', token, {
-    httpOnly: true,
-    secure:   process.env.NODE_ENV === 'production',
-    sameSite: 'strict',
-    maxAge:   8 * 60 * 60 * 1000,   // 8 hours
-  });
-  res.json({ ok: true, role: user.role, must_change_password: !!user.must_change_password });
+  // ── 2FA gate ──────────────────────────────────────────────────────────────
+  // Issue a short-lived pending token instead of a full session token.
+  // The full JWT cookie is only set after TOTP is verified.
+  if (user.totp_enabled) {
+    const pendingToken = jwt.sign({ id: user.id, step: 'totp_verify' }, JWT_SECRET, { expiresIn: '5m' });
+    return res.json({ ok: true, requires2fa: true, pendingToken });
+  }
+  // No 2FA set up yet — force enrollment before granting access
+  const pendingToken = jwt.sign({ id: user.id, step: 'totp_setup' }, JWT_SECRET, { expiresIn: '10m' });
+  return res.json({ ok: true, needsTotpSetup: true, pendingToken, must_change_password: !!user.must_change_password });
 });
 
 app.post('/api/auth/logout', requireAuth, (req, res) => {
@@ -281,6 +333,152 @@ app.post('/api/auth/logout', requireAuth, (req, res) => {
   res.json({ ok: true });
 });
 
+// ── TOTP 2FA routes ───────────────────────────────────────────────────────────
+
+// Rate limiter for TOTP verification (prevent brute force on the 6-digit code)
+const totpLimiter = rateLimit({
+  windowMs: 2 * 60 * 1000,  // 2 minutes
+  max: 8,
+  message: { error: 'יותר מדי ניסיונות — נסה שנית בעוד 2 דקות' },
+  standardHeaders: true, legacyHeaders: false,
+});
+
+// Change password during TOTP setup flow (before full JWT is issued)
+// Used when must_change_password=1 AND totp not yet configured
+app.post('/api/auth/totp/change-password', (req, res) => {
+  const { pendingToken, currentPassword, newPassword } = req.body || {};
+  if (!pendingToken || !currentPassword || !newPassword)
+    return res.status(400).json({ error: 'Missing fields' });
+  const pending = verifyToken(pendingToken);
+  if (!pending || pending.step !== 'totp_setup')
+    return res.status(401).json({ error: 'Invalid or expired session. Please log in again.' });
+  const user = db.getUserById(pending.id);
+  if (!user || !user.active) return res.status(401).json({ error: 'Unauthorized' });
+  if (!bcrypt.compareSync(currentPassword, user.password_hash))
+    return res.status(401).json({ error: 'הסיסמה הנוכחית שגויה' });
+  const pwErr = validatePassword(newPassword);
+  if (pwErr) return res.status(400).json({ error: pwErr });
+  if (currentPassword === newPassword)
+    return res.status(400).json({ error: 'הסיסמה החדשה זהה לישנה' });
+  db.setPassword(user.id, newPassword);
+  db.setMustChangePassword(user.id, 0);
+  db.logAudit(user.id, user.username, 'change_password', 'Password changed during TOTP setup', null, '');
+  // Issue fresh pending token (extends window after password change)
+  const newPendingToken = jwt.sign({ id: user.id, step: 'totp_setup' }, JWT_SECRET, { expiresIn: '10m' });
+  res.json({ ok: true, pendingToken: newPendingToken });
+});
+
+// Step 1b: Generate TOTP secret + QR code (called during setup flow)
+// Accepts EITHER a pending setup token (body.pendingToken) OR a logged-in session (cookie)
+app.post('/api/auth/totp/setup', async (req, res) => {
+  let userId;
+  // Try pending token first
+  const tok = req.body?.pendingToken;
+  const pending = tok ? verifyToken(tok) : null;
+  if (pending && pending.step === 'totp_setup') {
+    userId = pending.id;
+  } else {
+    // Fall back to full session (user re-triggering setup from dashboard)
+    const cookiePayload = verifyToken(req.cookies?.token);
+    if (!cookiePayload || cookiePayload.step) return res.status(401).json({ error: 'Unauthorized' });
+    userId = cookiePayload.id;
+  }
+  const user = db.getUserById(userId);
+  if (!user || !user.active) return res.status(401).json({ error: 'Unauthorized' });
+
+  const secret = _generateSecret();
+  db.setUserTotpSecret(userId, secret);
+
+  const label = encodeURIComponent(`אפקון (${user.username})`);
+  const issuer = encodeURIComponent('Afkon Dashboard');
+  const otpauthUrl = `otpauth://totp/${label}?secret=${secret}&issuer=${issuer}&algorithm=SHA1&digits=6&period=30`;
+  try {
+    const qrDataUrl = await QRCode.toDataURL(otpauthUrl, { errorCorrectionLevel: 'M', width: 256 });
+    res.json({ ok: true, secret, qrDataUrl });
+  } catch (e) {
+    res.status(500).json({ error: 'Failed to generate QR code' });
+  }
+});
+
+// Step 1c: Activate TOTP — verify code, store backup codes, issue full JWT
+app.post('/api/auth/totp/activate', totpLimiter, (req, res) => {
+  const { code, pendingToken } = req.body || {};
+  let userId;
+  const pending = pendingToken ? verifyToken(pendingToken) : null;
+  if (pending && pending.step === 'totp_setup') {
+    userId = pending.id;
+  } else {
+    const cookiePayload = verifyToken(req.cookies?.token);
+    if (!cookiePayload || cookiePayload.step) return res.status(401).json({ error: 'Unauthorized' });
+    userId = cookiePayload.id;
+  }
+  const user = db.getUserById(userId);
+  if (!user || !user.active || !user.totp_secret) return res.status(401).json({ error: 'Unauthorized' });
+
+  if (!_verifyTotpCode(user.totp_secret, code)) {
+    return res.status(400).json({ error: 'קוד שגוי — בדוק שהשעה מסונכרנת ונסה שנית' });
+  }
+
+  // Generate and hash backup codes
+  const rawCodes = _generateBackupCodes();
+  const hashedCodes = rawCodes.map(c => bcrypt.hashSync(c, 10));
+  db.enableUserTotp(userId, JSON.stringify(hashedCodes));
+  db.logAudit(userId, user.username, 'totp_enabled', 'TOTP 2FA activated', null, '');
+
+  // Issue full JWT cookie now that 2FA is confirmed
+  const token = signToken(user);
+  res.cookie('token', token, {
+    httpOnly: true,
+    secure:   process.env.NODE_ENV === 'production',
+    sameSite: 'strict',
+    maxAge:   8 * 60 * 60 * 1000,
+  });
+  res.json({ ok: true, backupCodes: rawCodes, role: user.role, must_change_password: !!user.must_change_password });
+});
+
+// Step 2: Verify TOTP code after password login (totp_enabled=1 path)
+app.post('/api/auth/totp/verify', totpLimiter, (req, res) => {
+  const { pendingToken, code } = req.body || {};
+  if (!pendingToken || !code) return res.status(400).json({ error: 'Missing fields' });
+
+  const pending = verifyToken(pendingToken);
+  if (!pending || pending.step !== 'totp_verify') {
+    return res.status(401).json({ error: 'Invalid or expired session. Please log in again.' });
+  }
+
+  const user = db.getUserById(pending.id);
+  if (!user || !user.active) return res.status(401).json({ error: 'Unauthorized' });
+  if (!user.totp_enabled || !user.totp_secret) return res.status(400).json({ error: '2FA not configured' });
+
+  if (!_verifyTotpOrBackup(user, code)) {
+    db.logAudit(user.id, user.username, 'totp_fail', 'Wrong TOTP code', null, '');
+    return res.status(401).json({ error: 'קוד שגוי — בדוק את האפליקציה ונסה שנית' });
+  }
+
+  db.logAudit(user.id, user.username, 'login_totp', 'TOTP verified', null, '');
+  const token = signToken(user);
+  res.cookie('token', token, {
+    httpOnly: true,
+    secure:   process.env.NODE_ENV === 'production',
+    sameSite: 'strict',
+    maxAge:   8 * 60 * 60 * 1000,
+  });
+  res.json({ ok: true, role: user.role, must_change_password: !!user.must_change_password });
+});
+
+// Admin: reset 2FA for any user
+app.post('/api/admin/users/:id/reset-2fa', requireAdmin, (req, res) => {
+  const id = parseInt(req.params.id);
+  const target = db.getUserById(id);
+  if (!target) return res.status(404).json({ error: 'User not found' });
+  db.disableUserTotp(id);
+  db.logAudit(req.user.id, req.user.username, 'totp_reset',
+    `Reset 2FA for user: ${target.username}`, getClientIp(req), '');
+  res.json({ ok: true });
+});
+
+// ── General auth routes ────────────────────────────────────────────────────────
+
 app.get('/api/auth/me', requireAuth, (req, res) => {
   const user = db.getUserById(req.user.id);
   if (!user) return res.status(404).json({ error: 'User not found' });
@@ -289,7 +487,7 @@ app.get('/api/auth/me', requireAuth, (req, res) => {
   if (user.role !== 'admin') {
     sections = user.sections ? JSON.parse(user.sections) : [];
   }
-  res.json({ id: user.id, username: user.username, role: user.role, sections });
+  res.json({ id: user.id, username: user.username, role: user.role, sections, totp_enabled: !!user.totp_enabled });
 });
 
 app.post('/api/auth/change-password', requireAuth, (req, res) => {
@@ -324,7 +522,7 @@ app.post('/api/audit/event', requireAuth, (req, res) => {
 // ── User management (admin only) ──────────────────────────────────────────────
 
 app.get('/api/users', requireAdmin, (req, res) => {
-  res.json(db.listUsers());
+  res.json(db.listUsersWithTotp());
 });
 
 app.post('/api/users', requireAdmin, (req, res) => {

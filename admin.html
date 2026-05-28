@@ -124,9 +124,9 @@ tr:hover td{background:#f8fafc}
     <table id="users-table">
       <thead><tr>
         <th>שם משתמש</th><th>תפקיד</th><th>סטטוס</th>
-        <th>שינוי סיסמה?</th><th>נוצר</th><th>כניסה אחרונה</th><th>פעולות</th>
+        <th>שינוי סיסמה?</th><th>2FA</th><th>נוצר</th><th>כניסה אחרונה</th><th>פעולות</th>
       </tr></thead>
-      <tbody id="users-tbody"><tr><td colspan="7" class="empty">טוען...</td></tr></tbody>
+      <tbody id="users-tbody"><tr><td colspan="8" class="empty">טוען...</td></tr></tbody>
     </table>
   </div>
 </div>
@@ -502,7 +502,7 @@ const SECTION_LABELS = {list:'לוח משימות',kanban:'קנבן',catalog:'ק
 
 function renderUsers() {
   const tbody = document.getElementById('users-tbody');
-  if (!users.length) { tbody.innerHTML='<tr><td colspan="7" class="empty">אין משתמשים</td></tr>'; return; }
+  if (!users.length) { tbody.innerHTML='<tr><td colspan="8" class="empty">אין משתמשים</td></tr>'; return; }
   tbody.innerHTML = users.map(u => {
     let sectionsBadges = '';
     if (u.role === 'admin') {
@@ -519,6 +519,7 @@ function renderUsers() {
       <td><span class="badge badge-${u.role}">${u.role==='admin'?'מנהל':'צופה'}</span></td>
       <td>${u.login_attempts>=5?'<span class="badge badge-locked">🔒 חסום</span> ':''}<span class="badge ${u.active?'badge-on':'badge-off'}">${u.active?'פעיל':'מושבת'}</span></td>
       <td style="text-align:center">${u.must_change_password?'<span style="color:#b45309;font-weight:700">⚠️ כן</span>':'<span style="color:#6b7280">—</span>'}</td>
+      <td style="text-align:center">${u.totp_enabled?'<span title="2FA פעיל">✅</span>':'<span title="2FA לא מוגדר" style="color:#9ca3af">❌</span>'}</td>
       <td>${fmtDate(u.created_at)}</td>
       <td>${u.last_login?fmtDate(u.last_login):'—'}</td>
       <td>
@@ -526,6 +527,7 @@ function renderUsers() {
           ${u.role==='viewer'?`<button class="btn btn-sm" style="background:#eff6ff;color:#1d4ed8;border-color:#bfdbfe" onclick="openPermissions(${u.id},'${u.username}')">🔐 גישה</button>`:''}
           ${u.login_attempts>=5?`<button class="btn btn-sm" style="background:#fef3c7;color:#92400e;border-color:#fde68a" onclick="unlockUser(${u.id},'${u.username}')">🔓 שחרר</button>`:''}
           <button class="btn btn-warning btn-sm" onclick="openResetPassword(${u.id},'${u.username}')">איפוס סיסמה</button>
+          ${u.totp_enabled?`<button class="btn btn-sm" style="background:#fef3c7;color:#92400e;border-color:#fde68a" onclick="reset2fa(${u.id},'${u.username}')">🔄 2FA</button>`:''}
           <button class="btn btn-sm ${u.active?'btn-danger':''}" onclick="toggleActive(${u.id},${u.active})">${u.active?'השבת':'הפעל'}</button>
           ${u.role==='admin'?`<button class="btn btn-sm btn-warning" onclick="toggleRole(${u.id})">↩ הפוך לצופה</button>`:''}
           <button class="btn btn-danger btn-sm" onclick="deleteUser(${u.id},'${u.username}')">🗑️ מחק</button>
@@ -598,6 +600,16 @@ async function toggleRole(id) {
   // Immediately open the permissions modal so sections can be configured
   const user = users.find(u => u.id === id);
   if (user) openPermissions(id, user.username);
+}
+
+async function reset2fa(id, username) {
+  if (!confirm(`לאפס את ה-2FA של "${username}"?\nהמשתמש יצטרך להגדיר מחדש בכניסה הבאה.`)) return;
+  const res = await api('POST', `/api/admin/users/${id}/reset-2fa`);
+  if (res.ok) {
+    loadUsers();
+  } else {
+    alert(res.error || 'שגיאה באיפוס 2FA');
+  }
 }
 
 function openAddUser() {

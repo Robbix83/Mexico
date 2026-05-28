@@ -4397,6 +4397,10 @@ async function _dsfSyncCatalog(){
       if(first) setView(first);
       else _showNoAccessScreen();
     }
+    // If 2FA is not yet configured, show the mandatory setup modal
+    if(u.totp_enabled === false){
+      _tsmShow();
+    }
   }catch(e){}
   finally{
     // Always remove the guard — no flash regardless of outcome
@@ -8812,5 +8816,198 @@ function clearPlImported(){
   <button class="rq-sb-btn" onclick="rqResetQtys()">🔄 איפוס כמויות</button>
   <button class="rq-sb-btn rq-sb-btn-primary" onclick="rqExportCertificate()">📋 שמור תעודה</button>
 </div>
+
+<!-- ── Mandatory TOTP Setup Modal (shown on first login if totp not set up) ── -->
+<div id="totp-setup-modal" style="
+  display:none;position:fixed;inset:0;z-index:9999;
+  background:rgba(10,20,50,.82);
+  align-items:center;justify-content:center;
+  font-family:'Segoe UI',system-ui,Arial,sans-serif;direction:rtl;
+">
+  <div style="
+    background:#fff;border-radius:18px;padding:36px 32px;
+    width:420px;max-width:95vw;box-shadow:0 24px 64px rgba(0,0,0,.5);
+    max-height:90vh;overflow-y:auto;
+  ">
+    <!-- Sub-step: QR setup -->
+    <div id="tsm-step-setup">
+      <div style="font-size:2.4rem;text-align:center;margin-bottom:10px">📱</div>
+      <h2 style="font-size:1.1rem;font-weight:700;color:#1a2a4a;text-align:center;margin-bottom:6px">הגדרת אימות דו-שלבי חובה</h2>
+      <p style="font-size:.83rem;color:#6b7280;text-align:center;margin-bottom:18px;line-height:1.5">לאבטחת החשבון שלך, יש להגדיר אימות דו-שלבי לפני הכניסה למערכת</p>
+      <ol style="font-size:.8rem;color:#4b5563;line-height:2;padding-right:18px;margin-bottom:16px">
+        <li>התקן <strong>Google Authenticator</strong> או <strong>Authy</strong> בטלפון</li>
+        <li>לחץ על "+" בחר "סרוק קוד QR"</li>
+        <li>סרוק את הקוד למטה</li>
+        <li>הזן את הקוד בן 6 הספרות מהאפליקציה</li>
+      </ol>
+      <div style="text-align:center;margin:16px 0">
+        <div id="tsm-qr-loading" style="
+          width:200px;height:200px;display:inline-flex;align-items:center;
+          justify-content:center;background:#f9fafb;border-radius:12px;
+          border:1px solid #e5e7eb;color:#9ca3af;font-size:.85rem;
+        ">טוען QR...</div>
+        <img id="tsm-qr-img" style="display:none;width:200px;height:200px;border-radius:12px;border:1px solid #e5e7eb" alt="QR Code">
+      </div>
+      <details style="margin:8px 0 16px;text-align:center">
+        <summary style="font-size:.77rem;color:#6b7280;cursor:pointer;margin-bottom:4px">הזנה ידנית (ללא מצלמה)</summary>
+        <div id="tsm-manual" style="
+          font-family:monospace;font-size:.82rem;background:#f3f4f6;
+          border:1px solid #e5e7eb;border-radius:6px;padding:8px 12px;
+          word-break:break-all;color:#374151;direction:ltr;margin-top:6px;
+        "></div>
+      </details>
+      <div style="margin-bottom:14px">
+        <label style="display:block;font-size:.82rem;font-weight:600;color:#4b5563;margin-bottom:5px">קוד מהאפליקציה (6 ספרות)</label>
+        <input id="tsm-code" type="text" inputmode="numeric" maxlength="6"
+          placeholder="000000" autocomplete="one-time-code"
+          oninput="this.value=this.value.replace(/[^0-9]/g,'').slice(0,6)"
+          style="
+            width:100%;padding:14px;border:2px solid #d1d5db;border-radius:10px;
+            font-size:1.6rem;font-weight:700;letter-spacing:.25em;text-align:center;
+            direction:ltr;outline:none;transition:border-color .2s;
+          ">
+      </div>
+      <button id="tsm-activate-btn" onclick="_tsmActivate()" style="
+        width:100%;padding:13px;background:#1d4ed8;color:#fff;border:none;
+        border-radius:10px;font-size:.95rem;font-weight:700;cursor:pointer;
+        transition:background .2s;
+      ">אפשר 2FA וכנס למערכת</button>
+      <div id="tsm-err" style="
+        display:none;background:#fef2f2;border:1px solid #fca5a5;color:#dc2626;
+        border-radius:8px;padding:10px 14px;font-size:.83rem;margin-top:12px;text-align:center;
+      "></div>
+    </div>
+
+    <!-- Sub-step: Backup codes -->
+    <div id="tsm-step-backup" style="display:none">
+      <div style="font-size:2.4rem;text-align:center;margin-bottom:10px">🔑</div>
+      <h2 style="font-size:1.1rem;font-weight:700;color:#1a2a4a;text-align:center;margin-bottom:10px">קודי גיבוי — שמור אותם!</h2>
+      <div style="
+        background:#fef2f2;border:1px solid #fca5a5;border-radius:8px;
+        padding:10px 14px;font-size:.8rem;color:#dc2626;margin-bottom:14px;text-align:center;
+      ">⚠ כל קוד תקף לשימוש <strong>חד פעמי</strong> בלבד.<br>הרשימה תוצג פעם אחת — שמור אותם עכשיו.</div>
+      <div id="tsm-backup-grid" style="
+        display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:14px 0;direction:ltr;
+      "></div>
+      <div style="display:flex;gap:8px;margin-bottom:16px">
+        <button onclick="_tsmCopy()" style="
+          flex:1;padding:8px;background:#f3f4f6;border:1px solid #d1d5db;
+          border-radius:8px;font-size:.82rem;cursor:pointer;color:#374151;
+          transition:background .15s;
+        ">📋 העתק</button>
+        <button onclick="_tsmDownload()" style="
+          flex:1;padding:8px;background:#f3f4f6;border:1px solid #d1d5db;
+          border-radius:8px;font-size:.82rem;cursor:pointer;color:#374151;
+          transition:background .15s;
+        ">⬇ הורד TXT</button>
+      </div>
+      <button onclick="_tsmFinish()" style="
+        width:100%;padding:13px;background:#166534;color:#fff;border:none;
+        border-radius:10px;font-size:.95rem;font-weight:700;cursor:pointer;
+      ">✓ שמרתי — כנס למערכת</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── Mandatory TOTP setup modal (dashboard) ────────────────────────────────────
+let _tsmBackupCodes = [];
+
+function _tsmShow() {
+  const m = document.getElementById('totp-setup-modal');
+  m.style.display = 'flex';
+  _tsmLoadQr();
+}
+
+async function _tsmLoadQr() {
+  try {
+    const res = await fetch('/api/auth/totp/setup', {
+      method: 'POST', headers: {'Content-Type': 'application/json'}, body: '{}'
+    });
+    const data = await res.json();
+    if (!res.ok) {
+      document.getElementById('tsm-err').textContent = data.error || 'שגיאה בטעינת QR';
+      document.getElementById('tsm-err').style.display = '';
+      return;
+    }
+    const loading = document.getElementById('tsm-qr-loading');
+    const img     = document.getElementById('tsm-qr-img');
+    loading.style.display = 'none';
+    img.src = data.qrDataUrl;
+    img.style.display = '';
+    document.getElementById('tsm-manual').textContent = data.secret;
+    setTimeout(() => { const c = document.getElementById('tsm-code'); if (c) c.focus(); }, 100);
+  } catch (e) {
+    document.getElementById('tsm-qr-loading').textContent = 'שגיאת רשת';
+  }
+}
+
+async function _tsmActivate() {
+  const btn  = document.getElementById('tsm-activate-btn');
+  const err  = document.getElementById('tsm-err');
+  const code = document.getElementById('tsm-code').value.trim();
+  err.style.display = 'none';
+  if (!code || code.length < 6) {
+    err.textContent = 'הזן קוד 6 ספרות מהאפליקציה';
+    err.style.display = ''; return;
+  }
+  btn.disabled = true; btn.textContent = 'מאמת...';
+  try {
+    const res = await fetch('/api/auth/totp/activate', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({ code })
+    });
+    const data = await res.json();
+    if (!res.ok) {
+      err.textContent = data.error || 'קוד שגוי — נסה שנית';
+      err.style.display = '';
+      btn.disabled = false; btn.textContent = 'אפשר 2FA וכנס למערכת';
+      document.getElementById('tsm-code').value = '';
+      document.getElementById('tsm-code').focus();
+      return;
+    }
+    // Show backup codes
+    _tsmBackupCodes = data.backupCodes || [];
+    const grid = document.getElementById('tsm-backup-grid');
+    grid.innerHTML = _tsmBackupCodes.map(c =>
+      `<div style="background:#f3f4f6;border:1px solid #d1d5db;border-radius:6px;padding:8px;font-family:monospace;font-size:.9rem;font-weight:700;text-align:center;color:#111827;letter-spacing:.08em">${c}</div>`
+    ).join('');
+    document.getElementById('tsm-step-setup').style.display = 'none';
+    document.getElementById('tsm-step-backup').style.display = '';
+  } catch (e) {
+    err.textContent = 'שגיאת רשת — נסה שנית';
+    err.style.display = '';
+    btn.disabled = false; btn.textContent = 'אפשר 2FA וכנס למערכת';
+  }
+}
+
+function _tsmCopy() {
+  const text = _tsmBackupCodes.join('\n');
+  navigator.clipboard.writeText(text).catch(() => {});
+  event.target.textContent = '✓ הועתק!';
+  setTimeout(() => { event.target.textContent = '📋 העתק'; }, 2000);
+}
+
+function _tsmDownload() {
+  const text = `קודי גיבוי — אפקון\nכל קוד חד פעמי.\n\n${_tsmBackupCodes.join('\n')}`;
+  const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
+  const url  = URL.createObjectURL(blob);
+  const a    = Object.assign(document.createElement('a'), { href: url, download: 'afkon-backup-codes.txt' });
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+function _tsmFinish() {
+  // Hide modal — user is now fully authenticated and on the dashboard
+  document.getElementById('totp-setup-modal').style.display = 'none';
+}
+
+// Enter key in tsm-code submits
+document.addEventListener('DOMContentLoaded', () => {
+  const c = document.getElementById('tsm-code');
+  if (c) c.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); _tsmActivate(); } });
+});
+</script>
 </body>
 </html>

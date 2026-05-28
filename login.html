@@ -13,7 +13,7 @@
   }
   .card{
     background:#fff;border-radius:16px;padding:40px 36px;
-    width:380px;box-shadow:0 20px 60px rgba(0,0,0,.35);
+    width:400px;box-shadow:0 20px 60px rgba(0,0,0,.35);
   }
   .logo{display:flex;align-items:center;justify-content:center;margin-bottom:28px;gap:12px}
   .logo img{height:48px}
@@ -61,6 +61,63 @@
   }
   .pw-toggle:hover{color:#4f86f7}
   .pw-toggle svg{width:18px;height:18px;display:block}
+
+  /* TOTP styles */
+  .totp-icon{font-size:2.5rem;text-align:center;margin-bottom:12px}
+  .totp-title{font-size:1.05rem;font-weight:700;color:#1a2a4a;text-align:center;margin-bottom:6px}
+  .totp-sub{font-size:.82rem;color:#6b7280;text-align:center;margin-bottom:20px;line-height:1.5}
+  .totp-inp{
+    width:100%;padding:14px 16px;border:2px solid #d1d5db;border-radius:10px;
+    font-size:1.6rem;font-weight:700;letter-spacing:.25em;outline:none;
+    transition:border-color .2s;text-align:center;direction:ltr;
+    font-variant-numeric:tabular-nums;
+  }
+  .totp-inp:focus{border-color:#4f86f7}
+  .totp-inp.backup-mode{font-size:1.1rem;letter-spacing:.1em}
+  .backup-toggle{
+    display:block;text-align:center;margin-top:10px;font-size:.78rem;
+    color:#6b7280;cursor:pointer;text-decoration:underline;
+    background:none;border:none;width:100%;padding:0;
+  }
+  .backup-toggle:hover{color:#4f86f7}
+
+  /* QR code */
+  .qr-wrap{text-align:center;margin:16px 0}
+  .qr-wrap img{width:200px;height:200px;border-radius:10px;border:1px solid #e5e7eb}
+  .qr-loading{width:200px;height:200px;display:flex;align-items:center;justify-content:center;
+    margin:0 auto;background:#f9fafb;border-radius:10px;border:1px solid #e5e7eb;
+    color:#9ca3af;font-size:.85rem}
+  .secret-wrap{margin:10px 0 16px}
+  .secret-wrap summary{font-size:.77rem;color:#6b7280;cursor:pointer;text-align:center;margin-bottom:4px}
+  .secret-code{
+    font-family:monospace;font-size:.82rem;background:#f3f4f6;
+    border:1px solid #e5e7eb;border-radius:6px;padding:8px 12px;text-align:center;
+    word-break:break-all;color:#374151;direction:ltr;
+  }
+  .steps-ol{font-size:.8rem;color:#4b5563;line-height:1.8;padding-right:16px;margin-bottom:16px}
+
+  /* Backup codes display */
+  .backup-codes-grid{
+    display:grid;grid-template-columns:1fr 1fr;gap:8px;
+    margin:16px 0;direction:ltr;
+  }
+  .backup-code-item{
+    background:#f3f4f6;border:1px solid #d1d5db;border-radius:6px;
+    padding:8px;font-family:monospace;font-size:.9rem;font-weight:700;
+    text-align:center;color:#111827;letter-spacing:.08em;
+  }
+  .backup-warn{
+    background:#fef2f2;border:1px solid #fca5a5;border-radius:8px;
+    padding:10px 14px;font-size:.8rem;color:#dc2626;margin-bottom:14px;
+    text-align:center;line-height:1.5;
+  }
+  .backup-actions{display:flex;gap:8px;margin-bottom:16px}
+  .backup-actions button{
+    flex:1;padding:8px;background:#f3f4f6;border:1px solid #d1d5db;
+    border-radius:8px;font-size:.8rem;cursor:pointer;color:#374151;
+    transition:background .15s;
+  }
+  .backup-actions button:hover{background:#e5e7eb}
 </style>
 </head>
 <body>
@@ -123,9 +180,68 @@
           </button>
         </div>
       </div>
-      <button class="btn" type="submit" id="cp-btn">שנה סיסמה וכנס</button>
+      <button class="btn" type="submit" id="cp-btn">שנה סיסמה</button>
       <div class="err" id="cp-err"></div>
     </form>
+  </div>
+
+  <!-- Step 3: TOTP verify (for users who already have 2FA set up) -->
+  <div id="step-totp" class="step">
+    <div class="totp-icon">🔐</div>
+    <p class="totp-title">אימות דו-שלבי</p>
+    <p class="totp-sub" id="totp-sub-text">הזן את הקוד מאפליקציית האימות שלך<br>(Google Authenticator / Authy)</p>
+    <div class="field">
+      <input id="totp-code" class="totp-inp" type="text" inputmode="numeric" maxlength="6"
+        pattern="\d{6}" placeholder="000000" autocomplete="one-time-code"
+        oninput="this.value=this.value.replace(/[^0-9]/g,'').slice(0,6)">
+    </div>
+    <button class="btn" id="totp-btn" onclick="doTotp()">אמת</button>
+    <button type="button" class="backup-toggle" onclick="toggleBackupMode()">שכחתי — השתמש בקוד גיבוי</button>
+    <div class="err" id="totp-err"></div>
+  </div>
+
+  <!-- Step 4: First-time TOTP setup (QR scan) -->
+  <div id="step-totp-setup" class="step">
+    <div class="totp-icon">📱</div>
+    <p class="totp-title">הגדרת אימות דו-שלבי</p>
+    <ol class="steps-ol">
+      <li>התקן Google Authenticator או Authy בטלפון</li>
+      <li>לחץ "+" ובחר "סרוק קוד QR"</li>
+      <li>סרוק את הקוד למטה</li>
+      <li>הזן את הקוד בן 6 הספרות מהאפליקציה</li>
+    </ol>
+    <div class="qr-wrap">
+      <div class="qr-loading" id="qr-loading">טוען QR...</div>
+      <img id="totp-qr" style="display:none" alt="QR Code">
+    </div>
+    <details class="secret-wrap">
+      <summary>הזנה ידנית (ללא מצלמה)</summary>
+      <div class="secret-code" id="totp-manual"></div>
+    </details>
+    <div class="field">
+      <label for="totp-setup-code">קוד אימות מהאפליקציה (6 ספרות)</label>
+      <input id="totp-setup-code" class="totp-inp" type="text" inputmode="numeric" maxlength="6"
+        pattern="\d{6}" placeholder="000000" autocomplete="one-time-code"
+        oninput="this.value=this.value.replace(/[^0-9]/g,'').slice(0,6)">
+    </div>
+    <button class="btn" id="totp-activate-btn" onclick="doTotpActivate()">אפשר 2FA</button>
+    <div class="err" id="totp-setup-err"></div>
+  </div>
+
+  <!-- Step 5: Backup codes display (shown once after setup) -->
+  <div id="step-backup-codes" class="step">
+    <div class="totp-icon">🔑</div>
+    <p class="totp-title">קודי גיבוי — שמור אותם!</p>
+    <div class="backup-warn">
+      ⚠ כל קוד תקף לשימוש <strong>חד פעמי</strong> בלבד.<br>
+      שמור אותם במקום בטוח — לא תוצג רשימה זו שוב.
+    </div>
+    <div class="backup-codes-grid" id="backup-codes-grid"></div>
+    <div class="backup-actions">
+      <button onclick="copyBackupCodes()">📋 העתק</button>
+      <button onclick="downloadBackupCodes()">⬇ הורד TXT</button>
+    </div>
+    <button class="btn" onclick="doFinishSetup()">המשך למערכת</button>
   </div>
 </div>
 
@@ -140,8 +256,18 @@ function togglePw(id) {
   document.getElementById('eye-off-' + id).style.display = show ? '' : 'none';
 }
 
-let _loginPassword = '';
+function showStep(id) {
+  document.querySelectorAll('.step').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
 
+// ── State ──────────────────────────────────────────────────────────────────────
+let _pendingToken = '';       // short-lived JWT (step:'totp_verify' or 'totp_setup')
+let _loginPassword = '';      // stored temporarily for password-change flow
+let _inBackupMode  = false;   // true when user is entering a backup code
+let _backupCodes   = [];      // stored after setup for display / copy / download
+
+// ── Step 1: Login ──────────────────────────────────────────────────────────────
 async function doLogin(e) {
   e.preventDefault();
   const btn = document.getElementById('btn');
@@ -159,19 +285,32 @@ async function doLogin(e) {
       })
     });
     const data = await res.json();
-    if (res.ok) {
-      if (data.must_change_password) {
-        _loginPassword = pw;
-        document.getElementById('step-login').classList.remove('active');
-        document.getElementById('step-change').classList.add('active');
-        setTimeout(() => document.getElementById('cp-new').focus(), 50);
-      } else {
-        window.location.href = '/dashboard';
-      }
-    } else {
+    if (!res.ok) {
       err.textContent = data.error || 'שגיאה בכניסה';
       err.classList.add('show');
       btn.disabled = false; btn.textContent = 'כניסה';
+      return;
+    }
+    _pendingToken = data.pendingToken || '';
+    if (data.requires2fa) {
+      // User has 2FA — go to verify step
+      showStep('step-totp');
+      setTimeout(() => document.getElementById('totp-code').focus(), 50);
+    } else if (data.needsTotpSetup) {
+      // First time — must set up 2FA
+      if (data.must_change_password) {
+        // Change password first, then set up 2FA
+        _loginPassword = pw;
+        showStep('step-change');
+        setTimeout(() => document.getElementById('cp-new').focus(), 50);
+      } else {
+        // Go straight to 2FA setup
+        showStep('step-totp-setup');
+        loadTotpSetup();
+      }
+    } else {
+      // Fully authenticated (shouldn't happen with mandatory 2FA, but handle gracefully)
+      window.location.href = '/dashboard';
     }
   } catch {
     err.textContent = 'שגיאת רשת — נסה שנית';
@@ -180,6 +319,7 @@ async function doLogin(e) {
   }
 }
 
+// ── Step 2: Password change ────────────────────────────────────────────────────
 async function doChangePassword(e) {
   e.preventDefault();
   const btn    = document.getElementById('cp-btn');
@@ -196,24 +336,204 @@ async function doChangePassword(e) {
 
   btn.disabled = true; btn.textContent = 'שומר...';
   try {
-    const res = await fetch('/api/auth/change-password', {
+    let endpoint, body;
+    if (_pendingToken) {
+      // In TOTP setup flow — use the pending-token endpoint
+      endpoint = '/api/auth/totp/change-password';
+      body = JSON.stringify({ pendingToken: _pendingToken, currentPassword: _loginPassword, newPassword: newPw });
+    } else {
+      // Normal change-password (legacy, with full JWT cookie)
+      endpoint = '/api/auth/change-password';
+      body = JSON.stringify({ currentPassword: _loginPassword, newPassword: newPw });
+    }
+    const res = await fetch(endpoint, {
       method: 'POST',
       headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({ currentPassword: _loginPassword, newPassword: newPw })
+      body
     });
     const data = await res.json();
-    if (res.ok) {
-      window.location.href = '/';
-    } else {
+    if (!res.ok) {
       err.textContent = data.error || 'שגיאה בשינוי סיסמה';
       err.classList.add('show');
-      btn.disabled = false; btn.textContent = 'שנה סיסמה וכנס';
+      btn.disabled = false; btn.textContent = 'שנה סיסמה';
+      return;
+    }
+    if (_pendingToken) {
+      // Update pending token (server issued a fresh one after password change)
+      _pendingToken = data.pendingToken || _pendingToken;
+      // Now proceed to 2FA setup
+      btn.disabled = false; btn.textContent = 'שנה סיסמה';
+      showStep('step-totp-setup');
+      loadTotpSetup();
+    } else {
+      window.location.href = '/dashboard';
     }
   } catch {
     err.textContent = 'שגיאת רשת — נסה שנית';
     err.classList.add('show');
-    btn.disabled = false; btn.textContent = 'שנה סיסמה וכנס';
+    btn.disabled = false; btn.textContent = 'שנה סיסמה';
   }
+}
+
+// ── Step 3: TOTP verify (existing 2FA users) ──────────────────────────────────
+function toggleBackupMode() {
+  _inBackupMode = !_inBackupMode;
+  const inp = document.getElementById('totp-code');
+  const sub = document.getElementById('totp-sub-text');
+  const tog = document.querySelector('.backup-toggle');
+  if (_inBackupMode) {
+    inp.classList.add('backup-mode');
+    inp.maxLength = 9;
+    inp.placeholder = 'XXXX-XXXX';
+    inp.oninput = () => {
+      let v = inp.value.replace(/[^A-Za-z0-9]/g, '').toUpperCase().slice(0, 8);
+      if (v.length > 4) v = v.slice(0, 4) + '-' + v.slice(4);
+      inp.value = v;
+    };
+    sub.innerHTML = 'הזן קוד גיבוי בפורמט <code>XXXX-XXXX</code>';
+    tog.textContent = '← חזרה לקוד אימות רגיל';
+  } else {
+    inp.classList.remove('backup-mode');
+    inp.maxLength = 6;
+    inp.placeholder = '000000';
+    inp.oninput = () => { inp.value = inp.value.replace(/[^0-9]/g, '').slice(0, 6); };
+    inp.value = '';
+    sub.innerHTML = 'הזן את הקוד מאפליקציית האימות שלך<br>(Google Authenticator / Authy)';
+    tog.textContent = 'שכחתי — השתמש בקוד גיבוי';
+  }
+  inp.value = '';
+  document.getElementById('totp-err').classList.remove('show');
+  inp.focus();
+}
+
+async function doTotp() {
+  const btn  = document.getElementById('totp-btn');
+  const err  = document.getElementById('totp-err');
+  const code = document.getElementById('totp-code').value.trim();
+  err.classList.remove('show');
+  if (!code) { err.textContent = 'הזן קוד'; err.classList.add('show'); return; }
+  btn.disabled = true; btn.textContent = 'מאמת...';
+  try {
+    const res = await fetch('/api/auth/totp/verify', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({ pendingToken: _pendingToken, code })
+    });
+    const data = await res.json();
+    if (res.ok) {
+      window.location.href = '/dashboard';
+    } else {
+      err.textContent = data.error || 'קוד שגוי — נסה שנית';
+      err.classList.add('show');
+      btn.disabled = false; btn.textContent = 'אמת';
+      document.getElementById('totp-code').value = '';
+      document.getElementById('totp-code').focus();
+    }
+  } catch {
+    err.textContent = 'שגיאת רשת — נסה שנית';
+    err.classList.add('show');
+    btn.disabled = false; btn.textContent = 'אמת';
+  }
+}
+
+// Allow pressing Enter in the TOTP input to submit
+document.getElementById('totp-code').addEventListener('keydown', e => {
+  if (e.key === 'Enter') { e.preventDefault(); doTotp(); }
+});
+
+// ── Step 4: First-time TOTP setup ─────────────────────────────────────────────
+async function loadTotpSetup() {
+  const qrImg     = document.getElementById('totp-qr');
+  const qrLoading = document.getElementById('qr-loading');
+  const manual    = document.getElementById('totp-manual');
+  qrImg.style.display = 'none';
+  qrLoading.style.display = 'flex';
+  try {
+    const res = await fetch('/api/auth/totp/setup', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({ pendingToken: _pendingToken })
+    });
+    const data = await res.json();
+    if (!res.ok) {
+      document.getElementById('totp-setup-err').textContent = data.error || 'שגיאה בטעינת QR';
+      document.getElementById('totp-setup-err').classList.add('show');
+      qrLoading.textContent = 'שגיאה בטעינה';
+      return;
+    }
+    qrLoading.style.display = 'none';
+    qrImg.src = data.qrDataUrl;
+    qrImg.style.display = '';
+    manual.textContent = data.secret;
+    setTimeout(() => document.getElementById('totp-setup-code').focus(), 100);
+  } catch {
+    qrLoading.textContent = 'שגיאת רשת';
+  }
+}
+
+async function doTotpActivate() {
+  const btn  = document.getElementById('totp-activate-btn');
+  const err  = document.getElementById('totp-setup-err');
+  const code = document.getElementById('totp-setup-code').value.trim();
+  err.classList.remove('show');
+  if (!code || code.length < 6) { err.textContent = 'הזן קוד 6 ספרות מהאפליקציה'; err.classList.add('show'); return; }
+  btn.disabled = true; btn.textContent = 'מאמת...';
+  try {
+    const res = await fetch('/api/auth/totp/activate', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({ pendingToken: _pendingToken, code })
+    });
+    const data = await res.json();
+    if (!res.ok) {
+      err.textContent = data.error || 'קוד שגוי — נסה שנית';
+      err.classList.add('show');
+      btn.disabled = false; btn.textContent = 'אפשר 2FA';
+      document.getElementById('totp-setup-code').value = '';
+      document.getElementById('totp-setup-code').focus();
+      return;
+    }
+    // Show backup codes
+    _backupCodes = data.backupCodes || [];
+    const grid = document.getElementById('backup-codes-grid');
+    grid.innerHTML = _backupCodes.map(c => `<div class="backup-code-item">${c}</div>`).join('');
+    showStep('step-backup-codes');
+  } catch {
+    err.textContent = 'שגיאת רשת — נסה שנית';
+    err.classList.add('show');
+    btn.disabled = false; btn.textContent = 'אפשר 2FA';
+  }
+}
+
+// Allow pressing Enter in the setup code input
+document.getElementById('totp-setup-code').addEventListener('keydown', e => {
+  if (e.key === 'Enter') { e.preventDefault(); doTotpActivate(); }
+});
+
+// ── Step 5: Backup codes ──────────────────────────────────────────────────────
+function copyBackupCodes() {
+  const text = _backupCodes.join('\n');
+  navigator.clipboard.writeText(text).then(() => {
+    const btn = event.target;
+    btn.textContent = '✓ הועתק!';
+    setTimeout(() => { btn.textContent = '📋 העתק'; }, 2000);
+  }).catch(() => {
+    prompt('העתק את הקודים:', _backupCodes.join('  '));
+  });
+}
+
+function downloadBackupCodes() {
+  const text = `קודי גיבוי — אפקון\nשמור אותם במקום בטוח!\nכל קוד חד פעמי.\n\n${_backupCodes.join('\n')}`;
+  const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href = url; a.download = 'afkon-backup-codes.txt';
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+function doFinishSetup() {
+  window.location.href = '/dashboard';
 }
 </script>
 </body>

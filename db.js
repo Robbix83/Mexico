@@ -216,6 +216,11 @@ try {
   db.exec("ALTER TABLE users ADD COLUMN login_attempts INTEGER NOT NULL DEFAULT 0");
 } catch(e) { /* column already exists — skip */ }
 
+// Migration: add TOTP 2FA columns
+try { db.exec("ALTER TABLE users ADD COLUMN totp_secret TEXT"); } catch(e) {}
+try { db.exec("ALTER TABLE users ADD COLUMN totp_enabled INTEGER NOT NULL DEFAULT 0"); } catch(e) {}
+try { db.exec("ALTER TABLE users ADD COLUMN totp_backup_codes TEXT"); } catch(e) {}
+
 // Migration: add status column to requisitions (draft/pending/approved/done)
 try {
   db.exec("ALTER TABLE requisitions ADD COLUMN status TEXT NOT NULL DEFAULT 'draft'");
@@ -255,6 +260,13 @@ const stmts = {
   setRole:           db.prepare('UPDATE users SET role = ? WHERE id = ?'),
   incrementLoginAttempts: db.prepare('UPDATE users SET login_attempts = login_attempts + 1 WHERE id = ?'),
   resetLoginAttempts:     db.prepare('UPDATE users SET login_attempts = 0 WHERE id = ?'),
+
+  // TOTP 2FA
+  setUserTotpSecret:  db.prepare('UPDATE users SET totp_secret = ? WHERE id = ?'),
+  enableUserTotp:     db.prepare('UPDATE users SET totp_enabled = 1, totp_backup_codes = ? WHERE id = ?'),
+  disableUserTotp:    db.prepare('UPDATE users SET totp_enabled = 0, totp_secret = NULL, totp_backup_codes = NULL WHERE id = ?'),
+  updateUserBackupCodes: db.prepare('UPDATE users SET totp_backup_codes = ? WHERE id = ?'),
+  listUsersWithTotp:  db.prepare('SELECT id,username,role,active,created_at,last_login,must_change_password,login_attempts,sections,totp_enabled FROM users ORDER BY created_at DESC'),
 
   // Audit
   insertAudit: db.prepare(
@@ -460,6 +472,13 @@ module.exports = {
   setRole: (id, role) => stmts.setRole.run(role, id),
   incrementLoginAttempts: (id) => stmts.incrementLoginAttempts.run(id),
   resetLoginAttempts:     (id) => stmts.resetLoginAttempts.run(id),
+
+  // TOTP 2FA
+  setUserTotpSecret:  (id, secret) => stmts.setUserTotpSecret.run(secret, id),
+  enableUserTotp:     (id, backupCodesJson) => stmts.enableUserTotp.run(backupCodesJson, id),
+  disableUserTotp:    (id) => stmts.disableUserTotp.run(id),
+  updateUserBackupCodes: (id, codesJson) => stmts.updateUserBackupCodes.run(codesJson, id),
+  listUsersWithTotp:  () => stmts.listUsersWithTotp.all(),
 
   // Audit
   logAudit: (userId, username, action, detail, ip, ua) =>
