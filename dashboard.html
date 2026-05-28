@@ -5370,7 +5370,7 @@ function closePlEdit(){
 function pleGoogleSearch(){
   const parts=_pleKey.split('||');
   const mfr=parts[0]||'', model=parts[1]||'';
-  const q=encodeURIComponent(mfr+' '+model);
+  const q=encodeURIComponent(mfr+' '+model+' filetype:pdf');
   window.open('https://www.google.com/search?q='+q,'_blank','noopener');
 }
 async function pleDlAndSave(){
