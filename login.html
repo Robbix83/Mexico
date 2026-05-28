@@ -55,36 +55,29 @@ html, body {
 
 /* ── Card ── */
 .card {
-  background: rgba(10,7,4,.92);
-  border: 1px solid rgba(var(--gold-rgb),.32);
+  background: #ffffff;
+  border: 1px solid rgba(var(--gold-rgb),.25);
   border-radius: 22px;
   padding: 40px 40px 32px;
   max-width: 420px;
   width: 100%;
   text-align: center;
-  backdrop-filter: blur(24px);
   position: relative;
   overflow: hidden;
   animation: cardIn .9s cubic-bezier(.22,1,.36,1) both, goldBreath 6s ease-in-out 1s infinite;
   box-shadow:
-    0 0 0 1px rgba(var(--gold-rgb),.10),
-    0 0 18px rgba(var(--gold-rgb),.13),
-    0 0 48px rgba(var(--gold-rgb),.08),
-    0 30px 90px rgba(0,0,0,.65),
-    inset 0 1px 0 rgba(var(--gold-rgb),.18);
+    0 0 0 1px rgba(var(--gold-rgb),.08),
+    0 0 22px rgba(var(--gold-rgb),.15),
+    0 0 50px rgba(var(--gold-rgb),.09),
+    0 30px 90px rgba(0,0,0,.55);
 }
 @keyframes cardIn {
   from{opacity:0;transform:translateY(28px) scale(.97)}
   to{opacity:1;transform:translateY(0) scale(1)}
 }
 @keyframes goldBreath {
-  0%,100%{box-shadow:0 0 0 1px rgba(var(--gold-rgb),.10),0 0 18px rgba(var(--gold-rgb),.13),0 0 48px rgba(var(--gold-rgb),.08),0 30px 90px rgba(0,0,0,.65),inset 0 1px 0 rgba(var(--gold-rgb),.18)}
-  50%{box-shadow:0 0 0 1px rgba(var(--gold-rgb),.22),0 0 22px rgba(var(--gold-rgb),.22),0 0 60px rgba(var(--gold-rgb),.13),0 30px 90px rgba(0,0,0,.65),inset 0 1px 0 rgba(var(--gold-rgb),.26)}
-}
-.card::after {
-  content:'';position:absolute;inset:0;pointer-events:none;
-  background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,.03) 2px,rgba(0,0,0,.03) 4px);
-  border-radius:22px;z-index:1;
+  0%,100%{box-shadow:0 0 0 1px rgba(var(--gold-rgb),.08),0 0 22px rgba(var(--gold-rgb),.15),0 0 50px rgba(var(--gold-rgb),.09),0 30px 90px rgba(0,0,0,.55)}
+  50%{box-shadow:0 0 0 1px rgba(var(--gold-rgb),.2),0 0 28px rgba(var(--gold-rgb),.25),0 0 65px rgba(var(--gold-rgb),.14),0 30px 90px rgba(0,0,0,.55)}
 }
 
 /* ── Logo ── */
@@ -94,12 +87,12 @@ html, body {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  background: rgba(255,255,255,.94);
-  border: 1px solid rgba(var(--gold-rgb),.35);
+  background: #f8f8f6;
+  border: 1px solid rgba(var(--gold-rgb),.3);
   border-radius: 14px;
   padding: 10px 20px;
   margin-bottom: 22px;
-  box-shadow: 0 2px 16px rgba(0,0,0,.35);
+  box-shadow: 0 2px 10px rgba(0,0,0,.08);
 }
 .logo-frame img {
   height: 52px;
@@ -112,13 +105,13 @@ html, body {
 .step-title {
   font-size: 1.3rem;
   font-weight: 800;
-  color: #fff;
+  color: #111827;
   margin-bottom: 6px;
 }
 .step-sub {
   font-size: .82rem;
-  font-weight: 300;
-  color: rgba(255,255,255,.4);
+  font-weight: 400;
+  color: #6b7280;
   margin-bottom: 24px;
   line-height: 1.5;
 }
@@ -137,28 +130,29 @@ label {
   display: block;
   font-size: .78rem;
   font-weight: 700;
-  color: rgba(var(--gold-rgb),.65);
+  color: rgba(var(--gold-rgb),.75);
   margin-bottom: 5px;
   letter-spacing: .3px;
 }
 input {
   width: 100%;
   padding: 11px 14px;
-  background: rgba(255,255,255,.05);
-  border: 1px solid rgba(var(--gold-rgb),.18);
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
   border-radius: 10px;
   font-size: .93rem;
   font-family: 'Heebo', sans-serif;
-  color: #fff;
+  color: #111827;
   outline: none;
-  transition: border-color .2s, background .2s;
+  transition: border-color .2s, background .2s, box-shadow .2s;
   direction: ltr;
   text-align: left;
 }
-input::placeholder { color: rgba(255,255,255,.2); }
+input::placeholder { color: #9ca3af; }
 input:focus {
-  border-color: rgba(var(--gold-rgb),.55);
-  background: rgba(255,255,255,.08);
+  border-color: rgba(var(--gold-rgb),.6);
+  background: #fff;
+  box-shadow: 0 0 0 3px rgba(var(--gold-rgb),.1);
 }
 
 /* ── Primary gold button ── */
@@ -215,9 +209,9 @@ input:focus {
 /* ── Error box ── */
 .err {
   display: none;
-  background: rgba(220,38,38,.12);
-  border: 1px solid rgba(220,38,38,.35);
-  color: #fca5a5;
+  background: #fef2f2;
+  border: 1px solid #fca5a5;
+  color: #dc2626;
   border-radius: 8px;
   padding: 9px 13px;
   font-size: .8rem;
@@ -229,8 +223,8 @@ input:focus {
 /* ── Hint box (password requirements) ── */
 .hint-box {
   background: rgba(var(--gold-rgb),.06);
-  border: 1px solid rgba(var(--gold-rgb),.15);
-  color: rgba(var(--gold-rgb),.7);
+  border: 1px solid rgba(var(--gold-rgb),.18);
+  color: #7a5e0a;
   border-radius: 8px;
   padding: 10px 13px;
   font-size: .77rem;
@@ -250,7 +244,7 @@ input:focus {
   position: absolute; top: 50%; left: 11px;
   transform: translateY(-50%);
   background: none; border: none; cursor: pointer;
-  padding: 4px; color: rgba(255,255,255,.25);
+  padding: 4px; color: #9ca3af;
   line-height: 1; transition: color .2s; outline: none;
 }
 .pw-toggle:hover { color: rgba(var(--gold-rgb),.8) }
@@ -260,20 +254,20 @@ input:focus {
 .totp-inp {
   width: 100%;
   padding: 14px 16px;
-  background: rgba(255,255,255,.05);
-  border: 2px solid rgba(var(--gold-rgb),.25);
+  background: #f9fafb;
+  border: 2px solid rgba(var(--gold-rgb),.3);
   border-radius: 12px;
   font-size: 1.7rem;
   font-weight: 800;
   letter-spacing: .28em;
-  color: #fff;
+  color: #111827;
   font-family: monospace;
   text-align: center;
   direction: ltr;
   outline: none;
-  transition: border-color .2s;
+  transition: border-color .2s, box-shadow .2s;
 }
-.totp-inp:focus { border-color: rgba(var(--gold-rgb),.65) }
+.totp-inp:focus { border-color: rgba(var(--gold-rgb),.7); box-shadow: 0 0 0 3px rgba(var(--gold-rgb),.12) }
 .totp-inp.backup-mode { font-size: 1.1rem; letter-spacing: .1em; font-family: monospace }
 
 .backup-toggle {
@@ -281,7 +275,7 @@ input:focus {
   text-align: center;
   margin-top: 12px;
   font-size: .78rem;
-  color: rgba(var(--gold-rgb),.4);
+  color: rgba(var(--gold-rgb),.55);
   cursor: pointer;
   text-decoration: underline;
   background: none;
@@ -290,15 +284,15 @@ input:focus {
   padding: 0;
   font-family: 'Heebo', sans-serif;
 }
-.backup-toggle:hover { color: rgba(var(--gold-rgb),.7) }
+.backup-toggle:hover { color: rgba(var(--gold-rgb),.85) }
 
 /* ── QR box ── */
 .qr-box {
-  margin: 16px auto;
+  margin: 14px auto;
   width: 210px; height: 210px;
   display: flex; align-items: center; justify-content: center;
   background: #fff;
-  border: 2px solid rgba(var(--gold-rgb),.35);
+  border: 2px solid rgba(var(--gold-rgb),.3);
   border-radius: 12px;
   color: #6b7280;
   font-size: .82rem;
@@ -309,41 +303,44 @@ input:focus {
   display: none;
   border-radius: 10px;
 }
-.secret-wrap { margin: 8px 0 16px; }
-.secret-wrap summary {
-  font-size: .75rem;
-  color: rgba(var(--gold-rgb),.45);
-  cursor: pointer;
+/* Always-visible manual secret */
+.secret-always {
+  margin: 10px 0 14px;
   text-align: center;
-  margin-bottom: 6px;
+}
+.secret-label {
+  font-size: .72rem;
+  color: #9ca3af;
+  margin-bottom: 4px;
 }
 .secret-code {
   font-family: monospace;
-  font-size: .8rem;
-  background: rgba(255,255,255,.06);
-  border: 1px solid rgba(var(--gold-rgb),.12);
+  font-size: .78rem;
+  background: #f3f4f6;
+  border: 1px solid rgba(var(--gold-rgb),.2);
   border-radius: 7px;
-  padding: 8px 12px;
+  padding: 7px 10px;
   text-align: center;
   word-break: break-all;
-  color: rgba(var(--gold-rgb),.7);
+  color: #7a5e0a;
   direction: ltr;
-  margin-top: 6px;
+  letter-spacing: .05em;
+  user-select: all;
 }
 .setup-steps {
   font-size: .79rem;
-  color: rgba(255,255,255,.35);
+  color: #6b7280;
   line-height: 1.9;
   text-align: right;
   padding-right: 14px;
-  margin-bottom: 16px;
+  margin-bottom: 14px;
   list-style: none;
   counter-reset: step;
 }
 .setup-steps li::before {
   counter-increment: step;
   content: counter(step) ". ";
-  color: rgba(var(--gold-rgb),.5);
+  color: rgba(var(--gold-rgb),.7);
   font-weight: 700;
 }
 
@@ -356,24 +353,24 @@ input:focus {
   direction: ltr;
 }
 .backup-code-item {
-  background: rgba(255,255,255,.06);
-  border: 1px solid rgba(var(--gold-rgb),.15);
+  background: #f9fafb;
+  border: 1px solid rgba(var(--gold-rgb),.2);
   border-radius: 7px;
   padding: 8px;
   font-family: monospace;
   font-size: .88rem;
   font-weight: 700;
   text-align: center;
-  color: rgba(var(--gold-rgb),.85);
+  color: #7a5e0a;
   letter-spacing: .06em;
 }
 .backup-warn {
-  background: rgba(220,38,38,.1);
-  border: 1px solid rgba(220,38,38,.25);
+  background: #fef2f2;
+  border: 1px solid #fca5a5;
   border-radius: 8px;
   padding: 9px 13px;
   font-size: .78rem;
-  color: #fca5a5;
+  color: #dc2626;
   margin-bottom: 14px;
   text-align: center;
   line-height: 1.5;
@@ -386,26 +383,26 @@ input:focus {
 .backup-actions button {
   flex: 1;
   padding: 8px;
-  background: rgba(var(--gold-rgb),.07);
-  border: 1px solid rgba(var(--gold-rgb),.18);
+  background: #f9fafb;
+  border: 1px solid rgba(var(--gold-rgb),.2);
   border-radius: 8px;
   font-size: .79rem;
   cursor: pointer;
-  color: rgba(var(--gold-rgb),.7);
+  color: #7a5e0a;
   font-family: 'Heebo', sans-serif;
   transition: background .15s;
 }
-.backup-actions button:hover { background: rgba(var(--gold-rgb),.14) }
+.backup-actions button:hover { background: rgba(var(--gold-rgb),.1) }
 
 /* ── Retry ── */
 #qr-retry-wrap { display:none; text-align:center; margin-bottom:10px }
 #qr-retry-wrap button {
-  background: none;
+  background: #f9fafb;
   border: 1px solid rgba(var(--gold-rgb),.25);
   border-radius: 8px;
   padding: 6px 18px;
   font-size: .8rem;
-  color: rgba(var(--gold-rgb),.6);
+  color: rgba(var(--gold-rgb),.7);
   cursor: pointer;
   font-family: 'Heebo', sans-serif;
 }
@@ -413,12 +410,12 @@ input:focus {
 
 /* ── Warning banner (password change) ── */
 .change-banner {
-  background: rgba(var(--gold-rgb),.07);
+  background: rgba(var(--gold-rgb),.06);
   border: 1px solid rgba(var(--gold-rgb),.2);
   border-radius: 10px;
   padding: 10px 14px;
   font-size: .8rem;
-  color: rgba(var(--gold-rgb),.7);
+  color: #7a5e0a;
   margin-bottom: 18px;
   line-height: 1.5;
 }
@@ -429,11 +426,11 @@ input:focus {
   text-align: center;
   margin-top: 18px;
   font-size: .78rem;
-  color: rgba(var(--gold-rgb),.3);
+  color: rgba(255,255,255,.35);
   text-decoration: none;
   font-family: 'Heebo', sans-serif;
 }
-.back-link:hover { color: rgba(var(--gold-rgb),.6) }
+.back-link:hover { color: rgba(255,255,255,.65) }
 </style>
 </head>
 <body>
@@ -538,10 +535,10 @@ input:focus {
       <div id="qr-retry-wrap">
         <button type="button" onclick="loadTotpSetup()">🔄 נסה שוב</button>
       </div>
-      <details class="secret-wrap">
-        <summary>הזנה ידנית (ללא מצלמה)</summary>
-        <div class="secret-code" id="totp-manual"></div>
-      </details>
+      <div class="secret-always">
+        <div class="secret-label">או הזן ידנית באפליקציה (Secret Key):</div>
+        <div class="secret-code" id="totp-manual">⏳ טוען...</div>
+      </div>
       <div class="field" style="text-align:right">
         <label for="totp-setup-code">קוד מהאפליקציה (6 ספרות)</label>
         <input id="totp-setup-code" class="totp-inp" type="text" inputmode="numeric" maxlength="6"
@@ -743,19 +740,20 @@ async function loadTotpSetup() {
   loadingTxt.style.display = '';
   loadingTxt.textContent   = '⏳ טוען QR...';
   retryWrap.style.display  = 'none';
+  manual.textContent       = '⏳ טוען...';
   errEl.classList.remove('show');
 
   const _showErr = (msg) => {
-    loadingTxt.textContent = '❌';
+    loadingTxt.textContent = '⚠ השתמש בקוד ידני למטה';
     errEl.textContent = msg;
     errEl.classList.add('show');
     retryWrap.style.display = '';
   };
 
   try {
-    // 15-second timeout
+    // 20-second timeout
     const ctrl = new AbortController();
-    const tid  = setTimeout(() => ctrl.abort(), 15000);
+    const tid  = setTimeout(() => ctrl.abort(), 20000);
     let res;
     try {
       res = await fetch('/api/auth/totp/setup', {
@@ -772,39 +770,36 @@ async function loadTotpSetup() {
     try { data = await res.json(); }
     catch (e) { _showErr('שגיאה בפענוח תגובת השרת (HTTP ' + res.status + ')'); return; }
 
-    console.log('[totp/setup] response:', res.status, data);
-
     if (!res.ok) {
+      manual.textContent = '—';
       _showErr(data.error || 'שגיאה ' + res.status + ' מהשרת');
       return;
     }
 
-    // Show manual secret regardless
-    if (data.secret) {
-      manual.textContent = data.secret;
-    } else {
-      manual.textContent = '(לא התקבל סוד — נסה שנית)';
-    }
+    // Always show manual secret (visible, not in accordion)
+    manual.textContent = data.secret || '(לא התקבל — נסה שנית)';
 
     if (!data.qrDataUrl) {
-      // QR generation failed — show manual entry
-      loadingTxt.textContent = '⚠ סרוק ידנית';
-      document.querySelector('.secret-wrap')?.setAttribute('open', '');
+      // QR generation failed on server — manual entry is the path
+      loadingTxt.textContent = '⚠ סרוק באמצעות הקוד הידני למטה';
       setTimeout(() => document.getElementById('totp-setup-code').focus(), 50);
       return;
     }
 
-    // Success — show QR image
-    loadingTxt.style.display = 'none';
-    qrImg.onload  = () => { qrImg.style.display = 'block'; };
-    qrImg.onerror = () => { loadingTxt.style.display=''; loadingTxt.textContent='❌ תמונה שגויה'; document.querySelector('.secret-wrap')?.setAttribute('open',''); };
-    qrImg.src     = data.qrDataUrl;
+    // Show QR image
+    qrImg.onload  = () => {
+      loadingTxt.style.display = 'none';
+      qrImg.style.display = 'block';
+    };
+    qrImg.onerror = () => {
+      loadingTxt.textContent = '⚠ השתמש בקוד ידני למטה';
+    };
+    qrImg.src = data.qrDataUrl;
     setTimeout(() => document.getElementById('totp-setup-code').focus(), 200);
 
   } catch (ex) {
-    console.error('[totp/setup] fetch error:', ex);
     if (ex.name === 'AbortError') {
-      _showErr('פג זמן הבקשה (15 שניות) — נסה שנית');
+      _showErr('פג זמן הבקשה — נסה שנית');
     } else {
       _showErr('שגיאת רשת: ' + ex.message);
     }

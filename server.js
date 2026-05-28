@@ -394,7 +394,9 @@ app.post('/api/auth/totp/setup', async (req, res) => {
   const issuer = encodeURIComponent('Afkon');
   const otpauthUrl = `otpauth://totp/${label}?secret=${secret}&issuer=${issuer}&algorithm=SHA1&digits=6&period=30`;
   try {
-    const qrDataUrl = await QRCode.toDataURL(otpauthUrl, { errorCorrectionLevel: 'M', width: 240 });
+    // Use SVG output — no native canvas module required (safe for Render)
+    const svgStr = await QRCode.toString(otpauthUrl, { type: 'svg', errorCorrectionLevel: 'M', width: 240 });
+    const qrDataUrl = 'data:image/svg+xml;base64,' + Buffer.from(svgStr).toString('base64');
     res.json({ ok: true, secret, qrDataUrl, otpauthUrl });
   } catch (e) {
     console.error('[totp/setup] QR generation failed:', e.message);
