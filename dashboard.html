@@ -1421,8 +1421,8 @@ tr:hover .pl-edit-btn{opacity:.65}
                 <th>תיאור</th>
                 <th style="text-align:center">במלאי</th>
                 <th style="text-align:center">יח'</th>
-                <th style="text-align:left">מחיר</th>
-                <th style="text-align:center">כמות</th>
+                <th id="rq-th-price" style="text-align:left;cursor:pointer;user-select:none" onclick="rqSetSort('price')" title="מיין לפי מחיר">מחיר</th>
+                <th id="rq-th-qty"   style="text-align:center;cursor:pointer;user-select:none" onclick="rqSetSort('qty')"   title="מיין לפי כמות">כמות</th>
                 <th style="text-align:left">סה"כ</th>
               </tr>
             </thead>
@@ -7530,6 +7530,8 @@ let rqDraft = (function(){
            show_prices:true, status:'draft', qtys:{} };
 })();
 let rqSourceFilter='all'; // 'all' | 'warehouse' | 'pricelist'
+let rqSortCol='';         // '' | 'price' | 'qty'
+let rqSortDir=-1;         // -1=desc  1=asc
 let rqHistory=[];
 let _rqEsc=(s)=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 
@@ -7632,6 +7634,12 @@ function rqAllRows(){
     }
   }catch{}
   return rows;
+}
+
+function rqSetSort(col){
+  if(rqSortCol===col){ rqSortDir*=-1; } // toggle direction
+  else { rqSortCol=col; rqSortDir=-1; } // new column → start desc
+  rqRender();
 }
 
 function rqSetSource(s){
@@ -7743,12 +7751,32 @@ function rqRender(){
       (r.mfr||'').toLowerCase().includes(q)
     );
   }
-  // Selected rows first, then by source then by sku
-  rows.sort((a,b)=>{
-    const qa=rqQty(a.key)>0?0:1, qb=rqQty(b.key)>0?0:1;
-    if(qa!==qb) return qa-qb;
-    if(a.source!==b.source) return a.source.localeCompare(b.source);
-    return a.sku.localeCompare(b.sku);
+  // Sort: when a column sort is active use it; else default (selected-first → source → sku)
+  // rqSortDir: -1 = desc (high→low), 1 = asc (low→high)
+  if(rqSortCol==='price'){
+    rows.sort((a,b)=>{
+      // Items with any qty always float to top
+      const sa=(rqQty(a.key)>0?0:1), sb=(rqQty(b.key)>0?0:1);
+      if(sa!==sb) return sa-sb;
+      return rqSortDir*(_rqRowPriceIls(a)-_rqRowPriceIls(b));
+    });
+  } else if(rqSortCol==='qty'){
+    rows.sort((a,b)=>rqSortDir*(rqQty(a.key)-rqQty(b.key)));
+  } else {
+    rows.sort((a,b)=>{
+      const qa=rqQty(a.key)>0?0:1, qb=rqQty(b.key)>0?0:1;
+      if(qa!==qb) return qa-qb;
+      if(a.source!==b.source) return a.source.localeCompare(b.source);
+      return a.sku.localeCompare(b.sku);
+    });
+  }
+  // Update sort-indicator arrows on column headers
+  ['price','qty'].forEach(col=>{
+    const th=document.getElementById('rq-th-'+col);
+    if(!th) return;
+    const arrow=rqSortCol===col?(rqSortDir===-1?' ▼':' ▲'):'';
+    th.textContent=(col==='price'?'מחיר':'כמות')+arrow;
+    th.style.color=rqSortCol===col?'#1d4ed8':'';
   });
 
   // Cap rendered rows to keep the DOM light — selected always survive
