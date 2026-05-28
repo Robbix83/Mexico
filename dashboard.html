@@ -1419,7 +1419,7 @@ tr:hover .pl-edit-btn{opacity:.65}
                 <th>מק"ט</th>
                 <th style="text-align:center">DS</th>
                 <th>תיאור</th>
-                <th style="text-align:center">במלאי</th>
+                <th id="rq-th-stock" style="text-align:center;cursor:pointer;user-select:none" onclick="rqSetSort('stock')" title="מיין לפי מלאי">במלאי</th>
                 <th style="text-align:center">יח'</th>
                 <th id="rq-th-price" style="text-align:left;cursor:pointer;user-select:none" onclick="rqSetSort('price')" title="מיין לפי מחיר">מחיר</th>
                 <th id="rq-th-qty"   style="text-align:center;cursor:pointer;user-select:none" onclick="rqSetSort('qty')"   title="מיין לפי כמות">כמות</th>
@@ -7530,7 +7530,7 @@ let rqDraft = (function(){
            show_prices:true, status:'draft', qtys:{} };
 })();
 let rqSourceFilter='all'; // 'all' | 'warehouse' | 'pricelist'
-let rqSortCol='';         // '' | 'price' | 'qty'
+let rqSortCol='';         // '' | 'price' | 'qty' | 'stock'
 let rqSortDir=-1;         // -1=desc  1=asc
 let rqHistory=[];
 let _rqEsc=(s)=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -7762,6 +7762,8 @@ function rqRender(){
     });
   } else if(rqSortCol==='qty'){
     rows.sort((a,b)=>rqSortDir*(rqQty(a.key)-rqQty(b.key)));
+  } else if(rqSortCol==='stock'){
+    rows.sort((a,b)=>rqSortDir*((a.qtyOnHand||0)-(b.qtyOnHand||0)));
   } else {
     rows.sort((a,b)=>{
       const qa=rqQty(a.key)>0?0:1, qb=rqQty(b.key)>0?0:1;
@@ -7771,11 +7773,11 @@ function rqRender(){
     });
   }
   // Update sort-indicator arrows on column headers
-  ['price','qty'].forEach(col=>{
+  [{col:'price',lbl:'מחיר'},{col:'qty',lbl:'כמות'},{col:'stock',lbl:'במלאי'}].forEach(({col,lbl})=>{
     const th=document.getElementById('rq-th-'+col);
     if(!th) return;
     const arrow=rqSortCol===col?(rqSortDir===-1?' ▼':' ▲'):'';
-    th.textContent=(col==='price'?'מחיר':'כמות')+arrow;
+    th.textContent=lbl+arrow;
     th.style.color=rqSortCol===col?'#1d4ed8':'';
   });
 
@@ -7818,13 +7820,12 @@ function rqRender(){
             : `<span style="color:#dc2626">0</span>`)
         : `<span style="color:#cbd5e0">—</span>`;
       const skuEsc=r.sku.replace(/\\/g,'\\\\').replace(/'/g,"\\'");
-      // DS cell: use known URL for pricelist items; async lookup for warehouse
-      let dsCell='';
-      if(r.ds){
-        dsCell=`<a class="ci-datasheet pl-ds-link" href="${_rqEsc(r.ds)}" target="_blank" rel="noopener" title="פתח Datasheet">📄</a>`;
-      } else {
-        dsCell=`<a class="ci-datasheet pl-ds-link" href="#" data-rq-sku="${_rqEsc(r.sku)}" onclick="event.preventDefault();event.stopPropagation();rqOpenDs('${skuEsc}',this)" title="חפש דף נתונים">📄</a>`;
-      }
+      // DS cell: only show icon when we have a confirmed URL.
+      // Warehouse items with numeric internal SKUs have no DS → empty cell.
+      // Async-lookup buttons were shown but resolved to nothing → confusing.
+      const dsCell=r.ds
+        ?`<a class="ci-datasheet pl-ds-link" href="${_rqEsc(r.ds)}" target="_blank" rel="noopener" title="פתח Datasheet">📄</a>`
+        :'';
       return `<tr>
         <td style="text-align:center">${badge}</td>
         <td><code style="font-size:.78rem">${_rqEsc(r.sku)}</code></td>
