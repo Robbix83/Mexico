@@ -89,6 +89,8 @@ html, body {
 
 /* ── Logo ── */
 .logo-frame {
+  position: relative;
+  z-index: 2;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -238,7 +240,7 @@ input:focus {
 }
 
 /* ── Steps ── */
-.step { display: none }
+.step { display: none; position: relative; z-index: 2; }
 .step.active { display: block }
 
 /* ── Password toggle ── */
