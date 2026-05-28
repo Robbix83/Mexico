@@ -188,8 +188,19 @@ function ensureDsIndex() {
 function lookupDatasheet(modelString) {
   ensureDsIndex();
   if (!modelString) return null;
+  // Exact normalized match
   const key = _normalizeModel(modelString);
-  return _dsIndex.get(key) || null;
+  const hit = _dsIndex.get(key);
+  if (hit) return hit;
+  // Fallback: strip parenthetical suffixes (e.g. "(2.8mm)", "(F2.8)") before comparing.
+  // The file on disk is often named after the base model without lens specs.
+  const stripped = String(modelString).replace(/\s*\([^)]*\)\s*/g, '').trim();
+  if (stripped && stripped !== modelString) {
+    const strippedKey = _normalizeModel(stripped);
+    const strippedHit = _dsIndex.get(strippedKey);
+    if (strippedHit) return strippedHit;
+  }
+  return null;
 }
 
 // Rough manufacturer → category mapping for autocomplete scoping. When the

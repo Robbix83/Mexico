@@ -512,22 +512,29 @@ async function populateQueue() {
     }
 
     // Check if any previously-found items have had their file deleted from disk.
-    // If the datasheet can no longer be found, reset to pending so it gets re-downloaded.
+    // Conservative: only reset when BOTH the index lookup fails AND we have a real
+    // absolute path stored that provably no longer exists.
+    // Never reset items whose found_path is null or the sentinel 'on-disk' — we
+    // can't confirm the file is gone, and resetting causes unnecessary re-downloads
+    // across deploys.
     let reset = 0;
     try {
       const foundItems = db.listDsQueue('found', 9999);
       for (const item of foundItems) {
         const onDisk = docpack.lookupDatasheet(item.model);
-        if (!onDisk) {
-          // Also check the stored path directly if lookup didn't find it
-          const pathOk = item.found_path && fs.existsSync(item.found_path);
-          if (!pathOk) {
-            db.resetDsQueueFoundItem(item.id);
-            reset++;
-          }
+        if (onDisk) continue; // index found it → definitely still there
+
+        // Only reset if we have a real absolute path and it's gone
+        const fp = item.found_path;
+        const hasRealPath = fp && fp !== 'on-disk' && path.isAbsolute(fp);
+        if (hasRealPath && !fs.existsSync(fp)) {
+          db.resetDsQueueFoundItem(item.id);
+          reset++;
         }
+        // If found_path is null/'on-disk'/relative → don't reset; the file may
+        // still exist but we just can't confirm the exact location.
       }
-      if (reset > 0) console.log(`[ds-finder] populateQueue: reset ${reset} found→pending (files missing)`);
+      if (reset > 0) console.log(`[ds-finder] populateQueue: reset ${reset} found→pending (files confirmed missing)`);
     } catch (e) {
       console.warn('[ds-finder] found-items check error:', e.message);
     }
