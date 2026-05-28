@@ -1404,7 +1404,8 @@ tr:hover .pl-edit-btn{opacity:.65}
           <table class="rq-table">
             <colgroup>
               <col style="width:78px"/>
-              <col style="width:130px"/>
+              <col style="width:118px"/>
+              <col style="width:32px"/>
               <col/>
               <col style="width:68px"/>
               <col style="width:68px"/>
@@ -1416,6 +1417,7 @@ tr:hover .pl-edit-btn{opacity:.65}
               <tr>
                 <th style="text-align:center">מקור</th>
                 <th>מק"ט</th>
+                <th style="text-align:center">DS</th>
                 <th>תיאור</th>
                 <th style="text-align:center">במלאי</th>
                 <th style="text-align:center">יח'</th>
@@ -7624,6 +7626,7 @@ function rqAllRows(){
         price:+ep.price||0,
         cur:ep.cur||'ILS',
         mfr:String(ep.mfr||p.mfr||''),
+        ds: ep.ds||p.ds||null,   // carry the known datasheet URL
         key:rqKey('pricelist', _plKey(p.mfr,p.model)),
       });
     }
@@ -7760,7 +7763,7 @@ function rqRender(){
   const tbody=document.getElementById('rq-tbody');
   if(!tbody) return;
   if(!display.length){
-    tbody.innerHTML=`<tr><td colspan="8" class="rq-empty">לא נמצאו פריטים — נסה לסנן או לייבא מלאי/מחירון 🔍</td></tr>`;
+    tbody.innerHTML=`<tr><td colspan="9" class="rq-empty">לא נמצאו פריטים — נסה לסנן או לייבא מלאי/מחירון 🔍</td></tr>`;
   } else {
     tbody.innerHTML=display.map(r=>{
       const sid=_rqSafeId(r.key);
@@ -7787,9 +7790,17 @@ function rqRender(){
             : `<span style="color:#dc2626">0</span>`)
         : `<span style="color:#cbd5e0">—</span>`;
       const skuEsc=r.sku.replace(/\\/g,'\\\\').replace(/'/g,"\\'");
+      // DS cell: use known URL for pricelist items; async lookup for warehouse
+      let dsCell='';
+      if(r.ds){
+        dsCell=`<a class="ci-datasheet pl-ds-link" href="${_rqEsc(r.ds)}" target="_blank" rel="noopener" title="פתח Datasheet">📄</a>`;
+      } else {
+        dsCell=`<a class="ci-datasheet pl-ds-link" href="#" data-rq-sku="${_rqEsc(r.sku)}" onclick="event.preventDefault();event.stopPropagation();rqOpenDs('${skuEsc}',this)" title="חפש דף נתונים">📄</a>`;
+      }
       return `<tr>
         <td style="text-align:center">${badge}</td>
-        <td style="white-space:nowrap"><code style="font-size:.78rem">${_rqEsc(r.sku)}</code><a class="ci-datasheet pl-ds-link rq-ds-link" href="#" data-rq-sku="${_rqEsc(r.sku)}" onclick="event.preventDefault();event.stopPropagation();rqOpenDs('${skuEsc}',this)" title="דף נתונים (DS)">📄</a></td>
+        <td><code style="font-size:.78rem">${_rqEsc(r.sku)}</code></td>
+        <td style="text-align:center">${dsCell}</td>
         <td>${mfr}${desc}</td>
         <td style="text-align:center">${stockCell}</td>
         <td style="text-align:center;color:#64748b">${_rqEsc(r.unit||'')}</td>
@@ -7806,7 +7817,7 @@ function rqRender(){
       </tr>`;
     }).join('');
     if(rows.length>MAX_ROWS){
-      tbody.innerHTML += `<tr><td colspan="8" class="rq-empty">מציג ${display.length} מתוך ${rows.length} — צמצם בחיפוש לראות יותר</td></tr>`;
+      tbody.innerHTML += `<tr><td colspan="9" class="rq-empty">מציג ${display.length} מתוך ${rows.length} — צמצם בחיפוש לראות יותר</td></tr>`;
     }
   }
   _rqUpdateStats();
