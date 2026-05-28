@@ -865,7 +865,7 @@ function normalizeReqItems(items) {
   return items
     .filter(it => it && typeof it === 'object')
     .map(it => ({
-      source: it.source === 'warehouse' ? 'warehouse' : 'pricelist',
+      source: it.source === 'warehouse' ? 'warehouse' : it.source === 'catalog' ? 'catalog' : 'pricelist',
       sku:    String(it.sku  ?? '').trim(),
       desc:   String(it.desc ?? '').trim(),
       qty:    Math.max(0, Number(it.qty) || 0),

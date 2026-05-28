@@ -873,6 +873,12 @@ body.viewer-mode .dp-title input{pointer-events:none;background:#f7fafc}
   border-radius:7px;padding:4px 11px;font-size:.74rem;color:#166534;cursor:pointer;
   font-weight:700;transition:background .12s}
 .pl-cart-clear:hover{background:#bbf7d0}
+.pl-cart-to-req{background:#0F766E;border:none;border-radius:7px;padding:6px 14px;
+  font-size:.78rem;color:#fff;cursor:pointer;font-weight:700;transition:background .15s;
+  display:flex;align-items:center;gap:6px}
+.pl-cart-to-req:hover{background:#0D9488}
+.dp-btn-req{background:#0F766E;border:none;border-radius:7px;padding:8px 14px;
+  font-size:.85rem;color:#fff;cursor:pointer;font-weight:700;transition:background .15s}
 .pl-th-sort{cursor:pointer;user-select:none;transition:background .15s,color .15s}
 .pl-th-sort:hover{background:#CCFBF1!important;color:#0F4C5C}
 .pl-th-active{background:#99F6E4!important;color:#0F4C5C!important}
@@ -1095,9 +1101,12 @@ tr:hover .pl-row-ds-btn{opacity:.6}
 .rq-src-badge{display:inline-block;padding:2px 8px;border-radius:999px;font-size:.68rem;font-weight:700;white-space:nowrap}
 .rq-src-warehouse{background:#dcfce7;color:#166534}
 .rq-src-pricelist{background:#dbeafe;color:#1d4ed8}
+.rq-src-catalog{background:#fef3c7;color:#92400e}
 .rq-qty-wrap{display:flex;gap:2px;align-items:center;justify-content:center}
 .rq-qty-btn{width:24px;height:24px;border:1px solid var(--border);background:#f8fafc;border-radius:5px;cursor:pointer;font-weight:700;color:#475569}
 .rq-qty-btn:hover{background:#e2e8f0}
+.rq-row-del{width:20px;height:20px;border:none;background:none;cursor:pointer;color:#cbd5e0;font-size:.9rem;padding:0;line-height:1;border-radius:4px;transition:color .12s,background .12s;margin-right:4px}
+.rq-row-del:hover{color:#dc2626;background:#fee2e2}
 .rq-qty-inp{width:46px;height:24px;border:1px solid var(--border);border-radius:5px;text-align:center;font-size:.8rem}
 .rq-qty-inp.qty-active{background:#fef3c7;font-weight:700;border-color:#f59e0b}
 .rq-table-wrap{max-height:520px;overflow-y:auto;border:1px solid var(--border);border-radius:8px}
@@ -1131,9 +1140,10 @@ tr:hover .pl-row-ds-btn{opacity:.6}
 .rq-prev-title .sub{font-size:10pt;color:#607080;margin-top:2px}
 .rq-prev-meta{font-size:10pt;color:#374151;text-align:right;min-width:140px;line-height:1.6}
 .rq-prev-meta b{color:#0F4C5C}
-.rq-prev-info{width:100%;border-collapse:collapse;margin-bottom:14px;font-size:10pt}
-.rq-prev-info td{padding:6px 9px;border:1px solid #c8d5e8}
-.rq-prev-info td.l{background:#e8eef7;font-weight:700;width:120px;color:#0F4C5C}
+.rq-prev-info-block{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px;background:#F0FDFA;border:1px solid #CCFBF1;border-radius:8px;padding:10px 14px}
+.rq-prev-info-item{display:flex;gap:8px;align-items:baseline;font-size:10pt}
+.rq-prev-info-lbl{font-weight:700;color:#0F4C5C;white-space:nowrap;min-width:80px;font-size:9pt}
+.rq-prev-info-val{color:#374151}
 .rq-prev-items{width:100%;border-collapse:collapse;font-size:9.5pt;margin-bottom:10px}
 .rq-prev-items th{background:#0F4C5C;color:#fff;padding:6px 8px;font-size:9pt;text-align:center}
 .rq-prev-items td{border:1px solid #dde4ef;padding:5px 8px;text-align:center}
@@ -1632,6 +1642,7 @@ tr:hover .pl-row-ds-btn{opacity:.6}
             </select>
           </div>
           <div style="display:flex;gap:8px;flex-wrap:wrap">
+            <button class="rq-btn rq-btn-ghost" onclick="rqClearQtys()" title="אפס כמויות — שמור על פרטי הדרישה">✖ איפוס כמויות</button>
             <button class="rq-btn rq-btn-ghost" onclick="rqNewDraft()">📄 דרישה חדשה</button>
             <button class="rq-btn rq-btn-ghost" onclick="rqResetQtys()" title="אפס כמויות — שמור על פרטי הדרישה">🔄 איפוס</button>
             <button class="rq-btn rq-btn-secondary" onclick="rqOpenPreview()">👁 תצוגה מקדימה</button>
@@ -1647,6 +1658,7 @@ tr:hover .pl-row-ds-btn{opacity:.6}
           <span class="rq-chip active" id="rq-chip-all" onclick="rqSetSource('all')">הכל</span>
           <span class="rq-chip" id="rq-chip-warehouse" onclick="rqSetSource('warehouse')">רק מחסן</span>
           <span class="rq-chip" id="rq-chip-pricelist" onclick="rqSetSource('pricelist')">רק מחירון</span>
+          <span class="rq-chip" id="rq-chip-catalog" onclick="rqSetSource('catalog')">רק קטלוג</span>
           <input class="rq-search" id="rq-search" type="search" placeholder='חיפוש מק"ט / תיאור / יצרן...' oninput="rqRender()"/>
           <span id="rq-stats" class="rq-meta"></span>
         </div>
@@ -1681,7 +1693,7 @@ tr:hover .pl-row-ds-btn{opacity:.6}
       </div>
 
       <!-- History -->
-      <div class="rq-card">
+      <div class="rq-card" style="margin-bottom:70px">
         <h3>היסטוריית דרישות
           <button class="rq-btn rq-btn-ghost" style="float:left;font-size:.75rem;padding:4px 10px" onclick="rqLoadHistory().then(rqRenderHistory)">🔄 רענן</button>
         </h3>
@@ -2845,12 +2857,18 @@ function setView(v){
   else if(v==='catalog'){renderCatalog();renderCatalogCatPills();}
   else if(v==='warehouse'){renderWarehouse();ensureWarehouseLoaded().then(()=>renderWarehouse());}
   else if(v==='docpack'){renderDocPack();ensureDocPacksLoaded().then(()=>renderDocPack());}
-  else if(v==='pricelist') renderPriceList();
+  else if(v==='pricelist'){
+    renderPriceList(); _updatePlCartBar();
+    document.getElementById('rq-sticky-bar')?.classList.add('hidden');
+  }
   else if(v==='requisition'){
+    _updatePlCartBar(); // hide pricelist cart bar
     rqRender();
     Promise.all([ensureWarehouseLoaded(), rqLoadHistory()]).then(()=>rqRender());
   }
-  else renderList();
+  else {
+    renderList(); _updatePlCartBar();
+  }
   // Hide rq sticky bar when leaving requisition view
   if(v!=='requisition') document.getElementById('rq-sticky-bar')?.classList.add('hidden');
 }
@@ -5287,6 +5305,8 @@ function _updatePlSubCell(key){
 function _updatePlCartBar(){
   const bar=document.getElementById('pl-cart-bar');
   if(!bar) return;
+  // Only show on pricelist view
+  if(currentView !== 'pricelist'){ bar.classList.remove('show'); return; }
   let totalUnits=0,totalFinal=0,totalList=0;
   getAllPlData().forEach(p=>{
     const key=_plKey(p.mfr,p.model);
@@ -5308,7 +5328,22 @@ function _updatePlCartBar(){
     `<span class="pl-cart-stat">מחיר מחירון: <b>₪${totalList.toLocaleString()}</b></span>`+
     `<span class="pl-cart-stat">מחיר סופי: <b>₪${totalFinal.toLocaleString()}</b></span>`+
     (saving>0?`<span class="pl-cart-stat saving">חיסכון כולל: <b>₪${saving.toLocaleString()}</b></span>`:'')+
+    `<button class="pl-cart-to-req" onclick="plExportToReq()">📝 שלח לדרישת רכש</button>`+
     `<button class="pl-cart-clear" onclick="plClearCart()">✖ אפס כמויות</button>`;
+}
+function plExportToReq(){
+  // Copy pricelist cart quantities into rqDraft, then navigate to requisition
+  const pl=plQuantities||{};
+  let added=0;
+  Object.entries(pl).forEach(([k,qty])=>{
+    if((+qty||0)<=0) return;
+    const key=rqKey('pricelist',k);
+    rqDraft.qtys[key]=(+rqDraft.qtys[key]||0)+(+qty);
+    added++;
+  });
+  if(added===0) return;
+  rqSaveDraft();
+  setView('requisition');
 }
 // ── Auto-infer category from description ─────────────────
 function _inferCat(item){
@@ -7038,6 +7073,54 @@ function dpFileUrl(fileId){
   return '/api/docpacks/'+_currentDocPack.id+'/files/'+fileId;
 }
 
+// ── Export to Requisition ──
+function dpExportToReq(){
+  if(!_currentDocPack) return;
+  const d=_currentDocPack.data||{};
+  // Tally equipment by model/mpn
+  const counts={};
+  (d.cameras||[]).forEach(c=>{ const m=(c.model||'').trim(); if(m) counts[m]=(counts[m]||0)+1; });
+  (d.backhauls||[]).forEach(b=>{ const m=(b.mpn||'').trim(); if(m) counts[m]=(counts[m]||0)+1; });
+  (d.switches||[]).forEach(s=>{ const m=(s.mpn||'').trim(); if(m) counts[m]=(counts[m]||0)+1; });
+
+  const allPl=getAllPlData()||[];
+  const wh=whItems||[];
+  let matched=0; const unmatched=[];
+
+  Object.entries(counts).forEach(([model,qty])=>{
+    // Try pricelist (case-insensitive model match)
+    const lc=model.toLowerCase();
+    const plHit=allPl.find(p=>(p.model||'').toLowerCase()===lc||(p.mpn||'').toLowerCase()===lc);
+    if(plHit){
+      const key=rqKey('pricelist',_plKey(plHit.mfr,plHit.model));
+      rqDraft.qtys[key]=(+rqDraft.qtys[key]||0)+qty;
+      matched++;
+      return;
+    }
+    // Try warehouse (SKU or desc contains model)
+    const whHit=wh.find(w=>(w.sku||'').toLowerCase()===lc);
+    if(whHit){
+      const key=rqKey('warehouse',String(whHit.sku));
+      rqDraft.qtys[key]=(+rqDraft.qtys[key]||0)+qty;
+      matched++;
+      return;
+    }
+    unmatched.push(model);
+  });
+
+  rqSaveDraft();
+  const total=Object.keys(counts).length;
+  if(total===0){ _toast('אין ציוד מוגדר בתיק זה (מצלמות / עורקים / מתגים)','warn'); return; }
+  setView('requisition');
+  // Brief feedback message after navigation
+  setTimeout(()=>{
+    const msg=unmatched.length===0
+      ? `✅ ${matched} פריטים נוספו לדרישת רכש`
+      : `✅ ${matched} פריטים נוספו | ⚠ ${unmatched.length} לא נמצאו במחירון/מחסן: ${unmatched.slice(0,4).join(', ')}${unmatched.length>4?'...':''}`;
+    _toast(msg, unmatched.length===0 ? 'ok' : 'warn');
+  },300);
+}
+
 // ── Preview ──
 function dpOpenPreview(){
   if(!_currentDocPack) return;
@@ -7280,6 +7363,7 @@ function renderDocPackForm(){
       </div>
       <span id="dp-save-status" class="dp-status"></span>
       <span style="font-size:.72rem;color:#718096">📊 ${quotaHuman(quota.used)} / ${(quota.max/1024/1024/1024).toFixed(1)}GB ${quotaPct>=90?'⚠':''}</span>
+      <button class="dp-btn-req" onclick="dpExportToReq()">📝 דרישת רכש</button>
       <button class="dp-btn-preview" onclick="dpOpenPreview()">👁 תצוגה מקדימה</button>
       <button class="dp-btn-export" id="dp-export-btn" onclick="dpExportWord()">⬇ ייצוא Word</button>
       <button class="dp-admin-only" onclick="dpCleanupDatasheets()" title="מחק דפי מוצר שלא שייכים לציוד הנוכחי" style="background:#fff7ed;color:#c2410c;border:1px solid #fed7aa;padding:6px 12px;border-radius:7px;font-size:.82rem;font-weight:600;cursor:pointer">🧹 נקה שאריות</button>
@@ -8005,7 +8089,7 @@ let rqDraft = (function(){
   return { id:null, req_number:null, supplier:'', requester:'', notes:'',
            show_prices:true, status:'draft', qtys:{} };
 })();
-let rqSourceFilter='all'; // 'all' | 'warehouse' | 'pricelist'
+let rqSourceFilter='all'; // 'all' | 'warehouse' | 'pricelist' | 'catalog'
 let rqHistory=[];
 let rqSortCol='';   // '' | 'price' | 'qty' | 'stock'
 let rqSortDir=1;    // 1=asc, -1=desc
@@ -8092,7 +8176,6 @@ function rqAllRows(){
     for(const p of all){
       if(!p||!p.model) continue;
       const ep=getPlEffective(p);
-      const plk=_plKey(p.mfr,p.model);
       rows.push({
         source:'pricelist',
         sku:String(ep.model||p.model),
@@ -8102,12 +8185,25 @@ function rqAllRows(){
         price:+ep.price||0,
         cur:ep.cur||'ILS',
         mfr:String(ep.mfr||p.mfr||''),
-        key:rqKey('pricelist', plk),
-        ds:String(ep.ds||p.ds||''),
-        plFileKey:plHasFile(plk)?plk:null,
+        key:rqKey('pricelist', _plKey(p.mfr,p.model)),
       });
     }
   }catch{}
+  // Catalog items
+  for(const c of (catalogItems||[])){
+    if(!c||(!(c.sku)&&!(c.name))) continue;
+    rows.push({
+      source:'catalog',
+      sku:String(c.sku||c.name),
+      desc:String(c.name||c.desc||''),
+      unit:'יח',
+      qtyOnHand:null,
+      price:+c.cost||0,
+      cur:'ILS',
+      mfr:String(c.mfr||''),
+      key:rqKey('catalog', String(c.sku||c.name)),
+    });
+  }
   return rows;
 }
 
@@ -8116,6 +8212,8 @@ function rqSetSource(s){
   document.getElementById('rq-chip-all').classList.toggle('active',s==='all');
   document.getElementById('rq-chip-warehouse').classList.toggle('active',s==='warehouse');
   document.getElementById('rq-chip-pricelist').classList.toggle('active',s==='pricelist');
+  const catChip=document.getElementById('rq-chip-catalog');
+  if(catChip) catChip.classList.toggle('active',s==='catalog');
   rqRender();
 }
 
@@ -8280,9 +8378,12 @@ function rqRender(){
       const sid=_rqSafeId(r.key);
       const qty=rqQty(r.key);
       const isWh=r.source==='warehouse';
+      const isCat=r.source==='catalog';
       const badge=isWh
         ?'<span class="rq-src-badge rq-src-warehouse">מחסן</span>'
-        :'<span class="rq-src-badge rq-src-pricelist">מחירון</span>';
+        :isCat
+          ?'<span class="rq-src-badge rq-src-catalog">קטלוג</span>'
+          :'<span class="rq-src-badge rq-src-pricelist">מחירון</span>';
       let priceCell='<span style="color:#cbd5e0">—</span>';
       if(r.price>0){
         const ils=_rqRowPriceIls(r);
@@ -8300,12 +8401,9 @@ function rqRender(){
             ? `<b style="color:#166534">${r.qtyOnHand}</b>`
             : `<span style="color:#dc2626">0</span>`)
         : `<span style="color:#cbd5e0">—</span>`;
-      let dsCell='';
-      if(r.plFileKey){
-        dsCell=`<a class="ci-datasheet pl-ds-link" href="#" onclick="event.preventDefault();plOpenFile('${_rqEsc(r.plFileKey)}')" title="פתח Datasheet">📄</a>`;
-      } else if(r.ds){
-        dsCell=`<a class="ci-datasheet pl-ds-link" href="${_rqEsc(r.ds)}" data-rq-sku="${_rqEsc(r.sku)}" target="_blank" rel="noopener" title="פתח Datasheet">📄</a>`;
-      }
+      const dsCell = r.ds
+        ? `<a class="ci-datasheet pl-ds-link" href="${_rqEsc(r.ds)}" data-rq-sku="${_rqEsc(r.sku)}" target="_blank" rel="noopener" title="פתח Datasheet">📄</a>`
+        : '';
       return `<tr>
         <td style="text-align:center">${badge}</td>
         <td><code style="font-size:.78rem">${_rqEsc(r.sku)}</code></td>
@@ -8322,7 +8420,10 @@ function rqRender(){
             <button class="rq-qty-btn" onclick="rqChangeQty('${r.key.replace(/'/g,"\\'")}',1)">+</button>
           </div>
         </td>
-        <td id="rq-sub-${sid}" style="text-align:left">${subInit}</td>
+        <td id="rq-sub-${sid}" style="text-align:left;white-space:nowrap">
+          ${subInit}
+          ${qty>0?`<button class="rq-row-del" onclick="rqSetQty('${r.key.replace(/'/g,"\\'")}',0);rqRender()" title="הסר פריט">✕</button>`:''}
+        </td>
       </tr>`;
     }).join('');
     if(rows.length>MAX_ROWS){
@@ -8406,6 +8507,15 @@ async function rqLoadInto(id){
     rqSaveDraft();
     rqRender();
   }catch(e){ _toast('שגיאה בטעינה','error'); }
+}
+
+async function rqClearQtys(){
+  if(!Object.keys(rqDraft.qtys).length) return;
+  if(!await _confirm('לאפס את כל הכמויות? פרטי הדרישה (ספק, מזמין, הערות) יישמרו.',
+      {title:'איפוס כמויות',ok:'איפוס',type:'warn'})) return;
+  rqDraft.qtys={};
+  rqSaveDraft();
+  rqRender();
 }
 
 async function rqNewDraft(){
@@ -8529,7 +8639,7 @@ function rqOpenPreview(){
   const colspan = showPrices?6:4;
 
   const rowsHtml = items.map(it=>{
-    const srcLbl = it.source==='warehouse'?'מחסן':'מחירון';
+    const srcLbl = it.source==='warehouse'?'מחסן':it.source==='catalog'?'קטלוג':'מחירון';
     const priceTxt = (()=>{
       if(!it.price) return '—';
       const sym = it.cur==='USD'?'$':(it.cur==='EUR'?'€':'₪');
@@ -8588,14 +8698,11 @@ function rqOpenPreview(){
         <div style="margin-top:4px"><b>סטטוס:</b><br>${esc(statusLbl)}</div>
       </div>
     </div>
-    <table class="rq-prev-info">
-      <tr><td class="l">ספק / יצרן</td><td>${esc(rqDraft.supplier||'—')}</td>
-          <td class="l">מזמין</td><td>${esc(rqDraft.requester||'—')}</td>
-          <td class="l" style="white-space:nowrap">הערות</td>
-          <td style="max-width:180px;overflow:hidden;font-size:${rqDraft.notes&&rqDraft.notes.length>60?'8.5pt':'10pt'};line-height:1.35;max-height:38px">${esc((rqDraft.notes||'').slice(0,120)+(rqDraft.notes&&rqDraft.notes.length>120?'…':''))||'—'}</td>
-      </tr>
-    </table>
-    ${rqDraft.notes&&rqDraft.notes.length>60?`<div style="font-size:8.5pt;color:#64748b;margin-bottom:8px;white-space:pre-wrap;line-height:1.5"><b>הערות מלאות:</b> ${esc(rqDraft.notes)}</div>`:''}
+    <div class="rq-prev-info-block">
+      <div class="rq-prev-info-item"><span class="rq-prev-info-lbl">ספק / יצרן</span><span class="rq-prev-info-val">${esc(rqDraft.supplier)||'—'}</span></div>
+      <div class="rq-prev-info-item"><span class="rq-prev-info-lbl">מזמין</span><span class="rq-prev-info-val">${esc(rqDraft.requester)||'—'}</span></div>
+      ${rqDraft.notes?`<div class="rq-prev-info-item" style="grid-column:1/-1"><span class="rq-prev-info-lbl">הערות</span><span class="rq-prev-info-val">${esc(rqDraft.notes)}</span></div>`:''}
+    </div>
     <table class="rq-prev-items">
       <thead><tr>${colHeads}</tr></thead>
       <tbody>${rowsHtml || `<tr><td colspan="${colspan}" style="padding:12px;color:#94a3b8">אין פריטים</td></tr>`}</tbody>
