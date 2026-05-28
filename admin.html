@@ -1057,6 +1057,20 @@ async function dsfManualDownload() {
         ? `✅ נשמר דרך חיפוש אוטומטי (הלינק המקורי לא עבד)${fileNote}`
         : `✅ נשמר בהצלחה${fileNote}`;
       msgEl.style.color = '#10b981';
+
+      // Auto-link to pricelist — updates afkon_pl_overrides in localStorage so
+      // dashboard.html shows the datasheet immediately without a manual "save" step.
+      if (r.filename && model && mfr) {
+        try {
+          const dsUrl = '/ds/' + encodeURIComponent(mfr) + '/' + r.filename;
+          const ov = JSON.parse(localStorage.getItem('afkon_pl_overrides') || '{}');
+          const key = mfr + '||' + model;
+          ov[key] = Object.assign({}, ov[key] || {}, { ds: dsUrl });
+          localStorage.setItem('afkon_pl_overrides', JSON.stringify(ov));
+          msgEl.textContent += ' · מחירון עודכן ✓';
+        } catch (_) {}
+      }
+
       document.getElementById('dsf-manual-model').value = '';
       document.getElementById('dsf-manual-mfr').value   = '';
       document.getElementById('dsf-manual-url').value   = '';

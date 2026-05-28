@@ -5077,6 +5077,59 @@ function closePlEdit(){
   document.getElementById('pl-edit-overlay').classList.remove('open');
   _pleKey=''; _pleNewFile=null;
 }
+
+// Open Google search for this product's datasheet
+function pleGoogleSearch(){
+  const parts=_pleKey.split('||');
+  const mfr=parts[0]||'', model=parts[1]||'';
+  const q=encodeURIComponent(mfr+' '+model+' datasheet filetype:pdf');
+  window.open('https://www.google.com/search?q='+q,'_blank','noopener');
+}
+
+// Download the URL from the DS field, save to /ds/, update localStorage, close modal
+async function pleDlAndSave(){
+  const url=(document.getElementById('ple-ds-url').value||'').trim();
+  if(!url){ alert('הדבק כתובת URL של קובץ PDF קודם'); return; }
+  const parts=_pleKey.split('||');
+  const mfr=parts[0]||'', model=parts[1]||'';
+  if(!mfr||!model){ alert('לא נטען פריט לעריכה'); return; }
+
+  const btn=document.getElementById('ple-dl-btn');
+  const statusEl=document.getElementById('ple-dl-status');
+  btn.disabled=true; btn.textContent='⏳ מוריד...';
+  statusEl.style.display=''; statusEl.style.background='#eff6ff';
+  statusEl.style.color='#1d4ed8'; statusEl.style.border='1px solid #bfdbfe';
+  statusEl.textContent='מוריד קובץ...';
+
+  try{
+    const res=await fetch('/api/admin/ds-finder/manual',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({model,manufacturer:mfr,url})
+    });
+    const r=await res.json();
+    if(res.ok && r.ok && r.filename){
+      const dsUrl='/ds/'+encodeURIComponent(mfr)+'/'+r.filename;
+      // Update the URL field to the local path
+      document.getElementById('ple-ds-url').value=dsUrl;
+      _pleDsMode='url'; _pleDsTabUpdate();
+      // Save the override directly — no need to click שמור
+      savePlEdit();
+      statusEl.style.background='#f0fdf4'; statusEl.style.color='#065f46'; statusEl.style.border='1px solid #a7f3d0';
+      statusEl.textContent='✅ נשמר — '+r.filename;
+      setTimeout(()=>{ statusEl.style.display='none'; closePlEdit(); }, 1500);
+    } else {
+      statusEl.style.background='#fef2f2'; statusEl.style.color='#b91c1c'; statusEl.style.border='1px solid #fecaca';
+      statusEl.textContent='❌ '+(r.error||'הורדה נכשלה');
+    }
+  }catch(e){
+    statusEl.style.background='#fef2f2'; statusEl.style.color='#b91c1c'; statusEl.style.border='1px solid #fecaca';
+    statusEl.textContent='❌ '+e.message;
+  }finally{
+    btn.disabled=false; btn.textContent='📥 הורד';
+  }
+}
+
 function pleDsTab(mode){
   _pleDsMode=mode; _pleDsTabUpdate();
 }
@@ -8884,7 +8937,18 @@ function clearPlImported(){
           <button class="ple-ds-tab"        id="ple-tab-file" onclick="pleDsTab('file')">📁 קובץ מקומי</button>
         </div>
         <div id="ple-ds-url-wrap">
-          <input type="url" id="ple-ds-url" placeholder="https://example.com/datasheet.pdf" dir="ltr"/>
+          <div style="display:flex;gap:6px;align-items:center">
+            <input type="url" id="ple-ds-url" placeholder="https://example.com/datasheet.pdf" dir="ltr" style="flex:1"/>
+            <button id="ple-google-btn" type="button" title="חפש Datasheet בגוגל"
+              onclick="pleGoogleSearch()"
+              style="padding:6px 10px;border:1.5px solid #e2e8f0;border-radius:7px;background:#f8fafc;
+                     cursor:pointer;font-size:.82rem;white-space:nowrap;color:#475569">🔍 גוגל</button>
+            <button id="ple-dl-btn" type="button" title="הורד PDF ושמור ישירות"
+              onclick="pleDlAndSave()"
+              style="padding:6px 12px;border:none;border-radius:7px;background:#1d4ed8;color:#fff;
+                     font-size:.82rem;font-weight:700;cursor:pointer;white-space:nowrap">📥 הורד</button>
+          </div>
+          <div id="ple-dl-status" style="display:none;margin-top:6px;font-size:.78rem;padding:5px 10px;border-radius:6px"></div>
           <div id="ple-local-notice" style="display:none;margin-top:6px;font-size:.78rem;
                color:#059669;background:#f0fdf4;padding:5px 10px;border-radius:6px;border:1px solid #a7f3d0">
             📂 <span id="ple-local-notice-text"></span>
