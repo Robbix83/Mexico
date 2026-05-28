@@ -8032,19 +8032,30 @@ function _rqBuildCertHtml(snap){
     const bg=i%2===0?'#fff':'#f8fafc';
     return `<tr style="background:${bg}"><td style="font-family:monospace;font-size:9pt">${esc(it.sku)}</td><td style="font-size:8pt;color:#6b7280">${srcLbl}</td><td>${descTxt}</td><td>${esc(it.unit||'')}</td><td style="text-align:center;font-weight:700">${it.qty}</td>${priceCells}</tr>`;
   }).join('');
-  let totalsHtml='';
+  // Totals are rendered as <tfoot> inside the items table so columns align.
+  // 7-column table (with prices): colspan=6 for label, last col = amount.
+  // 5-column table (no prices):   no totals shown.
+  let tfootHtml='';
   if(showPrices){
-    const lines=[];
-    for(const [cur,sum] of Object.entries(totals)){
-      const sym=cur==='USD'?'$':cur==='EUR'?'€':'₪';
-      lines.push(`<tr><td colspan="5" style="text-align:left;color:#475569">סה"כ ${cur}:</td><td style="font-weight:700">${sym}${sum.toLocaleString('he-IL',{minimumFractionDigits:0,maximumFractionDigits:2})}</td></tr>`);
+    const curs=Object.keys(totals);
+    const trows=[];
+    // Per-currency subtotals (only shown when more than one currency)
+    if(curs.length>1){
+      for(const cur of curs){
+        const sym=cur==='USD'?'$':cur==='EUR'?'€':'₪';
+        const sumFmt=(+totals[cur]).toLocaleString('he-IL',{minimumFractionDigits:0,maximumFractionDigits:2});
+        trows.push(`<tr style="background:#f8fafc"><td colspan="6" style="text-align:right;color:#64748b;font-size:9pt;padding:5px 8px">סה"כ ${cur}</td><td style="text-align:center;font-weight:700;font-size:9pt;padding:5px 8px">${sym}${sumFmt}</td></tr>`);
+      }
     }
-    if(Object.keys(totals).length>1||(totals.USD||totals.EUR)){
-      lines.push(`<tr style="border-top:2px solid #1a2a4a"><td colspan="5" style="text-align:left;font-weight:700;color:#1a2a4a">שווי כולל בש"ח:</td><td style="font-weight:700;color:#1a2a4a">₪${Math.round(totalIlsEquiv).toLocaleString('he-IL')}</td></tr>`);
-    }
-    totalsHtml=`<table style="width:100%;margin-top:8px;font-size:10pt;border-collapse:collapse">${lines.join('')}</table>`;
+    // Grand total row
+    const hasMultiCur=curs.length>1||(totals.USD||totals.EUR);
+    const grandLabel=hasMultiCur?'שווי כולל בש"ח לפני מע"מ':'סך הכל לפני מע"מ';
+    const grandAmt='₪'+Math.round(totalIlsEquiv).toLocaleString('he-IL');
+    trows.push(`<tr style="background:#eef4ff;border-top:2.5px solid #1a2a4a"><td colspan="6" style="text-align:right;font-weight:700;color:#1a2a4a;font-size:10.5pt;padding:7px 8px">${grandLabel}</td><td style="text-align:center;font-weight:700;color:#1a2a4a;font-size:10.5pt;padding:7px 8px">${grandAmt}</td></tr>`);
+    trows.push(`<tr style="background:#eef4ff"><td colspan="7" style="font-size:8pt;color:#dc2626;padding:4px 8px;text-align:right">⚠ כל המחירים לפני מע"מ</td></tr>`);
+    tfootHtml=`<tfoot>${trows.join('')}</tfoot>`;
   }
-  const vatNote=showPrices?'<p style="font-size:8.5pt;color:#dc2626;margin:6px 0 0">⚠ כל המחירים לפני מע"מ</p>':'';
+  const vatNote=''; // moved into tfoot
   return `<!DOCTYPE html><html dir="rtl" lang="he"><head><meta charset="UTF-8">
 <title>תעודת דרישת רכש — ${esc(snap.req_number)}</title>
 <style>
@@ -8098,9 +8109,8 @@ function _rqBuildCertHtml(snap){
   <table class="items-table">
     <thead><tr>${colHeads}</tr></thead>
     <tbody>${rowsHtml||'<tr><td colspan="7" style="padding:12px;color:#94a3b8;text-align:center">אין פריטים</td></tr>'}</tbody>
+    ${tfootHtml}
   </table>
-  ${totalsHtml}
-  ${vatNote}
   <div class="sig-row">
     <div class="sig-box">חתימת מזמין<br><span style="color:#94a3b8;font-size:8pt">${esc(snap.requester||'_____________')}</span></div>
     <div class="sig-box">אישור מנהל / רכש<br><span style="color:#94a3b8;font-size:8pt">_____________</span></div>
