@@ -582,7 +582,8 @@ function showStep(id) {
 }
 
 // ── state ─────────────────────────────────────────────────────────────────────
-let _pendingToken  = '';
+// Restore pending token from sessionStorage in case of soft reload
+let _pendingToken  = sessionStorage.getItem('_pt') || '';
 let _loginPassword = '';
 let _inBackupMode  = false;
 let _backupCodes   = [];
@@ -609,6 +610,7 @@ async function doLogin(e) {
       return;
     }
     _pendingToken = data.pendingToken || '';
+    if (_pendingToken) sessionStorage.setItem('_pt', _pendingToken);
     if (data.requires2fa) {
       showStep('step-totp');
       setTimeout(() => document.getElementById('totp-code').focus(), 50);
@@ -656,6 +658,7 @@ async function doChangePassword(e) {
     }
     if (_pendingToken) {
       _pendingToken = data.pendingToken || _pendingToken;
+      if (_pendingToken) sessionStorage.setItem('_pt', _pendingToken);
       btn.disabled = false; btn.textContent = 'שמור והמשך';
       showStep('step-totp-setup');
       loadTotpSetup();
@@ -713,7 +716,7 @@ async function doTotp() {
       body: JSON.stringify({ pendingToken: _pendingToken, code })
     });
     const data = await res.json();
-    if (res.ok) { window.location.href = '/dashboard'; return; }
+    if (res.ok) { sessionStorage.removeItem('_pt'); window.location.href = '/dashboard'; return; }
     err.textContent = data.error || 'קוד שגוי — נסה שנית';
     err.classList.add('show');
     btn.disabled = false; btn.textContent = 'אמת →';
@@ -746,11 +749,14 @@ async function loadTotpSetup() {
   manual.textContent       = '⏳ טוען...';
   errEl.classList.remove('show');
 
-  const _showErr = (msg) => {
-    loadingTxt.textContent  = '⚠ השתמש בקוד הידני למטה';
+  const _showErr = (msg, status) => {
+    // Show error prominently inside the QR box so it's always visible
+    loadingTxt.innerHTML = status === 401
+      ? `❌ הסשן פג — <a href="/login" style="color:inherit;font-weight:700;text-decoration:underline">התחבר מחדש</a>`
+      : `❌ שגיאה ${status || ''}: ${msg}`;
     errEl.textContent       = msg;
     errEl.classList.add('show');
-    retryWrap.style.display = '';
+    retryWrap.style.display = status === 401 ? 'none' : '';
   };
 
   try {
@@ -770,13 +776,13 @@ async function loadTotpSetup() {
 
     let data;
     try { data = await res.json(); }
-    catch { _showErr('שגיאה בפענוח התגובה (HTTP ' + res.status + ')'); return; }
+    catch { _showErr('שגיאה בפענוח התגובה', res.status); return; }
 
     // Always show the manual secret immediately
     manual.textContent = data.secret || '(שגיאה — נסה שנית)';
 
     if (!res.ok) {
-      _showErr(data.error || 'שגיאה ' + res.status);
+      _showErr(data.error || 'שגיאת שרת', res.status);
       return;
     }
 
@@ -806,9 +812,9 @@ async function loadTotpSetup() {
 
   } catch (ex) {
     if (ex.name === 'AbortError') {
-      _showErr('פג זמן הבקשה — נסה שנית');
+      _showErr('פג זמן הבקשה — נסה שנית', 0);
     } else {
-      _showErr('שגיאת רשת: ' + ex.message);
+      _showErr('שגיאת רשת: ' + ex.message, 0);
     }
   }
 }
@@ -862,7 +868,10 @@ function downloadBackupCodes() {
   a.click();
   setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
-function doFinishSetup() { window.location.href = '/dashboard'; }
+function doFinishSetup() {
+  sessionStorage.removeItem('_pt');
+  window.location.href = '/dashboard';
+}
 </script>
 </body>
 </html>

@@ -322,7 +322,7 @@ app.post('/api/auth/login', loginLimiter, (req, res) => {
     return res.json({ ok: true, requires2fa: true, pendingToken });
   }
   // No 2FA set up yet — force enrollment before granting access
-  const pendingToken = jwt.sign({ id: user.id, step: 'totp_setup' }, JWT_SECRET, { expiresIn: '10m' });
+  const pendingToken = jwt.sign({ id: user.id, step: 'totp_setup' }, JWT_SECRET, { expiresIn: '30m' });
   return res.json({ ok: true, needsTotpSetup: true, pendingToken, must_change_password: !!user.must_change_password });
 });
 
@@ -365,7 +365,7 @@ app.post('/api/auth/totp/change-password', (req, res) => {
   db.setMustChangePassword(user.id, 0);
   db.logAudit(user.id, user.username, 'change_password', 'Password changed during TOTP setup', null, '');
   // Issue fresh pending token (extends window after password change)
-  const newPendingToken = jwt.sign({ id: user.id, step: 'totp_setup' }, JWT_SECRET, { expiresIn: '10m' });
+  const newPendingToken = jwt.sign({ id: user.id, step: 'totp_setup' }, JWT_SECRET, { expiresIn: '30m' });
   res.json({ ok: true, pendingToken: newPendingToken });
 });
 
