@@ -1384,8 +1384,8 @@ tr:hover .pl-edit-btn{opacity:.65}
             <button class="rq-btn rq-btn-ghost" onclick="rqNewDraft()">📄 דרישה חדשה</button>
             <button class="rq-btn rq-btn-ghost" onclick="rqResetQtys()">🔄 איפוס כמויות</button>
             <button class="rq-btn rq-btn-secondary" onclick="rqOpenPreview()">👁 תצוגה מקדימה</button>
-            <button class="rq-btn rq-btn-secondary" onclick="rqExportCertificate()">📋 שמור תעודה</button>
-            <button class="rq-btn rq-btn-primary" onclick="rqSave()">💾 שמור</button>
+            <button class="rq-btn rq-btn-secondary" onclick="rqExportCertificate()" title="שומר את הדרישה במערכת ויוצר תעודה להדפסה — מאפס כמויות לאחר מכן">📋 שמור תעודה</button>
+            <button class="rq-btn rq-btn-primary" onclick="rqSave()" title="שומר את הדרישה במערכת לצורך מעקב בהיסטוריה — ללא יצירת תעודה">💾 שמור טיוטה</button>
           </div>
         </div>
       </div>
@@ -7961,9 +7961,14 @@ const _RQ_CERTS_KEY='afkon_rq_certs';
 function _rqLoadCerts(){ try{ return JSON.parse(localStorage.getItem(_RQ_CERTS_KEY)||'[]'); }catch{ return []; } }
 function _rqSaveCertsStore(arr){ try{ localStorage.setItem(_RQ_CERTS_KEY, JSON.stringify(arr)); }catch{} }
 
-function rqExportCertificate(){
+async function rqExportCertificate(){
   const items=rqBuildItems().filter(x=>x.qty>0);
   if(!items.length){ alert('בחר לפחות פריט אחד עם כמות לפני שמירת תעודה.'); return; }
+  // Auto-save to server so the certificate always carries a requisition number
+  if(!rqDraft.id){
+    try{ await _rqSaveSilent(); }
+    catch(e){ alert('שגיאה בשמירת הדרישה: '+(e.message==='no-items'?'אין פריטים':e.message)); return; }
+  }
   // Build totals snapshot
   const totals={};
   let totalIlsEquiv=0;
@@ -8210,33 +8215,41 @@ function rqBuildItems(){
   return items;
 }
 
-async function rqSave(){
+// Silent server-save — shared by rqSave() and rqExportCertificate().
+// Throws on network/server error so callers can handle.
+async function _rqSaveSilent(){
   const items=rqBuildItems();
-  if(!items.length){ alert('בחר לפחות פריט אחד עם כמות לפני שמירה.'); return; }
+  if(!items.length) throw new Error('no-items');
   const body={
-    supplier:  rqDraft.supplier,
-    requester: rqDraft.requester,
-    notes:     rqDraft.notes,
+    supplier:    rqDraft.supplier,
+    requester:   rqDraft.requester,
+    notes:       rqDraft.notes,
     show_prices: rqDraft.show_prices !== false,
     items,
   };
+  let r, j;
+  if(rqDraft.id){
+    r=await fetch('/api/requisitions/'+encodeURIComponent(rqDraft.id),
+      {method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body)});
+    if(!r.ok) throw new Error('save failed');
+  } else {
+    r=await fetch('/api/requisitions',
+      {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body)});
+    if(!r.ok) throw new Error('save failed');
+    j=await r.json();
+    rqDraft.id=j.id;
+    rqDraft.req_number=j.req_number;
+    rqSaveDraft();
+  }
+  await rqLoadHistory();
+  rqRender();
+}
+
+async function rqSave(){
+  const items=rqBuildItems();
+  if(!items.length){ alert('בחר לפחות פריט אחד עם כמות לפני שמירה.'); return; }
   try{
-    let r, j;
-    if(rqDraft.id){
-      r=await fetch('/api/requisitions/'+encodeURIComponent(rqDraft.id),
-        {method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body)});
-      if(!r.ok) throw new Error('save failed');
-    } else {
-      r=await fetch('/api/requisitions',
-        {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body)});
-      if(!r.ok) throw new Error('save failed');
-      j=await r.json();
-      rqDraft.id=j.id;
-      rqDraft.req_number=j.req_number;
-      rqSaveDraft();
-    }
-    await rqLoadHistory();
-    rqRender();
+    await _rqSaveSilent();
     alert('נשמר: '+(rqDraft.req_number||''));
   }catch(e){ alert('שגיאה בשמירה'); }
 }
