@@ -957,6 +957,31 @@ tr:hover .pl-edit-btn{opacity:.65}
 .rq-hist-row{cursor:pointer}
 .rq-hist-row:hover td{background:#eff6ff}
 .rq-empty{text-align:center;padding:20px;color:#94a3b8;font-size:.85rem}
+/* sticky summary bar */
+.rq-sticky-bar{position:fixed;bottom:0;left:0;right:0;z-index:8100;
+  background:linear-gradient(135deg,#1a2a4a,#2d4373);color:#fff;
+  display:flex;align-items:center;gap:14px;flex-wrap:wrap;
+  padding:10px 24px;direction:rtl;box-shadow:0 -4px 20px rgba(0,0,0,.18);
+  font-size:.88rem;transition:transform .2s}
+.rq-sticky-bar.hidden{transform:translateY(110%)}
+.rq-sb-total{font-size:1.05rem;font-weight:700;color:#7dd3fc}
+.rq-sb-sep{opacity:.35;font-size:.75rem}
+.rq-sb-btn{background:rgba(255,255,255,.13);border:1px solid rgba(255,255,255,.25);
+  color:#fff;border-radius:8px;padding:6px 14px;cursor:pointer;font-size:.82rem;
+  transition:background .15s;font-family:inherit}
+.rq-sb-btn:hover{background:rgba(255,255,255,.26)}
+.rq-sb-btn-primary{background:#1d4ed8;border-color:#1d4ed8}
+.rq-sb-btn-primary:hover{background:#1e40af}
+/* sticky table header */
+.rq-table thead th{position:sticky;top:0;z-index:2;background:#f1f5f9}
+/* history inline status dropdown */
+.rq-hist-status-sel{border:none;outline:none;font-size:.72rem;font-weight:700;
+  border-radius:12px;padding:2px 10px 2px 6px;cursor:pointer;
+  -webkit-appearance:none;appearance:none;font-family:inherit}
+.rq-hist-status-sel.draft{background:#f1f5f9;color:#475569}
+.rq-hist-status-sel.pending{background:#fef3c7;color:#92400e}
+.rq-hist-status-sel.approved{background:#d1fae5;color:#065f46}
+.rq-hist-status-sel.done{background:#e0e7ff;color:#3730a3}
 
 /* ── Requisition preview modal ─────────────────────────────── */
 .rq-preview-overlay{position:fixed;inset:0;z-index:2000;background:#3a3a3a;display:flex;flex-direction:column;overflow:hidden}
@@ -1351,7 +1376,9 @@ tr:hover .pl-edit-btn{opacity:.65}
           </div>
           <div style="display:flex;gap:8px;flex-wrap:wrap">
             <button class="rq-btn rq-btn-ghost" onclick="rqNewDraft()">📄 דרישה חדשה</button>
+            <button class="rq-btn rq-btn-ghost" onclick="rqResetQtys()">🔄 איפוס כמויות</button>
             <button class="rq-btn rq-btn-secondary" onclick="rqOpenPreview()">👁 תצוגה מקדימה</button>
+            <button class="rq-btn rq-btn-secondary" onclick="rqExportCertificate()">📋 שמור תעודה</button>
             <button class="rq-btn rq-btn-primary" onclick="rqSave()">💾 שמור</button>
           </div>
         </div>
@@ -1364,6 +1391,7 @@ tr:hover .pl-edit-btn{opacity:.65}
           <span class="rq-chip active" id="rq-chip-all" onclick="rqSetSource('all')">הכל</span>
           <span class="rq-chip" id="rq-chip-warehouse" onclick="rqSetSource('warehouse')">רק מחסן</span>
           <span class="rq-chip" id="rq-chip-pricelist" onclick="rqSetSource('pricelist')">רק מחירון</span>
+          <span class="rq-chip" id="rq-chip-selected" onclick="rqSetSource('selected')">⭐ נבחרים <span id="rq-chip-selected-cnt" style="opacity:.7"></span></span>
           <input class="rq-search" id="rq-search" type="search" placeholder='חיפוש מק"ט / תיאור / יצרן...' oninput="rqRender()"/>
           <span id="rq-stats" class="rq-meta"></span>
         </div>
@@ -2471,7 +2499,11 @@ function setView(v){
     rqRender();
     Promise.all([ensureWarehouseLoaded(), rqLoadHistory()]).then(()=>rqRender());
   }
-  else renderList();
+  else{
+    // Hide requisition sticky bar when navigating away
+    document.getElementById('rq-sticky-bar')?.classList.add('hidden');
+    renderList();
+  }
 }
 
 function filterPri(p){
@@ -7572,6 +7604,7 @@ function rqSetSource(s){
   document.getElementById('rq-chip-all').classList.toggle('active',s==='all');
   document.getElementById('rq-chip-warehouse').classList.toggle('active',s==='warehouse');
   document.getElementById('rq-chip-pricelist').classList.toggle('active',s==='pricelist');
+  document.getElementById('rq-chip-selected')?.classList.toggle('active',s==='selected');
   rqRender();
 }
 
@@ -7619,7 +7652,6 @@ function _rqUpdateRowTotal(key){
 
 function _rqUpdateStats(){
   const el=document.getElementById('rq-stats');
-  if(!el) return;
   let cnt=0, totalIls=0;
   const rows=rqAllRows();
   const byKey=new Map(rows.map(r=>[r.key,r]));
@@ -7629,9 +7661,27 @@ function _rqUpdateStats(){
     const r=byKey.get(k);
     if(r && r.price) totalIls += _rqRowPriceIls(r)*q;
   }
-  el.textContent = cnt
+  const txt = cnt
     ? `${cnt} פריטים · סה"כ ₪${Math.round(totalIls).toLocaleString('he-IL')} (לפני מע"מ)`
     : '';
+  if(el) el.textContent = txt;
+  // Update "נבחרים" chip count
+  const selCnt=document.getElementById('rq-chip-selected-cnt');
+  if(selCnt) selCnt.textContent = cnt ? `(${cnt})` : '';
+  // Drive sticky bar
+  const bar=document.getElementById('rq-sticky-bar');
+  const inRqView=document.getElementById('requisition-view')?.style.display!=='none';
+  if(bar){
+    if(cnt>0 && inRqView){
+      bar.classList.remove('hidden');
+      const sbCount=document.getElementById('rq-sb-count');
+      const sbTotal=document.getElementById('rq-sb-total');
+      if(sbCount) sbCount.textContent=`${cnt} פריטים`;
+      if(sbTotal) sbTotal.textContent=`₪${Math.round(totalIls).toLocaleString('he-IL')}`;
+    } else {
+      bar.classList.add('hidden');
+    }
+  }
 }
 
 function rqRender(){
@@ -7649,7 +7699,8 @@ function rqRender(){
 
   const q=(document.getElementById('rq-search')?.value||'').trim().toLowerCase();
   let rows=rqAllRows();
-  if(rqSourceFilter!=='all') rows=rows.filter(r=>r.source===rqSourceFilter);
+  if(rqSourceFilter==='selected') rows=rows.filter(r=>rqQty(r.key)>0);
+  else if(rqSourceFilter!=='all') rows=rows.filter(r=>r.source===rqSourceFilter);
   if(q){
     rows=rows.filter(r=>
       r.sku.toLowerCase().includes(q) ||
@@ -7756,13 +7807,20 @@ function rqRenderHistory(){
     ${rqHistory.map(h=>{
       const d=h.created_at?new Date(h.created_at).toLocaleDateString('he-IL'):'';
       const st=h.status||'draft';
-      const stLbl=_RQ_STATUS_LBL[st]||st;
       const stCls=_RQ_STATUS_CLS[st]||'draft';
+      const stOpts=['draft','pending','approved','done']
+        .map(s=>`<option value="${s}"${s===st?' selected':''}>${_RQ_STATUS_LBL[s]||s}</option>`)
+        .join('');
       return `<tr class="rq-hist-row" onclick="rqLoadInto('${h.id}')">
         <td><b>${_rqEsc(h.req_number)}</b></td>
         <td>${_rqEsc(h.supplier||'—')}</td>
         <td>${_rqEsc(h.requester||'—')}</td>
-        <td style="text-align:center"><span class="rq-hist-status ${stCls}">${stLbl}</span></td>
+        <td style="text-align:center" onclick="event.stopPropagation()">
+          <select class="rq-hist-status-sel ${stCls}" title="לחץ לשינוי סטטוס"
+            onchange="rqHistChangeStatus('${h.id}',this.value);this.className='rq-hist-status-sel '+this.value">
+            ${stOpts}
+          </select>
+        </td>
         <td style="text-align:center">${h.item_count||0}</td>
         <td>${d}</td>
         <td><button class="rq-btn rq-btn-danger" style="font-size:.7rem;padding:3px 8px"
@@ -7812,6 +7870,160 @@ function rqNewDraft(){
             show_prices:true, status:'draft', qtys:{} };
   rqSaveDraft();
   rqRender();
+}
+
+function rqResetQtys(){
+  const hasQty=Object.values(rqDraft.qtys).some(q=>q>0);
+  if(!hasQty) return;
+  if(!confirm('לאפס את כמויות כל הפריטים?\nהמידע הנלווה (ספק, מזמין, הערות) יישמר.')) return;
+  rqDraft.qtys={};
+  rqSaveDraft();
+  rqRender();
+}
+
+async function rqHistChangeStatus(id, newStatus){
+  try{
+    const r=await fetch('/api/requisitions/'+encodeURIComponent(id)+'/status',{
+      method:'PATCH',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({status:newStatus}),
+    });
+    if(!r.ok){ const j=await r.json().catch(()=>({})); throw new Error(j.error||'שגיאה'); }
+    // Update local history cache so re-render reflects the change
+    const item=rqHistory.find(h=>String(h.id)===String(id));
+    if(item) item.status=newStatus;
+    // If this is the current open draft, sync it too
+    if(String(rqDraft.id)===String(id)){
+      rqDraft.status=newStatus;
+      rqSaveDraft();
+      rqSyncStatusUI();
+    }
+    const lbl=_RQ_STATUS_LBL[newStatus]||newStatus;
+    const _t=document.createElement('div');
+    _t.style.cssText='position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:#276749;color:#fff;padding:9px 22px;border-radius:20px;font-size:.86rem;font-weight:700;z-index:9999;box-shadow:0 4px 20px rgba(0,0,0,.18);direction:rtl';
+    _t.textContent='סטטוס עודכן ל-'+lbl+' ✅';
+    document.body.appendChild(_t); setTimeout(()=>_t.remove(),2800);
+  }catch(e){
+    alert('שגיאה בעדכון סטטוס: '+e.message);
+    rqRenderHistory(); // revert select to original value
+  }
+}
+
+function rqExportCertificate(){
+  const items=rqBuildItems().filter(x=>x.qty>0);
+  if(!items.length){ alert('בחר לפחות פריט אחד עם כמות לפני ייצוא תעודה.'); return; }
+  const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const today=new Date().toLocaleDateString('he-IL');
+  const reqNumber=rqDraft.req_number||'—';
+  const statusLbl=_RQ_STATUS_LBL[rqDraft.status]||rqDraft.status||'טיוטה';
+  const showPrices=rqDraft.show_prices!==false;
+  // Build totals
+  const totals={};
+  let totalIlsEquiv=0;
+  for(const it of items){
+    const sub=it.qty*(+it.price||0);
+    if(sub>0){
+      totals[it.cur]=(totals[it.cur]||0)+sub;
+      let ils=sub;
+      if(it.cur==='USD') ils=sub*(plUsdRate||3.7);
+      else if(it.cur==='EUR') ils=sub*(plEurRate||4.0);
+      totalIlsEquiv+=ils;
+    }
+  }
+  const colHeads=showPrices
+    ?'<th>מק"ט</th><th>מקור</th><th>תיאור</th><th>יח׳</th><th>כמות</th><th>מחיר יח׳</th><th>סה"כ</th>'
+    :'<th>מק"ט</th><th>מקור</th><th>תיאור</th><th>יח׳</th><th>כמות</th>';
+  const rowsHtml=items.map((it,i)=>{
+    const srcLbl=it.source==='warehouse'?'מחסן':'מחירון';
+    const priceTxt=(!it.price)?'—':`${it.cur==='USD'?'$':it.cur==='EUR'?'€':'₪'}${(+it.price).toLocaleString('he-IL',{minimumFractionDigits:0,maximumFractionDigits:2})}`;
+    const sub=it.qty*(+it.price||0);
+    const subTxt=(!it.price)?'—':`${it.cur==='USD'?'$':it.cur==='EUR'?'€':'₪'}${sub.toLocaleString('he-IL',{minimumFractionDigits:0,maximumFractionDigits:2})}`;
+    const priceCells=showPrices?`<td>${esc(priceTxt)}</td><td><b>${esc(subTxt)}</b></td>`:'';
+    const descTxt=it.source==='pricelist'&&it.mfr?`${esc(it.mfr)} · ${esc(it.desc||'')}`:esc(it.desc||'');
+    const bg=i%2===0?'#fff':'#f8fafc';
+    return `<tr style="background:${bg}"><td style="font-family:monospace;font-size:9pt">${esc(it.sku)}</td><td style="font-size:8pt;color:#6b7280">${srcLbl}</td><td>${descTxt}</td><td>${esc(it.unit||'')}</td><td style="text-align:center;font-weight:700">${it.qty}</td>${priceCells}</tr>`;
+  }).join('');
+  let totalsHtml='';
+  if(showPrices){
+    const lines=[];
+    for(const [cur,sum] of Object.entries(totals)){
+      const sym=cur==='USD'?'$':cur==='EUR'?'€':'₪';
+      lines.push(`<tr><td colspan="5" style="text-align:left;color:#475569">סה"כ ${cur}:</td><td style="font-weight:700">${sym}${sum.toLocaleString('he-IL',{minimumFractionDigits:0,maximumFractionDigits:2})}</td></tr>`);
+    }
+    if(Object.keys(totals).length>1||(totals.USD||totals.EUR)){
+      lines.push(`<tr style="border-top:2px solid #1a2a4a"><td colspan="5" style="text-align:left;font-weight:700;color:#1a2a4a">שווי כולל בש"ח:</td><td style="font-weight:700;color:#1a2a4a">₪${Math.round(totalIlsEquiv).toLocaleString('he-IL')}</td></tr>`);
+    }
+    totalsHtml=`<table style="width:100%;margin-top:8px;font-size:10pt;border-collapse:collapse">${lines.join('')}</table>`;
+  }
+  const vatNote=showPrices?'<p style="font-size:8.5pt;color:#dc2626;margin:6px 0 0">⚠ כל המחירים לפני מע"מ</p>':'';
+  const certHtml=`<!DOCTYPE html><html dir="rtl" lang="he"><head><meta charset="UTF-8">
+<title>תעודת דרישת רכש — ${esc(reqNumber)}</title>
+<style>
+  @page{size:A4;margin:18mm 15mm}
+  *{box-sizing:border-box}
+  body{font-family:Arial,sans-serif;font-size:11pt;direction:rtl;color:#1a1a2e;margin:0;padding:0}
+  .cert-wrap{max-width:780px;margin:0 auto;padding:0 4mm}
+  .cert-header{border:2.5px solid #1a2a4a;border-radius:6px;padding:14px 18px;margin-bottom:18px;display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
+  .cert-title{text-align:center;flex:1}
+  .cert-title h1{margin:0;font-size:18pt;color:#1a2a4a;letter-spacing:.5px}
+  .cert-title .sub{font-size:9pt;color:#607080;margin-top:3px}
+  .cert-meta{font-size:9.5pt;color:#374151;line-height:1.7;min-width:140px;text-align:right}
+  .cert-meta b{color:#1a2a4a}
+  .cert-logo{height:52px;width:auto;object-fit:contain}
+  .cert-stamp{border:2px dashed #1d4ed8;border-radius:50%;width:70px;height:70px;display:flex;align-items:center;justify-content:center;font-size:8pt;font-weight:700;color:#1d4ed8;text-align:center;flex-shrink:0;line-height:1.2}
+  .info-table{width:100%;border-collapse:collapse;margin-bottom:14px;font-size:10pt}
+  .info-table td{padding:6px 10px;border:1px solid #c8d5e8}
+  .info-table td.lbl{background:#e8eef7;font-weight:700;color:#1a2a4a;width:110px;white-space:nowrap}
+  .items-table{width:100%;border-collapse:collapse;font-size:9.5pt;margin-bottom:8px}
+  .items-table th{background:#1a2a4a;color:#fff;padding:7px 8px;text-align:right;font-size:8.5pt}
+  .items-table td{padding:6px 8px;border-bottom:1px solid #e2e8f0;vertical-align:middle}
+  .sig-row{margin-top:40px;display:flex;gap:60px;justify-content:space-between;font-size:9.5pt}
+  .sig-box{flex:1;border-top:1px solid #1a2a4a;padding-top:8px;text-align:center;color:#374151}
+  .footer{margin-top:20px;font-size:7.5pt;color:#94a3b8;text-align:center;border-top:1px solid #e2e8f0;padding-top:8px}
+  @media print{.no-print{display:none}}
+</style></head><body>
+<div class="no-print" style="background:#1a2a4a;color:#fff;padding:10px 20px;display:flex;justify-content:space-between;align-items:center;font-family:Arial">
+  <span style="font-weight:700">📋 תעודת דרישת רכש — ${esc(reqNumber)}</span>
+  <button onclick="window.print()" style="background:#1d4ed8;color:#fff;border:none;padding:7px 18px;border-radius:6px;cursor:pointer;font-weight:700;font-size:.9rem">🖨 הדפס / שמור PDF</button>
+</div>
+<div class="cert-wrap" style="padding-top:14px">
+  <div class="cert-header">
+    <img src="/logo.png" alt="לוגו" class="cert-logo" onerror="this.style.display='none'"/>
+    <div class="cert-title">
+      <h1>תעודת דרישת רכש</h1>
+      <div class="sub">Purchase Requisition Certificate</div>
+    </div>
+    <div class="cert-meta">
+      <div><b>מס׳ דרישה:</b> ${esc(reqNumber)}</div>
+      <div><b>תאריך:</b> ${esc(today)}</div>
+      <div><b>סטטוס:</b> ${esc(statusLbl)}</div>
+    </div>
+    <div class="cert-stamp">${esc(statusLbl)}</div>
+  </div>
+  <table class="info-table">
+    <tr><td class="lbl">ספק / יצרן</td><td>${esc(rqDraft.supplier||'—')}</td>
+        <td class="lbl">מזמין</td><td>${esc(rqDraft.requester||'—')}</td></tr>
+    ${rqDraft.notes?`<tr><td class="lbl">הערות</td><td colspan="3" style="white-space:pre-wrap;font-size:9.5pt">${esc(rqDraft.notes)}</td></tr>`:''}
+  </table>
+  <table class="items-table">
+    <thead><tr>${colHeads}</tr></thead>
+    <tbody>${rowsHtml||`<tr><td colspan="7" style="padding:12px;color:#94a3b8;text-align:center">אין פריטים</td></tr>`}</tbody>
+  </table>
+  ${totalsHtml}
+  ${vatNote}
+  <div class="sig-row">
+    <div class="sig-box">חתימת מזמין<br><span style="color:#94a3b8;font-size:8pt">${esc(rqDraft.requester||'_____________')}</span></div>
+    <div class="sig-box">אישור מנהל / רכש<br><span style="color:#94a3b8;font-size:8pt">_____________</span></div>
+    <div class="sig-box">תאריך אישור<br><span style="color:#94a3b8;font-size:8pt">_____________</span></div>
+  </div>
+  <div class="footer">אפקון בקרה ואוטומציה · מסמך זה הופק אוטומטית במערכת ניהול הפרויקטים · ${esc(today)}</div>
+</div>
+<script>window.onload=()=>window.print();<\/script>
+</body></html>`;
+  const w=window.open('','_blank');
+  if(!w){ alert('לא ניתן לפתוח חלון חדש — אפשר חלונות קופצים בדפדפן.'); return; }
+  w.document.write(certHtml);
+  w.document.close();
 }
 
 function rqBuildItems(){
@@ -8480,6 +8692,18 @@ function clearPlImported(){
       </div>
     </div>
   </div>
+</div>
+
+<!-- ══ REQUISITION STICKY BAR ══ -->
+<div id="rq-sticky-bar" class="rq-sticky-bar hidden" role="status" aria-live="polite">
+  <span id="rq-sb-count" style="font-weight:600"></span>
+  <span class="rq-sb-sep">|</span>
+  <span class="rq-sb-total" id="rq-sb-total"></span>
+  <span id="rq-sb-vat" style="font-size:.75rem;opacity:.65">לפני מע"מ</span>
+  <span style="flex:1"></span>
+  <button class="rq-sb-btn" onclick="rqSetSource('selected')">⭐ הצג נבחרים</button>
+  <button class="rq-sb-btn" onclick="rqResetQtys()">🔄 איפוס כמויות</button>
+  <button class="rq-sb-btn rq-sb-btn-primary" onclick="rqExportCertificate()">📋 שמור תעודה</button>
 </div>
 </body>
 </html>
