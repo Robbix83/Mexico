@@ -1159,6 +1159,59 @@ tr:hover .pl-edit-btn{opacity:.65}
   .rq-preview-page { box-shadow: none !important; width: 100% !important; padding: 0 !important; page-break-after: always; }
   .rq-preview-page:last-child { page-break-after: auto; }
 }
+
+/* ── App-level Toast & Confirm ────────────────────────────────────────────── */
+#app-toast-stack{
+  position:fixed;bottom:24px;left:24px;display:flex;flex-direction:column-reverse;
+  gap:10px;z-index:19000;pointer-events:none;direction:rtl;
+}
+.app-toast{
+  display:flex;align-items:flex-start;gap:10px;padding:12px 16px 12px 14px;
+  border-radius:12px;font-size:.85rem;font-weight:600;line-height:1.4;
+  max-width:340px;min-width:220px;box-shadow:0 6px 24px rgba(0,0,0,.18);
+  pointer-events:all;cursor:pointer;border:1px solid transparent;
+  animation:appToastIn .22s cubic-bezier(.22,1,.36,1) both;
+  transition:opacity .25s,transform .25s;
+}
+.app-toast.removing{opacity:0;transform:translateX(-20px)}
+@keyframes appToastIn{from{opacity:0;transform:translateX(-30px)}to{opacity:1;transform:none}}
+.app-toast-icon{font-size:1.1rem;flex-shrink:0;margin-top:1px}
+.app-toast-msg{flex:1}
+.app-toast-close{flex-shrink:0;opacity:.5;font-size:.9rem;margin-top:1px;
+  background:none;border:none;color:inherit;cursor:pointer;padding:0 2px;
+  line-height:1;pointer-events:all}
+.app-toast-close:hover{opacity:1}
+.app-toast-success{background:#f0fdf4;border-color:#86efac;color:#166534}
+.app-toast-error  {background:#fef2f2;border-color:#fca5a5;color:#991b1b}
+.app-toast-warn   {background:#fffbeb;border-color:#fcd34d;color:#92400e}
+.app-toast-info   {background:#eff6ff;border-color:#93c5fd;color:#1e40af}
+
+/* Confirm modal */
+#app-confirm-overlay{
+  display:none;position:fixed;inset:0;background:rgba(0,0,0,.48);
+  z-index:20000;align-items:center;justify-content:center;direction:rtl;
+  backdrop-filter:blur(2px);
+}
+#app-confirm-overlay.active{display:flex}
+#app-confirm-box{
+  background:#fff;border-radius:18px;padding:28px 28px 22px;max-width:380px;width:90%;
+  box-shadow:0 20px 60px rgba(0,0,0,.22);
+  animation:appConfirmIn .2s cubic-bezier(.22,1,.36,1) both;
+}
+@keyframes appConfirmIn{from{opacity:0;transform:scale(.94)}to{opacity:1;transform:none}}
+#app-confirm-icon{font-size:2rem;margin-bottom:8px;text-align:center}
+#app-confirm-title{font-size:1rem;font-weight:700;color:#1e293b;margin-bottom:6px;text-align:center}
+#app-confirm-msg{font-size:.875rem;color:#475569;line-height:1.55;text-align:center;margin-bottom:22px;white-space:pre-line}
+.app-confirm-btns{display:flex;gap:10px;justify-content:center}
+.app-confirm-btns button{flex:1;max-width:140px;padding:9px 16px;border-radius:10px;
+  font-size:.88rem;font-weight:700;cursor:pointer;border:none;transition:background .15s}
+#app-confirm-ok{background:#ef4444;color:#fff}
+#app-confirm-ok:hover{background:#dc2626}
+#app-confirm-ok.is-delete{background:#ef4444}
+#app-confirm-ok.is-warn{background:#f59e0b}
+#app-confirm-ok.is-action{background:#1d4ed8}
+#app-confirm-cancel{background:#f1f5f9;color:#475569}
+#app-confirm-cancel:hover{background:#e2e8f0}
 </style>
 </head>
 <body>
@@ -1968,6 +2021,55 @@ tr:hover .pl-edit-btn{opacity:.65}
 </div>
 
 <script>
+// ── Toast system ──────────────────────────────────────────────────────────────
+function _toast(msg, type='info', duration=4000){
+  const stack=document.getElementById('app-toast-stack');
+  if(!stack) return;
+  const icons={success:'✅',error:'❌',warn:'⚠️',info:'ℹ️'};
+  const t=document.createElement('div');
+  t.className=`app-toast app-toast-${type}`;
+  t.innerHTML=`<span class="app-toast-icon">${icons[type]||'ℹ️'}</span>`+
+              `<span class="app-toast-msg">${msg}</span>`+
+              `<button class="app-toast-close" onclick="this.parentElement.remove()">×</button>`;
+  const remove=()=>{
+    t.classList.add('removing');
+    setTimeout(()=>t.remove(),260);
+  };
+  t.addEventListener('click',e=>{if(e.target.classList.contains('app-toast-close')) remove();});
+  stack.appendChild(t);
+  setTimeout(remove, duration);
+}
+// Alias used by existing code
+function showToast(msg){ _toast(msg,'success'); }
+
+// ── Confirm modal ─────────────────────────────────────────────────────────────
+let _confirmResolve=null;
+function _confirm(msg, {title='אישור פעולה', ok='אישור', cancel='ביטול', type='delete'}={}){
+  return new Promise(resolve=>{
+    _confirmResolve=resolve;
+    const overlay=document.getElementById('app-confirm-overlay');
+    document.getElementById('app-confirm-msg').textContent=msg;
+    document.getElementById('app-confirm-title').textContent=title;
+    document.getElementById('app-confirm-icon').textContent=
+      type==='delete'?'🗑️':type==='warn'?'⚠️':'❓';
+    const okBtn=document.getElementById('app-confirm-ok');
+    okBtn.textContent=ok;
+    okBtn.className='is-'+(type==='delete'?'delete':type==='warn'?'warn':'action');
+    okBtn.onclick=()=>{ overlay.classList.remove('active'); resolve(true); };
+    document.getElementById('app-confirm-cancel').textContent=cancel;
+    overlay.classList.add('active');
+    // Keyboard support
+    const onKey=e=>{
+      if(e.key==='Escape'){overlay.classList.remove('active');resolve(false);document.removeEventListener('keydown',onKey);}
+      if(e.key==='Enter'){overlay.classList.remove('active');resolve(true);document.removeEventListener('keydown',onKey);}
+    };
+    overlay.addEventListener('click',e=>{
+      if(e.target===overlay){overlay.classList.remove('active');resolve(false);}
+    },{once:true});
+    document.addEventListener('keydown',onKey);
+  });
+}
+
 // ─── CONSTANTS ─────────────────────────────────────────────
 const ST_CLS={notstarted:'s-ns',inprogress:'s-ip',blocked:'s-bl',done:'s-dn'};
 const ST_LBL={notstarted:'לא התחיל',inprogress:'🔄 בתהליך',blocked:'🔴 תקוע',done:'✅ בוצע',opened:'📂 נפתחה',deleted:'🗑️ נמחקה',restored:'↩ שוחזרה'};
@@ -3365,11 +3467,11 @@ function xlPreviewHtml(dataUrl){
     return h;
   }catch(e){return '<div style="padding:12px;font-size:.78rem;color:#94a3b8">לא ניתן לטעון</div>';}
 }
-function removeTaskFile(e,taskId,idx){
+async function removeTaskFile(e,taskId,idx){
   e.stopPropagation();
   const t=tasks.find(x=>x.id===taskId);
   if(!t||!t.files?.[idx]) return;
-  if(!confirm(`למחוק את הקובץ "${t.files[idx].name}"?`)) return;
+  if(!await _confirm(`למחוק את הקובץ "${t.files[idx].name}"?`,{title:'מחיקת קובץ',ok:'מחק',type:'delete'})) return;
   hideFilePreview();
   t.files.splice(idx,1);
   saveState();
@@ -3672,7 +3774,7 @@ function saveCatEdit(i){
 function addCategory(){
   const name=document.getElementById('new-cat-name').value.trim();
   if(!name) return;
-  if(categories.find(c=>c.name===name)){alert('קטגוריה זו כבר קיימת');return}
+  if(categories.find(c=>c.name===name)){_toast('קטגוריה זו כבר קיימת','warn');return}
   categories.push({name,...newCatColor});
   document.getElementById('new-cat-name').value='';
   newCatColor=PALETTE[0];
@@ -3681,7 +3783,7 @@ function addCategory(){
 }
 function deleteCategory(i){
   const usedBy=tasks.filter(t=>t.cat===categories[i].name).length;
-  if(usedBy>0){alert('לא ניתן למחוק — קטגוריה בשימוש');return}
+  if(usedBy>0){_toast('לא ניתן למחוק — קטגוריה בשימוש','warn');return}
   categories.splice(i,1);
   saveState();
   renderCatList();
@@ -3748,8 +3850,8 @@ function addProject(){
   const name=document.getElementById('new-proj-name').value.trim();
   const num =document.getElementById('new-proj-num').value.trim();
   const cityVal=document.getElementById('new-proj-city').value;
-  if(!name||!num){alert('יש להזין שם ומספר פרויקט');return}
-  if(projects.find(p=>p.num===num)){alert('מספר פרויקט זה כבר קיים');return}
+  if(!name||!num){_toast('יש להזין שם ומספר פרויקט','warn');return}
+  if(projects.find(p=>p.num===num)){_toast('מספר פרויקט זה כבר קיים','warn');return}
   projects.push({id:nextProjectId++,name,num,cityId:cityVal?parseInt(cityVal):null});
   document.getElementById('new-proj-name').value='';
   document.getElementById('new-proj-num').value='';
@@ -3758,7 +3860,7 @@ function addProject(){
 }
 function deleteProject(id){
   const usedBy=tasks.filter(t=>t.projectId===id).length;
-  if(usedBy>0){alert('לא ניתן למחוק — פרויקט בשימוש');return}
+  if(usedBy>0){_toast('לא ניתן למחוק — פרויקט בשימוש','warn');return}
   projects=projects.filter(p=>p.id!==id);
   saveState();
   renderProjList();
@@ -3812,14 +3914,14 @@ function saveCityEdit(id){
 function addCity(){
   const name=document.getElementById('new-city-name').value.trim();
   if(!name) return;
-  if(cities.find(c=>c.name===name)){alert('עיר זו כבר קיימת');return}
+  if(cities.find(c=>c.name===name)){_toast('עיר זו כבר קיימת','warn');return}
   cities.push({id:nextCityId++,name});
   document.getElementById('new-city-name').value='';
   saveState();
   renderCityList();
 }
 function deleteCity(id){
-  if(projects.find(p=>p.cityId===id)){alert('לא ניתן למחוק — עיר בשימוש בפרויקט');return}
+  if(projects.find(p=>p.cityId===id)){_toast('לא ניתן למחוק — עיר בשימוש בפרויקט','warn');return}
   cities=cities.filter(c=>c.id!==id);
   saveState();
   renderCityList();
@@ -4130,7 +4232,7 @@ function submitCatalogModal(){
   }
   // check duplicate SKU
   const dupCheck=catalogItems.find(x=>x.sku===sku&&x.id!==catalogEditId);
-  if(dupCheck){alert('מקט '+sku+' כבר קיים במערכת');return;}
+  if(dupCheck){_toast('מקט '+sku+' כבר קיים במערכת','warn');return;}
 
   const selVal=document.getElementById('cm-cat').value;
   const catVal=selVal==='__new__'
@@ -4234,7 +4336,7 @@ function renderCatalogCatTags(){
 function addCatalogCat(){
   const v=document.getElementById('new-catalog-cat-inp').value.trim();
   if(!v) return;
-  if(catalogCats.includes(v)){alert('קטגוריה זו כבר קיימת');return;}
+  if(catalogCats.includes(v)){_toast('קטגוריה זו כבר קיימת','warn');return;}
   catalogCats.push(v);
   saveState();
   renderCatalogCatTags();
@@ -4244,7 +4346,7 @@ function addCatalogCat(){
 function deleteCatalogCat(idx){
   const name=catalogCats[idx];
   const used=catalogItems.filter(x=>x.cat===name).length;
-  if(used>0){alert(`לא ניתן למחוק — הקטגוריה "${name}" בשימוש ב-${used} מקטים`);return;}
+  if(used>0){_toast(`לא ניתן למחוק — הקטגוריה "${name}" בשימוש ב-${used} מקטים`,'warn');return;}
   catalogCats.splice(idx,1);
   saveState();
   renderCatalogCatTags(); renderCatalogCatPills();
@@ -4359,12 +4461,12 @@ function handleImportFile(file){
       const wb=XLSX.read(ev.target.result,{type:'binary'});
       const ws=wb.Sheets[wb.SheetNames[0]];
       const raw=XLSX.utils.sheet_to_json(ws,{header:1,defval:''});
-      if(!raw.length){alert('הקובץ ריק');return;}
+      if(!raw.length){_toast('הקובץ ריק','warn');return;}
       _importHeaders=raw[0].map(String);
       _importData=raw.slice(1).filter(r=>r.some(c=>String(c).trim()));
       buildImportColMap();
       showImportStep(2);
-    }catch(err){alert('שגיאה בקריאת הקובץ:\n'+err.message);}
+    }catch(err){_toast('שגיאה בקריאת הקובץ: '+err.message,'error');}
   };
   reader.readAsBinaryString(file);
 }
@@ -4440,11 +4542,7 @@ function doImport(){
   closeImportModal();
   renderCatalog();
   renderCatalogCatPills();
-  const toast=document.createElement('div');
-  toast.style.cssText='position:fixed;bottom:28px;left:50%;transform:translateX(-50%);background:#276749;color:#fff;padding:10px 24px;border-radius:20px;font-size:.88rem;font-weight:700;z-index:9999;box-shadow:0 4px 20px rgba(0,0,0,.18);direction:rtl';
-  toast.textContent=`✅ ${rows.length} מקטים יובאו בהצלחה לקטלוג`;
-  document.body.appendChild(toast);
-  setTimeout(()=>toast.remove(),3000);
+  _toast(`${rows.length} מקטים יובאו בהצלחה לקטלוג`,'success');
 }
 
 // ─── CLOSE EVENTS ──────────────────────────────────────────
@@ -5351,9 +5449,9 @@ function savePlEdit(){
   closePlEdit();
   renderPriceList();
 }
-function plEditReset(){
+async function plEditReset(){
   if(!_pleKey) return;
-  if(!confirm('לאפס את כל השינויים הידניים לפריט זה?')) return;
+  if(!await _confirm('לאפס את כל השינויים הידניים לפריט זה?',{title:'איפוס שינויים',ok:'אפס',type:'warn'})) return;
   delete plOverrides[_pleKey];
   savePlOverrides();
   closePlEdit();
@@ -6402,7 +6500,7 @@ async function doWhImport(){
       throw new Error(j.error||'שגיאה בשמירה לשרת');
     }
   }catch(e){
-    alert('שגיאה בייבוא: '+e.message);
+    _toast('שגיאה בייבוא: '+e.message,'error');
     if(btn){btn.disabled=false;btn.textContent='ייבא';}
     return;
   }
@@ -6635,14 +6733,14 @@ async function dpSelectPack(id){
 }
 
 async function dpDeletePack(id,name){
-  if(!confirm(`למחוק את התיק "${name}"?\nפעולה זו בלתי הפיכה.`)) return;
+  if(!await _confirm(`למחוק את התיק "${name}"?`,{title:'מחיקת תיק תיעוד',ok:'מחק',type:'delete'})) return;
   try{
     const r=await fetch('/api/docpacks/'+id,{method:'DELETE'});
     if(!r.ok){const j=await r.json().catch(()=>({}));throw new Error(j.error||'שגיאה');}
     if(_currentDocPackId===id){_currentDocPackId=null;_currentDocPack=null;_currentDocFiles=[];}
     await ensureDocPacksLoaded(true);
     renderDocPack();
-  }catch(e){alert('שגיאה במחיקה: '+e.message);}
+  }catch(e){_toast('שגיאה במחיקה: '+e.message,'error');}
 }
 
 function dpSetSaveStatus(s){
@@ -6778,7 +6876,7 @@ function dpSetScope(val){
 async function dpUploadFile(file,kind,inputEl){
   if(!file||!_currentDocPack) return;
   // Validate size client-side
-  if(file.size>20*1024*1024){alert('הקובץ גדול מדי (מקסימום 20MB)');return;}
+  if(file.size>20*1024*1024){_toast('הקובץ גדול מדי (מקסימום 20MB)','warn');return;}
   const fd=new FormData();
   fd.append('file',file);
   fd.append('kind',kind);
@@ -6789,7 +6887,7 @@ async function dpUploadFile(file,kind,inputEl){
     _currentDocFiles.push({...j.file,pack_id:_currentDocPack.id});
     if(inputEl) inputEl.value='';
     renderDocPackForm();
-  }catch(e){alert('שגיאה בהעלאה: '+e.message);if(inputEl) inputEl.value='';}
+  }catch(e){_toast('שגיאה בהעלאה: '+e.message,'error');if(inputEl) inputEl.value='';}
 }
 async function dpDeleteFile(fileId){
   if(!_currentDocPack) return;
@@ -6798,7 +6896,7 @@ async function dpDeleteFile(fileId){
     if(!r.ok) throw new Error('failed');
     _currentDocFiles=_currentDocFiles.filter(f=>f.id!==fileId);
     renderDocPackForm();
-  }catch(e){alert('שגיאה במחיקה: '+e.message);}
+  }catch(e){_toast('שגיאה במחיקה: '+e.message,'error');}
 }
 function dpFileUrl(fileId){
   if(!_currentDocPack) return '';
@@ -6970,7 +7068,7 @@ async function dpExportWord(){
     a.href=url;a.download=(_currentDocPack.name||'תיק תיעוד')+'.docx';
     document.body.appendChild(a);a.click();a.remove();
     setTimeout(()=>URL.revokeObjectURL(url),3000);
-  }catch(e){alert('שגיאה: '+e.message);}
+  }catch(e){_toast('שגיאה: '+e.message,'error');}
   finally{if(btn){btn.disabled=false;btn.textContent='⬇ ייצוא Word';}}
 }
 
@@ -7623,19 +7721,7 @@ async function dpAttachDatasheet(model){
   finally{_dpAttachInflight.delete(key);}
 }
 
-function _dpShowToast(msg){
-  let toast=document.getElementById('dp-toast');
-  if(!toast){
-    toast=document.createElement('div');
-    toast.id='dp-toast';
-    toast.style.cssText='position:fixed;bottom:24px;right:24px;background:#0F4C5C;color:#fff;padding:12px 18px;border-radius:8px;font-size:.85rem;box-shadow:0 4px 16px rgba(0,0,0,.2);z-index:9999;transition:opacity .25s;max-width:340px';
-    document.body.appendChild(toast);
-  }
-  toast.textContent=msg;
-  toast.style.opacity='1';
-  clearTimeout(_dpShowToast._t);
-  _dpShowToast._t=setTimeout(()=>{toast.style.opacity='0';},4000);
-}
+function _dpShowToast(msg){ _toast(msg,'success'); }
 
 // After the user finishes typing a model + tabs out, optionally invoke the server
 // to add the equipment row + auto-attach the datasheet. We keep the live row
@@ -7692,14 +7778,14 @@ async function dpCreateShare(){
     const r=await fetch('/api/docpacks/'+_currentDocPack.id+'/shares',{method:'POST',headers:{'Content-Type':'application/json'},body:'{}'});
     if(!r.ok) throw new Error('fail');
     await dpReloadShares();
-  }catch(e){alert('שגיאה ביצירת קישור');}
+  }catch(e){_toast('שגיאה ביצירת קישור','error');}
 }
 async function dpRevokeShare(id){
-  if(!confirm('לבטל את הקישור? לאחר ביטול הוא לא יעבוד יותר.')) return;
+  if(!await _confirm('לבטל את הקישור? לאחר ביטול הוא לא יעבוד יותר.',{title:'ביטול קישור',ok:'בטל קישור',type:'warn'})) return;
   try{
     await fetch('/api/docpacks/'+_currentDocPack.id+'/shares/'+id,{method:'DELETE'});
     dpReloadShares();
-  }catch(e){alert('שגיאה');}
+  }catch(e){_toast('שגיאה','error');}
 }
 function dpCopyShareUrl(btn,url){
   navigator.clipboard.writeText(url).then(()=>{
@@ -7724,7 +7810,7 @@ dpExportWord = async function(){
     a.href=url; a.download=(_currentDocPack.name||'תיק תיעוד')+'.docx';
     document.body.appendChild(a); a.click(); a.remove();
     setTimeout(()=>URL.revokeObjectURL(url),3000);
-  }catch(e){alert('שגיאה: '+e.message);}
+  }catch(e){_toast('שגיאה: '+e.message,'error');}
   finally{if(btn){btn.disabled=false;btn.textContent='⬇ ייצוא Word';}}
 };
 // ════════════════════════════════════════════════════════════
@@ -7781,7 +7867,7 @@ function rqSyncStatusUI(){
 }
 
 async function rqChangeStatus(newStatus){
-  if(!rqDraft.id){ alert('שמור את הדרישה תחילה, ואז תוכל לשנות את הסטטוס.'); rqSyncStatusUI(); return; }
+  if(!rqDraft.id){ _toast('שמור את הדרישה תחילה, ואז תוכל לשנות את הסטטוס.','warn'); rqSyncStatusUI(); return; }
   try{
     const r=await fetch('/api/requisitions/'+encodeURIComponent(rqDraft.id)+'/status',{
       method:'PATCH',
@@ -7793,12 +7879,9 @@ async function rqChangeStatus(newStatus){
     rqSaveDraft();
     rqSyncStatusUI();
     rqLoadHistory().then(rqRenderHistory);
-    const _t=document.createElement('div');
-    _t.style.cssText='position:fixed;bottom:28px;left:50%;transform:translateX(-50%);background:#276749;color:#fff;padding:10px 24px;border-radius:20px;font-size:.88rem;font-weight:700;z-index:9999;box-shadow:0 4px 20px rgba(0,0,0,.18);direction:rtl';
-    _t.textContent='סטטוס עודכן ל-'+(_RQ_STATUS_LBL[newStatus]||newStatus)+' ✅';
-    document.body.appendChild(_t); setTimeout(()=>_t.remove(),3000);
+    _toast('סטטוס עודכן ל-'+(_RQ_STATUS_LBL[newStatus]||newStatus)+' ✅','success');
   }catch(e){
-    alert('שגיאה בעדכון סטטוס: '+e.message);
+    _toast('שגיאה בעדכון סטטוס: '+e.message,'error');
     rqSyncStatusUI();
   }
 }
@@ -8091,12 +8174,12 @@ async function rqLoadInto(id){
     }
     rqSaveDraft();
     rqRender();
-  }catch(e){ alert('שגיאה בטעינה'); }
+  }catch(e){ _toast('שגיאה בטעינה','error'); }
 }
 
-function rqNewDraft(){
+async function rqNewDraft(){
   if(Object.keys(rqDraft.qtys).length || rqDraft.supplier || rqDraft.requester || rqDraft.notes){
-    if(!confirm('לפתוח דרישה חדשה? הטיוטה הנוכחית תימחק.')) return;
+    if(!await _confirm('לפתוח דרישה חדשה? הטיוטה הנוכחית תימחק.',{title:'דרישה חדשה',ok:'פתח חדשה',type:'warn'})) return;
   }
   rqDraft={ id:null, req_number:null, supplier:'', requester:'', notes:'',
             show_prices:true, status:'draft', qtys:{} };
@@ -8141,7 +8224,7 @@ function rqBuildItems(){
 
 async function rqSave(){
   const items=rqBuildItems();
-  if(!items.length){ alert('בחר לפחות פריט אחד עם כמות לפני שמירה.'); return; }
+  if(!items.length){ _toast('בחר לפחות פריט אחד עם כמות לפני שמירה.','warn'); return; }
   const body={
     supplier:  rqDraft.supplier,
     requester: rqDraft.requester,
@@ -8166,12 +8249,12 @@ async function rqSave(){
     }
     await rqLoadHistory();
     rqRender();
-    alert('נשמר: '+(rqDraft.req_number||''));
-  }catch(e){ alert('שגיאה בשמירה'); }
+    _toast('נשמר ✅ '+(rqDraft.req_number||''),'success');
+  }catch(e){ _toast('שגיאה בשמירה','error'); }
 }
 
 async function rqDelete(id){
-  if(!confirm('למחוק את הדרישה?')) return;
+  if(!await _confirm('למחוק את הדרישה?',{title:'מחיקת דרישה',ok:'מחק',type:'delete'})) return;
   try{
     const r=await fetch('/api/requisitions/'+encodeURIComponent(id),{method:'DELETE'});
     if(!r.ok) throw new Error('failed');
@@ -8180,13 +8263,13 @@ async function rqDelete(id){
     }
     await rqLoadHistory();
     rqRender();
-  }catch{ alert('שגיאה במחיקה'); }
+  }catch{ _toast('שגיאה במחיקה','error'); }
 }
 
 // ── Preview + Print ──
 function rqOpenPreview(){
   const items=rqBuildItems();
-  if(!items.length){ alert('בחר לפחות פריט אחד עם כמות לפני תצוגה מקדימה.'); return; }
+  if(!items.length){ _toast('בחר לפחות פריט אחד עם כמות לפני תצוגה מקדימה.','warn'); return; }
   const esc=_rqEsc;
   const showPrices = rqDraft.show_prices !== false;
   const today = new Date().toLocaleDateString('he-IL');
@@ -8541,11 +8624,11 @@ function handlePlImportFile(file){
       const wb=XLSX.read(ev.target.result,{type:'binary'});
       const ws=wb.Sheets[wb.SheetNames[0]];
       const raw=XLSX.utils.sheet_to_json(ws,{header:1,defval:''});
-      if(!raw.length){alert('הקובץ ריק');return;}
+      if(!raw.length){_toast('הקובץ ריק','warn');return;}
       _pliHeaders=raw[0].map(String);
       _pliData=raw.slice(1).filter(r=>r.some(c=>String(c).trim()));
       showPliStep(2);
-    }catch(err){alert('שגיאה בקריאת הקובץ:\n'+err.message);}
+    }catch(err){_toast('שגיאה בקריאת הקובץ: '+err.message,'error');}
   };
   reader.readAsBinaryString(file);
 }
@@ -8683,19 +8766,31 @@ function doPlImport(){
   closePlImportModal();
   renderPriceList();
   const skipped=rows.length-toImport.length;
-  const toast=document.createElement('div');
-  toast.style.cssText='position:fixed;bottom:28px;left:50%;transform:translateX(-50%);background:#276749;color:#fff;padding:10px 24px;border-radius:20px;font-size:.88rem;font-weight:700;z-index:9999;box-shadow:0 4px 20px rgba(0,0,0,.18);direction:rtl';
-  toast.textContent=`📥 יובאו ${toImport.length} מוצרים`+(skipped?` (${skipped} דולגו)`:'');
-  document.body.appendChild(toast);
-  setTimeout(()=>toast.remove(),3500);
+  _toast(`יובאו ${toImport.length} מוצרים`+(skipped?` (${skipped} דולגו)`:'')+' 📥','success',3500);
 }
-function clearPlImported(){
-  if(!confirm('למחוק את כל המוצרים המיובאים מהמחירון?')) return;
+async function clearPlImported(){
+  if(!await _confirm('למחוק את כל המוצרים המיובאים מהמחירון?',{title:'ניקוי מוצרים מיובאים',ok:'מחק הכל',type:'delete'})) return;
   plImported=[];
   localStorage.removeItem('afkon_pl_imported');
   renderPriceList();
 }
 </script>
+<!-- Toast stack -->
+<div id="app-toast-stack"></div>
+
+<!-- Confirm modal -->
+<div id="app-confirm-overlay" role="dialog" aria-modal="true">
+  <div id="app-confirm-box">
+    <div id="app-confirm-icon">⚠️</div>
+    <div id="app-confirm-title"></div>
+    <div id="app-confirm-msg"></div>
+    <div class="app-confirm-btns">
+      <button id="app-confirm-ok">אישור</button>
+      <button id="app-confirm-cancel" onclick="_confirmResolve(false)">ביטול</button>
+    </div>
+  </div>
+</div>
+
 <div id="ds-preview-popup"></div>
 <div id="pl-col-filter-panel"></div>
 
