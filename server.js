@@ -198,12 +198,50 @@ function _generateSecret() {
   if (bits > 0) result += chars[(value << (5 - bits)) & 31];
   return result;
 }
+// Pure Node.js TOTP verification (RFC 6238 / HOTP RFC 4226).
+// Does NOT use otplib at all, so there is no risk of options-state corruption.
+function _base32Decode(str) {
+  const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567';
+  let bits = 0, value = 0;
+  const output = [];
+  for (const char of str.toUpperCase().replace(/=+$/, '').replace(/\s/g, '')) {
+    const idx = alphabet.indexOf(char);
+    if (idx < 0) continue;
+    value = (value << 5) | idx;
+    bits += 5;
+    if (bits >= 8) { output.push((value >>> (bits - 8)) & 0xff); bits -= 8; }
+  }
+  return Buffer.from(output);
+}
+function _hotpCode(secretBuf, counter) {
+  const msg = Buffer.allocUnsafe(8);
+  msg.writeUInt32BE(0, 0);
+  msg.writeUInt32BE(counter >>> 0, 4);
+  const hmac = crypto.createHmac('sha1', secretBuf).update(msg).digest();
+  const offset = hmac[hmac.length - 1] & 0x0f;
+  const code = (
+    ((hmac[offset]     & 0x7f) << 24) |
+    ((hmac[offset + 1] & 0xff) << 16) |
+    ((hmac[offset + 2] & 0xff) <<  8) |
+     (hmac[offset + 3] & 0xff)
+  ) % 1000000;
+  return String(code).padStart(6, '0');
+}
 function _verifyTotpCode(secret, code) {
   try {
-    // Spread existing options to avoid wiping algorithm/digits/period defaults
-    _totp.options = { ..._totp.options, window: 1 };
-    return _totp.check(String(code).replace(/\s/g, ''), secret);
-  } catch { return false; }
+    const clean = String(code || '').replace(/\s/g, '');
+    if (!/^\d{6}$/.test(clean)) return false;
+    const key = _base32Decode(secret);
+    const counter = Math.floor(Date.now() / 1000 / 30);
+    // Allow ±1 window (±30 s) to account for clock skew
+    for (let delta = -1; delta <= 1; delta++) {
+      if (_hotpCode(key, counter + delta) === clean) return true;
+    }
+    return false;
+  } catch (e) {
+    console.error('[verifyTotpCode]', e.message);
+    return false;
+  }
 }
 function _generateBackupCodes() {
   return Array.from({ length: 8 }, () => {
@@ -398,8 +436,10 @@ app.post('/api/auth/totp/setup', (req, res) => {
     const user = db.getUserById(userId);
     if (!user || !user.active) return res.status(401).json({ error: 'Unauthorized' });
 
-    const secret = _generateSecret();
-    db.setUserTotpSecret(userId, secret);
+    // Reuse an existing pending secret so the user's already-scanned QR stays valid.
+    // Only generate a new one if none is stored yet.
+    const secret = user.totp_secret || _generateSecret();
+    if (!user.totp_secret) db.setUserTotpSecret(userId, secret);
 
     const label = encodeURIComponent(`Afkon (${user.username})`);
     const issuer = encodeURIComponent('Afkon');
