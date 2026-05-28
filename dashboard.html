@@ -351,7 +351,7 @@ footer .footer-copy{display:block;margin-top:3px;font-size:.65rem;color:#c8d0db;
 
 /* ── search ── */
 .search-wrap{position:relative;flex:1;min-width:160px;max-width:280px}
-.search-input{width:100%;border:1.5px solid #e2e8f0;border-radius:20px;padding:6px 14px 6px 34px;
+.search-input{width:100%;border:1.5px solid #e2e8f0;border-radius:20px;padding:6px 36px 6px 34px;
   font-size:.82rem;font-family:inherit;direction:rtl;outline:none;transition:.15s;background:#fff;color:var(--text)}
 .search-input:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(79,134,247,.12)}
 .search-ico{position:absolute;right:11px;top:50%;transform:translateY(-50%);font-size:.8rem;pointer-events:none;color:#94a3b8}
@@ -1101,7 +1101,8 @@ tr:hover .pl-edit-btn{opacity:.65}
       <div class="search-wrap">
         <span class="search-ico">🔍</span>
         <input id="search-input" class="search-input" type="search" placeholder="חיפוש משימות..."
-               oninput="setSearch(this.value)" autocomplete="off"/>
+               oninput="setSearch(this.value)" autocomplete="off"
+               data-form-type="other" data-lpignore="true" data-1p-ignore="true" data-bwignore="true"/>
         <button class="search-clear" id="search-clear" onclick="clearSearch()" title="נקה חיפוש">✕</button>
       </div>
       <select class="sort-sel" id="sort-sel" onchange="setSort(this.value)">
