@@ -449,7 +449,7 @@ input:focus {
     <div id="step-login" class="step active">
       <div class="step-title">כניסה למערכת</div>
       <div class="divider"></div>
-      <form id="form" onsubmit="doLogin(event)">
+      <form id="form" onsubmit="doLogin(event); return false">
         <div class="field">
           <label for="u">שם משתמש</label>
           <input id="u" name="username" type="text" autocomplete="username" required autofocus placeholder="username">
@@ -728,7 +728,8 @@ async function doTotp() {
     btn.disabled = false; btn.textContent = 'אמת →';
   }
 }
-document.getElementById('totp-code').addEventListener('keydown', e => {
+const _totpCodeEl = document.getElementById('totp-code');
+if (_totpCodeEl) _totpCodeEl.addEventListener('keydown', e => {
   if (e.key === 'Enter') { e.preventDefault(); doTotp(); }
 });
 
@@ -850,7 +851,8 @@ async function doTotpActivate() {
     btn.disabled = false; btn.textContent = 'אפשר 2FA →';
   }
 }
-document.getElementById('totp-setup-code').addEventListener('keydown', e => {
+const _totpSetupCodeEl = document.getElementById('totp-setup-code');
+if (_totpSetupCodeEl) _totpSetupCodeEl.addEventListener('keydown', e => {
   if (e.key === 'Enter') { e.preventDefault(); doTotpActivate(); }
 });
 
