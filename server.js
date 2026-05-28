@@ -389,14 +389,16 @@ app.post('/api/auth/totp/setup', async (req, res) => {
   const secret = _generateSecret();
   db.setUserTotpSecret(userId, secret);
 
-  const label = encodeURIComponent(`אפקון (${user.username})`);
-  const issuer = encodeURIComponent('Afkon Dashboard');
+  const label = encodeURIComponent(`Afkon (${user.username})`);
+  const issuer = encodeURIComponent('Afkon');
   const otpauthUrl = `otpauth://totp/${label}?secret=${secret}&issuer=${issuer}&algorithm=SHA1&digits=6&period=30`;
   try {
-    const qrDataUrl = await QRCode.toDataURL(otpauthUrl, { errorCorrectionLevel: 'M', width: 256 });
-    res.json({ ok: true, secret, qrDataUrl });
+    const qrDataUrl = await QRCode.toDataURL(otpauthUrl, { errorCorrectionLevel: 'M', width: 240 });
+    res.json({ ok: true, secret, qrDataUrl, otpauthUrl });
   } catch (e) {
-    res.status(500).json({ error: 'Failed to generate QR code' });
+    console.error('[totp/setup] QR generation failed:', e.message);
+    // Return the otpauth URL even if QR fails — client can use manual entry
+    res.json({ ok: true, secret, qrDataUrl: null, otpauthUrl });
   }
 });
 

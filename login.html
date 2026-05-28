@@ -122,9 +122,8 @@
 </head>
 <body>
 <div class="card">
-  <div class="logo">
-    <img src="/logo.png" alt="אפקון" onerror="this.style.display='none'">
-    <span class="logo-text">אפקון</span>
+  <div class="logo" style="justify-content:center">
+    <img src="/logo.png" alt="אפקון" style="height:56px" onerror="this.style.display='none'">
   </div>
 
   <!-- Step 1: Login -->
@@ -211,8 +210,16 @@
       <li>הזן את הקוד בן 6 הספרות מהאפליקציה</li>
     </ol>
     <div class="qr-wrap">
-      <div class="qr-loading" id="qr-loading">טוען QR...</div>
+      <div class="qr-loading" id="qr-loading">
+        <span id="qr-loading-text">⏳ טוען QR...</span>
+      </div>
       <img id="totp-qr" style="display:none" alt="QR Code">
+    </div>
+    <div id="qr-retry-wrap" style="display:none;text-align:center;margin-bottom:12px">
+      <button type="button" onclick="loadTotpSetup()" style="
+        background:none;border:1px solid #bfdbfe;border-radius:8px;
+        padding:7px 18px;font-size:.82rem;color:#1d4ed8;cursor:pointer;
+      ">🔄 נסה שוב</button>
     </div>
     <details class="secret-wrap">
       <summary>הזנה ידנית (ללא מצלמה)</summary>
@@ -443,11 +450,18 @@ document.getElementById('totp-code').addEventListener('keydown', e => {
 
 // ── Step 4: First-time TOTP setup ─────────────────────────────────────────────
 async function loadTotpSetup() {
-  const qrImg     = document.getElementById('totp-qr');
-  const qrLoading = document.getElementById('qr-loading');
-  const manual    = document.getElementById('totp-manual');
-  qrImg.style.display = 'none';
+  const qrImg      = document.getElementById('totp-qr');
+  const qrLoading  = document.getElementById('qr-loading');
+  const loadingTxt = document.getElementById('qr-loading-text');
+  const retryWrap  = document.getElementById('qr-retry-wrap');
+  const manual     = document.getElementById('totp-manual');
+  const errEl      = document.getElementById('totp-setup-err');
+  // Reset state
+  qrImg.style.display    = 'none';
   qrLoading.style.display = 'flex';
+  retryWrap.style.display = 'none';
+  errEl.classList.remove('show');
+  if (loadingTxt) loadingTxt.textContent = '⏳ טוען QR...';
   try {
     const res = await fetch('/api/auth/totp/setup', {
       method: 'POST',
@@ -456,18 +470,31 @@ async function loadTotpSetup() {
     });
     const data = await res.json();
     if (!res.ok) {
-      document.getElementById('totp-setup-err').textContent = data.error || 'שגיאה בטעינת QR';
-      document.getElementById('totp-setup-err').classList.add('show');
-      qrLoading.textContent = 'שגיאה בטעינה';
+      if (loadingTxt) loadingTxt.textContent = '❌ ' + (data.error || 'שגיאה');
+      errEl.textContent = data.error || 'שגיאה בטעינת קוד QR — נסה שנית';
+      errEl.classList.add('show');
+      retryWrap.style.display = '';
+      return;
+    }
+    manual.textContent = data.secret || '';
+    if (!data.qrDataUrl) {
+      // QR generation failed — show manual entry prominently
+      if (loadingTxt) loadingTxt.textContent = '⚠ QR לא זמין — השתמש בהזנה ידנית';
+      // Auto-open the manual-entry details
+      const det = document.querySelector('.secret-wrap');
+      if (det) det.setAttribute('open', '');
+      setTimeout(() => document.getElementById('totp-setup-code').focus(), 100);
       return;
     }
     qrLoading.style.display = 'none';
     qrImg.src = data.qrDataUrl;
     qrImg.style.display = '';
-    manual.textContent = data.secret;
     setTimeout(() => document.getElementById('totp-setup-code').focus(), 100);
-  } catch {
-    qrLoading.textContent = 'שגיאת רשת';
+  } catch (e) {
+    if (loadingTxt) loadingTxt.textContent = '❌ שגיאת רשת';
+    errEl.textContent = 'שגיאת רשת — בדוק חיבור ונסה שנית';
+    errEl.classList.add('show');
+    retryWrap.style.display = '';
   }
 }
 
