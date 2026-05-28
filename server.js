@@ -441,8 +441,8 @@ app.post('/api/auth/totp/setup', (req, res) => {
     const secret = user.totp_secret || _generateSecret();
     if (!user.totp_secret) db.setUserTotpSecret(userId, secret);
 
-    const label = encodeURIComponent(`Afkon (${user.username})`);
-    const issuer = encodeURIComponent('Afkon');
+    const label = encodeURIComponent(`Afcon (${user.username})`);
+    const issuer = encodeURIComponent('Afcon');
     const otpauthUrl = `otpauth://totp/${label}?secret=${secret}&issuer=${issuer}&algorithm=SHA1&digits=6&period=30`;
 
     // QR code is generated client-side (browser canvas via qrcodejs CDN)
