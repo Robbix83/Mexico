@@ -267,7 +267,7 @@ const requestLimiter = rateLimit({
 app.get('/login', (req, res) => {
   const token = req.cookies?.token;
   if (verifyToken(token)) return res.redirect('/dashboard');
-  res.redirect('/');   // Login is now a modal on the landing page
+  res.sendFile(path.join(STATIC_DIR, 'login.html'));
 });
 
 app.post('/api/auth/login', loginLimiter, (req, res) => {
