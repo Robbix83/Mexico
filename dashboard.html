@@ -5233,11 +5233,63 @@ function openPlEdit(mfr,model){
   const hasOv=!!plOverrides[_pleKey];
   document.getElementById('ple-override-notice').style.display=hasOv?'':'none';
   document.getElementById('ple-reset-btn').style.display=hasOv?'':'none';
+  // Reset download-status banner from any previous open
+  const dlSt=document.getElementById('ple-dl-status');
+  if(dlSt){dlSt.style.display='none';dlSt.textContent='';}
   document.getElementById('pl-edit-overlay').classList.add('open');
 }
 function closePlEdit(){
   document.getElementById('pl-edit-overlay').classList.remove('open');
   _pleKey=''; _pleNewFile=null;
+}
+function pleGoogleSearch(){
+  const parts=_pleKey.split('||');
+  const mfr=parts[0]||'', model=parts[1]||'';
+  const q=encodeURIComponent(mfr+' '+model);
+  window.open('https://www.google.com/search?q='+q,'_blank','noopener');
+}
+async function pleDlAndSave(){
+  const url=document.getElementById('ple-ds-url').value.trim();
+  const statusEl=document.getElementById('ple-dl-status');
+  if(!url){
+    statusEl.textContent='הכנס URL תחילה';
+    statusEl.style.cssText='display:block;background:#fff3cd;color:#856404;padding:5px 10px;border-radius:6px;font-size:.78rem;margin-top:6px';
+    return;
+  }
+  const parts=_pleKey.split('||');
+  const mfr=parts[0]||'', model=parts[1]||'';
+  const btn=document.getElementById('ple-dl-btn');
+  btn.disabled=true; btn.textContent='מוריד...';
+  statusEl.textContent='מוריד קובץ...';
+  statusEl.style.cssText='display:block;background:#e0f2fe;color:#0369a1;padding:5px 10px;border-radius:6px;font-size:.78rem;margin-top:6px';
+  try{
+    const r=await fetch('/api/ds-finder/download',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({url,manufacturer:mfr,model})
+    });
+    const d=await r.json();
+    if(d.ok&&d.filename){
+      const dsUrl='/ds/'+encodeURIComponent(mfr)+'/'+d.filename;
+      // Auto-link in overrides
+      const ov=JSON.parse(localStorage.getItem('afkon_pl_overrides')||'{}');
+      const key=mfr+'||'+model;
+      ov[key]=Object.assign({},ov[key]||{},{ds:dsUrl});
+      localStorage.setItem('afkon_pl_overrides',JSON.stringify(ov));
+      loadPlOverrides();
+      document.getElementById('ple-ds-url').value=dsUrl;
+      statusEl.textContent='✓ הורד ונשמר — הקישור עודכן אוטומטית';
+      statusEl.style.cssText='display:block;background:#dcfce7;color:#166534;padding:5px 10px;border-radius:6px;font-size:.78rem;margin-top:6px';
+    } else {
+      statusEl.textContent='שגיאה: '+(d.error||'הורדה נכשלה');
+      statusEl.style.cssText='display:block;background:#fee2e2;color:#991b1b;padding:5px 10px;border-radius:6px;font-size:.78rem;margin-top:6px';
+    }
+  }catch(e){
+    statusEl.textContent='שגיאת רשת: '+e.message;
+    statusEl.style.cssText='display:block;background:#fee2e2;color:#991b1b;padding:5px 10px;border-radius:6px;font-size:.78rem;margin-top:6px';
+  }finally{
+    btn.disabled=false; btn.textContent='📥 הורד';
+  }
 }
 function pleDsTab(mode){
   _pleDsMode=mode; _pleDsTabUpdate();
@@ -8685,7 +8737,18 @@ function clearPlImported(){
           <button class="ple-ds-tab"        id="ple-tab-file" onclick="pleDsTab('file')">📁 קובץ מקומי</button>
         </div>
         <div id="ple-ds-url-wrap">
-          <input type="url" id="ple-ds-url" placeholder="https://example.com/datasheet.pdf" dir="ltr"/>
+          <div style="display:flex;gap:6px;align-items:center">
+            <input type="url" id="ple-ds-url" placeholder="https://example.com/datasheet.pdf" dir="ltr" style="flex:1"/>
+            <button id="ple-google-btn" type="button" title="חפש Datasheet בגוגל"
+              onclick="pleGoogleSearch()"
+              style="padding:6px 10px;border:1.5px solid #e2e8f0;border-radius:7px;background:#f8fafc;
+                     cursor:pointer;font-size:.82rem;white-space:nowrap;color:#475569">🔍 גוגל</button>
+            <button id="ple-dl-btn" type="button" title="הורד PDF ושמור ישירות"
+              onclick="pleDlAndSave()"
+              style="padding:6px 12px;border:none;border-radius:7px;background:#1d4ed8;color:#fff;
+                     font-size:.82rem;font-weight:700;cursor:pointer;white-space:nowrap">📥 הורד</button>
+          </div>
+          <div id="ple-dl-status" style="display:none;margin-top:6px;font-size:.78rem;padding:5px 10px;border-radius:6px"></div>
         </div>
         <div id="ple-ds-file-wrap" style="display:none">
           <div id="ple-file-status" class="ple-file-status" style="display:none">
