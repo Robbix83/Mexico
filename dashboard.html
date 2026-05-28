@@ -8626,7 +8626,7 @@ function renderPriceList(){
         <td class="td-ds">${dsCell}</td>
         <td class="td-desc" title="${ep.desc}">${ep.desc}${ep.compat&&ep.compat.length?`<div style="font-size:.72rem;color:#9ca3af;margin-top:2px;line-height:1.3">תואם: ${ep.compat.join(' · ')}</div>`:''}</td>
         <td style="text-align:center;padding:4px 2px;overflow:visible">
-          <button class="pl-edit-btn" onclick="openPlEdit('${p.mfr}','${p.model}')" title="ערוך פריט">✏️</button>
+          <button class="pl-edit-btn" data-mfr="${_rqEsc(p.mfr)}" data-model="${_rqEsc(p.model)}" onclick="openPlEdit(this.dataset.mfr,this.dataset.model)" title="ערוך פריט">✏️</button>
         </td>
       </tr>`;
     }).join('');
