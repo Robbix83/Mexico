@@ -218,6 +218,19 @@ function _inferCategory(item) {
   return null; // unknown
 }
 
+// Return a URL path suitable for GET /ds/* given an index item.
+function _dsRelPath(item) {
+  for (const root of [DS_PATH, DS_FALLBACK]) {
+    try {
+      const rel = path.relative(root, item.absPath);
+      if (!rel.startsWith('..')) return rel.replace(/\\/g, '/');
+    } catch { /* skip */ }
+  }
+  // Fallback: reconstruct from mfr + original
+  const prefix = (item.mfr && item.mfr !== 'datasheets') ? item.mfr + '/' : '';
+  return prefix + item.original + '.pdf';
+}
+
 function searchDatasheets(query, limit = 10, categoryHint = null) {
   ensureDsIndex();
   if (!query || !query.trim()) return [];
@@ -239,6 +252,7 @@ function searchDatasheets(query, limit = 10, categoryHint = null) {
     model: h.original,
     mfr:   h.mfr === 'datasheets' ? '' : h.mfr, // hide noisy folder name
     exact: h.exact,
+    url:   '/ds/' + _dsRelPath(h),               // ready-to-use URL for browser
   }));
 }
 

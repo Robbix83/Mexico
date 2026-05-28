@@ -940,6 +940,9 @@ tr:hover .pl-edit-btn{opacity:.65}
 .rq-qty-btn:hover{background:#e2e8f0}
 .rq-qty-inp{width:46px;height:24px;border:1px solid var(--border);border-radius:5px;text-align:center;font-size:.8rem}
 .rq-qty-inp.qty-active{background:#fef3c7;font-weight:700;border-color:#f59e0b}
+.rq-ds-btn{display:inline-block;margin-right:5px;padding:1px 5px;border:1px solid #bfdbfe;border-radius:4px;background:#eff6ff;color:#1d4ed8;font-size:.6rem;font-weight:700;cursor:pointer;vertical-align:middle;line-height:14px;white-space:nowrap}
+.rq-ds-btn:hover{background:#dbeafe;border-color:#93c5fd}
+.rq-ds-btn.ds-none{border-color:#e2e8f0;background:#f8fafc;color:#94a3b8;cursor:default}
 .rq-table-wrap{max-height:520px;overflow-y:auto;border:1px solid var(--border);border-radius:8px}
 .rq-actions{display:flex;gap:8px;align-items:center;justify-content:space-between;flex-wrap:wrap;margin-top:10px}
 .rq-btn{padding:8px 16px;border-radius:7px;border:1px solid transparent;font-size:.85rem;font-weight:700;cursor:pointer}
@@ -7770,9 +7773,10 @@ function rqRender(){
             ? `<b style="color:#166534">${r.qtyOnHand}</b>`
             : `<span style="color:#dc2626">0</span>`)
         : `<span style="color:#cbd5e0">—</span>`;
+      const skuEsc=r.sku.replace(/\\/g,'\\\\').replace(/'/g,"\\'");
       return `<tr>
         <td style="text-align:center">${badge}</td>
-        <td><code style="font-size:.78rem">${_rqEsc(r.sku)}</code></td>
+        <td style="white-space:nowrap"><code style="font-size:.78rem">${_rqEsc(r.sku)}</code> <button class="rq-ds-btn" onclick="event.stopPropagation();rqOpenDs('${skuEsc}',this)" title="פתח דף נתונים (DS)">DS</button></td>
         <td>${mfr}${desc}</td>
         <td style="text-align:center">${stockCell}</td>
         <td style="text-align:center;color:#64748b">${_rqEsc(r.unit||'')}</td>
@@ -7887,6 +7891,23 @@ async function rqLoadInto(id){
   }catch(e){ alert('שגיאה בטעינה'); }
 }
 
+async function rqOpenDs(sku, btnEl){
+  try{
+    const r=await fetch('/api/datasheets/search?q='+encodeURIComponent(sku));
+    const j=await r.json();
+    const match=j.matches&&j.matches[0];
+    if(match&&match.url){
+      window.open(match.url,'_blank','noopener');
+    } else {
+      if(btnEl){
+        btnEl.classList.add('ds-none');
+        btnEl.title='לא נמצא דף נתונים';
+        setTimeout(()=>{btnEl.classList.remove('ds-none');btnEl.title='פתח דף נתונים (DS)';},2500);
+      }
+    }
+  }catch(e){ console.error('[rqOpenDs]',e); }
+}
+
 function rqNewDraft(){
   if(Object.keys(rqDraft.qtys).length || rqDraft.supplier || rqDraft.requester || rqDraft.notes){
     if(!confirm('לפתוח דרישה חדשה? הטיוטה הנוכחית תימחק.')) return;
@@ -7978,8 +7999,12 @@ function rqExportCertificate(){
   // Toast
   const _t=document.createElement('div');
   _t.style.cssText='position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:#065f46;color:#fff;padding:10px 24px;border-radius:20px;font-size:.88rem;font-weight:700;z-index:9999;box-shadow:0 4px 20px rgba(0,0,0,.22);direction:rtl';
-  _t.textContent='✅ תעודה נשמרה — ניתן לייצא בכל עת מרשימת התעודות';
+  _t.textContent='✅ תעודה נשמרה — כמויות אופסו';
   document.body.appendChild(_t); setTimeout(()=>_t.remove(),3500);
+  // Auto-reset quantities so the form is clean for the next requisition
+  rqDraft.qtys={};
+  rqSaveDraft();
+  rqRender();
   // Scroll to certs card
   setTimeout(()=>document.getElementById('rq-certs-card')?.scrollIntoView({behavior:'smooth',block:'start'}), 300);
 }
