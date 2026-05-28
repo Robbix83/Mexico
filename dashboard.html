@@ -5031,7 +5031,9 @@ function openPlEdit(mfr,model){
     document.getElementById('ple-file-status').style.display='none';
   }
   _pleDsTabUpdate();
-  // Hide local notice until async check runs
+  // Reset download status + local notice on every open
+  const _dlSt=document.getElementById('ple-dl-status');
+  if(_dlSt){ _dlSt.style.display='none'; _dlSt.textContent=''; }
   document.getElementById('ple-local-notice').style.display='none';
   // Override notice
   const hasOv=!!plOverrides[_pleKey];
