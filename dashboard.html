@@ -1212,6 +1212,29 @@ tr:hover .pl-edit-btn{opacity:.65}
 #app-confirm-ok.is-action{background:#1d4ed8}
 #app-confirm-cancel{background:#f1f5f9;color:#475569}
 #app-confirm-cancel:hover{background:#e2e8f0}
+/* ── RQ sticky summary bar ── */
+.rq-sticky-bar{
+  position:fixed;bottom:0;left:0;right:0;z-index:8000;
+  background:linear-gradient(135deg,#0F4C5C,#0D9488);
+  color:#fff;display:flex;align-items:center;gap:16px;
+  padding:10px 24px;direction:rtl;box-shadow:0 -4px 20px rgba(0,0,0,.18);
+  font-size:.88rem;transition:transform .22s;
+}
+.rq-sticky-bar.hidden{transform:translateY(100%)}
+.rq-sb-total{font-size:1.05rem;font-weight:700;color:#99F6E4}
+.rq-sb-sep{opacity:.4}
+.rq-sb-btn{
+  background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.25);
+  color:#fff;border-radius:8px;padding:6px 14px;cursor:pointer;font-size:.82rem;
+  transition:background .15s;
+}
+.rq-sb-btn:hover{background:rgba(255,255,255,.28)}
+.rq-sb-btn-primary{background:#0F766E;border-color:#0F766E}
+.rq-sb-btn-primary:hover{background:#0D9488}
+/* Strip pill styling from DS icons inside rq table */
+.rq-table td .ci-datasheet{background:none;border:none;padding:0 2px;border-radius:0;
+  font-size:1rem;opacity:.72;display:inline}
+.rq-table td .ci-datasheet:hover{opacity:1;transform:scale(1.18);display:inline-block}
 </style>
 </head>
 <body>
@@ -1612,6 +1635,7 @@ tr:hover .pl-edit-btn{opacity:.65}
           </div>
           <div style="display:flex;gap:8px;flex-wrap:wrap">
             <button class="rq-btn rq-btn-ghost" onclick="rqNewDraft()">📄 דרישה חדשה</button>
+            <button class="rq-btn rq-btn-ghost" onclick="rqResetQtys()" title="אפס כמויות — שמור על פרטי הדרישה">🔄 איפוס</button>
             <button class="rq-btn rq-btn-secondary" onclick="rqOpenPreview()">👁 תצוגה מקדימה</button>
             <button class="rq-btn rq-btn-primary" onclick="rqSave()">💾 שמור</button>
           </div>
@@ -1645,10 +1669,11 @@ tr:hover .pl-edit-btn{opacity:.65}
                 <th style="text-align:center">מקור</th>
                 <th>מק"ט</th>
                 <th>תיאור</th>
-                <th style="text-align:center">במלאי</th>
+                <th style="text-align:center;width:32px">DS</th>
+                <th id="rq-th-stock" style="text-align:center;cursor:pointer;user-select:none" onclick="rqSetSort('stock')" title="מיין לפי מלאי">במלאי</th>
                 <th style="text-align:center">יח'</th>
-                <th style="text-align:left">מחיר</th>
-                <th style="text-align:center">כמות</th>
+                <th id="rq-th-price" style="text-align:left;cursor:pointer;user-select:none" onclick="rqSetSort('price')" title="מיין לפי מחיר">מחיר</th>
+                <th id="rq-th-qty" style="text-align:center;cursor:pointer;user-select:none" onclick="rqSetSort('qty')" title="מיין לפי כמות">כמות</th>
                 <th style="text-align:left">סה"כ</th>
               </tr>
             </thead>
@@ -2804,6 +2829,8 @@ function setView(v){
     Promise.all([ensureWarehouseLoaded(), rqLoadHistory()]).then(()=>rqRender());
   }
   else renderList();
+  // Hide rq sticky bar when leaving requisition view
+  if(v!=='requisition') document.getElementById('rq-sticky-bar')?.classList.add('hidden');
 }
 
 function filterPri(p){
@@ -7841,6 +7868,8 @@ let rqDraft = (function(){
 })();
 let rqSourceFilter='all'; // 'all' | 'warehouse' | 'pricelist'
 let rqHistory=[];
+let rqSortCol='';   // '' | 'price' | 'qty' | 'stock'
+let rqSortDir=1;    // 1=asc, -1=desc
 let _rqEsc=(s)=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 
 function rqSaveDraft(){
@@ -7982,6 +8011,17 @@ function rqSetQty(key, val){
   }
 }
 
+function rqSetSort(col){
+  if(rqSortCol===col) rqSortDir*=-1; else { rqSortCol=col; rqSortDir=1; }
+  rqRender();
+}
+function rqResetQtys(){
+  const hasQty=Object.values(rqDraft.qtys).some(q=>q>0);
+  if(!hasQty) return;
+  _confirm('לאפס את כמויות כל הפריטים?\nהמידע הנלווה (ספק, מזמין, הערות) יישמר.',
+    {title:'איפוס כמויות',ok:'אפס',cancel:'ביטול',type:'warn'})
+    .then(ok=>{ if(!ok) return; rqDraft.qtys={}; rqSaveDraft(); rqRender(); });
+}
 function _rqRowPriceIls(row){
   if(!row || !row.price) return 0;
   if(row.cur==='USD') return row.price*plUsdRate;
@@ -8004,7 +8044,7 @@ function _rqUpdateRowTotal(key){
 
 function _rqUpdateStats(){
   const el=document.getElementById('rq-stats');
-  if(!el) return;
+  const bar=document.getElementById('rq-sticky-bar');
   let cnt=0, totalIls=0;
   const rows=rqAllRows();
   const byKey=new Map(rows.map(r=>[r.key,r]));
@@ -8014,9 +8054,21 @@ function _rqUpdateStats(){
     const r=byKey.get(k);
     if(r && r.price) totalIls += _rqRowPriceIls(r)*q;
   }
-  el.textContent = cnt
-    ? `${cnt} פריטים · סה"כ ₪${Math.round(totalIls).toLocaleString('he-IL')} (לפני מע"מ)`
-    : '';
+  const txt=cnt?`${cnt} פריטים · סה"כ ₪${Math.round(totalIls).toLocaleString('he-IL')} (לפני מע"מ)`:'';
+  if(el) el.textContent=txt;
+  // Sticky bar
+  const inView=document.getElementById('requisition-view')?.style.display!=='none';
+  if(bar){
+    if(cnt>0 && inView){
+      bar.classList.remove('hidden');
+      const sbCount=document.getElementById('rq-sb-count');
+      const sbTotal=document.getElementById('rq-sb-total');
+      if(sbCount) sbCount.textContent=`${cnt} פריטים`;
+      if(sbTotal) sbTotal.textContent=`₪${Math.round(totalIls).toLocaleString('he-IL')}`;
+    } else {
+      bar.classList.add('hidden');
+    }
+  }
 }
 
 function rqRender(){
@@ -8042,12 +8094,30 @@ function rqRender(){
       (r.mfr||'').toLowerCase().includes(q)
     );
   }
-  // Selected rows first, then by source then by sku
+  // Selected rows first, then secondary sort by rqSortCol (or source+sku default)
   rows.sort((a,b)=>{
     const qa=rqQty(a.key)>0?0:1, qb=rqQty(b.key)>0?0:1;
     if(qa!==qb) return qa-qb;
+    if(rqSortCol==='price'){
+      const pa=_rqRowPriceIls(a)||0, pb=_rqRowPriceIls(b)||0;
+      return rqSortDir*(pa-pb) || a.sku.localeCompare(b.sku);
+    }
+    if(rqSortCol==='qty'){
+      return rqSortDir*(rqQty(a.key)-rqQty(b.key)) || a.sku.localeCompare(b.sku);
+    }
+    if(rqSortCol==='stock'){
+      return rqSortDir*((a.qtyOnHand||0)-(b.qtyOnHand||0)) || a.sku.localeCompare(b.sku);
+    }
     if(a.source!==b.source) return a.source.localeCompare(b.source);
     return a.sku.localeCompare(b.sku);
+  });
+  // Update sort header arrows
+  [{col:'price',lbl:'מחיר'},{col:'qty',lbl:'כמות'},{col:'stock',lbl:'במלאי'}].forEach(({col,lbl})=>{
+    const th=document.getElementById('rq-th-'+col);
+    if(!th) return;
+    const arrow=rqSortCol===col?(rqSortDir===1?' ▲':' ▼'):'';
+    th.textContent=lbl+arrow;
+    th.style.color=rqSortCol===col?'#0D9488':'';
   });
 
   // Cap rendered rows to keep the DOM light — selected always survive
@@ -8062,7 +8132,7 @@ function rqRender(){
   const tbody=document.getElementById('rq-tbody');
   if(!tbody) return;
   if(!display.length){
-    tbody.innerHTML=`<tr><td colspan="8" class="rq-empty">לא נמצאו פריטים — נסה לסנן או לייבא מלאי/מחירון 🔍</td></tr>`;
+    tbody.innerHTML=`<tr><td colspan="9" class="rq-empty">לא נמצאו פריטים — נסה לסנן או לייבא מלאי/מחירון 🔍</td></tr>`;
   } else {
     tbody.innerHTML=display.map(r=>{
       const sid=_rqSafeId(r.key);
@@ -8088,10 +8158,14 @@ function rqRender(){
             ? `<b style="color:#166534">${r.qtyOnHand}</b>`
             : `<span style="color:#dc2626">0</span>`)
         : `<span style="color:#cbd5e0">—</span>`;
+      const dsCell = r.ds
+        ? `<a class="ci-datasheet pl-ds-link" href="${_rqEsc(r.ds)}" data-rq-sku="${_rqEsc(r.sku)}" target="_blank" rel="noopener" title="פתח Datasheet">📄</a>`
+        : '';
       return `<tr>
         <td style="text-align:center">${badge}</td>
         <td><code style="font-size:.78rem">${_rqEsc(r.sku)}</code></td>
         <td>${mfr}${desc}</td>
+        <td style="text-align:center">${dsCell}</td>
         <td style="text-align:center">${stockCell}</td>
         <td style="text-align:center;color:#64748b">${_rqEsc(r.unit||'')}</td>
         <td style="text-align:left">${priceCell}</td>
@@ -8107,7 +8181,7 @@ function rqRender(){
       </tr>`;
     }).join('');
     if(rows.length>MAX_ROWS){
-      tbody.innerHTML += `<tr><td colspan="8" class="rq-empty">מציג ${display.length} מתוך ${rows.length} — צמצם בחיפוש לראות יותר</td></tr>`;
+      tbody.innerHTML += `<tr><td colspan="9" class="rq-empty">מציג ${display.length} מתוך ${rows.length} — צמצם בחיפוש לראות יותר</td></tr>`;
     }
   }
   _rqUpdateStats();
@@ -8789,6 +8863,16 @@ async function clearPlImported(){
 </script>
 <!-- Toast stack -->
 <div id="app-toast-stack"></div>
+<!-- RQ sticky bar -->
+<div id="rq-sticky-bar" class="rq-sticky-bar hidden">
+  <span id="rq-sb-count"></span>
+  <span class="rq-sb-sep">|</span>
+  <span class="rq-sb-total" id="rq-sb-total"></span>
+  <span style="font-size:.75rem;opacity:.7">לפני מע"מ</span>
+  <span style="flex:1"></span>
+  <button class="rq-sb-btn" onclick="rqResetQtys()">🔄 איפוס כמויות</button>
+  <button class="rq-sb-btn rq-sb-btn-primary" onclick="rqOpenPreview()">👁 תצוגה מקדימה</button>
+</div>
 
 <!-- Confirm modal -->
 <div id="app-confirm-overlay" role="dialog" aria-modal="true">
