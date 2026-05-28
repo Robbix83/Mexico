@@ -298,10 +298,9 @@ input:focus {
   font-size: .82rem;
   overflow: hidden;
 }
-.qr-box img {
-  width: 210px; height: 210px;
-  display: none;
-  border-radius: 10px;
+#qr-svg-holder svg {
+  width: 200px; height: 200px;
+  display: block;
 }
 /* Always-visible manual secret */
 .secret-always {
@@ -530,7 +529,7 @@ input:focus {
       </ol>
       <div class="qr-box" id="qr-box">
         <span id="qr-loading-text">⏳ טוען...</span>
-        <img id="totp-qr" alt="QR Code">
+        <div id="qr-svg-holder" style="display:none;width:200px;height:200px"></div>
       </div>
       <div id="qr-retry-wrap">
         <button type="button" onclick="loadTotpSetup()">🔄 נסה שוב</button>
@@ -730,13 +729,15 @@ document.getElementById('totp-code').addEventListener('keydown', e => {
 
 // ── Step 4: TOTP setup ────────────────────────────────────────────────────────
 async function loadTotpSetup() {
-  const qrImg      = document.getElementById('totp-qr');
+  const qrHolder   = document.getElementById('qr-svg-holder');
   const loadingTxt = document.getElementById('qr-loading-text');
   const retryWrap  = document.getElementById('qr-retry-wrap');
   const manual     = document.getElementById('totp-manual');
   const errEl      = document.getElementById('totp-setup-err');
+
   // Reset UI
-  qrImg.style.display      = 'none';
+  qrHolder.style.display   = 'none';
+  qrHolder.innerHTML       = '';
   loadingTxt.style.display = '';
   loadingTxt.textContent   = '⏳ טוען QR...';
   retryWrap.style.display  = 'none';
@@ -744,23 +745,22 @@ async function loadTotpSetup() {
   errEl.classList.remove('show');
 
   const _showErr = (msg) => {
-    loadingTxt.textContent = '⚠ השתמש בקוד ידני למטה';
-    errEl.textContent = msg;
+    loadingTxt.textContent  = '⚠ השתמש בקוד הידני למטה';
+    errEl.textContent       = msg;
     errEl.classList.add('show');
     retryWrap.style.display = '';
   };
 
   try {
-    // 20-second timeout
     const ctrl = new AbortController();
     const tid  = setTimeout(() => ctrl.abort(), 20000);
     let res;
     try {
       res = await fetch('/api/auth/totp/setup', {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({ pendingToken: _pendingToken }),
-        signal: ctrl.signal
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify({ pendingToken: _pendingToken }),
+        signal:  ctrl.signal
       });
     } finally {
       clearTimeout(tid);
@@ -768,34 +768,26 @@ async function loadTotpSetup() {
 
     let data;
     try { data = await res.json(); }
-    catch (e) { _showErr('שגיאה בפענוח תגובת השרת (HTTP ' + res.status + ')'); return; }
+    catch { _showErr('שגיאה בפענוח תגובת השרת (HTTP ' + res.status + ')'); return; }
+
+    // Always populate the manual secret first
+    manual.textContent = data.secret || '(לא התקבל — נסה שנית)';
 
     if (!res.ok) {
-      manual.textContent = '—';
       _showErr(data.error || 'שגיאה ' + res.status + ' מהשרת');
       return;
     }
 
-    // Always show manual secret (visible, not in accordion)
-    manual.textContent = data.secret || '(לא התקבל — נסה שנית)';
-
-    if (!data.qrDataUrl) {
-      // QR generation failed on server — manual entry is the path
-      loadingTxt.textContent = '⚠ סרוק באמצעות הקוד הידני למטה';
-      setTimeout(() => document.getElementById('totp-setup-code').focus(), 50);
-      return;
+    if (data.qrSvg) {
+      // Inject the SVG string directly — no img/data-URL browser quirks
+      qrHolder.innerHTML       = data.qrSvg;
+      loadingTxt.style.display = 'none';
+      qrHolder.style.display   = 'block';
+    } else {
+      loadingTxt.textContent = '⚠ השתמש בקוד הידני למטה';
     }
 
-    // Show QR image
-    qrImg.onload  = () => {
-      loadingTxt.style.display = 'none';
-      qrImg.style.display = 'block';
-    };
-    qrImg.onerror = () => {
-      loadingTxt.textContent = '⚠ השתמש בקוד ידני למטה';
-    };
-    qrImg.src = data.qrDataUrl;
-    setTimeout(() => document.getElementById('totp-setup-code').focus(), 200);
+    setTimeout(() => document.getElementById('totp-setup-code').focus(), 100);
 
   } catch (ex) {
     if (ex.name === 'AbortError') {
