@@ -7950,7 +7950,8 @@ function rqSetSource(s){
 
 function rqQty(key){ return +rqDraft.qtys[key] || 0; }
 function rqChangeQty(key, delta){
-  const nxt=Math.max(0,Math.min(9999, rqQty(key)+delta));
+  const prev=rqQty(key);
+  const nxt=Math.max(0,Math.min(9999, prev+delta));
   if(nxt===0) delete rqDraft.qtys[key]; else rqDraft.qtys[key]=nxt;
   rqSaveDraft();
   const sid=_rqSafeId(key);
@@ -7958,8 +7959,14 @@ function rqChangeQty(key, delta){
   if(inp){ inp.value=nxt; inp.classList.toggle('qty-active', nxt>0); }
   _rqUpdateRowTotal(key);
   _rqUpdateStats();
+  // Re-sort the table when an item moves in/out of "selected" state (0↔positive)
+  if((prev===0) !== (nxt===0)){
+    clearTimeout(rqChangeQty._t);
+    rqChangeQty._t=setTimeout(rqRender, 250);
+  }
 }
 function rqSetQty(key, val){
+  const prev=rqQty(key);
   const nxt=Math.max(0,Math.min(9999, parseInt(val)||0));
   if(nxt===0) delete rqDraft.qtys[key]; else rqDraft.qtys[key]=nxt;
   rqSaveDraft();
@@ -7968,6 +7975,11 @@ function rqSetQty(key, val){
   if(inp){ inp.value=nxt; inp.classList.toggle('qty-active', nxt>0); }
   _rqUpdateRowTotal(key);
   _rqUpdateStats();
+  // Re-sort when selection state changes
+  if((prev===0) !== (nxt===0)){
+    clearTimeout(rqChangeQty._t);
+    rqChangeQty._t=setTimeout(rqRender, 250);
+  }
 }
 
 function _rqRowPriceIls(row){
