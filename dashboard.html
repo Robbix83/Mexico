@@ -7953,6 +7953,7 @@ function rqAllRows(){
     for(const p of all){
       if(!p||!p.model) continue;
       const ep=getPlEffective(p);
+      const plk=_plKey(p.mfr,p.model);
       rows.push({
         source:'pricelist',
         sku:String(ep.model||p.model),
@@ -7962,7 +7963,9 @@ function rqAllRows(){
         price:+ep.price||0,
         cur:ep.cur||'ILS',
         mfr:String(ep.mfr||p.mfr||''),
-        key:rqKey('pricelist', _plKey(p.mfr,p.model)),
+        key:rqKey('pricelist', plk),
+        ds:String(ep.ds||p.ds||''),
+        plFileKey:plHasFile(plk)?plk:null,
       });
     }
   }catch{}
@@ -8158,9 +8161,12 @@ function rqRender(){
             ? `<b style="color:#166534">${r.qtyOnHand}</b>`
             : `<span style="color:#dc2626">0</span>`)
         : `<span style="color:#cbd5e0">—</span>`;
-      const dsCell = r.ds
-        ? `<a class="ci-datasheet pl-ds-link" href="${_rqEsc(r.ds)}" data-rq-sku="${_rqEsc(r.sku)}" target="_blank" rel="noopener" title="פתח Datasheet">📄</a>`
-        : '';
+      let dsCell='';
+      if(r.plFileKey){
+        dsCell=`<a class="ci-datasheet pl-ds-link" href="#" onclick="event.preventDefault();plOpenFile('${_rqEsc(r.plFileKey)}')" title="פתח Datasheet">📄</a>`;
+      } else if(r.ds){
+        dsCell=`<a class="ci-datasheet pl-ds-link" href="${_rqEsc(r.ds)}" data-rq-sku="${_rqEsc(r.sku)}" target="_blank" rel="noopener" title="פתח Datasheet">📄</a>`;
+      }
       return `<tr>
         <td style="text-align:center">${badge}</td>
         <td><code style="font-size:.78rem">${_rqEsc(r.sku)}</code></td>
