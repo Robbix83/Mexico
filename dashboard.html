@@ -8998,7 +8998,7 @@ function renderPriceList(){
           const whM=_plFindWhMatch(ep,p);
           const catM=_plFindCatLink(key);
           let b='';
-          if(whM) b+=`<span style="display:block;font-size:.68rem;color:#0d9488;font-weight:700;margin-top:2px" title="יש במלאי: ${whM.qty} ${whM.unit||'יח\''}">📦 במלאי: ${whM.qty} ${whM.unit||'יח\''}</span>`;
+          if(whM) b+=`<span style="display:block;font-size:.68rem;color:#0d9488;font-weight:700;margin-top:2px" title="יש במחסן: ${whM.qty} ${whM.unit||'יח\''}">📦 ${whM.qty} ${whM.unit||'יח\''} במחסן</span>`;
           if(catM) b+=`<span style="display:block;font-size:.68rem;color:#6366f1;font-weight:700;margin-top:1px" title="מקט פעיל: ${catM.sku}">📋 ${catM.sku}</span>`;
           return b;
         })()}</td>
