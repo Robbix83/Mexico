@@ -3,12 +3,6 @@
 <head>
 <meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
 <title>פרויקטים - ניהול משימות | אפקון</title>
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"
-  integrity="sha384-e6nUZLBkQ86NJ6TVVKAeSaK8jWa3NhkYWZFomE39AvDbQWeie9PlQqM3pmYW5d1g"
-  crossorigin="anonymous"></script>
-<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"
-  integrity="sha384-vtjasyidUo0kW94K5MXDXntzOJpQgBKXmE7e2Ga4LG0skTTLeBi97eFAXsqewJjw"
-  crossorigin="anonymous"></script>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
@@ -2049,6 +2043,10 @@ tr:hover .pl-row-ds-btn{opacity:.6}
   </div>
 </div>
 
+<!-- chart.js here (not in <head>) so HTML renders before it downloads/parses -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"
+  integrity="sha384-e6nUZLBkQ86NJ6TVVKAeSaK8jWa3NhkYWZFomE39AvDbQWeie9PlQqM3pmYW5d1g"
+  crossorigin="anonymous"></script>
 <script>
 // ── Toast system ──────────────────────────────────────────────────────────────
 function _toast(msg, type='info', duration=4000){
@@ -2070,6 +2068,27 @@ function _toast(msg, type='info', duration=4000){
 }
 // Alias used by existing code
 function showToast(msg){ _toast(msg,'success'); }
+
+// ── XLSX lazy loader ─────────────────────────────────────────────────────────
+// xlsx.full.min.js is 1.1 MB — loaded on-demand only when Excel import is used.
+// A background preload starts 3 s after page becomes interactive so by the
+// time the user clicks "import Excel" the file is usually already cached.
+let _xlsxLoadPromise = null;
+function _ensureXlsx() {
+  if (window.XLSX) return Promise.resolve();
+  if (_xlsxLoadPromise) return _xlsxLoadPromise;
+  _xlsxLoadPromise = new Promise((res, rej) => {
+    const s = document.createElement('script');
+    s.src = 'https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js';
+    s.integrity = 'sha384-vtjasyidUo0kW94K5MXDXntzOJpQgBKXmE7e2Ga4LG0skTTLeBi97eFAXsqewJjw';
+    s.crossOrigin = 'anonymous';
+    s.onload = res; s.onerror = rej;
+    document.head.appendChild(s);
+  });
+  return _xlsxLoadPromise;
+}
+// Preload xlsx silently after 3 s — ready when the user first needs it
+setTimeout(_ensureXlsx, 3000);
 
 // ── Confirm modal ─────────────────────────────────────────────────────────────
 let _confirmResolve=null;
@@ -3470,6 +3489,7 @@ function handleQuickFileInput(input){
   input.value='';
 }
 function xlPreviewHtml(dataUrl){
+  if(!window.XLSX) return '<div style="padding:12px;font-size:.78rem;color:#94a3b8">⏳ טוען...</div>';
   try{
     const base64=dataUrl.split(',')[1];
     const wb=XLSX.read(base64,{type:'base64'});
@@ -4487,8 +4507,9 @@ function handleImportFileInput(inp){
 }
 function handleImportFile(file){
   const reader=new FileReader();
-  reader.onload=ev=>{
+  reader.onload=async ev=>{
     try{
+      await _ensureXlsx();
       const wb=XLSX.read(ev.target.result,{type:'binary'});
       const ws=wb.Sheets[wb.SheetNames[0]];
       const raw=XLSX.utils.sheet_to_json(ws,{header:1,defval:''});
@@ -6539,6 +6560,7 @@ function handleWhFile(file){
   const reader=new FileReader();
   reader.onload=ev=>{
     try{
+      await _ensureXlsx();
       const wb=XLSX.read(ev.target.result,{type:'binary',cellDates:true});
       const ws=wb.Sheets[wb.SheetNames[0]];
       const rows=XLSX.utils.sheet_to_json(ws,{header:1,defval:null});
@@ -8776,8 +8798,9 @@ function handlePlImportDrop(e){
 function handlePlImportFile(file){
   if(!file) return;
   const reader=new FileReader();
-  reader.onload=ev=>{
+  reader.onload=async ev=>{
     try{
+      await _ensureXlsx();
       const wb=XLSX.read(ev.target.result,{type:'binary'});
       const ws=wb.Sheets[wb.SheetNames[0]];
       const raw=XLSX.utils.sheet_to_json(ws,{header:1,defval:''});
