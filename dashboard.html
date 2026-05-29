@@ -1970,6 +1970,9 @@ tr:hover .pl-row-ds-btn{opacity:.6}
       <div id="cm-rel-list" style="max-height:180px;overflow-y:auto;
            scrollbar-width:thin;scrollbar-color:#cbd5e0 transparent"></div>
     </div>
+    <div class="field"><label>💰 קישור למחירון</label>
+      <div id="cm-pl-section" style="min-height:28px"></div>
+    </div>
     <div class="modal-actions">
       <button class="btn-secondary" onclick="closeCatalogModal()">ביטול</button>
       <button class="btn-primary"   onclick="submitCatalogModal()">שמור</button>
@@ -2227,6 +2230,7 @@ let currentView='list', priFilter='all', stFilter='all', catFilter='all', sortBy
 let dueFilter='all', searchQuery='';
 let expandedIds=new Set();
 let catalogCatFilter='all', catalogExpandedId=null, catalogEditId=null, catalogModalFiles=[];
+let _cmPlKey; // pending pricelist link in catalog modal (undefined=not loaded yet)
 let catalogViewMode='list'; // 'grid' | 'list'
 let pendingDelId=null, editId=null;
 let catChartInst, priChartInst;
@@ -4000,6 +4004,49 @@ function deleteCity(id){
 
 function getCatalogItem(id){return catalogItems.find(x=>x.id===id)||null}
 
+// ── Catalog ↔ Pricelist linking ─────────────────────────────
+function findPlCandidates(ci){
+  const all=getAllPlData();
+  const exact=all.filter(p=>p.mpn&&p.mpn===ci.sku);
+  const fuzzy=all.filter(p=>{
+    if(exact.includes(p)) return false;
+    const lc=(p.model||'').toLowerCase();
+    const nl=(ci.name||'').toLowerCase();
+    return nl.includes(lc)||(lc.length>4&&lc.includes(nl.split(' ').pop()));
+  }).slice(0,5);
+  return{exact,fuzzy};
+}
+
+function renderCmPlLink(item){
+  const el=document.getElementById('cm-pl-section');
+  if(!el) return;
+  const plKey=_cmPlKey!==undefined?_cmPlKey:(item?item.plKey:null);
+  if(plKey){
+    const pl=getAllPlData().find(p=>_plKey(p.mfr,p.model)===plKey);
+    const ep=pl?getPlEffective(pl):null;
+    const priceStr=ep&&ep.price!=null?` · ${ep.price} ${ep.cur||''}` :'';
+    el.innerHTML=`<div style="display:flex;align-items:center;gap:8px;padding:6px 10px;background:#f0fdfa;border:1px solid #ccfbf1;border-radius:8px">
+      <span style="font-size:.82rem;font-weight:700;color:#0f4c5c">🔗 ${pl?pl.mfr+' '+pl.model:plKey}${priceStr}</span>
+      <button type="button" onclick="_cmPlKey=null;renderCmPlLink()" style="margin-right:auto;background:none;border:none;cursor:pointer;color:#ef4444;font-size:.85rem" title="הסר קישור">✕</button>
+    </div>`;
+  } else {
+    const cands=item?findPlCandidates(item):{exact:[],fuzzy:[]};
+    const all=[...cands.exact,...cands.fuzzy].slice(0,6);
+    const rows=all.map(p=>{
+      const ep=getPlEffective(p);
+      const k=_plKey(p.mfr,p.model);
+      const isExact=cands.exact.includes(p);
+      return`<div onclick="_cmPlKey='${k}';renderCmPlLink()" style="cursor:pointer;padding:4px 10px;border-radius:6px;background:#f8fafc;border:1px solid #e2e8f0;font-size:.78rem;display:flex;align-items:center;gap:6px;transition:background .1s" onmouseover="this.style.background='#e0f2fe'" onmouseout="this.style.background='#f8fafc'">
+        ${isExact?'<span style="color:#059669;font-size:.7rem">✓ מדויק</span>':'<span style="color:#94a3b8;font-size:.7rem">~דומה</span>'}
+        <b>${p.mfr} ${p.model}</b>
+        ${ep.price!=null?`<span style="color:#0d9488;margin-right:auto">${ep.price} ${ep.cur||''}</span>`:''}
+      </div>`;
+    }).join('');
+    el.innerHTML=rows?`<div style="font-size:.74rem;color:#64748b;margin-bottom:4px">בחר פריט מחירון מתאים:</div><div style="display:flex;flex-direction:column;gap:4px">${rows}</div>`
+      :`<div style="font-size:.74rem;color:#94a3b8;padding:4px 0">לא נמצאו התאמות אוטומטיות — ניתן לחפש ידנית בהמשך</div>`;
+  }
+}
+
 function renderCatalogCatPills(){
   const el=document.getElementById('catalog-cat-pills');
   if(!el) return;
@@ -4083,7 +4130,18 @@ function renderCatalog(){
         </td>
         <td>${catBadge}</td>
         <td class="td-name">${item.name}${item.desc?`<div style="font-size:.74rem;color:#94a3b8;font-weight:400;margin-top:1px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;max-width:300px">${item.desc}</div>`:''}</td>
-        <td class="td-cost">${cost}</td>
+        <td class="td-cost">
+  ${cost}
+  ${(()=>{
+    const wh=whItems.find(w=>w.sku===item.sku);
+    const plLinked=item.plKey?getAllPlData().find(p=>_plKey(p.mfr,p.model)===item.plKey):null;
+    const ep=plLinked?getPlEffective(plLinked):null;
+    let b='';
+    if(wh&&(+wh.qty||0)>0) b+=`<span title="יש במחסן" style="display:block;font-size:.7rem;color:#0d9488">📦 ${wh.qty} יח׳</span>`;
+    if(ep&&ep.price!=null) b+=`<span title="מחיר מחירון" style="display:block;font-size:.7rem;color:#6366f1">🏷️ ${ep.price} ${ep.cur||''}</span>`;
+    return b;
+  })()}
+</td>
         <td style="text-align:center">${ds}</td>
         <td class="td-actions">
           <button class="act-btn edit-btn" onclick="openCatalogModal(${item.id})" title="ערוך">✏️</button>
@@ -4140,6 +4198,15 @@ function renderCatalog(){
         ${item.cost!=null&&item.cost>0
           ?`<div class="ci-cost" onclick="openCatalogModal(${item.id})" title="לחץ לעריכת עלות">₪ ${item.cost.toLocaleString('he-IL',{minimumFractionDigits:2,maximumFractionDigits:2})}</div>`
           :`<div class="ci-cost no-cost" onclick="openCatalogModal(${item.id})" title="לחץ להוספת עלות">₪ —</div>`}
+        ${(()=>{
+          const wh=whItems.find(w=>w.sku===item.sku);
+          const plLinked=item.plKey?getAllPlData().find(p=>_plKey(p.mfr,p.model)===item.plKey):null;
+          const ep=plLinked?getPlEffective(plLinked):null;
+          let b='';
+          if(wh&&(+wh.qty||0)>0) b+=`<span style="font-size:.72rem;background:#f0fdfa;color:#0f4c5c;border:1px solid #ccfbf1;border-radius:10px;padding:1px 7px" title="יש במחסן">📦 ${wh.qty}</span>`;
+          if(ep&&ep.price!=null) b+=`<span style="font-size:.72rem;background:#eef2ff;color:#3730a3;border:1px solid #e0e7ff;border-radius:10px;padding:1px 7px" title="מחיר מחירון: ${ep.price} ${ep.cur||''}">🏷️ ${ep.price} ${ep.cur||''}</span>`;
+          return b;
+        })()}
         ${item.datasheetUrl?`<a class="ci-datasheet" href="${item.datasheetUrl}" target="_blank" rel="noopener" title="פתח Datasheet">📄 Datasheet</a>`:''}
         ${(item.files||[]).map((_f,_i)=>`<a class="ci-datasheet" href="#" onclick="event.preventDefault();openCatalogFile(${item.id},${_i})" title="${_f.name}">📄</a>`).join('')}
       </div>
@@ -4284,6 +4351,8 @@ function openCatalogModal(id){
   }
   renderCatalogModalFiles();
   renderCatalogRelPicker(id);
+  _cmPlKey=undefined; // reset to "not changed"
+  renderCmPlLink(id?getCatalogItem(id):null);
   document.getElementById('catalog-modal').classList.add('open');
   setTimeout(()=>document.getElementById('cm-sku').focus(),80);
 }
@@ -4333,12 +4402,14 @@ function submitCatalogModal(){
     item.desc=document.getElementById('cm-desc').value.trim();
     item.files=[...catalogModalFiles];
     item.relations=rels;
+    if(_cmPlKey!==undefined) item.plKey=_cmPlKey||null;
   } else {
     catalogItems.push({
       id:nextCatalogId++, sku, name, cat:catVal,
       cost:costVal, datasheetUrl:dsUrl||null,
       desc:document.getElementById('cm-desc').value.trim(),
       files:[...catalogModalFiles], relations:rels,
+      plKey:_cmPlKey||null,
       createdAt:new Date().toISOString()
     });
   }
@@ -5420,6 +5491,13 @@ function openPlEdit(mfr,model){
   // Header info
   document.getElementById('ple-mfr-svg').innerHTML=mfrObj.logoSvg||mfr;
   document.getElementById('ple-model-label').textContent=model;
+  // show catalog link
+  const _pleLinkedCat=catalogItems.find(c=>c.plKey===_pleKey);
+  const catInfoEl=document.getElementById('ple-cat-link');
+  if(catInfoEl){
+    catInfoEl.textContent=_pleLinkedCat?'מקט קטלוג: '+_pleLinkedCat.sku:'';
+    catInfoEl.style.display=_pleLinkedCat?'':'none';
+  }
   // Fields
   document.getElementById('ple-cat').value=ep.cat||'';
   document.getElementById('ple-desc').value=ep.desc||'';
@@ -8207,6 +8285,11 @@ function rqAllRows(){
       key:rqKey('catalog', String(c.sku||c.name)),
     });
   }
+  // Suppress pricelist rows that are already represented by a catalog row with plKey
+  const linkedPlKeys=new Set((catalogItems||[]).map(c=>c.plKey).filter(Boolean));
+  if(linkedPlKeys.size){
+    return rows.filter(r=>r.source!=='pricelist'||!linkedPlKeys.has(r.key.replace('pricelist:','')));
+  }
   return rows;
 }
 
@@ -9159,6 +9242,7 @@ async function clearPlImported(){
       <div class="ple-item-info">
         <span id="ple-mfr-svg"></span>
         <strong id="ple-model-label" style="font-family:monospace;font-size:.9rem;color:#111827"></strong>
+        <div id="ple-cat-link" style="font-size:.76rem;color:#0f4c5c;background:#f0fdfa;border-radius:6px;padding:2px 8px;display:none;margin-top:4px"></div>
       </div>
       <div class="ple-field">
         <label>קטגוריה</label>
