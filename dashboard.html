@@ -7152,10 +7152,23 @@ function dpOpenPreview(){
     c+=`</tbody></table>`;
   } else { c+=`<div class="dp-prev-empty">אין מתגים</div>`; }
 
-  // 6. נספח
+  // 6. נספח — דפי מוצר (embedded inline)
   if(datashts.length){
     c+=`<div class="dp-prev-h1">נספח — דפי מוצר</div>`;
-    datashts.forEach(f=>{c+=`<div class="dp-prev-ds">📄 ${esc(f.original_name||f.filename||'')}</div>`;});
+    datashts.forEach(f=>{
+      const url=dpFileUrl(f.id);
+      const name=esc(f.original_name||f.filename||'');
+      // Embed PDF directly in browser — shows actual pages without exporting Word
+      c+=`<div style="margin-bottom:24px">
+        <div style="font-size:.82rem;font-weight:700;color:#1A2A4A;margin-bottom:6px;direction:rtl">📄 ${name}</div>
+        <object data="${url}" type="application/pdf"
+          style="width:100%;height:850px;border:1px solid #e2e8f0;border-radius:6px;display:block">
+          <div style="padding:20px;text-align:center;background:#f8fafc;border-radius:6px">
+            <a href="${url}" target="_blank" style="color:#1d4ed8;font-weight:600">📥 פתח ${name}</a>
+          </div>
+        </object>
+      </div>`;
+    });
   }
 
   // ── Build & show modal ──
@@ -7207,6 +7220,20 @@ async function dpExportWord(){
   finally{if(btn){btn.disabled=false;btn.textContent='⬇ ייצוא Word';}}
 }
 
+async function dpCleanupDatasheets(){
+  if(!_currentDocPack) return;
+  if(!await _confirm('מחק את כל דפי המוצר שאינם שייכים לציוד הנוכחי בתיק?',
+      {title:'נקה שאריות',ok:'נקה',type:'warn'})) return;
+  try{
+    const r=await fetch('/api/docpacks/'+_currentDocPack.id+'/cleanup-datasheets',{method:'POST'});
+    if(!r.ok){const j=await r.json().catch(()=>({}));throw new Error(j.error||'שגיאה');}
+    const j=await r.json();
+    _toast(`הוסרו ${j.removed} דפי מוצר ישנים`,'success');
+    await loadDocPackFiles(_currentDocPack.id);
+    renderDocPackForm();
+  }catch(e){_toast('שגיאה: '+e.message,'error');}
+}
+
 // ── Renderers ──
 function renderDocPack(){
   renderDocPackList();
@@ -7254,6 +7281,7 @@ function renderDocPackForm(){
       <span style="font-size:.72rem;color:#718096">📊 ${quotaHuman(quota.used)} / ${(quota.max/1024/1024/1024).toFixed(1)}GB ${quotaPct>=90?'⚠':''}</span>
       <button class="dp-btn-preview" onclick="dpOpenPreview()">👁 תצוגה מקדימה</button>
       <button class="dp-btn-export" id="dp-export-btn" onclick="dpExportWord()">⬇ ייצוא Word</button>
+      <button class="dp-admin-only" onclick="dpCleanupDatasheets()" title="מחק דפי מוצר שלא שייכים לציוד הנוכחי" style="background:#fff7ed;color:#c2410c;border:1px solid #fed7aa;padding:6px 12px;border-radius:7px;font-size:.82rem;font-weight:600;cursor:pointer">🧹 נקה שאריות</button>
       <button class="dp-btn-share dp-admin-only" onclick="dpOpenShareModal()" style="background:#fbbf24;color:#0F4C5C;border:none;padding:8px 14px;border-radius:7px;font-size:.85rem;font-weight:700;cursor:pointer">🔗 קישור שיתוף</button>
       <button class="dp-btn-del dp-admin-only" onclick="dpDeletePack(${_currentDocPack.id},'${_escDp(_currentDocPack.name).replace(/'/g,"\\'")}')">🗑 מחק תיק</button>
     </div>

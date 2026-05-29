@@ -1622,6 +1622,41 @@ app.post('/api/docpacks/:id/datasheets/attach', requireAdmin, (req, res) => {
   res.json({ ok: true, found: true, attached: true, file: publicFileShape(db.getDocPackFile(r.lastInsertRowid)) });
 });
 
+// Force-cleanup stale linked datasheets not matching current equipment models
+app.post('/api/docpacks/:id/cleanup-datasheets', requireAdmin, (req, res) => {
+  const id = parseInt(req.params.id);
+  const pack = db.getDocPack(id);
+  if (!pack) return res.status(404).json({ error: 'Pack not found' });
+  let dataObj = {};
+  try { dataObj = JSON.parse(pack.data || '{}'); } catch {}
+
+  const allRows = [
+    ...(dataObj.cameras   || []),
+    ...(dataObj.backhauls || []),
+    ...(dataObj.switches  || []),
+    ...(dataObj.others    || []),
+  ];
+  const wantedPaths = new Set();
+  for (const row of allRows) {
+    const model = String(row.model || row.mpn || row.name || '').trim();
+    if (!model) continue;
+    const ds = docpack.lookupDatasheet(model);
+    if (ds) wantedPaths.add(ds.absPath);
+  }
+
+  const existingFiles = db.listDocPackFiles(id);
+  let removed = 0;
+  for (const f of existingFiles) {
+    if (f.filename !== null) continue;  // uploaded file
+    if (!f.external_path) continue;
+    if (!wantedPaths.has(f.external_path)) {
+      db.deleteDocPackFile(f.id);
+      removed++;
+    }
+  }
+  res.json({ ok: true, removed });
+});
+
 app.post('/api/docpacks/:id/generate', requireSection('docpack'), generateRateLimiter, async (req, res) => {
   const id = parseInt(req.params.id);
   const pack = db.getDocPack(id);
