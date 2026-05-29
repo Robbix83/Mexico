@@ -579,23 +579,31 @@ function _forceRtl(zip) {
     zip.file(name, xml);
   });
 
-  // ── Layer 4: document-level direction ──
-  // <w:bidi/> in word/settings.xml is what makes Word show the RTL ruler and
-  // default-right paragraph alignment. Without it, layers 1-3 have no effect
-  // on the document-level reading order.
+  // ── Layer 4: document-level direction — nuclear replace ──
+  // Replace settings.xml ENTIRELY with a minimal RTL-clean version.
   //
-  // CRITICAL: insert <w:bidi/> as the FIRST CHILD of <w:settings> (immediately
-  // after the opening tag), not as the last child (before </w:settings>).
-  // OOXML schema places bidi early in the CT_Settings sequence; appending it at
-  // the end violates schema order and Word silently ignores it.
+  // Reason: python-docx's default template includes <w:compat> with
+  // <w:doNotFlipMirrorIndents w:val="1"/> which prevents Word from fully
+  // activating RTL layout even when <w:bidi/> is present.  The working
+  // reference project (docx npm library) generates a clean settings.xml
+  // without any compat block and it works correctly.
+  //
+  // We keep only: <w:bidi/>, tab stop, spacing control, and Hebrew lang.
   const settingsName = 'word/settings.xml';
   if (zip.files[settingsName]) {
-    let xml = zip.files[settingsName].asText();
-    // Remove any existing bidi element (including <w:bidi w:val="0"/> which disables RTL)
-    xml = xml.replace(/<w:bidi[^>]*\/>/g, '');
-    // Insert immediately after the <w:settings ...> opening tag — position 1 in child list
-    xml = xml.replace(/(<w:settings[^>]*>)/, '$1<w:bidi/>');
-    zip.file(settingsName, xml);
+    const cleanSettings =
+      `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>` +
+      `<w:settings` +
+      ` xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"` +
+      ` xmlns:w14="http://schemas.microsoft.com/office/word/2010/wordml"` +
+      ` xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"` +
+      ` mc:Ignorable="w14">` +
+      `<w:bidi/>` +
+      `<w:defaultTabStop w:val="720"/>` +
+      `<w:characterSpacingControl w:val="doNotCompress"/>` +
+      `<w:themeFontLang w:val="he-IL" w:eastAsia="he-IL" w:bidi="he-IL"/>` +
+      `</w:settings>`;
+    zip.file(settingsName, cleanSettings);
   }
 
   return zip;
