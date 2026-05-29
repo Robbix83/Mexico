@@ -999,6 +999,9 @@ tr:hover .pl-row-ds-btn{opacity:.6}
 .catalog-list-table td.td-name{max-width:320px;line-height:1.4;font-weight:600;color:#111827}
 .catalog-list-table td.td-cost{white-space:nowrap;color:#166534;font-weight:700;text-align:center}
 .catalog-list-table td.td-actions{white-space:nowrap;text-align:center}
+.catalog-list-table tr.ci-child-row{background:#f5f7ff;border-right:3px solid #818cf8}
+.catalog-list-table tr.ci-child-row:hover{background:#eef2ff}
+.catalog-list-table tr.ci-child-row td{padding-top:6px;padding-bottom:6px}
 .catalog-view-toggle{display:flex;gap:2px;border:1.5px solid #e2e8f0;border-radius:8px;overflow:hidden;flex-shrink:0}
 .catalog-view-toggle button{background:#fff;border:none;cursor:pointer;padding:5px 9px;font-size:.85rem;
   color:#718096;transition:.12s;line-height:1}
@@ -4157,17 +4160,26 @@ function renderCatalog(){
         return`<span class="ci-rel-chip ${r.type}" onclick="highlightCatalogItem(${r.id})" title="${rel.name}">${r.type==='child'?'🔽':'🔗'} ${rel.sku}</span>`;
       }).join('');
       const childRows=(item.relations||[]).filter(r=>r.type==='child').map(r=>getCatalogItem(r.id)).filter(Boolean);
-      const childRowsHtml=childRows.length?`<tr style="background:#fafbff">
-        <td colspan="6" style="padding:4px 10px 8px 10px">
-          <div style="font-size:.7rem;font-weight:700;color:#64748b;margin-bottom:3px">🔽 מוצרים בן:</div>
-          <div style="display:flex;flex-wrap:wrap;gap:6px">${childRows.map(ch=>`
-            <span style="background:#eef2ff;color:#3730a3;border:1px solid #c7d2fe;border-radius:8px;padding:2px 10px;font-size:.74rem;cursor:pointer"
-              onclick="highlightCatalogItem(${ch.id})" title="${ch.name}">
-              ${ch.sku} <span style="color:#94a3b8">${ch.name.substring(0,30)}</span>
-            </span>`).join('')}
-          </div>
-        </td>
-      </tr>`:'';
+      const childRowsHtml=childRows.map(ch=>{
+        const chSkuSafe=String(ch.sku||'').replace(/'/g,"\\'");
+        const chCost=ch.cost!=null&&ch.cost>0?`₪${Number(ch.cost).toLocaleString('he-IL',{minimumFractionDigits:2,maximumFractionDigits:2})}`:'—';
+        const chDs=ch.datasheetUrl?`<a class="ci-datasheet" href="${ch.datasheetUrl}" target="_blank" rel="noopener" title="Datasheet">📄</a>`:'';
+        const chCat=ch.cat?`<span style="font-size:.7rem;color:#6366f1;background:#eef2ff;border-radius:10px;padding:1px 8px">${ch.cat}</span>`:'';
+        const chDesc=ch.desc?`<div style="font-size:.73rem;color:#94a3b8;font-weight:400;margin-top:2px;white-space:normal;line-height:1.4">${ch.desc}</div>`:'';
+        return `<tr class="ci-child-row">
+          <td class="td-sku" style="padding-right:26px">
+            <div style="font-size:.62rem;color:#818cf8;font-weight:700;margin-bottom:2px">↳ מוצר בן</div>
+            <span class="sku-badge" onclick="copySkuNum('${chSkuSafe}',this)" title="העתק מקט">${ch.sku}</span>
+          </td>
+          <td>${chCat}</td>
+          <td class="td-name">${ch.name}${chDesc}</td>
+          <td class="td-cost">${chCost}</td>
+          <td style="text-align:center">${chDs}</td>
+          <td class="td-actions">
+            <button class="act-btn edit-btn" onclick="openCatalogModal(${ch.id})" title="ערוך">✏️</button>
+          </td>
+        </tr>`;
+      }).join('');
       html+=`<tr id="ci-card-${item.id}">
         <td class="td-sku">
           <span class="sku-badge" onclick="copySkuNum('${item.sku}',this)" title="העתק מקט">${item.sku}</span>
