@@ -547,12 +547,18 @@ function _forceRtl(zip) {
     if (!zip.files[name]) return;
     let xml = zip.files[name].asText();
 
-    // ── Layer 1: paragraph RTL ──
-    // Expand self-closing <w:pPr/> then inject <w:bidi/> after opening tag.
-    // The template already has <w:bidi w:val="1"/> in most pPr elements; adding
-    // another <w:bidi/> is harmless (Word reads the first one found).
+    // ── Layer 1: paragraph RTL + alignment ──
+    // - <w:bidi/>: marks paragraph as RTL (affects bullet order, bidi algorithm)
+    // - <w:jc val="right"> → <w:jc val="start">: "start" is the RTL-aware alias
+    //   for "align to the reading-direction start" (= right edge in RTL).
+    //   "right" is absolute (always right edge regardless of direction); "start"
+    //   is direction-relative. The confirmed-working `docx` npm reference project
+    //   uses AlignmentType.START. Word 2019+ honours "start" more reliably than
+    //   "right" in RTL mode.
     xml = xml.replace(/<w:pPr\/>/g, '<w:pPr><w:bidi/></w:pPr>');
     xml = xml.replace(/<w:pPr>/g, '<w:pPr><w:bidi/>');
+    // Convert explicit right-alignment to direction-aware "start"
+    xml = xml.replace(/<w:jc w:val="right"\/>/g, '<w:jc w:val="start"/>');
 
     // ── Layer 2: section RTL ──
     xml = xml.replace(/<\/w:sectPr>/g, '<w:bidi/></w:sectPr>');
