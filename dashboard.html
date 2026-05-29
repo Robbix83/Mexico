@@ -4156,12 +4156,24 @@ function renderCatalog(){
         if(!rel) return '';
         return`<span class="ci-rel-chip ${r.type}" onclick="highlightCatalogItem(${r.id})" title="${rel.name}">${r.type==='child'?'🔽':'🔗'} ${rel.sku}</span>`;
       }).join('');
+      const childRows=(item.relations||[]).filter(r=>r.type==='child').map(r=>getCatalogItem(r.id)).filter(Boolean);
+      const childRowsHtml=childRows.length?`<tr style="background:#fafbff">
+        <td colspan="6" style="padding:4px 10px 8px 10px">
+          <div style="font-size:.7rem;font-weight:700;color:#64748b;margin-bottom:3px">🔽 מוצרים בן:</div>
+          <div style="display:flex;flex-wrap:wrap;gap:6px">${childRows.map(ch=>`
+            <span style="background:#eef2ff;color:#3730a3;border:1px solid #c7d2fe;border-radius:8px;padding:2px 10px;font-size:.74rem;cursor:pointer"
+              onclick="highlightCatalogItem(${ch.id})" title="${ch.name}">
+              ${ch.sku} <span style="color:#94a3b8">${ch.name.substring(0,30)}</span>
+            </span>`).join('')}
+          </div>
+        </td>
+      </tr>`:'';
       html+=`<tr id="ci-card-${item.id}">
         <td class="td-sku">
           <span class="sku-badge" onclick="copySkuNum('${item.sku}',this)" title="העתק מקט">${item.sku}</span>
         </td>
         <td>${catBadge}</td>
-        <td class="td-name">${item.name}${item.desc?`<div style="font-size:.74rem;color:#94a3b8;font-weight:400;margin-top:1px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;max-width:300px">${item.desc}</div>`:''}</td>
+        <td class="td-name">${item.name}${item.desc?`<div style="font-size:.74rem;color:#94a3b8;font-weight:400;margin-top:1px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;max-width:300px">${item.desc}</div>`:''}${rels?`<div style="margin-top:4px;display:flex;flex-wrap:wrap;gap:4px">${rels}</div>`:''}</td>
         <td class="td-cost">
   ${cost}
   ${(()=>{
@@ -4179,7 +4191,7 @@ function renderCatalog(){
           <button class="act-btn edit-btn" onclick="openCatalogModal(${item.id})" title="ערוך">✏️</button>
           <button class="act-btn" onclick="askDeleteCatalog(${item.id})" title="מחק">🗑️</button>
         </td>
-      </tr>`;
+      </tr>${childRowsHtml}`;
     });
     html+='</tbody></table>';
     wrap.innerHTML=html;
