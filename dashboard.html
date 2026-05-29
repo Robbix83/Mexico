@@ -5208,6 +5208,7 @@ async function ensureWarehouseLoaded(force){
       if(r.ok){
         const j=await r.json();
         whItems=Array.isArray(j.items)?j.items:[];
+        _whLookupCache=null; // invalidate match cache
         _whMeta={importedAt:j.importedAt||null,count:j.count||whItems.length};
         _whLoaded=true;
       }
@@ -8840,25 +8841,35 @@ function rqClosePreview(){
 
 // ════════════════════════════════════════════════════════════
 
-// Smart match: does a warehouse item correspond to a pricelist product?
+// Pre-built lookup: token → whItem (rebuilt only when whItems changes)
+let _whLookupCache=null, _whLookupStamp=-1;
+function _getWhLookup(){
+  if(_whLookupCache&&_whLookupStamp===whItems.length) return _whLookupCache;
+  const m=new Map();
+  for(const w of whItems){
+    // Index by SKU
+    const sk=(w.sku||'').toLowerCase().trim();
+    if(sk&&!m.has(sk)) m.set(sk,w);
+    // Extract model-code tokens from desc: e.g. DS-1602ZJ, IPC-HFW2849S-S-IL
+    const tokens=(w.desc||'').match(/\b[A-Z]{1,4}-[A-Z0-9][A-Z0-9\-]{2,}/g)||[];
+    for(const t of tokens){
+      const key=t.toLowerCase();
+      if(!m.has(key)) m.set(key,w); // first occurrence wins = most generic item
+    }
+  }
+  _whLookupCache=m; _whLookupStamp=whItems.length;
+  return m;
+}
+// O(1) warehouse match per pricelist row
 function _plFindWhMatch(ep, p){
   if(!whItems.length) return null;
-  const model=(ep.model||p.model||'').toLowerCase().trim();
-  // Strip lens/variant suffix: (2.8mm), (2.8), B, BL, LUF, -IZ, etc. — keep base model
-  const modelBase=model.replace(/\s*\([^)]*\)/g,'').replace(/[-\s]+(b|bl|luf|iz|iz-i|lisu|sl4c|sl2|sl4)$/i,'').trim();
-  const modelNoDash=model.replace(/[-_]/g,' ').replace(/\s+/g,' ');
-  const mpn=(p.mpn||'').toLowerCase().trim();
-  return whItems.find(w=>{
-    const wsku=(w.sku||'').toLowerCase().trim();
-    const wdesc=(w.desc||'').toLowerCase();
-    return wsku===model ||
-           wsku===modelBase ||
-           (mpn&&wsku===mpn) ||
-           (model.length>4&&wdesc.includes(model)) ||
-           (modelBase.length>4&&wdesc.includes(modelBase)) ||
-           (modelNoDash.length>4&&wdesc.replace(/[-_]/g,' ').includes(modelNoDash)) ||
-           (wsku.length>5&&model.includes(wsku));
-  })||null;
+  const lk=_getWhLookup();
+  const model=(ep.model||p.model||'').trim();
+  const base=model.replace(/\s*\([^)]*\)/g,'').trim(); // strip (2.8mm)
+  const mpn=(p.mpn||'').trim();
+  return lk.get(model.toLowerCase())||
+         lk.get(base.toLowerCase())||
+         (mpn&&lk.get(mpn.toLowerCase()))||null;
 }
 // Does a catalog item link to this pricelist key?
 function _plFindCatLink(key){
