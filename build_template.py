@@ -369,23 +369,20 @@ def build():
 
     # ── Cover-page project info table ──
     add_para_rtl(doc, '\n')
-    info_table = doc.add_table(rows=7, cols=4)
-    info_table.style = 'Light Grid Accent 1'
-    # bidiVisual is NOT used here: Google Docs ignores <w:bidiVisual/> and renders
-    # columns in physical left→right order regardless.  Instead we physically reverse
-    # the column order so the role-label (rightmost in Hebrew) sits in physical col 3
-    # (rightmost in both Word and Google Docs without any bidi table flag).
+    # 3-column table: function-label | org | person
     # Reading order for a Hebrew reader (right → left):
-    #   col3 (role/label) | col2 (function) | col1 (org) | col0 (person)
+    #   col2 (function/label) | col1 (org) | col0 (person)
+    info_table = doc.add_table(rows=7, cols=3)
+    info_table.style = 'Light Grid Accent 1'
 
     rows_data = [
-        ('{contractor_person}', '{contractor_org}', 'גורם מבצע',      'מגיש'),
-        ('{pm_person}',         '{pm_org}',          'גורם מוביל',     'מגיש'),
-        ('{customer_person}',   '{customer_org}',    'לקוח סופי',      'מקבל'),
-        ('{consultant_person}', '{consultant_org}',  'יועץ טכנולוגי',  'בודק'),
-        ('{engineer_person}',   '{engineer_org}',    'מהנדס טכנולוגי', 'מאשר'),
-        ('',                    '{submit_date}',     'תאריך הגשה',     'תאריך'),
-        ('',                    '{update_date}',     'תאריך עדכון',    'תאריך'),
+        ('{contractor_person}', '{contractor_org}', 'גורם מבצע'),
+        ('{pm_person}',         '{pm_org}',          'גורם מוביל'),
+        ('{customer_person}',   '{customer_org}',    'לקוח סופי'),
+        ('{consultant_person}', '{consultant_org}',  'יועץ טכנולוגי'),
+        ('{engineer_person}',   '{engineer_org}',    'מהנדס טכנולוגי'),
+        ('',                    '{submit_date}',     'תאריך הגשה'),
+        ('',                    '{update_date}',     'תאריך עדכון'),
     ]
     for i, row_vals in enumerate(rows_data):
         cells = info_table.rows[i].cells
@@ -399,8 +396,7 @@ def build():
             set_run_rtl(run)
             run.font.name = 'Arial'
             run.font.size = Pt(11)
-        shade_cell(cells[3], 'E8EEF7')  # role label — physically rightmost col
-        shade_cell(cells[2], 'F4F6FA')  # function  — second from right
+        shade_cell(cells[2], 'E8EEF7')  # function label — physically rightmost col
 
     doc.add_page_break()
 
