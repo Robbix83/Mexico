@@ -525,38 +525,62 @@ async function generateDocPack(packId) {
 }
 
 /**
- * Post-process the generated OOXML zip to inject RTL (bidi) settings so
- * Word opens the document in Hebrew / RTL mode regardless of how the
- * template was created.
+ * Post-process the generated OOXML zip to force full RTL/Hebrew mode.
  *
- * Patches: word/document.xml (paragraphs + section) and word/styles.xml
- * (default paragraph style).  Strips any stale <w:bidi/> first to avoid
- * duplicates, then re-injects in the correct positions.
+ * Mirrors the 4-layer approach that is confirmed working in a reference
+ * Node.js/docx project:
+ *
+ *   Layer 1 — paragraph level : <w:bidi/> in every <w:pPr>
+ *   Layer 2 — section level   : <w:bidi/> in every <w:sectPr>
+ *   Layer 3 — run level       : <w:rtl/> + <w:lang he-IL> in every <w:rPr>
+ *                                ← THIS IS THE KEY MISSING PIECE:
+ *                                  without it Word's BIDI algorithm may flip
+ *                                  individual runs even in a bidi paragraph.
+ *   Layer 4 — document level  : <w:bidi/> in word/settings.xml
+ *                                ← Without this Word ignores layers 1-3 entirely.
+ *
+ * Applied to word/document.xml and word/styles.xml (so both filled
+ * content and style-defined text are covered).
  */
 function _forceRtl(zip) {
   ['word/document.xml', 'word/styles.xml'].forEach(name => {
     if (!zip.files[name]) return;
     let xml = zip.files[name].asText();
-    // Remove stale occurrences to avoid duplicates on repeated export
+
+    // Remove stale tags first to prevent duplicates on re-export
     xml = xml.replace(/<w:bidi\/>\s*/g, '');
-    // Expand self-closing <w:pPr/> so we have an opening tag to inject into
+    xml = xml.replace(/<w:rtl\/>\s*/g, '');
+    xml = xml.replace(/<w:lang[^\/]*\/>/g, ''); // strip old lang tags
+
+    // Expand self-closing pPr/rPr so injection points exist
     xml = xml.replace(/<w:pPr\/>/g, '<w:pPr></w:pPr>');
-    // Inject <w:bidi/> right after every <w:pPr> opening tag → RTL paragraph
+    xml = xml.replace(/<w:rPr\/>/g, '<w:rPr></w:rPr>');
+
+    // Layer 1 — paragraph RTL
     xml = xml.replace(/<w:pPr>/g, '<w:pPr><w:bidi/>');
-    // Inject <w:bidi/> just before every </w:sectPr> → RTL section default
+
+    // Layer 2 — section RTL
     xml = xml.replace(/<\/w:sectPr>/g, '<w:bidi/></w:sectPr>');
+
+    // Layer 3 — run RTL + Hebrew language (confirmed critical in reference project)
+    // <w:rtl/>                            → tells Word the run is RTL text
+    // <w:lang w:val="he-IL" w:bidi="he-IL"/> → Hebrew shaping for bidi runs
+    xml = xml.replace(/<w:rPr>/g,
+      '<w:rPr><w:rtl/><w:lang w:val="he-IL" w:bidi="he-IL"/>');
+
     zip.file(name, xml);
   });
-  // ── word/settings.xml — the KEY file Word reads for document-level direction ──
-  // Without <w:bidi/> here, Word ignores paragraph-level RTL and opens as LTR.
+
+  // Layer 4 — document-level direction (most critical per reference project)
+  // Always remove + re-add so <w:bidi w:val="0"/> (disabled) is also fixed.
   const settingsName = 'word/settings.xml';
   if (zip.files[settingsName]) {
     let xml = zip.files[settingsName].asText();
-    if (!xml.includes('<w:bidi')) {
-      xml = xml.replace('</w:settings>', '<w:bidi/></w:settings>');
-      zip.file(settingsName, xml);
-    }
+    xml = xml.replace(/<w:bidi[^>]*\/>/g, ''); // remove any existing bidi element
+    xml = xml.replace('</w:settings>', '<w:bidi/></w:settings>');
+    zip.file(settingsName, xml);
   }
+
   return zip;
 }
 
