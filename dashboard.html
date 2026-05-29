@@ -1002,13 +1002,16 @@ tr:hover .pl-row-ds-btn{opacity:.6}
 .catalog-list-table tr.ci-child-row{background:#f5f7ff;border-right:3px solid #818cf8}
 .catalog-list-table tr.ci-child-row:hover{background:#eef2ff}
 .catalog-list-table tr.ci-child-row td{padding-top:6px;padding-bottom:6px}
-.ci-tree-toggle{width:20px;height:20px;border:none;background:#eef2ff;color:#4f46e5;border-radius:6px;
-  cursor:pointer;font-size:.7rem;font-weight:700;line-height:1;flex-shrink:0;transition:background .12s;padding:0}
-.ci-tree-toggle:hover{background:#c7d2fe}
-.ci-tree-spacer{display:inline-block;width:20px;flex-shrink:0}
-.ci-child-count{display:inline-block;margin-top:3px;font-size:.66rem;color:#6366f1;background:#eef2ff;
-  border-radius:8px;padding:1px 8px;cursor:pointer;font-weight:700;user-select:none}
-.ci-child-count:hover{background:#c7d2fe}
+.ci-tree-toggle{width:22px;height:22px;border:1px solid #c7d2fe;background:#fff;color:#4f46e5;border-radius:50%;
+  cursor:pointer;font-size:.7rem;font-weight:700;line-height:1;flex-shrink:0;transition:.12s;padding:0;
+  display:inline-flex;align-items:center;justify-content:center}
+.ci-tree-toggle:hover{background:#eef2ff;border-color:#818cf8}
+.ci-tree-spacer{display:inline-block;width:22px;flex-shrink:0}
+/* child row sku cell — tree connector */
+.ci-child-sku{display:flex;align-items:center;gap:7px;padding-right:6px}
+.ci-tree-line{color:#a5b4fc;font-size:1.3rem;line-height:1;margin-top:-6px;font-weight:400}
+.ci-child-tag{font-size:.64rem;font-weight:800;color:#4f46e5;background:#eef2ff;border:1px solid #c7d2fe;
+  border-radius:6px;padding:1px 7px;letter-spacing:.02em;white-space:nowrap}
 .catalog-view-toggle{display:flex;gap:2px;border:1.5px solid #e2e8f0;border-radius:8px;overflow:hidden;flex-shrink:0}
 .catalog-view-toggle button{background:#fff;border:none;cursor:pointer;padding:5px 9px;font-size:.85rem;
   color:#718096;transition:.12s;line-height:1}
@@ -4193,13 +4196,16 @@ function renderCatalog(){
         ?`<button class="ci-tree-toggle" onclick="event.stopPropagation();toggleCatChild(${item.id})" title="${expanded?'כווץ':'הצג מוצרי בן'}">${expanded?'▾':'▸'}</button>`
         :(isChild?'':'<span class="ci-tree-spacer"></span>');
       const skuCell=isChild
-        ? `<div style="font-size:.62rem;color:#818cf8;font-weight:700;margin-bottom:2px">↳ מוצר בן</div>
-           <span class="sku-badge" onclick="copySkuNum('${skuSafe}',this)" title="העתק מקט">${item.sku}</span>`
-        : `<div style="display:flex;align-items:center;gap:6px">
-           <span class="sku-badge" onclick="copySkuNum('${skuSafe}',this)" title="העתק מקט">${item.sku}</span>${toggle}</div>`;
+        ? `<div class="ci-child-sku">
+             <span class="ci-tree-line">└</span>
+             <span class="ci-child-tag">בן</span>
+             <span class="sku-badge" onclick="copySkuNum('${skuSafe}',this)" title="העתק מקט">${item.sku}</span>
+           </div>`
+        : `<div style="display:flex;align-items:center;gap:8px">
+             <span class="sku-badge" onclick="copySkuNum('${skuSafe}',this)" title="העתק מקט">${item.sku}</span>${toggle}</div>`;
       const delBtn=isChild?'':`<button class="act-btn" onclick="askDeleteCatalog(${item.id})" title="מחק">🗑️</button>`;
       return `<tr id="ci-card-${item.id}" class="${isChild?'ci-child-row':''}">
-        <td class="td-sku"${isChild?' style="padding-right:30px"':''}>${skuCell}</td>
+        <td class="td-sku">${skuCell}</td>
         <td>${catBadge}</td>
         <td class="td-name">${item.name}${descHtml}</td>
         <td class="td-cost">${cost}${xbadge}</td>
