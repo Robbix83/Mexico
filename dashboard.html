@@ -1269,7 +1269,7 @@ tr:hover .pl-row-ds-btn{opacity:.6}
       </div>
     </div>
     <button class="snav-item"        id="snav-requisition" onclick="setView('requisition')"><span class="snav-icon">📝</span> דרישת רכש</button>
-    <button class="snav-item"        id="snav-catalog"   onclick="setView('catalog')">   <span class="snav-icon">📦</span> קטלוג מקטים</button>
+    <button class="snav-item"        id="snav-catalog"   onclick="setView('catalog')">   <span class="snav-icon">📦</span> מקטים פעילים</button>
     <button class="snav-item"        id="snav-warehouse" onclick="setView('warehouse')"> <span class="snav-icon">🏭</span> מלאי מחסנים</button>
     <button class="snav-item"        id="snav-docpack"   onclick="setView('docpack')">   <span class="snav-icon">📁</span> תיק תיעוד</button>
     <button class="snav-item"        id="snav-pricelist" onclick="setView('pricelist')"> <span class="snav-icon">💲</span> מחירונים</button>
@@ -1436,7 +1436,7 @@ tr:hover .pl-row-ds-btn{opacity:.6}
 
   <!-- ══ CATALOG VIEW ══ -->
   <section id="catalog-view" style="display:none">
-    <h2>📦 קטלוג מקטים</h2>
+    <h2>📦 מקטים פעילים</h2>
     <div class="catalog-toolbar">
       <button class="btn-add" onclick="openCatalogModal(null)">＋ הוסף מקט</button>
       <div class="catalog-search-wrap">
@@ -2839,7 +2839,7 @@ function setView(v){
     if(svtK) svtK.classList.toggle('active',v==='kanban');
   }
   // Update page title in header
-  const titles={list:'פרויקטים — ניהול משימות',kanban:'קנבן',catalog:'קטלוג מקטים',warehouse:'מלאי מחסנים',docpack:'תיק תיעוד',pricelist:'מחירונים',requisition:'דרישת רכש'};
+  const titles={list:'פרויקטים — ניהול משימות',kanban:'קנבן',catalog:'מקטים פעילים',warehouse:'מלאי מחסנים',docpack:'תיק תיעוד',pricelist:'מחירונים',requisition:'דרישת רכש'};
   const pt=document.getElementById('hdr-page-title');
   if(pt && titles[v]) pt.textContent=titles[v];
   document.getElementById('list-view').style.display        =v==='list'?'':'none';
@@ -4007,13 +4007,24 @@ function getCatalogItem(id){return catalogItems.find(x=>x.id===id)||null}
 // ── Catalog ↔ Pricelist linking ─────────────────────────────
 function findPlCandidates(ci){
   const all=getAllPlData();
-  const exact=all.filter(p=>p.mpn&&p.mpn===ci.sku);
+  const skuLc=(ci.sku||'').toLowerCase();
+  const nameLc=(ci.name||'').toLowerCase();
+  // Exact: MPN matches SKU, or model === SKU
+  const exact=all.filter(p=>
+    (p.mpn&&p.mpn.toLowerCase()===skuLc) ||
+    (p.model&&p.model.toLowerCase()===skuLc)
+  );
+  const exactSet=new Set(exact);
+  // Fuzzy: desc contains model, or model appears in name, or name contains model fragment
   const fuzzy=all.filter(p=>{
-    if(exact.includes(p)) return false;
-    const lc=(p.model||'').toLowerCase();
-    const nl=(ci.name||'').toLowerCase();
-    return nl.includes(lc)||(lc.length>4&&lc.includes(nl.split(' ').pop()));
-  }).slice(0,5);
+    if(exactSet.has(p)) return false;
+    const ml=(p.model||'').toLowerCase();
+    const dl=(p.desc||'').toLowerCase();
+    return (ml.length>4&&nameLc.includes(ml)) ||
+           (ml.length>4&&skuLc.includes(ml)) ||
+           (nameLc.length>4&&ml.includes(nameLc.split(' ').pop()||'')) ||
+           (dl.length>4&&skuLc===dl.split(' ')[0]);
+  }).slice(0,6);
   return{exact,fuzzy};
 }
 
@@ -6856,8 +6867,9 @@ function renderWarehouse(){
     const skuEsc=it.sku.replace(/'/g,"\\'");
     const mfr=showMfr?_whGetMfr(it.sku):null;
     const mfrBadge=mfr?`<span class="wh-mfr-badge">${mfr}</span>`:'';
+    const whDs=_SKU_DATASHEETS[it.sku]?`<a class="ci-datasheet" href="${_SKU_DATASHEETS[it.sku]}" target="_blank" rel="noopener" title="Datasheet">📄</a> `:'';
     return `<tr>
-      <td>${mfrBadge}<span class="sku-badge" onclick="copySkuNum('${skuEsc}',this)">${it.sku||'—'}</span></td>
+      <td>${mfrBadge}<span class="sku-badge" onclick="copySkuNum('${skuEsc}',this)">${it.sku||'—'}</span> ${whDs}</td>
       <td>${it.desc}</td>
       <td style="text-align:center;font-weight:700">${it.qty.toLocaleString('he-IL')}</td>
       <td style="text-align:center">${unitBadge}</td>
@@ -8827,6 +8839,25 @@ function rqClosePreview(){
 
 // ════════════════════════════════════════════════════════════
 
+// Smart match: does a warehouse item correspond to a pricelist product?
+function _plFindWhMatch(ep, p){
+  if(!whItems.length) return null;
+  const model=(ep.model||p.model||'').toLowerCase().trim();
+  const mpn=(p.mpn||'').toLowerCase().trim();
+  return whItems.find(w=>{
+    const wsku=(w.sku||'').toLowerCase().trim();
+    const wdesc=(w.desc||'').toLowerCase();
+    return wsku===model ||
+           (mpn&&wsku===mpn) ||
+           (model.length>4&&wdesc.includes(model)) ||
+           (wsku.length>5&&model.includes(wsku));
+  })||null;
+}
+// Does a catalog item link to this pricelist key?
+function _plFindCatLink(key){
+  return (catalogItems||[]).find(c=>c.plKey===key)||null;
+}
+
 function renderPriceList(){
   _buildPlMfrPills();
   _buildPlDiscInputs();
@@ -8945,7 +8976,14 @@ function renderPriceList(){
       return `<tr class="${hasOverride?'pl-row-modified':''}${qty>0?' pl-row-in-cart':''}">
         <td><span class="pl-mfr-badge-logo">${mfr.logoSvg}</span></td>
         <td><span class="pl-cat-badge">${_inferCat(ep)}</span></td>
-        <td class="td-model">${ep.model}</td>
+        <td class="td-model">${ep.model}${(()=>{
+          const whM=_plFindWhMatch(ep,p);
+          const catM=_plFindCatLink(key);
+          let b='';
+          if(whM) b+=`<span style="display:block;font-size:.68rem;color:#0d9488;font-weight:700;margin-top:2px" title="יש במלאי: ${whM.qty} יח׳">📦 במלאי: ${whM.qty}</span>`;
+          if(catM) b+=`<span style="display:block;font-size:.68rem;color:#6366f1;font-weight:700;margin-top:1px" title="מקט פעיל: ${catM.sku}">📋 ${catM.sku}</span>`;
+          return b;
+        })()}</td>
         <td class="td-price">${priceCell}</td>
         <td class="td-final">${finalCell}</td>
         <td class="td-qty">
