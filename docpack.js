@@ -547,6 +547,16 @@ function _forceRtl(zip) {
     xml = xml.replace(/<\/w:sectPr>/g, '<w:bidi/></w:sectPr>');
     zip.file(name, xml);
   });
+  // ── word/settings.xml — the KEY file Word reads for document-level direction ──
+  // Without <w:bidi/> here, Word ignores paragraph-level RTL and opens as LTR.
+  const settingsName = 'word/settings.xml';
+  if (zip.files[settingsName]) {
+    let xml = zip.files[settingsName].asText();
+    if (!xml.includes('<w:bidi')) {
+      xml = xml.replace('</w:settings>', '<w:bidi/></w:settings>');
+      zip.file(settingsName, xml);
+    }
+  }
   return zip;
 }
 
