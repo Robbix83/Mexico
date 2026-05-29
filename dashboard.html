@@ -7229,7 +7229,9 @@ async function dpCleanupDatasheets(){
     if(!r.ok){const j=await r.json().catch(()=>({}));throw new Error(j.error||'שגיאה');}
     const j=await r.json();
     _toast(`הוסרו ${j.removed} דפי מוצר ישנים`,'success');
-    await loadDocPackFiles(_currentDocPack.id);
+    // Reload files list from server
+    const packR=await fetch('/api/docpacks/'+_currentDocPack.id);
+    if(packR.ok){const pj=await packR.json();_currentDocFiles=pj.files||[];}
     renderDocPackForm();
   }catch(e){_toast('שגיאה: '+e.message,'error');}
 }
