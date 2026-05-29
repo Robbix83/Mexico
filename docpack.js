@@ -547,36 +547,46 @@ function _forceRtl(zip) {
     if (!zip.files[name]) return;
     let xml = zip.files[name].asText();
 
-    // Remove stale tags first to prevent duplicates on re-export
-    xml = xml.replace(/<w:bidi\/>\s*/g, '');
-    xml = xml.replace(/<w:rtl\/>\s*/g, '');
-    xml = xml.replace(/<w:lang[^\/]*\/>/g, ''); // strip old lang tags
-
-    // Expand self-closing pPr/rPr so injection points exist
-    xml = xml.replace(/<w:pPr\/>/g, '<w:pPr></w:pPr>');
-    xml = xml.replace(/<w:rPr\/>/g, '<w:rPr></w:rPr>');
-
-    // Layer 1 — paragraph RTL
+    // ── Layer 1: paragraph RTL ──
+    // Expand self-closing <w:pPr/> then inject <w:bidi/> after opening tag.
+    // The template already has <w:bidi w:val="1"/> in most pPr elements; adding
+    // another <w:bidi/> is harmless (Word reads the first one found).
+    xml = xml.replace(/<w:pPr\/>/g, '<w:pPr><w:bidi/></w:pPr>');
     xml = xml.replace(/<w:pPr>/g, '<w:pPr><w:bidi/>');
 
-    // Layer 2 — section RTL
+    // ── Layer 2: section RTL ──
     xml = xml.replace(/<\/w:sectPr>/g, '<w:bidi/></w:sectPr>');
 
-    // Layer 3 — run RTL + Hebrew language (confirmed critical in reference project)
-    // <w:rtl/>                            → tells Word the run is RTL text
-    // <w:lang w:val="he-IL" w:bidi="he-IL"/> → Hebrew shaping for bidi runs
-    xml = xml.replace(/<w:rPr>/g,
-      '<w:rPr><w:rtl/><w:lang w:val="he-IL" w:bidi="he-IL"/>');
+    // ── Layer 3: run RTL — CRITICAL schema-order fix ──
+    //
+    // OOXML spec §17.3.2.27: <w:rPr> child elements MUST appear in a specific
+    // order ending with: ... sz/szCs → highlight → rtl → cs → lang → ...
+    // Injecting <w:rtl/> at the START of <w:rPr> (after the opening tag) puts
+    // it BEFORE <w:sz>, <w:rFonts>, etc. — Word silently ignores mispositioned
+    // elements in strict-mode Office builds.
+    //
+    // Fix: strip existing rtl/lang tags, then inject them BEFORE </w:rPr>
+    // so they land at the END of the element — correct per spec and confirmed
+    // working in the reference project that uses the `docx` npm library.
+    //
+    xml = xml.replace(/<w:rtl\/>\s*/g, '');           // remove old (wrong-position) rtl
+    xml = xml.replace(/<w:lang[^\/]*\/>\s*/g, '');    // remove old lang tags
+    xml = xml.replace(/<w:rPr\/>/g, '<w:rPr><w:rtl/><w:lang w:val="he-IL" w:bidi="he-IL"/></w:rPr>');
+    // Inject before each CLOSING </w:rPr> → correct end-of-element position
+    xml = xml.replace(/<\/w:rPr>/g,
+      '<w:rtl/><w:lang w:val="he-IL" w:bidi="he-IL"/></w:rPr>');
 
     zip.file(name, xml);
   });
 
-  // Layer 4 — document-level direction (most critical per reference project)
-  // Always remove + re-add so <w:bidi w:val="0"/> (disabled) is also fixed.
+  // ── Layer 4: document-level direction ──
+  // <w:bidi/> in word/settings.xml is what makes Word show the RTL ruler and
+  // default-right paragraph alignment. Without it, layers 1-3 have no effect
+  // on the document-level reading order.
   const settingsName = 'word/settings.xml';
   if (zip.files[settingsName]) {
     let xml = zip.files[settingsName].asText();
-    xml = xml.replace(/<w:bidi[^>]*\/>/g, ''); // remove any existing bidi element
+    xml = xml.replace(/<w:bidi[^>]*\/>/g, ''); // remove any existing (including w:val="0")
     xml = xml.replace('</w:settings>', '<w:bidi/></w:settings>');
     zip.file(settingsName, xml);
   }
