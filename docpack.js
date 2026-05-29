@@ -547,17 +547,20 @@ function _forceRtl(zip) {
     if (!zip.files[name]) return;
     let xml = zip.files[name].asText();
 
-    // ── Layer 1: paragraph RTL + alignment ──
-    // - <w:bidi/>: marks paragraph as RTL (affects bullet order, bidi algorithm)
-    // - <w:jc val="right"> → <w:jc val="start">: "start" is the RTL-aware alias
-    //   for "align to the reading-direction start" (= right edge in RTL).
-    //   "right" is absolute (always right edge regardless of direction); "start"
-    //   is direction-relative. The confirmed-working `docx` npm reference project
-    //   uses AlignmentType.START. Word 2019+ honours "start" more reliably than
-    //   "right" in RTL mode.
-    xml = xml.replace(/<w:pPr\/>/g, '<w:pPr><w:bidi/></w:pPr>');
-    xml = xml.replace(/<w:pPr>/g, '<w:pPr><w:bidi/>');
-    // Convert explicit right-alignment to direction-aware "start"
+    // ── Layer 1: paragraph alignment ──
+    // The template already has <w:bidi w:val="1"/> in the CORRECT schema position
+    // within each <w:pPr> (python-docx places it at position ~17 per OOXML spec,
+    // after pStyle and before jc).  DO NOT inject another <w:bidi/> — that would
+    // put it at position 1, violating schema order and causing Word to ignore it
+    // (same root cause as the rPr fix earlier).
+    //
+    // What we DO fix:
+    // - self-closing <w:pPr/> elements (rare, from empty template paragraphs)
+    // - convert jc=right → jc=start (direction-relative alignment)
+    // Handle rare self-closing <w:pPr/> with minimal correct content
+    xml = xml.replace(/<w:pPr\/>/g,
+      '<w:pPr><w:bidi w:val="1"/><w:jc w:val="start"/></w:pPr>');
+    // Safety: convert any remaining explicit right-alignment to direction-aware "start"
     xml = xml.replace(/<w:jc w:val="right"\/>/g, '<w:jc w:val="start"/>');
 
     // ── Layer 2: section RTL ──
