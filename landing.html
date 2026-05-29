@@ -684,6 +684,31 @@
       .modal-card { padding: 28px 20px 22px; }
       .watermark { font-size: 120px; }
     }
+
+    /* ===== MOBILE PERFORMANCE: strip all expensive GPU ops on small screens ===== */
+    @media (max-width: 768px) {
+      /* backdrop-filter is the biggest killer — forces full compositing every frame */
+      .card { backdrop-filter: none !important; }
+      /* Animated blur orb murders the GPU on mobile */
+      .orb { display: none !important; }
+      /* box-shadow animation (goldBreath) forces repaint — freeze it */
+      .card { animation: cardIn .6s ease both !important; }
+      /* Watermark is just dead weight on small screens */
+      .watermark { display: none !important; }
+      /* Scan line is cute on desktop but costs a repaint on mobile */
+      .card-scan { display: none !important; }
+      /* Logo glow blur */
+      .logo-glow { display: none !important; }
+      /* Stars: hidden via JS below, but also via CSS as safety net */
+      .stars { display: none !important; }
+      /* cursor-light gradient recalc on every touchmove */
+      .cursor-light { display: none !important; }
+    }
+
+    /* Respect reduced-motion preference */
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; }
+    }
   </style>
 </head>
 <body>
@@ -947,9 +972,10 @@
 
 
   /* =========================================================
-     GENERATE STARS
+     GENERATE STARS  (skip entirely on mobile — too many animations)
   ========================================================= */
   (function generateStars() {
+    if (window.innerWidth <= 768) return;  // skip on mobile
     var container = document.getElementById('starsContainer');
     var count = 35;
     for (var i = 0; i < count; i++) {
@@ -978,9 +1004,10 @@
 
 
   /* =========================================================
-     CURSOR SPOTLIGHT
+     CURSOR SPOTLIGHT  (desktop only — touchmove is too expensive)
   ========================================================= */
   (function setupCursorLight() {
+    if (window.innerWidth <= 768) return;  // skip on mobile
     var el = document.getElementById('cursorLight');
     document.addEventListener('mousemove', function(e) {
       el.style.setProperty('--cx', e.clientX + 'px');
@@ -990,9 +1017,10 @@
 
 
   /* =========================================================
-     3D TILT ON CARD (activated after 900ms)
+     3D TILT ON CARD (desktop only — no mouse on mobile)
   ========================================================= */
   (function setupTilt() {
+    if (window.innerWidth <= 768) return;  // skip on mobile
     var card = document.getElementById('mainCard');
     var enabled = false;
 
@@ -1031,9 +1059,10 @@
     var charIdx = 0;
     var isDeleting = false;
     var paused = false;
-    var CHAR_SPEED   = 80;
-    var DELETE_SPEED = 40;
-    var PAUSE_MS     = 2200;
+    var isMobile     = window.innerWidth <= 768;
+    var CHAR_SPEED   = isMobile ? 45 : 80;
+    var DELETE_SPEED = isMobile ? 22 : 40;
+    var PAUSE_MS     = isMobile ? 1800 : 2200;
 
     function tick() {
       if (paused) return;
