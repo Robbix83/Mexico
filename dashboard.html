@@ -2043,10 +2043,9 @@ tr:hover .pl-row-ds-btn{opacity:.6}
   </div>
 </div>
 
-<!-- chart.js here (not in <head>) so HTML renders before it downloads/parses -->
+<!-- chart.js — async so it never blocks the main script or page rendering -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"
-  integrity="sha384-e6nUZLBkQ86NJ6TVVKAeSaK8jWa3NhkYWZFomE39AvDbQWeie9PlQqM3pmYW5d1g"
-  crossorigin="anonymous"></script>
+  crossorigin="anonymous" async></script>
 <script>
 // ── Toast system ──────────────────────────────────────────────────────────────
 function _toast(msg, type='info', duration=4000){
@@ -4451,17 +4450,20 @@ function getCatColors(labels){
   });
 }
 function buildCharts(){
-  const cd=getCatData();
-  cd.datasets[0].backgroundColor=getCatColors(cd.labels);
-  catChartInst=new Chart(document.getElementById('catChart'),{type:'bar',data:cd,
-    options:{animation:{duration:600},plugins:{legend:{display:false}},
-      scales:{y:{beginAtZero:true,ticks:{stepSize:1}},x:{ticks:{font:{family:'Segoe UI,Arial',size:11}}}},
-      responsive:true,maintainAspectRatio:true,
-      onClick:(e,els)=>{if(els.length){filterCat(catChartInst.data.labels[els[0].index])}},
-      onHover:(e,els)=>{e.native.target.style.cursor=els.length?'pointer':'default'}}});
-  priChartInst=new Chart(document.getElementById('priChart'),{type:'doughnut',data:getPriData(),
-    options:{animation:{duration:600},responsive:true,maintainAspectRatio:true,cutout:'60%',
-      plugins:{legend:{position:'bottom',labels:{font:{family:'Segoe UI,Arial',size:12},padding:13}}}}});
+  if(typeof Chart==='undefined') return; // chart.js still loading — will retry on load event
+  try{
+    const cd=getCatData();
+    cd.datasets[0].backgroundColor=getCatColors(cd.labels);
+    catChartInst=new Chart(document.getElementById('catChart'),{type:'bar',data:cd,
+      options:{animation:{duration:600},plugins:{legend:{display:false}},
+        scales:{y:{beginAtZero:true,ticks:{stepSize:1}},x:{ticks:{font:{family:'Segoe UI,Arial',size:11}}}},
+        responsive:true,maintainAspectRatio:true,
+        onClick:(e,els)=>{if(els.length){filterCat(catChartInst.data.labels[els[0].index])}},
+        onHover:(e,els)=>{e.native.target.style.cursor=els.length?'pointer':'default'}}});
+    priChartInst=new Chart(document.getElementById('priChart'),{type:'doughnut',data:getPriData(),
+      options:{animation:{duration:600},responsive:true,maintainAspectRatio:true,cutout:'60%',
+        plugins:{legend:{position:'bottom',labels:{font:{family:'Segoe UI,Arial',size:12},padding:13}}}}});
+  }catch(_){}
 }
 function updateCharts(){
   // update in-place to avoid animation reset
@@ -4789,6 +4791,22 @@ async function _dsfSyncCatalog(){
   }
 })();
 
+// ── Page-guard safety net ─────────────────────────────────────────────────────
+// If _initUser's finally block is somehow skipped (e.g. script error before
+// the try block), force-remove the page-guard after 4 seconds so the user
+// never sees a permanently blank screen.
+setTimeout(function(){
+  const g=document.getElementById('page-guard');
+  if(g){ g.remove(); }
+}, 4000);
+
+// ── Chart.js async load retry ─────────────────────────────────────────────────
+// chart.js is loaded async, so it may not be ready when buildCharts() is first
+// called at init time. Retry once it signals it has loaded.
+window.addEventListener('load',function(){
+  if(typeof Chart!=='undefined' && !catChartInst) buildCharts();
+});
+
 function _applyViewPermissions(){
   if(_userSections===null) return; // admin — no restrictions
   ['list','kanban','catalog','pricelist','warehouse','docpack','requisition'].forEach(s=>{
@@ -4817,15 +4835,18 @@ function _plSearchAudit(q){
 }
 
 // ─── INIT ──────────────────────────────────────────────────
-loadState();
-deduplicateCatalog();
-seedCatalogData();
-patchCatalogCosts();
-patchCatalogDatasheets();
-patchCatalogDatasheets_v2();
-patchCatalogDatasheets_v3();
-patchCatalogDatasheets_v4();
-renderList(); renderDone(); renderDeleted(); buildCharts(); updateCounts();
+try{
+  loadState();
+  deduplicateCatalog();
+  seedCatalogData();
+  patchCatalogCosts();
+  patchCatalogDatasheets();
+  patchCatalogDatasheets_v2();
+  patchCatalogDatasheets_v3();
+  patchCatalogDatasheets_v4();
+  setView('list'); // ensure default view is always visible
+  renderList(); renderDone(); renderDeleted(); buildCharts(); updateCounts();
+}catch(e){ console.error('[init]',e); }
 
 // ── Datasheet hover preview ────────────────────────────────
 let _dsTimer=null, _dsBlobUrl=null;

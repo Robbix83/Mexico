@@ -1804,7 +1804,9 @@ app.get('/', (req, res) => {
 });
 
 // Main dashboard — requires authentication
+// no-store: prevents browser from serving a stale cached copy of the large HTML
 app.get('/dashboard', requireAuth, (req, res) => {
+  res.setHeader('Cache-Control', 'no-store');
   res.sendFile(path.join(STATIC_DIR, 'dashboard.html'));
 });
 
