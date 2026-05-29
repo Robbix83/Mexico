@@ -4475,14 +4475,12 @@ function submitCatalogModal(){
     :selVal;
   if(catVal&&!catalogCats.includes(catVal)) catalogCats.push(catVal);
 
-  // collect relations from picker
+  // collect relations from picker (all relations are "child" products)
   const rels=[];
   document.querySelectorAll('.rel-pick-item').forEach(row=>{
     const cb=row.querySelector('input[type=checkbox]');
     if(cb&&cb.checked){
-      const relId=parseInt(row.dataset.relid);
-      const typeEl=row.querySelector('.rel-type-sel');
-      rels.push({id:relId,type:typeEl?typeEl.value:'complement'});
+      rels.push({id:parseInt(row.dataset.relid),type:'child'});
     }
   });
 
@@ -4536,32 +4534,40 @@ function renderCatalogModalFiles(){
               style="background:none;border:none;cursor:pointer;color:#e53e3e;font-size:.85rem;padding:0;flex-shrink:0">✕</button>
     </div>`).join('');
 }
-function renderCatalogRelPicker(editId, filterQ){
+function renderCatalogRelPicker(editId){
   const el=document.getElementById('cm-rel-list');
   const others=catalogItems.filter(x=>x.id!==editId);
   if(!others.length){el.innerHTML='<div style="font-size:.74rem;color:#94a3b8;padding:4px 0">אין מקטים אחרים לקישור עדיין</div>';return;}
-  const currentRels=(editId?getCatalogItem(editId)?.relations:[]) || [];
-  const q=(filterQ||document.getElementById('cm-rel-search')?.value||'').toLowerCase().trim();
-  const filtered=q?others.filter(x=>x.sku.toLowerCase().includes(q)||x.name.toLowerCase().includes(q)):others;
-  el.innerHTML=`<input id="cm-rel-search" type="search" placeholder="חפש לפי מקט או שם..." autocomplete="off"
-      style="width:100%;padding:5px 8px;border:1px solid #e2e8f0;border-radius:6px;font-size:.78rem;margin-bottom:6px;direction:rtl"
-      oninput="renderCatalogRelPicker(${editId||'null'},this.value)"/>
-    ${filtered.slice(0,30).map(x=>{
-    const existing=currentRels.find(r=>r.id===x.id);
-    const checked=!!existing;
-    return`<div class="rel-pick-item${checked?' checked':''}" data-relid="${x.id}">
+  el.dataset.editid=editId==null?'':editId;
+  // Search input rendered ONCE; only the items list re-renders on keystroke (keeps focus + value)
+  el.innerHTML=`<input id="cm-rel-search" type="text" placeholder="חפש לפי מקט או שם..." autocomplete="off"
+      style="width:100%;padding:6px 10px;border:1px solid #e2e8f0;border-radius:6px;font-size:.8rem;margin-bottom:6px;direction:rtl;color:#111827;background:#fff"
+      oninput="renderCatalogRelItems()"/>
+    <div id="cm-rel-items"></div>`;
+  renderCatalogRelItems();
+}
+function renderCatalogRelItems(){
+  const wrap=document.getElementById('cm-rel-items');
+  if(!wrap) return;
+  const editId=document.getElementById('cm-rel-list')?.dataset.editid;
+  const eid=editId===''?null:parseInt(editId);
+  const others=catalogItems.filter(x=>x.id!==eid);
+  const currentRels=(eid?getCatalogItem(eid)?.relations:[])||[];
+  const q=(document.getElementById('cm-rel-search')?.value||'').toLowerCase().trim();
+  const filtered=q?others.filter(x=>x.sku.toLowerCase().includes(q)||(x.name||'').toLowerCase().includes(q)):others;
+  if(!filtered.length){ wrap.innerHTML='<div style="font-size:.74rem;color:#94a3b8;padding:6px 2px">לא נמצאו מקטים תואמים</div>'; return; }
+  wrap.innerHTML=filtered.slice(0,40).map(x=>{
+    const checked=currentRels.some(r=>r.id===x.id);
+    return`<div class="rel-pick-item${checked?' checked':''}" data-relid="${x.id}"
+        onclick="if(event.target.tagName!=='INPUT'){const c=this.querySelector('input');c.checked=!c.checked;this.classList.toggle('checked',c.checked);}">
       <input type="checkbox" ${checked?'checked':''} onchange="this.closest('.rel-pick-item').classList.toggle('checked',this.checked)"/>
       <span class="rel-pick-sku">${x.sku}</span>
-      <span class="rel-pick-name" style="display:flex;flex-direction:column;gap:1px">
-        <span>${x.name}</span>
-        ${x.desc?`<span style="font-size:.69rem;color:#94a3b8;white-space:normal">${x.desc.substring(0,50)}</span>`:''}
+      <span class="rel-pick-name" style="display:flex;flex-direction:column;gap:1px;min-width:0">
+        <span style="font-weight:600;color:#1e293b">${x.name}</span>
+        ${x.desc?`<span style="font-size:.7rem;color:#94a3b8;white-space:normal;line-height:1.35">${x.desc}</span>`:''}
       </span>
-      <select class="rel-type-sel">
-        <option value="child"      ${'selected'}>🔽 מוצר בן</option>
-        <option value="complement" ${existing?.type==='complement'?'selected':''}>🔗 משלים</option>
-      </select>
     </div>`;
-  }).join('')}`;
+  }).join('');
 }
 
 // ── Catalog category manager ─────────────────────────────────
