@@ -544,13 +544,25 @@ def build():
     p.runs[0].font.size = Pt(10.5)
     add_para_rtl(doc, '')
 
-    # Outer loop: one entry per datasheet; inner loop renders pages as images
+    # Outer loop: one entry per datasheet; inner loop renders pages as images.
+    # Image paragraphs get zero spacing so PDF pages sit flush against each other
+    # with no gaps — paragraph-level space_after from Normal style is overridden.
     add_para_rtl(doc, '{#datasheets}')
-    # Inner loop: each page is one full-width image — no text labels
     add_para_rtl(doc, '{#pages}')
-    add_para_rtl(doc, '{%page_img}', align=WD_ALIGN_PARAGRAPH.CENTER)
+    p_img = add_para_rtl(doc, '{%page_img}', align=WD_ALIGN_PARAGRAPH.CENTER)
+    # Zero spacing + exact line height so pages are compact with no white gaps
+    fmt = p_img.paragraph_format
+    fmt.space_before        = Pt(0)
+    fmt.space_after         = Pt(0)
+    fmt.line_spacing_rule   = WD_LINE_SPACING.EXACTLY
+    fmt.line_spacing        = Pt(1)   # minimum — image height drives the row
+    fmt.keep_with_next      = False   # don't force page-break avoidance
+    fmt.keep_together       = False
     add_para_rtl(doc, '{/pages}')
-    add_para_rtl(doc, '')
+    # Thin separator between datasheets (2 pt) instead of a full empty line
+    p_sep = add_para_rtl(doc, '')
+    p_sep.paragraph_format.space_before = Pt(0)
+    p_sep.paragraph_format.space_after  = Pt(2)
     add_para_rtl(doc, '{/datasheets}')
 
     # ── Footer ──
