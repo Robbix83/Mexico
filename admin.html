@@ -232,6 +232,8 @@ tr:hover td{background:#f8fafc}
       </label>
       <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:.85rem">
         <input type="checkbox" id="perm-docpack"> תיק תיעוד
+        <br style="margin:4px 0">
+        <input type="checkbox" id="perm-requisition"> דרישות רכש
       </label>
     </div>
     <div class="err-msg" id="perms-err"></div>
@@ -408,7 +410,7 @@ async function loadUsers() {
   renderUsers();
 }
 
-const SECTION_LABELS = {list:'לוח משימות',kanban:'קנבן',catalog:'קטלוג',pricelist:'מחירון',warehouse:'מלאי מחסנים',docpack:'תיק תיעוד'};
+const SECTION_LABELS = {list:'לוח משימות',kanban:'קנבן',catalog:'קטלוג',pricelist:'מחירון',warehouse:'מלאי מחסנים',docpack:'תיק תיעוד',requisition:'דרישות רכש'};
 
 function renderUsers() {
   const tbody = document.getElementById('users-tbody');
@@ -455,14 +457,14 @@ function openPermissions(id, username) {
   document.getElementById('perms-err').classList.remove('show');
   const user = users.find(u => u.id === id);
   const secs = (user && user.sections) ? JSON.parse(user.sections) : [];
-  ['list','kanban','catalog','pricelist','warehouse','docpack'].forEach(s => {
+  ['list','kanban','catalog','pricelist','warehouse','docpack','requisition'].forEach(s => {
     document.getElementById('perm-'+s).checked = secs.includes(s);
   });
   document.getElementById('modal-perms').classList.add('open');
 }
 
 async function submitPermissions() {
-  const sections = ['list','kanban','catalog','pricelist','warehouse','docpack'].filter(s =>
+  const sections = ['list','kanban','catalog','pricelist','warehouse','docpack','requisition'].filter(s =>
     document.getElementById('perm-'+s).checked
   );
   const errEl = document.getElementById('perms-err');

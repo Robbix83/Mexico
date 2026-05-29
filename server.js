@@ -1,4 +1,5 @@
 require('dotenv').config();
+const compression  = require('compression');
 const express      = require('express');
 const cookieParser = require('cookie-parser');
 const helmet       = require('helmet');
@@ -118,6 +119,7 @@ app.use((req, res, next) => {
   );
   next();
 });
+app.use(compression());                    // gzip all responses — critical for mobile
 app.use(express.json({ limit: '10mb' }));  // warehouse imports can be ~500KB+
 app.use(cookieParser());
 app.set('trust proxy', 1);
@@ -646,7 +648,7 @@ app.post('/api/users/:id/unlock', requireAdmin, (req, res) => {
 app.put('/api/users/:id/sections', requireAdmin, (req, res) => {
   const id = parseInt(req.params.id);
   const { sections } = req.body;
-  const valid = ['list', 'kanban', 'catalog', 'pricelist', 'warehouse', 'docpack'];
+  const valid = ['list', 'kanban', 'catalog', 'pricelist', 'warehouse', 'docpack', 'requisition'];
   if (!Array.isArray(sections) || sections.some(s => !valid.includes(s)))
     return res.status(400).json({ error: 'Invalid sections value' });
   db.setSections(id, sections);
@@ -659,28 +661,38 @@ app.put('/api/users/:id/sections', requireAdmin, (req, res) => {
 
 // POST /api/user-requests — public, no auth, rate-limited
 app.post('/api/user-requests', requestLimiter, async (req, res) => {
-  const { firstName, lastName, email, phone, roleTitle, division } = req.body;
+  // Accept both field formats:
+  //   landing.html sends: { name, email, phone, division, reason }
+  //   (legacy/API) sends: { firstName, lastName, email, phone, roleTitle, division }
+  let { firstName, lastName, email, phone, roleTitle, division, name, reason } = req.body;
+  if (name && (!firstName || !lastName)) {
+    const parts = String(name).trim().split(/\s+/);
+    firstName = parts[0] || '';
+    lastName  = parts.slice(1).join(' ') || parts[0] || '';
+  }
+  if (!roleTitle && reason) roleTitle = String(reason).trim() || 'לא צוין';
+  if (!roleTitle) roleTitle = 'לא צוין';
 
-  // Validate all fields
-  if (!firstName || !lastName || !email || !phone || !roleTitle || !division)
-    return res.status(400).json({ error: 'כל השדות נדרשים' });
-  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))
+  // Validate required fields
+  if (!firstName || !email || !division)
+    return res.status(400).json({ error: 'נא למלא שם, אימייל ומחלקה' });
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(email).trim()))
     return res.status(400).json({ error: 'כתובת מייל אינה תקינה' });
-  if (!/^[\d\s\-\+\(\)]{7,20}$/.test(phone))
+  if (phone && !/^[\d\s\-\+\(\)]{7,20}$/.test(String(phone).trim()))
     return res.status(400).json({ error: 'מספר טלפון אינו תקין' });
-  if (String(firstName).length > 60 || String(lastName).length > 60)
+  if (String(firstName).length > 60 || String(lastName || '').length > 60)
     return res.status(400).json({ error: 'שם ארוך מדי' });
 
   const r = db.createUserRequest(
     String(firstName).trim(),
-    String(lastName).trim(),
+    String(lastName || '').trim(),
     String(email).trim().toLowerCase(),
-    String(phone).trim(),
+    String(phone || '').trim(),
     String(roleTitle).trim(),
     String(division).trim()
   );
   const reqId = r.lastInsertRowid;
-  const fullName = `${String(firstName).trim()} ${String(lastName).trim()}`;
+  const fullName = `${String(firstName).trim()} ${String(lastName || '').trim()}`.trim();
 
   // Send confirmation to requester (best-effort)
   await sendMail(
@@ -1739,6 +1751,31 @@ app.get('/api/rates', requireAuth, async (req, res) => {
     console.error('[rates]', e.message);
     if (_ratesCache) return res.json(_ratesCache); // serve stale cache on error
     res.status(502).json({ error: 'rates unavailable' });
+  }
+});
+
+// ── Weather (Tel Aviv via open-meteo, no API key required) ───────────────────
+
+let _weatherCache = null, _weatherFetchedAt = 0;
+
+app.get('/api/weather', requireAuth, async (req, res) => {
+  if (_weatherCache && Date.now() - _weatherFetchedAt < 15 * 60 * 1000) {
+    return res.json(_weatherCache);
+  }
+  try {
+    const r = await fetch(
+      'https://api.open-meteo.com/v1/forecast' +
+      '?latitude=32.0853&longitude=34.7818&current_weather=true&timezone=Asia%2FJerusalem'
+    );
+    if (!r.ok) throw new Error('open-meteo ' + r.status);
+    const d = await r.json();
+    _weatherCache = d;
+    _weatherFetchedAt = Date.now();
+    res.json(d);
+  } catch (e) {
+    console.error('[weather]', e.message);
+    if (_weatherCache) return res.json(_weatherCache); // serve stale on error
+    res.status(502).json({ error: 'weather unavailable' });
   }
 });
 
