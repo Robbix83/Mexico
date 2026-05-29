@@ -2859,7 +2859,7 @@ function setView(v){
   document.querySelectorAll('.vt-kanban').forEach(b=>b.classList.toggle('active',v==='kanban'));
 
   if(v==='kanban') renderKanban();
-  else if(v==='catalog'){renderCatalog();renderCatalogCatPills();}
+  else if(v==='catalog'){renderCatalog();renderCatalogCatPills();ensureWarehouseLoaded().then(()=>renderCatalog());}
   else if(v==='warehouse'){renderWarehouse();ensureWarehouseLoaded().then(()=>renderWarehouse());}
   else if(v==='docpack'){renderDocPack();ensureDocPacksLoaded().then(()=>renderDocPack());}
   else if(v==='pricelist'){
