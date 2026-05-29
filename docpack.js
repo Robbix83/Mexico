@@ -583,11 +583,18 @@ function _forceRtl(zip) {
   // <w:bidi/> in word/settings.xml is what makes Word show the RTL ruler and
   // default-right paragraph alignment. Without it, layers 1-3 have no effect
   // on the document-level reading order.
+  //
+  // CRITICAL: insert <w:bidi/> as the FIRST CHILD of <w:settings> (immediately
+  // after the opening tag), not as the last child (before </w:settings>).
+  // OOXML schema places bidi early in the CT_Settings sequence; appending it at
+  // the end violates schema order and Word silently ignores it.
   const settingsName = 'word/settings.xml';
   if (zip.files[settingsName]) {
     let xml = zip.files[settingsName].asText();
-    xml = xml.replace(/<w:bidi[^>]*\/>/g, ''); // remove any existing (including w:val="0")
-    xml = xml.replace('</w:settings>', '<w:bidi/></w:settings>');
+    // Remove any existing bidi element (including <w:bidi w:val="0"/> which disables RTL)
+    xml = xml.replace(/<w:bidi[^>]*\/>/g, '');
+    // Insert immediately after the <w:settings ...> opening tag — position 1 in child list
+    xml = xml.replace(/(<w:settings[^>]*>)/, '$1<w:bidi/>');
     zip.file(settingsName, xml);
   }
 
