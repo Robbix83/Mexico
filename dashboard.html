@@ -2865,6 +2865,7 @@ function setView(v){
   else if(v==='pricelist'){
     renderPriceList(); _updatePlCartBar();
     document.getElementById('rq-sticky-bar')?.classList.add('hidden');
+    ensureWarehouseLoaded().then(()=>renderPriceList()); // re-render once warehouse data arrives
   }
   else if(v==='requisition'){
     _updatePlCartBar(); // hide pricelist cart bar
@@ -8843,13 +8844,17 @@ function rqClosePreview(){
 function _plFindWhMatch(ep, p){
   if(!whItems.length) return null;
   const model=(ep.model||p.model||'').toLowerCase().trim();
+  const modelNoDash=model.replace(/[-_]/g,' ').replace(/\s+/g,' ');
   const mpn=(p.mpn||'').toLowerCase().trim();
   return whItems.find(w=>{
     const wsku=(w.sku||'').toLowerCase().trim();
     const wdesc=(w.desc||'').toLowerCase();
+    const wdescNoDash=wdesc.replace(/[-_]/g,' ').replace(/\s+/g,' ');
     return wsku===model ||
+           wsku===modelNoDash ||
            (mpn&&wsku===mpn) ||
            (model.length>4&&wdesc.includes(model)) ||
+           (model.length>4&&wdescNoDash.includes(modelNoDash)) ||
            (wsku.length>5&&model.includes(wsku));
   })||null;
 }
