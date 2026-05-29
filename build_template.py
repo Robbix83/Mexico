@@ -13,11 +13,25 @@ text-run).
 """
 
 from docx import Document
-from docx.shared import Pt, Cm, RGBColor
-from docx.enum.text import WD_ALIGN_PARAGRAPH
+from docx.shared import Pt, Cm, RGBColor, Inches
+from docx.enum.text import WD_ALIGN_PARAGRAPH, WD_LINE_SPACING
 from docx.enum.table import WD_ALIGN_VERTICAL
 from docx.oxml.ns import qn
 from docx.oxml import OxmlElement
+
+# ── Brand palette ────────────────────────────────────────────────────────────
+DARK_NAVY   = RGBColor(0x0F, 0x2A, 0x4A)   # deep navy — logo / H1 text
+MID_BLUE    = RGBColor(0x1A, 0x5F, 0x9E)   # mid blue  — H2 text / accent
+ACCENT_CYAN = RGBColor(0x00, 0xB4, 0xD8)   # cyan      — decorative lines
+LIGHT_GRAY  = RGBColor(0xF0, 0xF4, 0xF8)   # very light steel — cell fills
+WHITE       = RGBColor(0xFF, 0xFF, 0xFF)
+MUTED_TEXT  = RGBColor(0x5C, 0x6B, 0x82)   # subtitle / captions
+
+C_DARK_NAVY   = '0F2A4A'
+C_MID_BLUE    = '1A5F9E'
+C_ACCENT_CYAN = '00B4D8'
+C_LIGHT_GRAY  = 'F0F4F8'
+C_HEADER_ROW  = '1A2A4A'   # table header row bg (existing, keep)
 
 
 def set_rtl(paragraph):
@@ -89,6 +103,34 @@ def set_style_rtl(style):
     jc.set(qn('w:val'), 'right')
 
 
+def set_para_spacing(paragraph, before_pt=0, after_pt=0, line_spacing=None):
+    """Set space-before, space-after, and optional line-spacing on a paragraph."""
+    fmt = paragraph.paragraph_format
+    if before_pt:
+        fmt.space_before = Pt(before_pt)
+    if after_pt:
+        fmt.space_after = Pt(after_pt)
+    if line_spacing:
+        fmt.line_spacing_rule = WD_LINE_SPACING.MULTIPLE
+        fmt.line_spacing = line_spacing
+
+
+def add_h1_bottom_border(paragraph, color=C_ACCENT_CYAN, sz=12, space=4):
+    """Add a thick bottom border under an H1 paragraph (decorative rule)."""
+    pPr = paragraph._p.get_or_add_pPr()
+    # Remove existing pBdr if any
+    for old in pPr.findall(qn('w:pBdr')):
+        pPr.remove(old)
+    pBdr = OxmlElement('w:pBdr')
+    bottom = OxmlElement('w:bottom')
+    bottom.set(qn('w:val'),   'single')
+    bottom.set(qn('w:sz'),    str(sz))     # 1/8 pt units → sz=12 = 1.5 pt
+    bottom.set(qn('w:space'), str(space))
+    bottom.set(qn('w:color'), color)
+    pBdr.append(bottom)
+    pPr.append(pBdr)
+
+
 def shade_cell(cell, color_hex):
     """Apply background shading to a cell."""
     tcPr = cell._tc.get_or_add_tcPr()
@@ -105,13 +147,30 @@ def add_heading_rtl(doc, text, level=1):
     h.alignment = WD_ALIGN_PARAGRAPH.RIGHT
     for run in h.runs:
         set_run_rtl(run)
+        run.font.name = 'Arial'
+        if level == 1:
+            run.font.size  = Pt(18)
+            run.font.color.rgb = DARK_NAVY
+            run.bold = True
+        elif level == 2:
+            run.font.size  = Pt(14)
+            run.font.color.rgb = MID_BLUE
+            run.bold = True
+    if level == 1:
+        set_para_spacing(h, before_pt=20, after_pt=6)
+        add_h1_bottom_border(h)
+    elif level == 2:
+        set_para_spacing(h, before_pt=14, after_pt=4)
     return h
 
 
-def add_para_rtl(doc, text='', bold=False, size=None, align=WD_ALIGN_PARAGRAPH.RIGHT):
+def add_para_rtl(doc, text='', bold=False, size=None, align=WD_ALIGN_PARAGRAPH.RIGHT,
+                 before_pt=0, after_pt=0):
     p = doc.add_paragraph()
     set_rtl(p)
     p.alignment = align
+    if before_pt or after_pt:
+        set_para_spacing(p, before_pt=before_pt, after_pt=after_pt)
     if text:
         run = p.add_run(text)
         set_run_rtl(run)
@@ -200,33 +259,113 @@ def build():
         except KeyError:
             pass  # style not present in this build
 
-    # Default font: Arial 11
+    # ── Global style upgrades ──────────────────────────────────────────────────
+    # Normal
     style = doc.styles['Normal']
     style.font.name = 'Arial'
     style.font.size = Pt(11)
+    style.paragraph_format.space_after  = Pt(6)
+    style.paragraph_format.line_spacing_rule = WD_LINE_SPACING.MULTIPLE
+    style.paragraph_format.line_spacing  = 1.15
+
+    # Heading 1 — large, dark navy, cyan underline (applied per paragraph below)
+    h1 = doc.styles['Heading 1']
+    h1.font.name  = 'Arial'
+    h1.font.size  = Pt(18)
+    h1.font.bold  = True
+    h1.font.color.rgb = DARK_NAVY
+    h1.paragraph_format.space_before = Pt(20)
+    h1.paragraph_format.space_after  = Pt(6)
+
+    # Heading 2 — medium blue
+    h2 = doc.styles['Heading 2']
+    h2.font.name  = 'Arial'
+    h2.font.size  = Pt(14)
+    h2.font.bold  = True
+    h2.font.color.rgb = MID_BLUE
+    h2.paragraph_format.space_before = Pt(14)
+    h2.paragraph_format.space_after  = Pt(4)
+
+    # Heading 3 — slightly larger than body, mid blue
+    try:
+        h3 = doc.styles['Heading 3']
+        h3.font.name  = 'Arial'
+        h3.font.size  = Pt(12)
+        h3.font.bold  = True
+        h3.font.color.rgb = MID_BLUE
+        h3.paragraph_format.space_before = Pt(10)
+        h3.paragraph_format.space_after  = Pt(2)
+    except KeyError:
+        pass
 
     # ═════════════════ COVER ═════════════════
-    p = add_para_rtl(doc, '', align=WD_ALIGN_PARAGRAPH.CENTER)
-    p.add_run('\n\n\n').font.size = Pt(20)
-    # Centered cover title — Hebrew only, no Latin chars to avoid BIDI reorder
+    # Top spacer
+    for _ in range(4):
+        p = add_para_rtl(doc, '', align=WD_ALIGN_PARAGRAPH.CENTER)
+        set_para_spacing(p, after_pt=2)
+
+    # Company / document type label
+    p = add_para_rtl(doc, 'אפקון בקרה ואוטומציה', align=WD_ALIGN_PARAGRAPH.CENTER)
+    r = p.runs[0]
+    r.font.size = Pt(13)
+    r.font.color.rgb = ACCENT_CYAN
+    r.bold = True
+    r.font.name = 'Arial'
+    set_para_spacing(p, after_pt=4)
+
+    # Cyan decorative line above title
+    p_line = add_para_rtl(doc, '', align=WD_ALIGN_PARAGRAPH.CENTER)
+    set_para_spacing(p_line, after_pt=8)
+    pPr_line = p_line._p.get_or_add_pPr()
+    pBdr = OxmlElement('w:pBdr')
+    bot = OxmlElement('w:bottom')
+    bot.set(qn('w:val'), 'single'); bot.set(qn('w:sz'), '18')
+    bot.set(qn('w:space'), '1');    bot.set(qn('w:color'), C_ACCENT_CYAN)
+    pBdr.append(bot); pPr_line.append(pBdr)
+
+    # Main title
     p = add_para_rtl(doc, 'תיק תיעוד', align=WD_ALIGN_PARAGRAPH.CENTER)
-    p.runs[0].font.size = Pt(36)
-    p.runs[0].bold = True
-    p.runs[0].font.color.rgb = RGBColor(0x1a, 0x2a, 0x4a)
+    r = p.runs[0]
+    r.font.size = Pt(48)
+    r.bold = True
+    r.font.color.rgb = DARK_NAVY
+    r.font.name = 'Arial'
+    set_para_spacing(p, before_pt=4, after_pt=4)
+
+    # AS-MADE subtitle
     p = add_para_rtl(doc, 'AS-MADE', align=WD_ALIGN_PARAGRAPH.CENTER)
-    p.runs[0].font.size = Pt(20)
-    p.runs[0].font.color.rgb = RGBColor(0x60, 0x70, 0x80)
+    r = p.runs[0]
+    r.font.size = Pt(22)
+    r.font.color.rgb = MID_BLUE
+    r.bold = True
+    r.font.name = 'Arial'
+    set_para_spacing(p, after_pt=20)
 
+    # Site name (large)
     p = add_para_rtl(doc, '{site_name}', align=WD_ALIGN_PARAGRAPH.CENTER)
-    p.runs[0].font.size = Pt(28)
-    p.runs[0].bold = True
+    r = p.runs[0]
+    r.font.size = Pt(32)
+    r.bold = True
+    r.font.color.rgb = DARK_NAVY
+    r.font.name = 'Arial'
+    set_para_spacing(p, after_pt=6)
 
+    # Site address
     p = add_para_rtl(doc, '{site_address}', align=WD_ALIGN_PARAGRAPH.CENTER)
-    p.runs[0].font.size = Pt(16)
+    r = p.runs[0]
+    r.font.size = Pt(16)
+    r.font.color.rgb = MUTED_TEXT
+    r.font.name = 'Arial'
+    set_para_spacing(p, after_pt=4)
 
+    # Subtitle / description
     p = add_para_rtl(doc, '{site_subtitle}', align=WD_ALIGN_PARAGRAPH.CENTER)
-    p.runs[0].font.size = Pt(12)
-    p.runs[0].italic = True
+    r = p.runs[0]
+    r.font.size = Pt(12)
+    r.italic = True
+    r.font.color.rgb = MUTED_TEXT
+    r.font.name = 'Arial'
+    set_para_spacing(p, after_pt=16)
 
     # ── Cover-page project info table ──
     add_para_rtl(doc, '\n')
