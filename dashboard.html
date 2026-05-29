@@ -1656,6 +1656,7 @@ tr:hover .pl-row-ds-btn{opacity:.6}
         <h3>בחירת מק"טים</h3>
         <div class="rq-toolbar">
           <span class="rq-chip active" id="rq-chip-all" onclick="rqSetSource('all')">הכל</span>
+          <span class="rq-chip" id="rq-chip-selected" onclick="rqSetSource('selected')">נבחרים</span>
           <span class="rq-chip" id="rq-chip-warehouse" onclick="rqSetSource('warehouse')">רק מחסן</span>
           <span class="rq-chip" id="rq-chip-pricelist" onclick="rqSetSource('pricelist')">רק מחירון</span>
           <span class="rq-chip" id="rq-chip-catalog" onclick="rqSetSource('catalog')">רק קטלוג</span>
@@ -8212,6 +8213,7 @@ function rqAllRows(){
 function rqSetSource(s){
   rqSourceFilter=s;
   document.getElementById('rq-chip-all').classList.toggle('active',s==='all');
+  document.getElementById('rq-chip-selected').classList.toggle('active',s==='selected');
   document.getElementById('rq-chip-warehouse').classList.toggle('active',s==='warehouse');
   document.getElementById('rq-chip-pricelist').classList.toggle('active',s==='pricelist');
   const catChip=document.getElementById('rq-chip-catalog');
@@ -8328,7 +8330,8 @@ function rqRender(){
 
   const q=(document.getElementById('rq-search')?.value||'').trim().toLowerCase();
   let rows=rqAllRows();
-  if(rqSourceFilter!=='all') rows=rows.filter(r=>r.source===rqSourceFilter);
+  if(rqSourceFilter==='selected') rows=rows.filter(r=>rqQty(r.key)>0);
+  else if(rqSourceFilter!=='all') rows=rows.filter(r=>r.source===rqSourceFilter);
   if(q){
     rows=rows.filter(r=>
       r.sku.toLowerCase().includes(q) ||
