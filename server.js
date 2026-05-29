@@ -1117,12 +1117,85 @@ app.put('/api/docpacks/:id', requireAdmin, (req, res) => {
   const { name, data } = req.body || {};
   const finalName = (name && typeof name === 'string' && name.trim()) ? name.trim() : pack.name;
   let dataJson = '{}';
+  let dataObj = {};
   if (data && typeof data === 'object') {
-    try { dataJson = JSON.stringify(data); } catch { return res.status(400).json({ error: 'invalid data' }); }
+    try { dataJson = JSON.stringify(data); dataObj = data; } catch { return res.status(400).json({ error: 'invalid data' }); }
   } else if (typeof data === 'string') {
     dataJson = data;
+    try { dataObj = JSON.parse(data); } catch {}
   }
   db.updateDocPack(id, finalName, dataJson);
+
+  // ── Sync linked datasheets to current equipment models ──────────────────────
+  // When the user edits/removes equipment rows, auto-linked datasheet files for
+  // removed/changed models must be cleaned up so stale PDFs don't appear in the
+  // pack timeline or the generated ZIP.
+  //
+  // Strategy:
+  //   1. Collect all model strings from cameras / backhauls / switches / others
+  //   2. Resolve each model to a datasheet external_path (if found in the index)
+  //   3. Delete any doc_pack_files row that is a linked datasheet (filename=NULL,
+  //      external_path set) whose path is no longer in the current model set.
+  //   4. Auto-attach missing datasheets for models that have one in the index.
+  try {
+    const allRows = [
+      ...(dataObj.cameras   || []),
+      ...(dataObj.backhauls || []),
+      ...(dataObj.switches  || []),
+      ...(dataObj.others    || []),
+    ];
+    // Set of external_paths that correspond to current equipment
+    const wantedPaths = new Set();
+    for (const row of allRows) {
+      const model = String(row.model || row.mpn || row.name || '').trim();
+      if (!model) continue;
+      const ds = docpack.lookupDatasheet(model);
+      if (ds) wantedPaths.add(ds.absPath);
+    }
+
+    // Remove linked datasheets whose model is no longer present
+    const existingFiles = db.listDocPackFiles(id);
+    for (const f of existingFiles) {
+      if (f.filename !== null) continue;      // uploaded file, not a linked datasheet
+      if (!f.external_path) continue;         // skip rows with no path
+      if (!wantedPaths.has(f.external_path)) {
+        db.deleteDocPackFile(f.id);           // stale — model was changed or removed
+      }
+    }
+
+    // Auto-attach datasheets for models not yet in the pack
+    const remainingPaths = new Set(
+      db.listDocPackFiles(id)
+        .filter(f => f.external_path)
+        .map(f => f.external_path)
+    );
+    for (const row of allRows) {
+      const model = String(row.model || row.mpn || row.name || '').trim();
+      if (!model) continue;
+      const ds = docpack.lookupDatasheet(model);
+      if (!ds) continue;
+      if (remainingPaths.has(ds.absPath)) continue; // already attached
+      db.addDocPackFile({
+        packId: id,
+        kind: 'datasheet',
+        filename: null,
+        originalName: ds.original + '.pdf',
+        mime: 'application/pdf',
+        size: (() => { try { return fs.statSync(ds.absPath).size; } catch { return 0; } })(),
+        caption: ds.mfr,
+        note: `דף מוצר עבור ${model}`,
+        visibility: 'client',
+        contributor: req.user.username,
+        sortOrder: Date.now() % 1_000_000,
+        externalPath: ds.absPath,
+      });
+      remainingPaths.add(ds.absPath); // prevent double-add for duplicate models
+    }
+  } catch (syncErr) {
+    console.warn('[docpack] datasheet sync error:', syncErr.message);
+    // Non-fatal — the pack data was saved successfully
+  }
+
   res.json({ ok: true });
 });
 
