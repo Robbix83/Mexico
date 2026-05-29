@@ -315,8 +315,11 @@ function imageModuleOpts() {
           }
           return [620, 800];
         }
-        if (tagName && /diagram|plan/i.test(tagName)) return [620, 380];
-        return [560, 380]; // default photo size
+        if (tagName && /diagram|plan/i.test(tagName)) return [530, 340];
+        // Photos: 70% of A4 content width (≈11 cm) so centering is clearly visible.
+        // Larger values (~560px = 14.8cm) leave only ~6mm margin each side and
+        // look off-center in RTL mode even when jc=center is correctly set.
+        return [430, 285];
       } catch (e) {
         console.warn('[docpack img] getSize failed:', e.message);
         return [560, 380];
