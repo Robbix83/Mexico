@@ -6579,7 +6579,7 @@ function closeWhImport(){
 function handleWhFile(file){
   if(!file) return;
   const reader=new FileReader();
-  reader.onload=ev=>{
+  reader.onload=async ev=>{
     try{
       await _ensureXlsx();
       const wb=XLSX.read(ev.target.result,{type:'binary',cellDates:true});
