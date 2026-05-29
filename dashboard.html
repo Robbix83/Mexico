@@ -1127,11 +1127,11 @@ tr:hover .pl-row-ds-btn{opacity:.6}
 .rq-hist-row:hover td{background:#F0FDFA}
 .rq-empty{text-align:center;padding:20px;color:#94a3b8;font-size:.85rem}
 /* ── Requisition Viewer Drawer ── */
-.rq-viewer-overlay{display:none;position:fixed;inset:0;z-index:9500;background:rgba(15,30,50,.45);backdrop-filter:blur(3px)}
-.rq-viewer-overlay.open{display:flex;justify-content:flex-end}
-.rq-viewer-drawer{width:min(700px,96vw);height:100%;background:#fff;display:flex;flex-direction:column;
-  box-shadow:-12px 0 48px rgba(0,0,0,.18);animation:rqDrawerIn .22s cubic-bezier(.22,1,.36,1)}
-@keyframes rqDrawerIn{from{transform:translateX(100%)}to{transform:translateX(0)}}
+.rq-viewer-overlay{display:none;position:fixed;inset:0;z-index:9500;background:rgba(15,30,50,.5);backdrop-filter:blur(3px);align-items:center;justify-content:center}
+.rq-viewer-overlay.open{display:flex}
+.rq-viewer-drawer{width:min(780px,96vw);max-height:90vh;background:#fff;display:flex;flex-direction:column;
+  border-radius:16px;box-shadow:0 24px 80px rgba(0,0,0,.25);animation:rqDrawerIn .2s cubic-bezier(.22,1,.36,1)}
+@keyframes rqDrawerIn{from{transform:scale(.95);opacity:0}to{transform:scale(1);opacity:1}}
 .rqv-header{padding:16px 20px;border-bottom:1px solid #e2e8f0;display:flex;align-items:center;gap:12px;
   background:linear-gradient(135deg,#F0FDFA,#E0F2FE);flex-shrink:0}
 .rqv-body{flex:1;overflow-y:auto;padding:20px 22px;direction:rtl}
@@ -8610,6 +8610,41 @@ function rqCloseViewer(){
   document.getElementById('rq-viewer-overlay').classList.remove('open');
   window._rqvId=null;
 }
+function rqViewerPrint(){
+  const num=document.getElementById('rqv-number').textContent;
+  const info=document.getElementById('rqv-info').innerHTML;
+  const items=document.getElementById('rqv-items').innerHTML;
+  const status=document.getElementById('rqv-status').innerHTML;
+  const w=window.open('','_blank','noopener');
+  w.document.write(`<!DOCTYPE html><html dir="rtl"><head><meta charset="utf-8">
+    <title>דרישת רכש ${num}</title>
+    <style>
+      *{box-sizing:border-box}body{font-family:Arial,sans-serif;direction:rtl;margin:0;padding:24px;color:#111;font-size:13px}
+      h1{font-size:18px;margin:0 0 4px;color:#0F4C5C}.sub{color:#64748b;font-size:11px;margin-bottom:16px}
+      .info-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px 20px;margin-bottom:18px;padding:10px 14px;
+        background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px}
+      .rqv-info-lbl{font-size:10px;color:#94a3b8;font-weight:700;text-transform:uppercase;display:block}
+      .rqv-info-val{font-size:13px;font-weight:600;color:#1e293b}
+      table{width:100%;border-collapse:collapse;font-size:12px}
+      th{background:#f1f5f9;padding:6px 8px;text-align:right;font-weight:700;border-bottom:2px solid #e2e8f0}
+      td{padding:6px 8px;border-bottom:1px solid #f1f5f9}
+      .rq-src-badge{display:inline-block;padding:1px 7px;border-radius:999px;font-size:10px;font-weight:700}
+      .rq-src-warehouse{background:#dcfce7;color:#166534}.rq-src-pricelist{background:#dbeafe;color:#1d4ed8}
+      .rq-src-catalog{background:#fef3c7;color:#92400e}
+      .rqv-total-row td{background:#F0FDFA!important;border-top:2px solid #CCFBF1;font-weight:800;color:#0F4C5C}
+      .rq-hist-status{display:inline-block;padding:2px 8px;border-radius:999px;font-size:10px;font-weight:700}
+      .draft{background:#f1f5f9;color:#475569}.pending{background:#fef3c7;color:#92400e}
+      .approved{background:#d1fae5;color:#065f46}.done{background:#e0e7ff;color:#3730a3}
+      @media print{body{padding:12px}}
+    </style></head><body>
+    <h1>דרישת רכש ${num}</h1>
+    <div class="sub">${status}</div>
+    <div class="info-grid">${info}</div>
+    ${items}
+    <script>window.onload=()=>window.print()<\/script>
+  </body></html>`);
+  w.document.close();
+}
 function _toIlsFromItem(it){
   if(!it.price) return 0;
   if(it.cur==='EUR') return it.price*(plEurRate||4);
@@ -9479,6 +9514,8 @@ async function clearPlImported(){
     </div>
     <div class="rqv-footer">
       <button class="rq-btn rq-btn-ghost" onclick="rqCloseViewer()">סגור</button>
+      <button class="rq-btn" style="background:#f8fafc;color:#0f4c5c;border-color:#ccfbf1"
+              onclick="rqViewerPrint()">🖨️ הדפס / PDF</button>
       <button class="rq-btn" style="background:#0F766E;color:#fff;border-color:#0F766E"
               onclick="rqCloseViewer();rqLoadInto(window._rqvId)">✏️ ערוך</button>
     </div>
