@@ -518,10 +518,36 @@ async function generateDocPack(packId) {
       errorLogging: 'json',
     });
     doc.render(context);
-    return doc.getZip().generate({ type: 'nodebuffer', compression: 'DEFLATE' });
+    return _forceRtl(doc.getZip()).generate({ type: 'nodebuffer', compression: 'DEFLATE' });
   } finally {
     _cleanupRenderDir(renderTempDir);
   }
+}
+
+/**
+ * Post-process the generated OOXML zip to inject RTL (bidi) settings so
+ * Word opens the document in Hebrew / RTL mode regardless of how the
+ * template was created.
+ *
+ * Patches: word/document.xml (paragraphs + section) and word/styles.xml
+ * (default paragraph style).  Strips any stale <w:bidi/> first to avoid
+ * duplicates, then re-injects in the correct positions.
+ */
+function _forceRtl(zip) {
+  ['word/document.xml', 'word/styles.xml'].forEach(name => {
+    if (!zip.files[name]) return;
+    let xml = zip.files[name].asText();
+    // Remove stale occurrences to avoid duplicates on repeated export
+    xml = xml.replace(/<w:bidi\/>\s*/g, '');
+    // Expand self-closing <w:pPr/> so we have an opening tag to inject into
+    xml = xml.replace(/<w:pPr\/>/g, '<w:pPr></w:pPr>');
+    // Inject <w:bidi/> right after every <w:pPr> opening tag → RTL paragraph
+    xml = xml.replace(/<w:pPr>/g, '<w:pPr><w:bidi/>');
+    // Inject <w:bidi/> just before every </w:sectPr> → RTL section default
+    xml = xml.replace(/<\/w:sectPr>/g, '<w:bidi/></w:sectPr>');
+    zip.file(name, xml);
+  });
+  return zip;
 }
 
 /**
