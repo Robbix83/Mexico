@@ -4499,11 +4499,14 @@ function renderCatalogRelPicker(editId, filterQ){
     const checked=!!existing;
     return`<div class="rel-pick-item${checked?' checked':''}" data-relid="${x.id}">
       <input type="checkbox" ${checked?'checked':''} onchange="this.closest('.rel-pick-item').classList.toggle('checked',this.checked)"/>
-      <span class="rel-pick-sku">${x.sku}</span>
-      <span class="rel-pick-name">${x.name}</span>
+      <div style="flex:1;min-width:0">
+        <span class="rel-pick-sku">${x.sku}</span>
+        <span class="rel-pick-name">${x.name}</span>
+        ${x.desc?`<div style="font-size:.7rem;color:#94a3b8;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:200px">${x.desc}</div>`:''}
+      </div>
       <select class="rel-type-sel">
+        <option value="child"      ${!existing||existing?.type==='child'?'selected':''}>🔽 מוצר בן</option>
         <option value="complement" ${existing?.type==='complement'?'selected':''}>🔗 משלים</option>
-        <option value="child"      ${existing?.type==='child'?'selected':''}>🔽 מוצר בן</option>
       </select>
     </div>`;
   }).join('')}`;
