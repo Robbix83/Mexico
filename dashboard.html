@@ -1002,6 +1002,13 @@ tr:hover .pl-row-ds-btn{opacity:.6}
 .catalog-list-table tr.ci-child-row{background:#f5f7ff;border-right:3px solid #818cf8}
 .catalog-list-table tr.ci-child-row:hover{background:#eef2ff}
 .catalog-list-table tr.ci-child-row td{padding-top:6px;padding-bottom:6px}
+.ci-tree-toggle{width:20px;height:20px;border:none;background:#eef2ff;color:#4f46e5;border-radius:6px;
+  cursor:pointer;font-size:.7rem;font-weight:700;line-height:1;flex-shrink:0;transition:background .12s;padding:0}
+.ci-tree-toggle:hover{background:#c7d2fe}
+.ci-tree-spacer{display:inline-block;width:20px;flex-shrink:0}
+.ci-child-count{display:inline-block;margin-top:3px;font-size:.66rem;color:#6366f1;background:#eef2ff;
+  border-radius:8px;padding:1px 8px;cursor:pointer;font-weight:700;user-select:none}
+.ci-child-count:hover{background:#c7d2fe}
 .catalog-view-toggle{display:flex;gap:2px;border:1.5px solid #e2e8f0;border-radius:8px;overflow:hidden;flex-shrink:0}
 .catalog-view-toggle button{background:#fff;border:none;cursor:pointer;padding:5px 9px;font-size:.85rem;
   color:#718096;transition:.12s;line-height:1}
@@ -2254,6 +2261,12 @@ let currentView='list', priFilter='all', stFilter='all', catFilter='all', sortBy
 let dueFilter='all', searchQuery='';
 let expandedIds=new Set();
 let catalogCatFilter='all', catalogExpandedId=null, catalogEditId=null, catalogModalFiles=[];
+let catalogChildExpanded=new Set(); // parent ids whose child items are expanded in list view
+function toggleCatChild(id){
+  if(catalogChildExpanded.has(id)) catalogChildExpanded.delete(id);
+  else catalogChildExpanded.add(id);
+  renderCatalog();
+}
 let _cmPlKey; // pending pricelist link in catalog modal (undefined=not loaded yet)
 let catalogViewMode='list'; // 'grid' | 'list'
 let pendingDelId=null, editId=null;
@@ -4145,65 +4158,67 @@ function renderCatalog(){
         <th>מקט</th><th>קטגוריה</th><th>שם / תיאור</th>
         <th style="text-align:center">עלות ₪</th><th style="text-align:center">Datasheet</th><th></th>
       </tr></thead><tbody>`;
-    filtered.forEach(item=>{
-      const catBadge=_catalogCatBadge(item,catColors);
+    // Hide items that are a "child" of another item from the top level (accordion nesting).
+    // When searching, show everything flat so children remain findable.
+    const _searching=!!(document.getElementById('catalog-search-inp')?.value||'').trim();
+    const childIdSet=new Set();
+    catalogItems.forEach(it=>(it.relations||[]).forEach(r=>{ if(r.type==='child') childIdSet.add(r.id); }));
+    const topLevel=_searching?filtered:filtered.filter(it=>!childIdSet.has(it.id));
+
+    // Builds one table row. opts.isChild renders the indented child style.
+    const buildCatRow=(item,opts={})=>{
+      const isChild=!!opts.isChild;
+      const catBadge=isChild
+        ?(item.cat?`<span style="font-size:.7rem;color:#6366f1;background:#eef2ff;border-radius:10px;padding:1px 8px">${item.cat}</span>`:'')
+        :_catalogCatBadge(item,catColors);
       const cost=item.cost!=null&&item.cost>0
         ?`₪${item.cost.toLocaleString('he-IL',{minimumFractionDigits:2,maximumFractionDigits:2})}`:'—';
-      const dsLinks=[
+      const ds=[
         ...(item.datasheetUrl?[`<a class="ci-datasheet" href="${item.datasheetUrl}" target="_blank" rel="noopener" title="Datasheet">📄</a>`]:[]),
         ...(item.files||[]).map((f,_i)=>`<a class="ci-datasheet" href="#" onclick="event.preventDefault();openCatalogFile(${item.id},${_i})" title="${f.name}">📄</a>`)
-      ];
-      const ds=dsLinks.join(' ');
-      const rels=(item.relations||[]).map(r=>{
-        const rel=getCatalogItem(r.id);
-        if(!rel) return '';
-        return`<span class="ci-rel-chip ${r.type}" onclick="highlightCatalogItem(${r.id})" title="${rel.name}">${r.type==='child'?'🔽':'🔗'} ${rel.sku}</span>`;
-      }).join('');
-      const childRows=(item.relations||[]).filter(r=>r.type==='child').map(r=>getCatalogItem(r.id)).filter(Boolean);
-      const childRowsHtml=childRows.map(ch=>{
-        const chSkuSafe=String(ch.sku||'').replace(/'/g,"\\'");
-        const chCost=ch.cost!=null&&ch.cost>0?`₪${Number(ch.cost).toLocaleString('he-IL',{minimumFractionDigits:2,maximumFractionDigits:2})}`:'—';
-        const chDs=ch.datasheetUrl?`<a class="ci-datasheet" href="${ch.datasheetUrl}" target="_blank" rel="noopener" title="Datasheet">📄</a>`:'';
-        const chCat=ch.cat?`<span style="font-size:.7rem;color:#6366f1;background:#eef2ff;border-radius:10px;padding:1px 8px">${ch.cat}</span>`:'';
-        const chDesc=ch.desc?`<div style="font-size:.73rem;color:#94a3b8;font-weight:400;margin-top:2px;white-space:normal;line-height:1.4">${ch.desc}</div>`:'';
-        return `<tr class="ci-child-row">
-          <td class="td-sku" style="padding-right:26px">
-            <div style="font-size:.62rem;color:#818cf8;font-weight:700;margin-bottom:2px">↳ מוצר בן</div>
-            <span class="sku-badge" onclick="copySkuNum('${chSkuSafe}',this)" title="העתק מקט">${ch.sku}</span>
-          </td>
-          <td>${chCat}</td>
-          <td class="td-name">${ch.name}${chDesc}</td>
-          <td class="td-cost">${chCost}</td>
-          <td style="text-align:center">${chDs}</td>
-          <td class="td-actions">
-            <button class="act-btn edit-btn" onclick="openCatalogModal(${ch.id})" title="ערוך">✏️</button>
-          </td>
-        </tr>`;
-      }).join('');
-      html+=`<tr id="ci-card-${item.id}">
-        <td class="td-sku">
-          <span class="sku-badge" onclick="copySkuNum('${item.sku}',this)" title="העתק מקט">${item.sku}</span>
-        </td>
+      ].join(' ');
+      const skuSafe=String(item.sku||'').replace(/'/g,"\\'");
+      // Cross-data badges under cost (warehouse / pricelist)
+      const wh=whItems.find(w=>w.sku===item.sku);
+      const plLinked=item.plKey?getAllPlData().find(p=>_plKey(p.mfr,p.model)===item.plKey):null;
+      const ep=plLinked?getPlEffective(plLinked):null;
+      let xbadge='';
+      if(wh&&(+wh.qty||0)>0) xbadge+=`<span title="יש במחסן" style="display:block;font-size:.7rem;color:#0d9488">📦 ${wh.qty} ${wh.unit||"יח'"} במחסן</span>`;
+      if(ep&&ep.price!=null) xbadge+=`<span title="מחיר מחירון" style="display:block;font-size:.7rem;color:#6366f1">🏷️ ${ep.price} ${ep.cur||''}</span>`;
+      const descHtml=item.desc?`<div style="font-size:.74rem;color:#94a3b8;font-weight:400;margin-top:2px;white-space:normal;line-height:1.4">${item.desc}</div>`:'';
+      // Expand toggle (only on parents that own children)
+      const childCount=(item.relations||[]).filter(r=>r.type==='child'&&getCatalogItem(r.id)).length;
+      const expanded=catalogChildExpanded.has(item.id);
+      const toggle=(!isChild&&childCount>0)
+        ?`<button class="ci-tree-toggle" onclick="event.stopPropagation();toggleCatChild(${item.id})" title="${expanded?'כווץ':'הצג מוצרי בן'}">${expanded?'▾':'▸'}</button>`
+        :(isChild?'':'<span class="ci-tree-spacer"></span>');
+      const childHint=(!isChild&&childCount>0)
+        ?`<span class="ci-child-count" onclick="event.stopPropagation();toggleCatChild(${item.id})">${childCount} מוצרי בן</span>`:'';
+      const skuCell=isChild
+        ? `<div style="font-size:.62rem;color:#818cf8;font-weight:700;margin-bottom:2px">↳ מוצר בן</div>
+           <span class="sku-badge" onclick="copySkuNum('${skuSafe}',this)" title="העתק מקט">${item.sku}</span>`
+        : `<div style="display:flex;align-items:center;gap:6px">${toggle}
+           <span class="sku-badge" onclick="copySkuNum('${skuSafe}',this)" title="העתק מקט">${item.sku}</span></div>${childHint}`;
+      const delBtn=isChild?'':`<button class="act-btn" onclick="askDeleteCatalog(${item.id})" title="מחק">🗑️</button>`;
+      return `<tr id="ci-card-${item.id}" class="${isChild?'ci-child-row':''}">
+        <td class="td-sku"${isChild?' style="padding-right:30px"':''}>${skuCell}</td>
         <td>${catBadge}</td>
-        <td class="td-name">${item.name}${item.desc?`<div style="font-size:.74rem;color:#94a3b8;font-weight:400;margin-top:1px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;max-width:300px">${item.desc}</div>`:''}${rels?`<div style="margin-top:4px;display:flex;flex-wrap:wrap;gap:4px">${rels}</div>`:''}</td>
-        <td class="td-cost">
-  ${cost}
-  ${(()=>{
-    const wh=whItems.find(w=>w.sku===item.sku);
-    const plLinked=item.plKey?getAllPlData().find(p=>_plKey(p.mfr,p.model)===item.plKey):null;
-    const ep=plLinked?getPlEffective(plLinked):null;
-    let b='';
-    if(wh&&(+wh.qty||0)>0) b+=`<span title="יש במחסן" style="display:block;font-size:.7rem;color:#0d9488">📦 ${wh.qty} ${wh.unit||'יח\''} במחסן</span>`;
-    if(ep&&ep.price!=null) b+=`<span title="מחיר מחירון" style="display:block;font-size:.7rem;color:#6366f1">🏷️ ${ep.price} ${ep.cur||''}</span>`;
-    return b;
-  })()}
-</td>
+        <td class="td-name">${item.name}${descHtml}</td>
+        <td class="td-cost">${cost}${xbadge}</td>
         <td style="text-align:center">${ds}</td>
         <td class="td-actions">
           <button class="act-btn edit-btn" onclick="openCatalogModal(${item.id})" title="ערוך">✏️</button>
-          <button class="act-btn" onclick="askDeleteCatalog(${item.id})" title="מחק">🗑️</button>
+          ${delBtn}
         </td>
-      </tr>${childRowsHtml}`;
+      </tr>`;
+    };
+
+    topLevel.forEach(item=>{
+      html+=buildCatRow(item);
+      if(catalogChildExpanded.has(item.id)){
+        const children=(item.relations||[]).filter(r=>r.type==='child').map(r=>getCatalogItem(r.id)).filter(Boolean);
+        children.forEach(ch=>{ html+=buildCatRow(ch,{isChild:true}); });
+      }
     });
     html+='</tbody></table>';
     wrap.innerHTML=html;
