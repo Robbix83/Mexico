@@ -7565,18 +7565,20 @@ function _dpRenderTimelineRows(){
     const visBadge=f.visibility==='internal'
       ? '<span style="font-size:.65rem;background:#fef3c7;color:#92400e;padding:2px 7px;border-radius:10px;font-weight:600">פנימי</span>'
       : '<span style="font-size:.65rem;background:#d1fae5;color:#047857;padding:2px 7px;border-radius:10px;font-weight:600">ללקוח</span>';
+    const fileUrl=dpFileUrl(f.id);
     const preview=isImg && !f.is_linked
-      ? `<img src="${dpFileUrl(f.id)}" style="width:54px;height:54px;object-fit:cover;border-radius:6px;flex-shrink:0" alt=""/>`
-      : `<div style="width:54px;height:54px;border-radius:6px;background:#f1f5f9;display:flex;align-items:center;justify-content:center;font-size:1.6rem;flex-shrink:0">${DP_KIND_ICON[f.kind]||'📎'}</div>`;
+      ? `<a href="${fileUrl}" target="_blank" title="לחץ לצפייה מלאה" style="display:block;flex-shrink:0;border-radius:6px;overflow:hidden;cursor:zoom-in"><img src="${fileUrl}" style="width:54px;height:54px;object-fit:cover;display:block" alt=""/></a>`
+      : `<a href="${fileUrl}" target="_blank" title="פתח קובץ" style="width:54px;height:54px;border-radius:6px;background:#f1f5f9;display:flex;align-items:center;justify-content:center;font-size:1.6rem;flex-shrink:0;text-decoration:none;cursor:pointer;transition:background .15s" onmouseover="this.style.background='#e2e8f0'" onmouseout="this.style.background='#f1f5f9'">${DP_KIND_ICON[f.kind]||'📎'}</a>`;
     const dateStr=new Date(f.created_at).toLocaleDateString('he-IL')+' '+new Date(f.created_at).toLocaleTimeString('he-IL',{hour:'2-digit',minute:'2-digit'});
     const linkedTag=f.is_linked?`<span style="font-size:.65rem;color:#1d4ed8;background:#dbeafe;padding:2px 7px;border-radius:10px;margin-right:4px">🔗 קישור</span>`:'';
     return `<div style="display:flex;gap:10px;padding:10px;border:1px solid #edf2f7;border-radius:8px;background:#fcfcfd;align-items:flex-start">
       ${preview}
       <div style="flex:1;min-width:0">
         <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
-          <span style="font-weight:600;color:#0F4C5C;font-size:.85rem">${_escDp(f.original_name||'(ללא שם)')}</span>
+          <a href="${fileUrl}" target="_blank" style="font-weight:600;color:#0F4C5C;font-size:.85rem;text-decoration:none" onmouseover="this.style.textDecoration='underline'" onmouseout="this.style.textDecoration='none'">${_escDp(f.original_name||'(ללא שם)')}</a>
           <span style="font-size:.7rem;color:#718096">${DP_KIND_LABEL[f.kind]||f.kind}</span>
           ${visBadge}${linkedTag}
+          <a href="${fileUrl}" target="_blank" title="פתח / הורד" style="font-size:.7rem;background:#f0f9ff;color:#0369a1;border:1px solid #bae6fd;border-radius:8px;padding:2px 8px;text-decoration:none;white-space:nowrap" onmouseover="this.style.background='#e0f2fe'" onmouseout="this.style.background='#f0f9ff'">👁 פתח</a>
         </div>
         <div style="font-size:.72rem;color:#94a3b8;margin-top:2px">${dateStr} · ${(f.size/1024).toFixed(0)}KB${f.contributor?(' · '+_escDp(f.contributor)):''}</div>
         ${f.note?`<div style="font-size:.78rem;color:#475569;margin-top:4px;font-style:italic">${_escDp(f.note)}</div>`:''}
