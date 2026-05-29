@@ -4192,13 +4192,11 @@ function renderCatalog(){
       const toggle=(!isChild&&childCount>0)
         ?`<button class="ci-tree-toggle" onclick="event.stopPropagation();toggleCatChild(${item.id})" title="${expanded?'כווץ':'הצג מוצרי בן'}">${expanded?'▾':'▸'}</button>`
         :(isChild?'':'<span class="ci-tree-spacer"></span>');
-      const childHint=(!isChild&&childCount>0)
-        ?`<span class="ci-child-count" onclick="event.stopPropagation();toggleCatChild(${item.id})">${childCount} מוצרי בן</span>`:'';
       const skuCell=isChild
         ? `<div style="font-size:.62rem;color:#818cf8;font-weight:700;margin-bottom:2px">↳ מוצר בן</div>
            <span class="sku-badge" onclick="copySkuNum('${skuSafe}',this)" title="העתק מקט">${item.sku}</span>`
-        : `<div style="display:flex;align-items:center;gap:6px">${toggle}
-           <span class="sku-badge" onclick="copySkuNum('${skuSafe}',this)" title="העתק מקט">${item.sku}</span></div>${childHint}`;
+        : `<div style="display:flex;align-items:center;gap:6px">
+           <span class="sku-badge" onclick="copySkuNum('${skuSafe}',this)" title="העתק מקט">${item.sku}</span>${toggle}</div>`;
       const delBtn=isChild?'':`<button class="act-btn" onclick="askDeleteCatalog(${item.id})" title="מחק">🗑️</button>`;
       return `<tr id="ci-card-${item.id}" class="${isChild?'ci-child-row':''}">
         <td class="td-sku"${isChild?' style="padding-right:30px"':''}>${skuCell}</td>
