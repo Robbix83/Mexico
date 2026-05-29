@@ -4217,6 +4217,35 @@ function renderCatalog(){
       </span>`).join(''):
       (files.length?`<span style="font-size:.74rem;color:#94a3b8;cursor:default">📎 ${files.length} קבצים</span>`:'');
 
+    // Pre-compute children HTML (avoid deeply nested template literals)
+    let childrenHtml='';
+    if(exp){
+      const children=rels.filter(r=>r.type==='child').map(r=>getCatalogItem(r.id)).filter(Boolean);
+      if(children.length){
+        const rows=children.map(ch=>{
+          const costBadge=ch.cost?`<span style="font-size:.78rem;color:#166534;font-weight:700">₪${Number(ch.cost).toLocaleString('he-IL')}</span>`:'';
+          const skuSafe=(ch.sku||'').replace(/'/g,"\\'");
+          return `<div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:7px 10px;margin-bottom:4px;cursor:pointer;display:flex;align-items:center;gap:8px" onclick="toggleCatalogExpand(${ch.id})">
+            <span class="sku-badge" onclick="event.stopPropagation();copySkuNum('${skuSafe}',this)">${ch.sku}</span>
+            <span style="font-size:.82rem;color:#1e293b;flex:1">${ch.name}</span>
+            ${costBadge}
+          </div>`;
+        }).join('');
+        childrenHtml=`<div style="margin:8px 0 4px;border-top:1px dashed #e2e8f0;padding-top:10px">
+          <div style="font-size:.71rem;font-weight:700;color:#64748b;margin-bottom:5px">🔽 מוצרים בן</div>${rows}</div>`;
+      }
+    }
+    // Pre-compute badges
+    const whBadge=(()=>{
+      const wh=whItems.find(w=>w.sku===item.sku);
+      const plLinked=item.plKey?getAllPlData().find(p=>_plKey(p.mfr,p.model)===item.plKey):null;
+      const ep=plLinked?getPlEffective(plLinked):null;
+      let b='';
+      if(wh&&(+wh.qty||0)>0) b+=`<span style="font-size:.72rem;background:#f0fdfa;color:#0f4c5c;border:1px solid #ccfbf1;border-radius:10px;padding:1px 7px">📦 ${wh.qty} ${wh.unit||"יח'"} במחסן</span>`;
+      if(ep&&ep.price!=null) b+=`<span style="font-size:.72rem;background:#eef2ff;color:#3730a3;border:1px solid #e0e7ff;border-radius:10px;padding:1px 7px">🏷️ ${ep.price} ${ep.cur||''}</span>`;
+      return b;
+    })();
+
     card.innerHTML=`
       <div class="ci-header">
         <span class="sku-badge" onclick="copySkuNum('${item.sku}',this)" title="לחץ להעתקת מקט">${item.sku}</span>
@@ -4228,35 +4257,15 @@ function renderCatalog(){
       </div>
       <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:5px">
         ${item.cost!=null&&item.cost>0
-          ?`<div class="ci-cost" onclick="openCatalogModal(${item.id})" title="לחץ לעריכת עלות">₪ ${item.cost.toLocaleString('he-IL',{minimumFractionDigits:2,maximumFractionDigits:2})}</div>`
-          :`<div class="ci-cost no-cost" onclick="openCatalogModal(${item.id})" title="לחץ להוספת עלות">₪ —</div>`}
-        ${(()=>{
-          const wh=whItems.find(w=>w.sku===item.sku);
-          const plLinked=item.plKey?getAllPlData().find(p=>_plKey(p.mfr,p.model)===item.plKey):null;
-          const ep=plLinked?getPlEffective(plLinked):null;
-          let b='';
-          if(wh&&(+wh.qty||0)>0) b+=`<span style="font-size:.72rem;background:#f0fdfa;color:#0f4c5c;border:1px solid #ccfbf1;border-radius:10px;padding:1px 7px" title="יש במחסן">📦 ${wh.qty} ${wh.unit||'יח\''} במחסן</span>`;
-          if(ep&&ep.price!=null) b+=`<span style="font-size:.72rem;background:#eef2ff;color:#3730a3;border:1px solid #e0e7ff;border-radius:10px;padding:1px 7px" title="מחיר מחירון: ${ep.price} ${ep.cur||''}">🏷️ ${ep.price} ${ep.cur||''}</span>`;
-          return b;
-        })()}
-        ${item.datasheetUrl?`<a class="ci-datasheet" href="${item.datasheetUrl}" target="_blank" rel="noopener" title="פתח Datasheet">📄 Datasheet</a>`:''}
-        ${(item.files||[]).map((_f,_i)=>`<a class="ci-datasheet" href="#" onclick="event.preventDefault();openCatalogFile(${item.id},${_i})" title="${_f.name}">📄</a>`).join('')}
+          ?`<div class="ci-cost" onclick="openCatalogModal(${item.id})">₪ ${item.cost.toLocaleString('he-IL',{minimumFractionDigits:2,maximumFractionDigits:2})}</div>`
+          :`<div class="ci-cost no-cost" onclick="openCatalogModal(${item.id})">₪ —</div>`}
+        ${whBadge}
+        ${item.datasheetUrl?`<a class="ci-datasheet" href="${item.datasheetUrl}" target="_blank" rel="noopener">📄 Datasheet</a>`:''}
+        ${(item.files||[]).map((_f,_i)=>`<a class="ci-datasheet" href="#" onclick="event.preventDefault();openCatalogFile(${item.id},${_i})">📄</a>`).join('')}
       </div>
       <div class="ci-name" onclick="toggleCatalogExpand(${item.id})">${item.name}</div>
-      <div class="ci-desc${exp?' full':''}">${item.desc?item.desc.replace(/\n/g,'<br>'):'<span style="color:#b0bec5;font-style:italic">אין תיאור</span>'}</div>
-      ${exp?(()=>{
-        const children=rels.filter(r=>r.type==='child').map(r=>getCatalogItem(r.id)).filter(Boolean);
-        return children.length?`<div style="margin:8px 0 4px;border-top:1px dashed #e2e8f0;padding-top:10px">
-          <div style="font-size:.71rem;font-weight:700;color:#64748b;margin-bottom:5px">🔽 מוצרים בן</div>
-          ${children.map(ch=>`<div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;
-              padding:7px 10px;margin-bottom:4px;cursor:pointer;display:flex;align-items:center;gap:8px"
-              onclick="event.stopPropagation();toggleCatalogExpand(${ch.id})">
-            <span class="sku-badge" onclick="event.stopPropagation();copySkuNum('${ch.sku}',this)">${ch.sku}</span>
-            <span style="font-size:.82rem;color:#1e293b;flex:1">${ch.name}</span>
-            ${ch.cost?`<span style="font-size:.78rem;color:#166534;font-weight:700">₪${ch.cost.toLocaleString('he-IL')}</span>`:''}
-          </div>`).join('')}
-        </div>`:''
-      })():''}
+      <div class="ci-desc${exp?' full':''}" onclick="toggleCatalogExpand(${item.id})" style="cursor:pointer">${item.desc?item.desc.replace(/\n/g,'<br>'):'<span style="color:#b0bec5;font-style:italic">לחץ להרחבה</span>'}</div>
+      ${childrenHtml}
       <div class="ci-footer">
         ${relChips}
         ${exp?`<div class="ci-files-section">${fileChips}</div>`:fileChips}
@@ -4500,7 +4509,10 @@ function renderCatalogRelPicker(editId, filterQ){
     return`<div class="rel-pick-item${checked?' checked':''}" data-relid="${x.id}">
       <input type="checkbox" ${checked?'checked':''} onchange="this.closest('.rel-pick-item').classList.toggle('checked',this.checked)"/>
       <span class="rel-pick-sku">${x.sku}</span>
-      <span class="rel-pick-name">${x.name}${x.desc?` <span style="font-size:.7rem;color:#94a3b8">${x.desc.substring(0,40)}</span>`:''}</span>
+      <span class="rel-pick-name" style="display:flex;flex-direction:column;gap:1px">
+        <span>${x.name}</span>
+        ${x.desc?`<span style="font-size:.69rem;color:#94a3b8;white-space:normal">${x.desc.substring(0,50)}</span>`:''}
+      </span>
       <select class="rel-type-sel">
         <option value="child"      ${'selected'}>🔽 מוצר בן</option>
         <option value="complement" ${existing?.type==='complement'?'selected':''}>🔗 משלים</option>
