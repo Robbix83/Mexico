@@ -1851,13 +1851,6 @@ app.get('/logo.png', (req, res) => {
   res.sendFile(path.join(STATIC_DIR, 'logo.png'));
 });
 
-// Pricelist data — auth required; long cache so V8 can bytecode-cache it on mobile
-app.get('/pricelist-data.js', requireAuth, (req, res) => {
-  res.setHeader('Cache-Control', 'private, max-age=3600');
-  res.setHeader('Content-Type', 'application/javascript; charset=utf-8');
-  res.sendFile(path.join(STATIC_DIR, 'pricelist-data.js'));
-});
-
 // Static assets — auth required
 app.use(requireAuth, express.static(STATIC_DIR, {
   index: false,
