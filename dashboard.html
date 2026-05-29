@@ -4149,7 +4149,7 @@ function renderCatalog(){
     const plLinked=item.plKey?getAllPlData().find(p=>_plKey(p.mfr,p.model)===item.plKey):null;
     const ep=plLinked?getPlEffective(plLinked):null;
     let b='';
-    if(wh&&(+wh.qty||0)>0) b+=`<span title="יש במחסן" style="display:block;font-size:.7rem;color:#0d9488">📦 ${wh.qty} יח׳</span>`;
+    if(wh&&(+wh.qty||0)>0) b+=`<span title="יש במחסן" style="display:block;font-size:.7rem;color:#0d9488">📦 ${wh.qty} ${wh.unit||'יח\''} במחסן</span>`;
     if(ep&&ep.price!=null) b+=`<span title="מחיר מחירון" style="display:block;font-size:.7rem;color:#6366f1">🏷️ ${ep.price} ${ep.cur||''}</span>`;
     return b;
   })()}
@@ -4215,7 +4215,7 @@ function renderCatalog(){
           const plLinked=item.plKey?getAllPlData().find(p=>_plKey(p.mfr,p.model)===item.plKey):null;
           const ep=plLinked?getPlEffective(plLinked):null;
           let b='';
-          if(wh&&(+wh.qty||0)>0) b+=`<span style="font-size:.72rem;background:#f0fdfa;color:#0f4c5c;border:1px solid #ccfbf1;border-radius:10px;padding:1px 7px" title="יש במחסן">📦 ${wh.qty}</span>`;
+          if(wh&&(+wh.qty||0)>0) b+=`<span style="font-size:.72rem;background:#f0fdfa;color:#0f4c5c;border:1px solid #ccfbf1;border-radius:10px;padding:1px 7px" title="יש במחסן">📦 ${wh.qty} ${wh.unit||'יח\''} במחסן</span>`;
           if(ep&&ep.price!=null) b+=`<span style="font-size:.72rem;background:#eef2ff;color:#3730a3;border:1px solid #e0e7ff;border-radius:10px;padding:1px 7px" title="מחיר מחירון: ${ep.price} ${ep.cur||''}">🏷️ ${ep.price} ${ep.cur||''}</span>`;
           return b;
         })()}
