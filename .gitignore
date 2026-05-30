@@ -37,3 +37,6 @@ server-*.log
 login-test.json
 lt.json
 .claude/
+
+# Runtime-uploaded catalog datasheets (local DS_PATH fallback)
+ds/catalog/
