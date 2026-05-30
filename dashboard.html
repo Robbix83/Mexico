@@ -1303,7 +1303,7 @@ tr:hover .pl-row-ds-btn{opacity:.6}
       </div>
     </div>
     <button class="snav-item"        id="snav-requisition" onclick="setView('requisition')"><span class="snav-icon">📝</span> דרישת רכש</button>
-    <button class="snav-item"        id="snav-catalog"   onclick="setView('catalog')">   <span class="snav-icon">📦</span> מקטים פעילים</button>
+    <button class="snav-item"        id="snav-catalog"   onclick="setView('catalog')">   <span class="snav-icon">📦</span> מקטים בשימוש לאחרונה</button>
     <button class="snav-item"        id="snav-warehouse" onclick="setView('warehouse')"> <span class="snav-icon">🏭</span> מלאי מחסנים</button>
     <button class="snav-item"        id="snav-docpack"   onclick="setView('docpack')">   <span class="snav-icon">📁</span> תיק תיעוד</button>
     <button class="snav-item"        id="snav-pricelist" onclick="setView('pricelist')"> <span class="snav-icon">💲</span> מחירונים</button>
@@ -1470,7 +1470,7 @@ tr:hover .pl-row-ds-btn{opacity:.6}
 
   <!-- ══ CATALOG VIEW ══ -->
   <section id="catalog-view" style="display:none">
-    <h2>📦 מקטים פעילים</h2>
+    <h2>📦 מקטים בשימוש לאחרונה</h2>
     <div class="catalog-toolbar">
       <button class="btn-add" onclick="openCatalogModal(null)">＋ הוסף מקט</button>
       <div class="catalog-search-wrap">
@@ -2879,7 +2879,7 @@ function setView(v){
     if(svtK) svtK.classList.toggle('active',v==='kanban');
   }
   // Update page title in header
-  const titles={list:'פרויקטים — ניהול משימות',kanban:'קנבן',catalog:'מקטים פעילים',warehouse:'מלאי מחסנים',docpack:'תיק תיעוד',pricelist:'מחירונים',requisition:'דרישת רכש'};
+  const titles={list:'פרויקטים — ניהול משימות',kanban:'קנבן',catalog:'מקטים בשימוש לאחרונה',warehouse:'מלאי מחסנים',docpack:'תיק תיעוד',pricelist:'מחירונים',requisition:'דרישת רכש'};
   const pt=document.getElementById('hdr-page-title');
   if(pt && titles[v]) pt.textContent=titles[v];
   document.getElementById('list-view').style.display        =v==='list'?'':'none';
