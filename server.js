@@ -1622,7 +1622,10 @@ app.post('/api/docpacks/:id/datasheets/attach', requireAdmin, (req, res) => {
   res.json({ ok: true, found: true, attached: true, file: publicFileShape(db.getDocPackFile(r.lastInsertRowid)) });
 });
 
-// Force-cleanup stale linked datasheets not matching current equipment models
+// Sync linked datasheets: remove stale ones, re-resolve broken paths, auto-attach missing.
+// Also fixes external_path entries that point to a different machine/OS
+// (e.g. C:\Mexico\ds\... stored from a dev machine, needs to become
+// /opt/render/project/src/ds/... on the Render server).
 app.post('/api/docpacks/:id/cleanup-datasheets', requireAdmin, (req, res) => {
   const id = parseInt(req.params.id);
   const pack = db.getDocPack(id);
@@ -1636,25 +1639,64 @@ app.post('/api/docpacks/:id/cleanup-datasheets', requireAdmin, (req, res) => {
     ...(dataObj.switches  || []),
     ...(dataObj.others    || []),
   ];
-  const wantedPaths = new Set();
+
+  // Build the set of current wanted external_paths (re-resolved via live index)
+  const wantedByModel = new Map(); // model → ds
+  const wantedPaths   = new Set();
   for (const row of allRows) {
     const model = String(row.model || row.mpn || row.name || '').trim();
     if (!model) continue;
     const ds = docpack.lookupDatasheet(model);
-    if (ds) wantedPaths.add(ds.absPath);
+    if (ds) { wantedPaths.add(ds.absPath); wantedByModel.set(model, ds); }
   }
 
   const existingFiles = db.listDocPackFiles(id);
-  let removed = 0;
+  let removed = 0, fixed = 0;
+
   for (const f of existingFiles) {
-    if (f.filename !== null) continue;  // uploaded file
+    if (f.filename !== null) continue;  // uploaded file — skip
     if (!f.external_path) continue;
+
+    // ── Fix stale OS paths (e.g. Windows path on a Linux server) ──
+    if (!fs.existsSync(f.external_path)) {
+      const modelHint = (f.original_name || path.basename(f.external_path))
+        .replace(/\.pdf$/i, '');
+      const ds = modelHint ? docpack.lookupDatasheet(modelHint) : null;
+      if (ds && fs.existsSync(ds.absPath)) {
+        db.updateDocPackFileExternalPath(f.id, ds.absPath);
+        fixed++;
+        continue; // path fixed — keep the file
+      }
+    }
+
+    // ── Remove datasheets no longer matching current equipment ──
     if (!wantedPaths.has(f.external_path)) {
       db.deleteDocPackFile(f.id);
       removed++;
     }
   }
-  res.json({ ok: true, removed });
+
+  // ── Auto-attach missing datasheets for current equipment ──
+  const currentPaths = new Set(
+    db.listDocPackFiles(id).filter(f => f.external_path).map(f => f.external_path)
+  );
+  let added = 0;
+  for (const ds of wantedByModel.values()) {
+    if (currentPaths.has(ds.absPath)) continue;
+    const model = [...wantedByModel.entries()].find(([,v])=>v===ds)?.[0] || ds.original;
+    db.addDocPackFile({
+      packId: id, kind: 'datasheet', filename: null,
+      originalName: ds.original + '.pdf', mime: 'application/pdf',
+      size: (() => { try { return fs.statSync(ds.absPath).size; } catch { return 0; } })(),
+      caption: ds.mfr, note: `דף מוצר עבור ${model}`,
+      visibility: 'client', contributor: req.user.username,
+      sortOrder: Date.now() % 1_000_000, externalPath: ds.absPath,
+    });
+    currentPaths.add(ds.absPath);
+    added++;
+  }
+
+  res.json({ ok: true, removed, fixed, added });
 });
 
 app.post('/api/docpacks/:id/generate', requireSection('docpack'), generateRateLimiter, async (req, res) => {

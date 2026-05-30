@@ -7504,7 +7504,11 @@ async function dpCleanupDatasheets(){
     const r=await fetch('/api/docpacks/'+_currentDocPack.id+'/cleanup-datasheets',{method:'POST'});
     if(!r.ok){const j=await r.json().catch(()=>({}));throw new Error(j.error||'שגיאה');}
     const j=await r.json();
-    _toast(`הוסרו ${j.removed} דפי מוצר ישנים`,'success');
+    const parts=[];
+    if(j.removed) parts.push(`הוסרו ${j.removed}`);
+    if(j.fixed)   parts.push(`תוקנו ${j.fixed} נתיבים`);
+    if(j.added)   parts.push(`נוספו ${j.added}`);
+    _toast(parts.length ? parts.join(' · ') : 'הכל מסודר ✓','success');
     // Reload files list from server
     const packR=await fetch('/api/docpacks/'+_currentDocPack.id);
     if(packR.ok){const pj=await packR.json();_currentDocFiles=pj.files||[];}
