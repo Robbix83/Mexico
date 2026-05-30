@@ -4184,12 +4184,9 @@ function renderCatalog(){
       const cost=item.cost!=null&&item.cost>0
         ?`₪${item.cost.toLocaleString('he-IL',{minimumFractionDigits:2,maximumFractionDigits:2})}`:'—';
       const ds=[
-        ...(item.datasheetUrl?[`<a class="ci-datasheet" href="${item.datasheetUrl}" target="_blank" rel="noopener" title="Datasheet" onmouseenter="dsHoverShow(event,'${String(item.datasheetUrl).replace(/'/g,"\\'")}')" onmouseleave="dsHoverHide()">📄</a>`]:[]),
-        ...(item.files||[]).map((f,_i)=>{
-          const safeUrl=(f.url||'').replace(/'/g,"\\'");
-          const hover=f.url?` onmouseenter="dsHoverShow(event,'${safeUrl}')" onmouseleave="dsHoverHide()"`:'';
-          return `<a class="ci-datasheet" href="#" onclick="event.preventDefault();openCatalogFile(${item.id},${_i})"${hover} title="${f.name}${f.url?'':' — קובץ ישן, מומלץ להעלות מחדש'}">${f.url?'📄':'⚠️'}</a>`;
-        })
+        ...(item.datasheetUrl?[`<a class="ci-datasheet" href="${item.datasheetUrl}" target="_blank" rel="noopener" title="Datasheet">📄</a>`]:[]),
+        ...(item.files||[]).map((f,_i)=>
+          `<a class="ci-datasheet" href="#" onclick="event.preventDefault();openCatalogFile(${item.id},${_i})" title="${f.name}${f.url?'':' — קובץ ישן, מומלץ להעלות מחדש'}">${f.url?'📄':'⚠️'}</a>`)
       ].join(' ');
       const skuSafe=String(item.sku||'').replace(/'/g,"\\'");
       // Cross-data badges under cost (warehouse / pricelist)
@@ -4664,35 +4661,6 @@ function renderCatalogRelItems(){
   }).join('');
 }
 
-// ── Datasheet hover preview (list view) ──
-let _dsHoverTimer=null;
-function dsHoverShow(e,url){
-  if(!url) return;
-  clearTimeout(_dsHoverTimer);
-  const anchor=e.currentTarget;
-  const r=anchor.getBoundingClientRect();      // capture rect now (stable)
-  _dsHoverTimer=setTimeout(()=>{
-    const tt=document.getElementById('file-preview-tt');
-    if(!tt) return;
-    const W=340, H=420;
-    // Position BEFORE making visible so it never flashes under the cursor (avoids hover flicker)
-    const spaceBelow=window.innerHeight-r.bottom;
-    const top=spaceBelow>H+20?r.bottom+8:Math.max(8,r.top-H-8);
-    const left=Math.max(8,Math.min(r.left+r.width/2-W/2,window.innerWidth-W-8));
-    tt.style.top=top+'px'; tt.style.left=left+'px'; tt.style.right='auto';
-    tt.style.pointerEvents='none';             // never steal the cursor → no flicker loop
-    const isImg=/\.(png|jpe?g|webp|gif|bmp)$/i.test(url);
-    tt.innerHTML=isImg
-      ? `<img src="${url}" style="max-width:${W-20}px;max-height:${H-20}px;border-radius:6px;display:block"/>`
-      : `<iframe src="${url}" style="width:${W-20}px;height:${H-20}px;border:none;border-radius:6px"></iframe>`;
-    tt.style.display='block';
-  },500);
-}
-function dsHoverHide(){
-  clearTimeout(_dsHoverTimer);
-  const tt=document.getElementById('file-preview-tt');
-  if(tt){ tt.style.display='none'; tt.style.pointerEvents=''; }
-}
 
 // ── Catalog category manager ─────────────────────────────────
 function openCatalogCatManager(){
@@ -5195,12 +5163,16 @@ function _getDsPreviewSrc(link,cb){
   if(m){
     const f=getCatalogItem(+m[1])?.files?.[+m[2]];
     if(!f) return;
-    const arr=f.dataUrl.split(','),mime=arr[0].match(/:(.*?);/)[1];
+    // New server-hosted file → use the URL directly
+    if(f.url){ cb(f.url,f.type||'application/pdf',f.name); return; }
+    // Legacy base64 file
+    if(!f.dataUrl) return;
+    const arr=f.dataUrl.split(','),mime=(arr[0].match(/:(.*?);/)||[])[1]||'application/pdf';
     const bstr=atob(arr[1]),u8=new Uint8Array(bstr.length);
     for(let i=0;i<bstr.length;i++) u8[i]=bstr.charCodeAt(i);
     if(_dsBlobUrl) URL.revokeObjectURL(_dsBlobUrl);
     _dsBlobUrl=URL.createObjectURL(new Blob([u8],{type:mime}));
-    cb(_dsBlobUrl,mime);
+    cb(_dsBlobUrl,mime,f.name);
   } else {
     const href=link.getAttribute('href');
     if(href&&href!=='#') cb(href,'application/pdf');
