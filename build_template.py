@@ -546,13 +546,12 @@ def build():
     add_para_rtl(doc, '{#datasheets}')
     add_para_rtl(doc, '{#pages}')
     p_img = add_para_rtl(doc, '{%page_img}', align=WD_ALIGN_PARAGRAPH.CENTER)
-    # Zero spacing + exact line height so pages are compact with no white gaps
+    # Zero paragraph spacing so pages sit flush — do NOT set line_spacing to
+    # EXACTLY small value: that clips the image height and makes pages invisible.
     fmt = p_img.paragraph_format
     fmt.space_before        = Pt(0)
     fmt.space_after         = Pt(0)
-    fmt.line_spacing_rule   = WD_LINE_SPACING.EXACTLY
-    fmt.line_spacing        = Pt(1)   # minimum — image height drives the row
-    fmt.keep_with_next      = False   # don't force page-break avoidance
+    fmt.keep_with_next      = False
     fmt.keep_together       = False
     add_para_rtl(doc, '{/pages}')
     # Thin separator between datasheets (2 pt) instead of a full empty line
