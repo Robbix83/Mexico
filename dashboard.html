@@ -5198,29 +5198,27 @@ function _showDsPopup(el,src,nameOverride){
       <iframe src="${pdfSrc}" width="640" height="620" dir="ltr"
         style="border:none;border-radius:6px;display:block;direction:ltr"></iframe>
     </div>`;
+  } else if(isPdf){
+    // External PDF → embed via Google Docs Viewer (renders remote PDFs that block direct iframing)
+    logAuditEvent('view_ds',fname);
+    const gview=`https://docs.google.com/viewer?embedded=true&url=${encodeURIComponent(src)}`;
+    body=`<div style="position:relative;width:640px;height:620px;direction:ltr;overflow:hidden;background:#f8fafc">
+      <iframe src="${gview}" width="640" height="588" dir="ltr"
+        style="border:none;display:block"></iframe>
+      <div style="height:32px;display:flex;align-items:center;justify-content:center;gap:14px;background:#fff;border-top:1px solid #eef2f6">
+        <a href="${src}" target="_blank" rel="noopener" style="color:#0F766E;font-size:.74rem;font-weight:700;text-decoration:none">📂 פתח בטאב חדש</a>
+      </div>
+    </div>`;
   } else {
-    // External URL → show info card with direct open button (embedding blocked by most servers)
-    const gdocsUrl=`https://docs.google.com/viewer?url=${encodeURIComponent(src)}`;
-    const icon=isPdf?'📄':'🔗';
-    const openLabel=isPdf?'📂 פתח PDF בטאב חדש':'🌐 פתח דף מוצר בטאב חדש';
-    const footer=isPdf
-      ?`<div style="font-size:.71rem;color:#b0bec5;margin-top:-6px">לא ניתן להציג PDF מאתר חיצוני ישירות בדפדפן</div>`
-      :'';
-    const gdocsRow=isPdf?`<a href="${gdocsUrl}" target="_blank" rel="noopener"
-         style="color:#0D9488;font-size:.78rem;text-decoration:none;border:1.5px solid #5EEAD4;
-                border-radius:8px;padding:8px 18px;width:100%;display:block">
-        🔍 תצוגה ב-Google Docs
-      </a>`:'';
+    // External non-PDF (e.g. product page) → info card with direct open button
     body=`<div style="width:400px;padding:30px 24px;display:flex;flex-direction:column;align-items:center;gap:16px;text-align:center">
-      <div style="width:64px;height:64px;background:linear-gradient(135deg,#CCFBF1,#F0FDFA);border-radius:16px;display:flex;align-items:center;justify-content:center;font-size:2.2rem">${icon}</div>
+      <div style="width:64px;height:64px;background:linear-gradient(135deg,#CCFBF1,#F0FDFA);border-radius:16px;display:flex;align-items:center;justify-content:center;font-size:2.2rem">🔗</div>
       <div style="font-size:.82rem;color:#4a5568;word-break:break-all;max-width:360px;line-height:1.5;direction:ltr;text-align:left;unicode-bidi:plaintext">${displayName}</div>
       <a href="${src}" target="_blank" rel="noopener"
          style="background:#0F766E;color:#fff;border-radius:10px;padding:11px 28px;
                 text-decoration:none;font-size:.9rem;font-weight:700;width:100%;display:block">
-        ${openLabel}
+        🌐 פתח דף מוצר בטאב חדש
       </a>
-      ${gdocsRow}
-      ${footer}
     </div>`;
   }
   pop.innerHTML=`
@@ -5231,7 +5229,8 @@ function _showDsPopup(el,src,nameOverride){
     ${body}`;
   pop.style.display='block';
   const r=el.getBoundingClientRect();
-  const pw=isLocal?656:428, ph=isLocal?682:380;
+  const _embed=isLocal||isPdf; // local files + external PDFs both render in a large iframe
+  const pw=_embed?656:428, ph=_embed?682:380;
   let left=r.right+14;
   if(left+pw>window.innerWidth-8) left=r.left-pw-14;
   let top=r.top;
