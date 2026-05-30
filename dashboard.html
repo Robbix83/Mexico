@@ -1979,12 +1979,18 @@ tr:hover .pl-row-ds-btn{opacity:.6}
     </div>
     <div class="field" style="margin-top:10px"><label>שם המוצר *</label>
       <input type="text" id="cm-name" placeholder="שם המוצר"/></div>
-    <div style="display:grid;grid-template-columns:1fr auto;gap:10px;align-items:end">
-      <div class="field" style="margin:0"><label>💰 עלות (₪)</label>
-        <input type="number" id="cm-cost" min="0" step="0.01" placeholder="0.00"
-               style="direction:ltr;text-align:left"/></div>
-      <div class="field" style="margin:0"><label>📄 Datasheet URL</label>
-        <input type="url" id="cm-dsurl" placeholder="https://..." style="direction:ltr;min-width:260px"/></div>
+    <div class="field" style="margin-top:10px"><label>💰 עלות (₪)</label>
+      <input type="number" id="cm-cost" min="0" step="0.01" placeholder="0.00"
+             style="direction:ltr;text-align:left;max-width:180px"/></div>
+    <div class="field"><label>📄 Datasheet</label>
+      <div style="display:flex;gap:6px;align-items:center">
+        <input type="url" id="cm-dsurl" placeholder="https://example.com/datasheet.pdf" dir="ltr" style="flex:1"/>
+        <button type="button" title="חפש Datasheet בגוגל" onclick="cmGoogleSearch()"
+          style="padding:7px 10px;border:1.5px solid #e2e8f0;border-radius:7px;background:#f8fafc;cursor:pointer;font-size:.82rem;white-space:nowrap;color:#475569">🔍 גוגל</button>
+        <button type="button" id="cm-dl-btn" title="הורד PDF ושמור מקומית" onclick="cmDlAndSave()"
+          style="padding:7px 10px;border:none;border-radius:7px;background:#0F766E;color:#fff;cursor:pointer;font-size:.82rem;white-space:nowrap;font-weight:700">📥 הורד</button>
+      </div>
+      <div id="cm-dl-status" style="display:none"></div>
     </div>
     <div class="field"><label>תיאור / מפרט טכני</label>
       <textarea id="cm-desc" rows="3" placeholder="תיאור המוצר, מפרטים טכניים, הערות..."
@@ -4447,6 +4453,7 @@ function openCatalogModal(id){
     document.getElementById('cm-desc').value='';
     catalogModalFiles=[];
   }
+  const _dlStatus=document.getElementById('cm-dl-status'); if(_dlStatus) _dlStatus.style.display='none';
   renderCatalogModalFiles();
   renderCatalogRelPicker(id);
   _cmPlKey=undefined; // reset to "not changed"
@@ -4512,6 +4519,47 @@ function submitCatalogModal(){
   saveState();
   closeCatalogModal();
   renderCatalog(); renderCatalogCatPills();
+}
+
+// ── Catalog datasheet: Google search + download-and-save ──
+function cmGoogleSearch(){
+  const sku=(document.getElementById('cm-sku').value||'').trim();
+  const name=(document.getElementById('cm-name').value||'').trim();
+  // Prefer a model code from the name (letters+digits), else fall back to sku
+  const modelTok=(name.split(/[\s,]+/).find(t=>/[A-Za-z].*[0-9]|[0-9].*[A-Za-z]/.test(t)&&t.length>=4))||'';
+  const term=(modelTok||name||sku).replace(/"/g,'').trim();
+  if(!term){ _toast('הכנס שם מוצר או מק"ט תחילה','warn'); return; }
+  window.open('https://www.google.com/search?q='+encodeURIComponent(term+'.pdf'),'_blank','noopener');
+}
+async function cmDlAndSave(){
+  const url=document.getElementById('cm-dsurl').value.trim();
+  const statusEl=document.getElementById('cm-dl-status');
+  const setStatus=(txt,bg,color)=>{ statusEl.textContent=txt; statusEl.style.cssText='display:block;background:'+bg+';color:'+color+';padding:5px 10px;border-radius:6px;font-size:.78rem;margin-top:6px'; };
+  if(!url){ setStatus('הכנס URL תחילה','#fff3cd','#856404'); return; }
+  const sku=(document.getElementById('cm-sku').value||'').trim();
+  const name=(document.getElementById('cm-name').value||'').trim();
+  const btn=document.getElementById('cm-dl-btn');
+  btn.disabled=true; btn.textContent='מוריד...';
+  setStatus('מוריד קובץ...','#e0f2fe','#0369a1');
+  try{
+    const r=await fetch('/api/admin/ds-finder/manual',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({url,manufacturer:'catalog',model:sku||name})
+    });
+    const d=await r.json();
+    if(d.ok&&d.filename){
+      const dsUrl='/ds/catalog/'+encodeURIComponent(d.filename);
+      document.getElementById('cm-dsurl').value=dsUrl;
+      setStatus('✓ הורד ונשמר — הקישור עודכן','#dcfce7','#166534');
+    } else {
+      setStatus('שגיאה: '+(d.error||'הורדה נכשלה'),'#fee2e2','#991b1b');
+    }
+  }catch(e){
+    setStatus('שגיאת רשת: '+e.message,'#fee2e2','#991b1b');
+  }finally{
+    btn.disabled=false; btn.textContent='📥 הורד';
+  }
 }
 
 function handleCatalogFileInput(input){
@@ -5663,7 +5711,7 @@ async function pleDlAndSave(){
   statusEl.textContent='מוריד קובץ...';
   statusEl.style.cssText='display:block;background:#e0f2fe;color:#0369a1;padding:5px 10px;border-radius:6px;font-size:.78rem;margin-top:6px';
   try{
-    const r=await fetch('/api/ds-finder/download',{
+    const r=await fetch('/api/admin/ds-finder/manual',{
       method:'POST',
       headers:{'Content-Type':'application/json'},
       body:JSON.stringify({url,manufacturer:mfr,model})
@@ -5712,7 +5760,7 @@ async function plRowDownload(mfr, model){
   }
   _plToast('מוריד...','info');
   try{
-    const r=await fetch('/api/ds-finder/download',{
+    const r=await fetch('/api/admin/ds-finder/manual',{
       method:'POST',
       headers:{'Content-Type':'application/json'},
       body:JSON.stringify({url,manufacturer:mfr,model})
