@@ -4686,7 +4686,7 @@ function dsHoverShow(e,url){
       ? `<img src="${url}" style="max-width:${W-20}px;max-height:${H-20}px;border-radius:6px;display:block"/>`
       : `<iframe src="${url}" style="width:${W-20}px;height:${H-20}px;border:none;border-radius:6px"></iframe>`;
     tt.style.display='block';
-  },200);
+  },500);
 }
 function dsHoverHide(){
   clearTimeout(_dsHoverTimer);
