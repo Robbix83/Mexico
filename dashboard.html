@@ -4551,6 +4551,11 @@ async function cmDlAndSave(){
     if(d.ok&&d.filename){
       const dsUrl='/ds/catalog/'+encodeURIComponent(d.filename);
       document.getElementById('cm-dsurl').value=dsUrl;
+      // Persist immediately to the item being edited (so the 📄 shows even without clicking שמור)
+      if(catalogEditId){
+        const it=getCatalogItem(catalogEditId);
+        if(it){ it.datasheetUrl=dsUrl; saveState(); renderCatalog(); }
+      }
       setStatus('✓ הורד ונשמר — הקישור עודכן','#dcfce7','#166534');
     } else {
       setStatus('שגיאה: '+(d.error||'הורדה נכשלה'),'#fee2e2','#991b1b');
