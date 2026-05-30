@@ -4184,8 +4184,12 @@ function renderCatalog(){
       const cost=item.cost!=null&&item.cost>0
         ?`₪${item.cost.toLocaleString('he-IL',{minimumFractionDigits:2,maximumFractionDigits:2})}`:'—';
       const ds=[
-        ...(item.datasheetUrl?[`<a class="ci-datasheet" href="${item.datasheetUrl}" target="_blank" rel="noopener" title="Datasheet">📄</a>`]:[]),
-        ...(item.files||[]).map((f,_i)=>`<a class="ci-datasheet" href="#" onclick="event.preventDefault();openCatalogFile(${item.id},${_i})" title="${f.name}${f.url?'':' — קובץ ישן, מומלץ להעלות מחדש'}">${f.url?'📄':'⚠️'}</a>`)
+        ...(item.datasheetUrl?[`<a class="ci-datasheet" href="${item.datasheetUrl}" target="_blank" rel="noopener" title="Datasheet" onmouseenter="dsHoverShow(event,'${String(item.datasheetUrl).replace(/'/g,"\\'")}')" onmouseleave="dsHoverHide()">📄</a>`]:[]),
+        ...(item.files||[]).map((f,_i)=>{
+          const safeUrl=(f.url||'').replace(/'/g,"\\'");
+          const hover=f.url?` onmouseenter="dsHoverShow(event,'${safeUrl}')" onmouseleave="dsHoverHide()"`:'';
+          return `<a class="ci-datasheet" href="#" onclick="event.preventDefault();openCatalogFile(${item.id},${_i})"${hover} title="${f.name}${f.url?'':' — קובץ ישן, מומלץ להעלות מחדש'}">${f.url?'📄':'⚠️'}</a>`;
+        })
       ].join(' ');
       const skuSafe=String(item.sku||'').replace(/'/g,"\\'");
       // Cross-data badges under cost (warehouse / pricelist)
@@ -4591,7 +4595,10 @@ async function handleCatalogFileInput(input){
     const ph={name:f.name,size:f.size,type:f.type,uploading:true};
     catalogModalFiles.push(ph); renderCatalogModalFiles();
     try{
+      const sku=(document.getElementById('cm-sku').value||'').trim();
+      const name=(document.getElementById('cm-name').value||'').trim();
       const fd=new FormData(); fd.append('file',f);
+      fd.append('basename',_cmModelToken(name,sku)||sku);
       const r=await fetch('/api/catalog/upload',{method:'POST',body:fd});
       const d=await r.json();
       if(d.ok&&d.url){
@@ -4655,6 +4662,34 @@ function renderCatalogRelItems(){
       </span>
     </div>`;
   }).join('');
+}
+
+// ── Datasheet hover preview (list view) ──
+let _dsHoverTimer=null;
+function dsHoverShow(e,url){
+  if(!url) return;
+  clearTimeout(_dsHoverTimer);
+  const anchor=e.currentTarget;
+  _dsHoverTimer=setTimeout(()=>{
+    const tt=document.getElementById('file-preview-tt');
+    if(!tt) return;
+    const isImg=/\.(png|jpe?g|webp|gif|bmp)$/i.test(url);
+    tt.innerHTML=isImg
+      ? `<img src="${url}" style="max-width:300px;max-height:380px;border-radius:6px;display:block"/>`
+      : `<iframe src="${url}" style="width:320px;height:400px;border:none;border-radius:6px"></iframe>`;
+    tt.style.display='block';
+    const ttH=tt.offsetHeight||400, ttW=tt.offsetWidth||320;
+    const r=anchor.getBoundingClientRect();
+    const spaceBelow=window.innerHeight-r.bottom;
+    const top=spaceBelow>ttH+20?r.bottom+8:Math.max(8,r.top-ttH-8);
+    const left=Math.max(8,Math.min(r.left+r.width/2-ttW/2,window.innerWidth-ttW-8));
+    tt.style.top=top+'px'; tt.style.left=left+'px'; tt.style.right='auto';
+  },180);
+}
+function dsHoverHide(){
+  clearTimeout(_dsHoverTimer);
+  const tt=document.getElementById('file-preview-tt');
+  if(tt) tt.style.display='none';
 }
 
 // ── Catalog category manager ─────────────────────────────────

@@ -1300,7 +1300,9 @@ app.post('/api/catalog/upload', requireAuth, docPackUpload.single('file'), (req,
     const orig = req.file.originalname || 'file';
     const extMatch = orig.match(/\.([a-z0-9]{2,5})$/i);
     const ext = (extMatch ? extMatch[1] : 'bin').toLowerCase();
-    const base = orig.replace(/\.[^.]+$/, '').replace(/[/\\:*?"<>|]+/g, '_').slice(0, 60) || 'file';
+    // Prefer a client-supplied base name (product model code); fall back to original filename
+    const rawBase = (req.body && req.body.basename) ? String(req.body.basename) : orig.replace(/\.[^.]+$/, '');
+    const base = (rawBase.replace(/[/\\:*?"<>|\s]+/g, '_').slice(0, 60)) || 'file';
     const newName = `${base}__${uuidv4().slice(0, 8)}.${ext}`;
     const destPath = path.join(dir, newName);
     fs.renameSync(req.file.path, destPath);
