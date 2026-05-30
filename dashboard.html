@@ -4366,12 +4366,13 @@ function toggleCatalogFilePreview(e,itemId,idx){
     hideFilePreview(); return;
   }
   _filePrevActive={taskId:itemId,idx};
+  const src=f.url||f.dataUrl;
   const isXl=f.type.includes('spreadsheet')||f.type.includes('ms-excel')||/\.(xlsx|xls|csv)$/i.test(f.name);
   if(f.type.startsWith('image/'))
-    tt.innerHTML=`<img src="${f.dataUrl}" style="max-width:280px;max-height:220px;border-radius:6px;display:block"/>`;
-  else if(f.type==='application/pdf')
-    tt.innerHTML=`<iframe src="${f.dataUrl}" style="width:280px;height:220px;border:none;border-radius:6px"></iframe>`;
-  else if(isXl&&typeof XLSX!=='undefined')
+    tt.innerHTML=`<img src="${src}" style="max-width:280px;max-height:220px;border-radius:6px;display:block"/>`;
+  else if(f.type==='application/pdf'||/\.pdf$/i.test(f.name))
+    tt.innerHTML=`<iframe src="${src}" style="width:280px;height:220px;border:none;border-radius:6px"></iframe>`;
+  else if(isXl&&f.dataUrl&&typeof XLSX!=='undefined')
     tt.innerHTML=xlPreviewHtml(f.dataUrl);
   else
     tt.innerHTML=`<div style="padding:16px;text-align:center;font-size:.82rem;color:#4a5568">${fileIcon(f.type)}<br><b>${f.name}</b><br><small style="color:#94a3b8">${fmtSize(f.size)}</small></div>`;
@@ -4386,12 +4387,16 @@ function toggleCatalogFilePreview(e,itemId,idx){
 function downloadCatalogFile(itemId,idx){
   const f=getCatalogItem(itemId)?.files?.[idx];
   if(!f) return;
-  const a=document.createElement('a');a.href=f.dataUrl;a.download=f.name;a.click();
+  const a=document.createElement('a');a.href=f.url||f.dataUrl;a.download=f.name;a.click();
 }
 function openCatalogFile(itemId,idx){
   const f=getCatalogItem(itemId)?.files?.[idx];
   if(!f) return;
-  const arr=f.dataUrl.split(','), mime=arr[0].match(/:(.*?);/)[1];
+  // Server-hosted file: open the URL directly (named, reliable)
+  if(f.url){ window.open(f.url,'_blank','noopener'); return; }
+  // Legacy base64 file: decode to a blob
+  if(!f.dataUrl) return;
+  const arr=f.dataUrl.split(','), mime=(arr[0].match(/:(.*?);/)||[])[1]||'application/octet-stream';
   const bstr=atob(arr[1]);
   const u8=new Uint8Array(bstr.length);
   for(let i=0;i<bstr.length;i++) u8[i]=bstr.charCodeAt(i);
@@ -4522,12 +4527,15 @@ function submitCatalogModal(){
 }
 
 // ── Catalog datasheet: Google search + download-and-save ──
+// Extract a meaningful model code from the product name (letters+digits, e.g. DS-1280ZJ-DM18)
+function _cmModelToken(name,sku){
+  const tok=(name||'').split(/[\s,]+/).find(t=>/[A-Za-z].*[0-9]|[0-9].*[A-Za-z]/.test(t)&&t.length>=4);
+  return (tok||name||sku||'').replace(/"/g,'').trim();
+}
 function cmGoogleSearch(){
   const sku=(document.getElementById('cm-sku').value||'').trim();
   const name=(document.getElementById('cm-name').value||'').trim();
-  // Prefer a model code from the name (letters+digits), else fall back to sku
-  const modelTok=(name.split(/[\s,]+/).find(t=>/[A-Za-z].*[0-9]|[0-9].*[A-Za-z]/.test(t)&&t.length>=4))||'';
-  const term=(modelTok||name||sku).replace(/"/g,'').trim();
+  const term=_cmModelToken(name,sku);
   if(!term){ _toast('הכנס שם מוצר או מק"ט תחילה','warn'); return; }
   window.open('https://www.google.com/search?q='+encodeURIComponent(term+'.pdf'),'_blank','noopener');
 }
@@ -4545,7 +4553,7 @@ async function cmDlAndSave(){
     const r=await fetch('/api/admin/ds-finder/manual',{
       method:'POST',
       headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({url,manufacturer:'catalog',model:sku||name})
+      body:JSON.stringify({url,manufacturer:'catalog',model:_cmModelToken(name,sku)})
     });
     const d=await r.json();
     if(d.ok&&d.filename){
@@ -4567,23 +4575,40 @@ async function cmDlAndSave(){
   }
 }
 
-function handleCatalogFileInput(input){
-  Array.from(input.files).forEach(f=>{
-    const reader=new FileReader();
-    reader.onload=e=>{catalogModalFiles.push({name:f.name,size:f.size,type:f.type,dataUrl:e.target.result});renderCatalogModalFiles();};
-    reader.readAsDataURL(f);
-  });
+async function handleCatalogFileInput(input){
+  const files=Array.from(input.files);
   input.value='';
+  for(const f of files){
+    // Show an uploading placeholder
+    const ph={name:f.name,size:f.size,type:f.type,uploading:true};
+    catalogModalFiles.push(ph); renderCatalogModalFiles();
+    try{
+      const fd=new FormData(); fd.append('file',f);
+      const r=await fetch('/api/catalog/upload',{method:'POST',body:fd});
+      const d=await r.json();
+      if(d.ok&&d.url){
+        Object.assign(ph,{url:d.url,uploading:false}); delete ph.dataUrl;
+      } else {
+        catalogModalFiles=catalogModalFiles.filter(x=>x!==ph);
+        _toast('שגיאה בהעלאת '+f.name+': '+(d.error||'נכשל'),'error');
+      }
+    }catch(e){
+      catalogModalFiles=catalogModalFiles.filter(x=>x!==ph);
+      _toast('שגיאת רשת בהעלאת '+f.name,'error');
+    }
+    renderCatalogModalFiles();
+  }
 }
+function _catFileHref(f){ return f.url||f.dataUrl||'#'; }
 function renderCatalogModalFiles(){
   const el=document.getElementById('cm-file-list');
   if(!catalogModalFiles.length){el.innerHTML='<div style="font-size:.74rem;color:#94a3b8;padding:2px 0">אין קבצים מצורפים</div>';return;}
   el.innerHTML=catalogModalFiles.map((f,i)=>`
     <div class="file-item">
-      <span style="flex-shrink:0">${fileIcon(f.type)}</span>
-      <span class="file-item-name" title="${f.name}">${f.name}</span>
+      <span style="flex-shrink:0">${f.uploading?'⏳':fileIcon(f.type)}</span>
+      <span class="file-item-name" title="${f.name}">${f.name}${f.uploading?' (מעלה...)':''}</span>
       <span class="file-item-size">${fmtSize(f.size)}</span>
-      <a href="${f.dataUrl}" download="${f.name}" title="הורד" style="color:#3730a3;text-decoration:none;font-size:.9rem;flex-shrink:0">⬇️</a>
+      ${f.uploading?'':`<a href="${_catFileHref(f)}" download="${f.name}" title="הורד" style="color:#3730a3;text-decoration:none;font-size:.9rem;flex-shrink:0">⬇️</a>`}
       <button onclick="catalogModalFiles.splice(${i},1);renderCatalogModalFiles()" title="הסר"
               style="background:none;border:none;cursor:pointer;color:#e53e3e;font-size:.85rem;padding:0;flex-shrink:0">✕</button>
     </div>`).join('');

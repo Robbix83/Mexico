@@ -1288,6 +1288,31 @@ app.post('/api/docpacks/:id/files', requireAdmin, docPackUpload.single('file'), 
   }
 });
 
+// Catalog item file upload — saves to DS_PATH/catalog/ and returns a /ds/catalog/ URL.
+// Stored on the server (not localStorage base64) so large PDFs don't get truncated.
+app.post('/api/catalog/upload', requireAuth, docPackUpload.single('file'), (req, res) => {
+  try {
+    if (!req.file) return res.status(400).json({ error: 'no file uploaded' });
+    req.file.originalname = fixUtf8Filename(req.file.originalname);
+    const dir = path.join(DS_PATH, 'catalog');
+    if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+    // Keep a readable, collision-safe name: <original-base>__<short-uuid>.<ext>
+    const orig = req.file.originalname || 'file';
+    const extMatch = orig.match(/\.([a-z0-9]{2,5})$/i);
+    const ext = (extMatch ? extMatch[1] : 'bin').toLowerCase();
+    const base = orig.replace(/\.[^.]+$/, '').replace(/[/\\:*?"<>|]+/g, '_').slice(0, 60) || 'file';
+    const newName = `${base}__${uuidv4().slice(0, 8)}.${ext}`;
+    const destPath = path.join(dir, newName);
+    fs.renameSync(req.file.path, destPath);
+    db.logAudit(req.user.id, req.user.username, 'catalog_file_upload', newName, getClientIp(req), '');
+    res.json({ ok: true, url: '/ds/catalog/' + encodeURIComponent(newName),
+               name: req.file.originalname, size: req.file.size, type: req.file.mimetype });
+  } catch (e) {
+    if (req.file) { try { fs.unlinkSync(req.file.path); } catch {} }
+    res.status(500).json({ error: e.message });
+  }
+});
+
 // Resolve a doc-pack file by trying multiple historical upload locations.
 // Earlier deploys without DOC_PACK_UPLOADS_DIR landed files under
 // <app>/data/doc_packs (ephemeral). Newer deploys use /data/doc_packs
