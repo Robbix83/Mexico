@@ -424,18 +424,24 @@ async function buildContext(pack, files, opts = {}) {
           }
         }
       }
-      if (!src || !fs.existsSync(src)) continue;
+      const dsName = f.original_name || (f.external_path ? path.basename(f.external_path) : f.filename) || '';
+      if (!src || !fs.existsSync(src)) {
+        console.warn('[docpack] datasheet not found, skipping:', dsName, '| path:', src || '(none)');
+        continue;
+      }
       let pages = [];
       try {
         const remaining = PDF_RENDER_MAX_PAGES_TOTAL - totalPagesRendered;
         const maxPages = Math.min(PDF_RENDER_MAX_PAGES_PER_DOC, remaining);
+        console.log('[docpack] rendering PDF:', dsName, '| path:', src);
         pages = await renderPdfToPngs(src, opts.renderTempDir, { maxPages });
         totalPagesRendered += pages.length;
+        console.log('[docpack] rendered', pages.length, 'pages for', dsName);
       } catch (e) {
-        console.warn('[docpack] PDF render failed for', src, e.message);
+        console.error('[docpack] PDF render FAILED for', dsName, ':', e.message);
       }
       datasheets.push({
-        name: f.original_name || (f.external_path ? path.basename(f.external_path) : f.filename),
+        name: dsName,
         mfr:  f.caption || '',
         pages: pages.map(p => ({ page_img: p.path, page_num: p.page })),
       });

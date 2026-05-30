@@ -1412,6 +1412,37 @@ app.get('/api/admin/ds-finder/status', requireAdmin, (_req, res) => {
   res.json(dsFinder.getStatus());
 });
 
+// Diagnostic: test PDF rendering on this server — renders 1 page from
+// a known-good datasheet and reports success/failure + timing.
+// GET /api/admin/test-pdf-render
+app.get('/api/admin/test-pdf-render', requireAdmin, async (req, res) => {
+  const os = require('os');
+  const testModel = req.query.model || 'DS-1227ZJ';
+  const ds = docpack.lookupDatasheet(testModel);
+  if (!ds) return res.json({ ok: false, error: 'model not in index: ' + testModel });
+  if (!fs.existsSync(ds.absPath)) return res.json({ ok: false, error: 'file missing: ' + ds.absPath });
+  const tmpDir = path.join(os.tmpdir(), 'dp_test_' + Date.now());
+  fs.mkdirSync(tmpDir, { recursive: true });
+  const t0 = Date.now();
+  try {
+    const { pdf } = await import('pdf-to-img');
+    const doc = await pdf(ds.absPath, { scale: 1.5 });
+    let n = 0;
+    for await (const buf of doc) {
+      const p = path.join(tmpDir, `page_${++n}.png`);
+      fs.writeFileSync(p, buf);
+      if (n >= 1) break;
+    }
+    const elapsed = Date.now() - t0;
+    // cleanup
+    try { for (let i = 1; i <= n; i++) fs.unlinkSync(path.join(tmpDir, `page_${i}.png`)); fs.rmdirSync(tmpDir); } catch {}
+    return res.json({ ok: true, model: testModel, pages: n, ms: elapsed, path: ds.absPath });
+  } catch (e) {
+    try { fs.rmSync(tmpDir, { recursive: true }); } catch {}
+    return res.json({ ok: false, error: e.message, model: testModel, path: ds.absPath });
+  }
+});
+
 // List queue items (most recent first, optional ?status= filter)
 app.get('/api/admin/ds-finder/list', requireAdmin, (req, res) => {
   // By default exclude 'found' items — they don't need attention.
