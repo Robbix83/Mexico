@@ -27,7 +27,7 @@ new_dashboard_lf.html
 *old_dashboard.html
 
 # Design mockups / experiments (not part of the app)
-design-preview*.html
+design-*.html
 
 # Local server logs & scratch files
 server-debug.log
