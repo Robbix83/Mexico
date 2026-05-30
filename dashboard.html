@@ -5206,10 +5206,10 @@ function _showDsPopup(el,src,nameOverride){
     if(isPdf) logAuditEvent('view_ds',fname);
     // Local / blob file → embed directly in iframe (always works)
     // navpanes=0 hides sidebar; direction:ltr prevents RTL scroll offset from cutting left side
-    const pdfSrc=src+(src.includes('#')?'&':'#')+'navpanes=0';
-    body=`<div style="position:relative;width:640px;height:620px;direction:ltr;overflow:hidden">
-      <iframe src="${pdfSrc}" width="640" height="620" dir="ltr"
-        style="border:none;border-radius:6px;display:block;direction:ltr"></iframe>
+    const pdfSrc=src+(src.includes('#')?'&':'#')+'navpanes=0&toolbar=1&zoom=page-width';
+    body=`<div style="position:relative;width:640px;height:620px;direction:ltr;overflow:hidden;border-radius:6px">
+      <iframe src="${pdfSrc}" width="657" height="637" dir="ltr"
+        style="border:none;display:block;direction:ltr"></iframe>
     </div>`;
   } else if(isPdf){
     // External PDF → loading placeholder; we probe the proxy then show inline preview or a card
@@ -5275,11 +5275,11 @@ async function _dsProbeExternal(src, displayName){
   const still=document.getElementById('ds-ext-body');
   if(!still) return;
   if(isPdf){
-    const proxied='/api/ds-proxy?url='+encodeURIComponent(src)+'#navpanes=0';
-    still.style.cssText='width:640px;height:620px;direction:ltr;overflow:hidden;background:#f8fafc';
-    still.innerHTML=`<iframe src="${proxied}" width="640" height="588" dir="ltr" style="border:none;display:block"></iframe>
-      <div style="height:32px;display:flex;align-items:center;justify-content:center;background:#fff;border-top:1px solid #eef2f6">
-        <a href="${src}" target="_blank" rel="noopener" style="color:#0F766E;font-size:.74rem;font-weight:700;text-decoration:none">📂 פתח במקור בטאב חדש</a>
+    const proxied='/api/ds-proxy?url='+encodeURIComponent(src)+'#navpanes=0&toolbar=1&zoom=page-width';
+    still.style.cssText='width:640px;height:620px;direction:ltr;display:flex;flex-direction:column;background:#f8fafc';
+    still.innerHTML=`<div style="flex:1;overflow:hidden;border-radius:6px 6px 0 0"><iframe src="${proxied}" width="657" height="605" dir="ltr" style="border:none;display:block"></iframe></div>
+      <div style="height:32px;flex-shrink:0;display:flex;align-items:center;justify-content:center;background:#fff;border-top:1px solid #eef2f6">
+        <a href="${src}" target="_blank" rel="noopener" style="color:#4262ff;font-size:.74rem;font-weight:700;text-decoration:none">📂 פתח במקור בטאב חדש</a>
       </div>`;
   } else {
     still.outerHTML=_dsExtCard(src, displayName);
