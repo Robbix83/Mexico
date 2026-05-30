@@ -5296,6 +5296,7 @@ function _dsShowFallback(iframe,src){
 }
 function _hideDsPopup(){
   clearTimeout(_dsTimer); _dsTimer=null;
+  clearTimeout(_dsHideTimer); _dsHideTimer=null;
   const pop=document.getElementById('ds-preview-popup');
   pop.style.display='none'; pop.innerHTML='';
   if(_dsBlobUrl){URL.revokeObjectURL(_dsBlobUrl);_dsBlobUrl=null;}
@@ -5308,18 +5309,28 @@ document.addEventListener('mouseover',e=>{
     _getDsPreviewSrc(link,(src,_,name)=>_showDsPopup(link,src,name));
   },1500);
 });
+let _dsHideTimer=null;
+function _schedHideDs(){ clearTimeout(_dsHideTimer); _dsHideTimer=setTimeout(_hideDsPopup,260); }
+function _cancelHideDs(){ clearTimeout(_dsHideTimer); _dsHideTimer=null; }
 document.addEventListener('mouseout',e=>{
   const link=e.target.closest('a.ci-datasheet');
   if(!link) return;
   const pop=document.getElementById('ds-preview-popup');
   if(pop.contains(e.relatedTarget)) return; // moved into popup → keep open
   clearTimeout(_dsTimer); _dsTimer=null;
+  if(pop.style.display==='block') _schedHideDs(); // left link → schedule hide (cancels if popup entered)
+});
+// Keep popup open while the cursor is anywhere over it
+document.addEventListener('mouseover',e=>{
+  if(e.target.closest&&e.target.closest('#ds-preview-popup')) _cancelHideDs();
 });
 document.addEventListener('mouseleave',e=>{
-  if(!e.target.closest('#ds-preview-popup')) return;
+  if(!e.target.closest||!e.target.closest('#ds-preview-popup')) return;
+  // Entering the embedded PDF iframe fires mouseleave with null relatedTarget — keep open
+  if(!e.relatedTarget) return;
   const link=document.querySelector('a.ci-datasheet:hover');
   if(link) return; // still over the trigger link
-  _hideDsPopup();
+  _schedHideDs();
 },true);
 
 // ─── PRICE LIST ─────────────────────────────────────────────
@@ -5802,12 +5813,11 @@ async function pleDlAndSave(){
     const d=await r.json();
     if(d.ok&&d.filename){
       const dsUrl='/ds/'+encodeURIComponent(mfr)+'/'+d.filename;
-      // Auto-link in overrides
-      const ov=JSON.parse(localStorage.getItem('afkon_pl_overrides')||'{}');
+      // Auto-link in overrides (update in-memory then persist)
       const key=mfr+'||'+model;
-      ov[key]=Object.assign({},ov[key]||{},{ds:dsUrl});
-      localStorage.setItem('afkon_pl_overrides',JSON.stringify(ov));
-      loadPlOverrides();
+      plOverrides[key]=Object.assign({},plOverrides[key]||{},{ds:dsUrl});
+      savePlOverrides();
+      renderPriceList();
       document.getElementById('ple-ds-url').value=dsUrl;
       statusEl.textContent='✓ הורד ונשמר — הקישור עודכן אוטומטית';
       statusEl.style.cssText='display:block;background:#dcfce7;color:#166534;padding:5px 10px;border-radius:6px;font-size:.78rem;margin-top:6px';
@@ -5851,10 +5861,9 @@ async function plRowDownload(mfr, model){
     const d=await r.json();
     if(d.ok&&d.filename){
       const dsUrl='/ds/'+encodeURIComponent(mfr)+'/'+d.filename;
-      const ov=JSON.parse(localStorage.getItem('afkon_pl_overrides')||'{}');
-      ov[key]=Object.assign({},ov[key]||{},{ds:dsUrl});
-      localStorage.setItem('afkon_pl_overrides',JSON.stringify(ov));
-      loadPlOverrides(); renderPl();
+      plOverrides[key]=Object.assign({},plOverrides[key]||{},{ds:dsUrl});
+      savePlOverrides();
+      renderPriceList();
       _plToast('✓ '+model+' — Datasheet נשמר','ok');
     }else{
       _plToast('שגיאה: '+(d.error||'הורדה נכשלה'),'err');

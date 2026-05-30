@@ -2027,8 +2027,13 @@ app.get('/api/ds-proxy', requireAuth, async (req, res) => {
   try {
     const ctrl = new AbortController();
     const timer = setTimeout(() => ctrl.abort(), 25000);
-    const r = await fetch(u.href, { signal: ctrl.signal, redirect: 'follow',
-      headers: { 'User-Agent': 'Mozilla/5.0 (compatible; AfkonDashboard/1.0)' } });
+    // Browser-like headers help bypass basic bot walls that otherwise serve an HTML page
+    const r = await fetch(u.href, { signal: ctrl.signal, redirect: 'follow', headers: {
+      'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36',
+      'Accept': 'application/pdf,application/octet-stream,*/*',
+      'Accept-Language': 'en-US,en;q=0.9,he;q=0.8',
+      'Referer': u.origin + '/',
+    } });
     clearTimeout(timer);
     const probe = req.query.probe === '1';
     if (!r.ok) {
