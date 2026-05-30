@@ -1294,7 +1294,10 @@ app.post('/api/catalog/upload', requireAuth, docPackUpload.single('file'), (req,
   try {
     if (!req.file) return res.status(400).json({ error: 'no file uploaded' });
     req.file.originalname = fixUtf8Filename(req.file.originalname);
-    const dir = path.join(DS_PATH, 'catalog');
+    // Optional target subfolder (e.g. manufacturer name); sanitized, defaults to 'catalog'
+    const rawFolder = (req.body && req.body.folder) ? String(req.body.folder) : 'catalog';
+    const folder = rawFolder.replace(/[^A-Za-z0-9 _.-]+/g, '_').replace(/\.\.+/g, '_').slice(0, 40) || 'catalog';
+    const dir = path.join(DS_PATH, folder);
     if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
     // Keep a readable, collision-safe name: <original-base>__<short-uuid>.<ext>
     const orig = req.file.originalname || 'file';
@@ -1306,8 +1309,8 @@ app.post('/api/catalog/upload', requireAuth, docPackUpload.single('file'), (req,
     const newName = `${base}__${uuidv4().slice(0, 8)}.${ext}`;
     const destPath = path.join(dir, newName);
     fs.renameSync(req.file.path, destPath);
-    db.logAudit(req.user.id, req.user.username, 'catalog_file_upload', newName, getClientIp(req), '');
-    res.json({ ok: true, url: '/ds/catalog/' + encodeURIComponent(newName),
+    db.logAudit(req.user.id, req.user.username, 'catalog_file_upload', folder + '/' + newName, getClientIp(req), '');
+    res.json({ ok: true, url: '/ds/' + encodeURIComponent(folder) + '/' + encodeURIComponent(newName),
                name: req.file.originalname, size: req.file.size, type: req.file.mimetype });
   } catch (e) {
     if (req.file) { try { fs.unlinkSync(req.file.path); } catch {} }

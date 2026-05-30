@@ -5901,20 +5901,31 @@ function _pleDsTabUpdate(){
   document.getElementById('ple-ds-url-wrap').style.display=_pleDsMode==='url'?'':'none';
   document.getElementById('ple-ds-file-wrap').style.display=_pleDsMode==='file'?'':'none';
 }
-function pleFileChange(inp){
+async function pleFileChange(inp){
   const f=inp.files[0]; if(!f) return;
-  // Name the file after the model for consistency (e.g. IPS-HC264@HDX4-IR-I1.pdf)
-  const model=_pleKey.split('|')[1]||'';
-  const ext=f.name.match(/\.[^.]+$/)?.[0]||'.pdf';
-  const canonName=(model||f.name.replace(/\.[^.]+$/,''))+ext;
-  const reader=new FileReader();
-  reader.onload=e=>{
-    _pleNewFile={b64:e.target.result.split(',')[1],name:canonName};
-    document.getElementById('ple-file-name').textContent=canonName;
-    document.getElementById('ple-file-status').style.display='flex';
-  };
-  reader.readAsDataURL(f);
   inp.value='';
+  const parts=_pleKey.split('||');
+  const mfr=parts[0]||'', model=parts[1]||'';
+  const nameEl=document.getElementById('ple-file-name');
+  const statusEl=document.getElementById('ple-file-status');
+  nameEl.textContent='מעלה...'; statusEl.style.display='flex';
+  try{
+    const fd=new FormData(); fd.append('file',f);
+    fd.append('folder',mfr||'pricelist'); fd.append('basename',model||f.name.replace(/\.[^.]+$/,''));
+    const r=await fetch('/api/catalog/upload',{method:'POST',body:fd});
+    const d=await r.json();
+    if(d.ok&&d.url){
+      // Store as a server-hosted datasheet URL (like Hikvision /ds/ paths) — previews inline
+      _pleNewFile={url:d.url,name:d.name||f.name};
+      nameEl.textContent=d.name||f.name;
+    } else {
+      _pleNewFile=null; statusEl.style.display='none';
+      _toast('שגיאה בהעלאה: '+(d.error||'נכשל'),'error');
+    }
+  }catch(e){
+    _pleNewFile=null; statusEl.style.display='none';
+    _toast('שגיאת רשת בהעלאה','error');
+  }
 }
 function pleClearFile(){
   _pleNewFile=null;
@@ -5938,8 +5949,10 @@ function savePlEdit(){
   if(price!==base.price) ov.price=price; else delete ov.price;
   if(cur!==base.cur) ov.cur=cur; else delete ov.cur;
   if(_pleDsMode==='file'){
-    if(_pleNewFile){ov.file=_pleNewFile; delete ov.ds;}
-    else if(ov.file){/* keep existing file */; delete ov.ds;}
+    if(_pleNewFile&&_pleNewFile.url){ ov.ds=_pleNewFile.url; delete ov.file; }       // new server-hosted upload
+    else if(_pleNewFile){ ov.file=_pleNewFile; delete ov.ds; }                        // legacy base64 (shouldn't happen now)
+    else if(ov.file){ /* keep existing legacy file */ delete ov.ds; }
+    else if(ov.ds){ /* keep existing uploaded ds url */ }
   } else {
     const ds=document.getElementById('ple-ds-url').value.trim();
     if(ds!==base.ds) ov.ds=ds; else delete ov.ds;
