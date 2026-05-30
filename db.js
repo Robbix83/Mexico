@@ -308,6 +308,7 @@ const stmts = {
   listDocPackFilesByDate: db.prepare('SELECT * FROM doc_pack_files WHERE pack_id = ? ORDER BY created_at DESC, id DESC'),
   getDocPackFile:    db.prepare('SELECT * FROM doc_pack_files WHERE id = ?'),
   deleteDocPackFile: db.prepare('DELETE FROM doc_pack_files WHERE id = ?'),
+  updateDocPackFileExternalPath: db.prepare('UPDATE doc_pack_files SET external_path = ? WHERE id = ?'),
   updateDocPackFileMeta: db.prepare(`UPDATE doc_pack_files SET
     caption    = COALESCE(?, caption),
     sort_order = COALESCE(?, sort_order),
@@ -532,6 +533,7 @@ module.exports = {
   listDocPackFilesByDate: (packId) => stmts.listDocPackFilesByDate.all(packId),
   getDocPackFile:         (id)     => stmts.getDocPackFile.get(id),
   deleteDocPackFile:      (id)     => stmts.deleteDocPackFile.run(id),
+  updateDocPackFileExternalPath: (id, p) => stmts.updateDocPackFileExternalPath.run(p, id),
   updateDocPackFileMeta: (id, fields = {}) => stmts.updateDocPackFileMeta.run(
     fields.caption    ?? null,
     fields.sortOrder  ?? null,

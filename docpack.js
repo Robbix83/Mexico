@@ -402,7 +402,28 @@ async function buildContext(pack, files, opts = {}) {
   if (opts.renderTempDir && pdfFiles.length) {
     for (const f of pdfFiles) {
       if (totalPagesRendered >= PDF_RENDER_MAX_PAGES_TOTAL) break;
-      const src = f.filename ? fileDiskPath(f.pack_id, f.filename) : f.external_path;
+
+      // Resolve the file path. Linked datasheets (filename=null) have an
+      // external_path that may have been stored on a different machine/OS
+      // (e.g. a Windows dev machine storing C:\Mexico\ds\... paths that
+      // don't exist on the Linux Render server).  When the stored path is
+      // missing, re-lookup the datasheet by name in the current index so
+      // the same PDF can be found at its current runtime location.
+      let src = f.filename ? fileDiskPath(f.pack_id, f.filename) : (f.external_path || '');
+      if (!src || !fs.existsSync(src)) {
+        if (!f.filename) {
+          // Try re-resolving via the live datasheet index using the file's
+          // original_name (e.g. "DS-2DF8242IX-AEL.pdf") as the model key.
+          const modelHint = (f.original_name || path.basename(f.external_path || ''))
+            .replace(/\.pdf$/i, '');
+          const ds = modelHint ? lookupDatasheet(modelHint) : null;
+          if (ds && fs.existsSync(ds.absPath)) {
+            src = ds.absPath;
+            // Update the stored path so future exports find it immediately
+            try { db.updateDocPackFileExternalPath(f.id, ds.absPath); } catch {}
+          }
+        }
+      }
       if (!src || !fs.existsSync(src)) continue;
       let pages = [];
       try {
