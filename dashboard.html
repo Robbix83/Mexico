@@ -8602,9 +8602,19 @@ function rqRender(){
         :'<span style="color:#cbd5e0">—</span>';
       const desc=_rqEsc(r.desc) || '<span style="color:#cbd5e0">—</span>';
       const mfr=isWh?'':(r.mfr?`<span style="color:#94a3b8;font-size:.72rem">${_rqEsc(r.mfr)} · </span>`:'');
-      const stockCell = isWh
-        ? (r.qtyOnHand > 0
-            ? `<b style="color:#166534">${r.qtyOnHand}</b>`
+      // Stock: warehouse rows use qtyOnHand; pricelist/catalog rows look up a matching warehouse item
+      let stockQty=null;
+      if(isWh){ stockQty=r.qtyOnHand; }
+      else if(whItems.length){
+        const lk=_getWhLookup();
+        const sk=String(r.sku||'').toLowerCase().trim();
+        const base=sk.replace(/\s*\([^)]*\)/g,'').trim();
+        const whHit=lk.get(sk)||lk.get(base);
+        if(whHit) stockQty=+whHit.qty||0;
+      }
+      const stockCell = stockQty!=null
+        ? (stockQty > 0
+            ? `<b style="color:#166534">${stockQty}</b>`
             : `<span style="color:#dc2626">0</span>`)
         : `<span style="color:#cbd5e0">—</span>`;
       const dsCell = r.ds
