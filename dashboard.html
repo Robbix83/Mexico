@@ -6861,15 +6861,15 @@ function _buildPlMfrPills(){
   const c=document.getElementById('pl-mfr-pills');
   if(!c) return;
   const allActive=plMfrFilter==='all';
-  const _allIco=`<svg width="13" height="13" viewBox="0 0 24 24" fill="none" style="vertical-align:-2px;margin-left:5px">
-    <rect x="3" y="3" width="7.5" height="7.5" rx="2" fill="currentColor" opacity="1"/>
-    <rect x="13.5" y="3" width="7.5" height="7.5" rx="2" fill="currentColor" opacity="0.55"/>
-    <rect x="3" y="13.5" width="7.5" height="7.5" rx="2" fill="currentColor" opacity="0.55"/>
-    <rect x="13.5" y="13.5" width="7.5" height="7.5" rx="2" fill="currentColor" opacity="1"/>
-  </svg>`;
+  const _allIco=`<span class="pl-mfr-logo"><svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+    <rect x="3" y="3" width="7.5" height="7.5" rx="2.2" fill="currentColor"/>
+    <rect x="13.5" y="3" width="7.5" height="7.5" rx="2.2" fill="currentColor" opacity="0.5"/>
+    <rect x="3" y="13.5" width="7.5" height="7.5" rx="2.2" fill="currentColor" opacity="0.5"/>
+    <rect x="13.5" y="13.5" width="7.5" height="7.5" rx="2.2" fill="currentColor"/>
+  </svg></span>`;
   const allBtn=`<button class="pl-mfr-btn${allActive?' active':''}"
-    style="${allActive?'border-color:#0F766E;background:#CCFBF1;color:#0F4C5C':'color:#0F766E'}"
-    onclick="plMfrFilter='all';renderPriceList()">${_allIco}הכל</button>`;
+    style="${allActive?'border-color:#0F766E;background:#CCFBF1;color:#0F4C5C':'background:#F0FDFA;color:#0F766E'}"
+    onclick="plMfrFilter='all';renderPriceList()"><span>הכל</span>${_allIco}</button>`;
   const pills=PRICE_LIST_MFR.map(m=>{
     const act=plMfrFilter===m.id;
     return `<button class="pl-mfr-btn${act?' active':''}"
