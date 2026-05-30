@@ -25,3 +25,15 @@ avi_full.txt
 old_dashboard.html
 new_dashboard_lf.html
 *old_dashboard.html
+
+# Design mockups / experiments (not part of the app)
+design-preview*.html
+
+# Local server logs & scratch files
+server-debug.log
+server-err.log
+server-out.log
+server-*.log
+login-test.json
+lt.json
+.claude/
