@@ -5199,14 +5199,11 @@ function _showDsPopup(el,src,nameOverride){
         style="border:none;border-radius:6px;display:block;direction:ltr"></iframe>
     </div>`;
   } else if(isPdf){
-    // External PDF → stream through our server proxy so a normal iframe can render it
+    // External PDF → loading placeholder; we probe the proxy then show inline preview or a card
     logAuditEvent('view_ds',fname);
-    const proxied='/api/ds-proxy?url='+encodeURIComponent(src)+'#navpanes=0';
-    body=`<div style="position:relative;width:640px;height:620px;direction:ltr;overflow:hidden;background:#f8fafc">
-      <iframe src="${proxied}" width="640" height="588" dir="ltr"
-        style="border:none;display:block"></iframe>
-      <div style="height:32px;display:flex;align-items:center;justify-content:center;gap:14px;background:#fff;border-top:1px solid #eef2f6">
-        <a href="${src}" target="_blank" rel="noopener" style="color:#0F766E;font-size:.74rem;font-weight:700;text-decoration:none">📂 פתח במקור בטאב חדש</a>
+    body=`<div id="ds-ext-body" style="width:640px;height:620px;direction:ltr;display:flex;align-items:center;justify-content:center;background:#f8fafc">
+      <div style="text-align:center;color:#94a3b8;font-size:.85rem">
+        <div style="font-size:2rem;margin-bottom:8px">⏳</div>טוען תצוגה מקדימה...
       </div>
     </div>`;
   } else {
@@ -5237,6 +5234,46 @@ function _showDsPopup(el,src,nameOverride){
   if(top+ph>window.innerHeight-8) top=window.innerHeight-ph-8;
   if(top<8) top=8;
   pop.style.left=left+'px'; pop.style.top=top+'px';
+  // For external PDFs: probe the proxy, then show inline preview or a clean card
+  if(!isLocal && isPdf) _dsProbeExternal(src, displayName);
+}
+// Builds the "can't preview, open externally" card for an external datasheet
+function _dsExtCard(src, displayName){
+  return `<div style="width:640px;min-height:300px;padding:40px 30px;display:flex;flex-direction:column;align-items:center;gap:18px;text-align:center;background:#fff">
+    <div style="width:72px;height:72px;background:linear-gradient(135deg,#CCFBF1,#F0FDFA);border-radius:18px;display:flex;align-items:center;justify-content:center;font-size:2.4rem">📄</div>
+    <div style="font-size:.84rem;color:#4a5568;word-break:break-all;max-width:420px;line-height:1.5;direction:ltr;text-align:left;unicode-bidi:plaintext">${displayName}</div>
+    <div style="font-size:.75rem;color:#94a3b8;max-width:380px;line-height:1.5">האתר המקורי חוסם תצוגה מוטמעת — אפשר לפתוח את ה-PDF בטאב חדש</div>
+    <a href="${src}" target="_blank" rel="noopener"
+       style="background:#0F766E;color:#fff;border-radius:10px;padding:12px 30px;text-decoration:none;font-size:.92rem;font-weight:700">
+      📂 פתח PDF בטאב חדש
+    </a>
+  </div>`;
+}
+async function _dsProbeExternal(src, displayName){
+  const cont=document.getElementById('ds-ext-body');
+  if(!cont) return;
+  let isPdf=false;
+  try{
+    const r=await fetch('/api/ds-proxy?probe=1&url='+encodeURIComponent(src));
+    const d=await r.json();
+    isPdf=!!d.pdf;
+  }catch(e){ isPdf=false; }
+  // popup may have been closed/changed meanwhile
+  const still=document.getElementById('ds-ext-body');
+  if(!still) return;
+  if(isPdf){
+    const proxied='/api/ds-proxy?url='+encodeURIComponent(src)+'#navpanes=0';
+    still.style.cssText='width:640px;height:620px;direction:ltr;overflow:hidden;background:#f8fafc';
+    still.innerHTML=`<iframe src="${proxied}" width="640" height="588" dir="ltr" style="border:none;display:block"></iframe>
+      <div style="height:32px;display:flex;align-items:center;justify-content:center;background:#fff;border-top:1px solid #eef2f6">
+        <a href="${src}" target="_blank" rel="noopener" style="color:#0F766E;font-size:.74rem;font-weight:700;text-decoration:none">📂 פתח במקור בטאב חדש</a>
+      </div>`;
+  } else {
+    still.outerHTML=_dsExtCard(src, displayName);
+    // shrink popup to card size
+    const pop=document.getElementById('ds-preview-popup');
+    if(pop){ /* card is self-sized; no fixed height needed */ }
+  }
 }
 // legacy stubs (no longer needed but kept to avoid ReferenceError if called)
 function _dsFrameLoaded(){}

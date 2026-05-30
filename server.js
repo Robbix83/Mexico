@@ -2030,15 +2030,25 @@ app.get('/api/ds-proxy', requireAuth, async (req, res) => {
     const r = await fetch(u.href, { signal: ctrl.signal, redirect: 'follow',
       headers: { 'User-Agent': 'Mozilla/5.0 (compatible; AfkonDashboard/1.0)' } });
     clearTimeout(timer);
-    if (!r.ok) return res.status(502).send('upstream ' + r.status);
-    const ct = (r.headers.get('content-type') || '').toLowerCase();
-    if (!ct.includes('pdf') && !u.pathname.toLowerCase().endsWith('.pdf')) {
-      return res.status(415).send('not a pdf');
+    const probe = req.query.probe === '1';
+    if (!r.ok) {
+      if (probe) return res.json({ pdf: false, reason: 'upstream ' + r.status });
+      return res.status(502).send('upstream ' + r.status);
     }
     const len = parseInt(r.headers.get('content-length') || '0', 10);
-    if (len && len > _PROXY_MAX_BYTES) return res.status(413).send('too large');
+    if (len && len > _PROXY_MAX_BYTES) {
+      if (probe) return res.json({ pdf: false, reason: 'too large' });
+      return res.status(413).send('too large');
+    }
     const buf = Buffer.from(await r.arrayBuffer());
-    if (buf.length > _PROXY_MAX_BYTES) return res.status(413).send('too large');
+    if (buf.length > _PROXY_MAX_BYTES) {
+      if (probe) return res.json({ pdf: false, reason: 'too large' });
+      return res.status(413).send('too large');
+    }
+    // Verify real PDF by magic bytes (%PDF) — many sites serve an HTML wall for .pdf URLs
+    const isRealPdf = buf.length > 4 && buf.slice(0, 5).toString('latin1') === '%PDF-';
+    if (probe) return res.json({ pdf: isRealPdf });
+    if (!isRealPdf) return res.status(415).send('not a pdf');
     res.setHeader('Content-Type', 'application/pdf');
     res.setHeader('Content-Disposition', 'inline');
     res.setHeader('Cache-Control', 'private, max-age=3600');
