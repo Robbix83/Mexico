@@ -5199,14 +5199,14 @@ function _showDsPopup(el,src,nameOverride){
         style="border:none;border-radius:6px;display:block;direction:ltr"></iframe>
     </div>`;
   } else if(isPdf){
-    // External PDF → embed via Google Docs Viewer (renders remote PDFs that block direct iframing)
+    // External PDF → stream through our server proxy so a normal iframe can render it
     logAuditEvent('view_ds',fname);
-    const gview=`https://docs.google.com/viewer?embedded=true&url=${encodeURIComponent(src)}`;
+    const proxied='/api/ds-proxy?url='+encodeURIComponent(src)+'#navpanes=0';
     body=`<div style="position:relative;width:640px;height:620px;direction:ltr;overflow:hidden;background:#f8fafc">
-      <iframe src="${gview}" width="640" height="588" dir="ltr"
+      <iframe src="${proxied}" width="640" height="588" dir="ltr"
         style="border:none;display:block"></iframe>
       <div style="height:32px;display:flex;align-items:center;justify-content:center;gap:14px;background:#fff;border-top:1px solid #eef2f6">
-        <a href="${src}" target="_blank" rel="noopener" style="color:#0F766E;font-size:.74rem;font-weight:700;text-decoration:none">📂 פתח בטאב חדש</a>
+        <a href="${src}" target="_blank" rel="noopener" style="color:#0F766E;font-size:.74rem;font-weight:700;text-decoration:none">📂 פתח במקור בטאב חדש</a>
       </div>
     </div>`;
   } else {
