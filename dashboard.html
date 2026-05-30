@@ -4185,7 +4185,7 @@ function renderCatalog(){
         ?`₪${item.cost.toLocaleString('he-IL',{minimumFractionDigits:2,maximumFractionDigits:2})}`:'—';
       const ds=[
         ...(item.datasheetUrl?[`<a class="ci-datasheet" href="${item.datasheetUrl}" target="_blank" rel="noopener" title="Datasheet">📄</a>`]:[]),
-        ...(item.files||[]).map((f,_i)=>`<a class="ci-datasheet" href="#" onclick="event.preventDefault();openCatalogFile(${item.id},${_i})" title="${f.name}">📄</a>`)
+        ...(item.files||[]).map((f,_i)=>`<a class="ci-datasheet" href="#" onclick="event.preventDefault();openCatalogFile(${item.id},${_i})" title="${f.name}${f.url?'':' — קובץ ישן, מומלץ להעלות מחדש'}">${f.url?'📄':'⚠️'}</a>`)
       ].join(' ');
       const skuSafe=String(item.sku||'').replace(/'/g,"\\'");
       // Cross-data badges under cost (warehouse / pricelist)
@@ -4394,14 +4394,22 @@ function openCatalogFile(itemId,idx){
   if(!f) return;
   // Server-hosted file: open the URL directly (named, reliable)
   if(f.url){ window.open(f.url,'_blank','noopener'); return; }
-  // Legacy base64 file: decode to a blob
-  if(!f.dataUrl) return;
-  const arr=f.dataUrl.split(','), mime=(arr[0].match(/:(.*?);/)||[])[1]||'application/octet-stream';
-  const bstr=atob(arr[1]);
-  const u8=new Uint8Array(bstr.length);
-  for(let i=0;i<bstr.length;i++) u8[i]=bstr.charCodeAt(i);
-  const blob=new Blob([u8],{type:mime});
-  window.open(URL.createObjectURL(blob),'_blank');
+  // Legacy base64 file: decode to a blob (may be corrupted if it was truncated by localStorage)
+  if(!f.dataUrl){ _toast('הקובץ אינו זמין — מחק והעלה מחדש','warn'); return; }
+  try{
+    const arr=f.dataUrl.split(','), mime=(arr[0].match(/:(.*?);/)||[])[1]||'application/octet-stream';
+    const bstr=atob(arr[1]);
+    const u8=new Uint8Array(bstr.length);
+    for(let i=0;i<bstr.length;i++) u8[i]=bstr.charCodeAt(i);
+    const blob=new Blob([u8],{type:mime});
+    const u=URL.createObjectURL(blob);
+    const w=window.open('','_blank');
+    if(w){ w.document.title=f.name||'datasheet';
+      w.location.href=u; }
+    else window.open(u,'_blank');
+  }catch(e){
+    _toast('הקובץ הישן פגום (נשמר לפני העדכון) — מחק אותו בעריכת המקט והעלה מחדש','error');
+  }
 }
 
 // ── Catalog CRUD ────────────────────────────────────────────
