@@ -9003,8 +9003,10 @@ async function rqLoadInto(id){
       rqDraft.qtys[key]=+it.qty||0;
     }
     rqSaveDraft();
+    if(typeof rqCloseViewer==='function') rqCloseViewer();
+    setView('requisition');
     rqRender();
-  }catch(e){ _toast('שגיאה בטעינה','error'); }
+  }catch(e){ console.error('rqLoadInto failed:',e); _toast('שגיאה בטעינה: '+(e.message||'נסה שוב'),'error'); }
 }
 
 async function rqClearQtys(){
