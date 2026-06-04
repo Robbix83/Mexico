@@ -1465,8 +1465,10 @@ tr:hover .pl-row-ds-btn{opacity:.6}
     </div>
     <div class="quick-add">
       <span class="quick-add-ico">⚡</span>
-      <input id="quick-add-input" class="quick-add-input" type="text" placeholder="הוספה מהירה — הקלד משימה ולחץ Enter…"
-             autocomplete="off" data-lpignore="true" data-1p-ignore
+      <input id="quick-add-input" class="quick-add-input" type="text" name="task-quick-add" placeholder="הוספה מהירה — הקלד משימה ולחץ Enter…"
+             autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"
+             data-lpignore="true" data-1p-ignore data-form-type="other"
+             readonly onfocus="this.removeAttribute('readonly')"
              onkeydown="if(event.key==='Enter')quickAddTask()"/>
       <button class="quick-add-btn" onclick="quickAddTask()">＋ הוסף</button>
     </div>
