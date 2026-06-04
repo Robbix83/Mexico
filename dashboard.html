@@ -340,6 +340,14 @@ tr.reparent-hover>td{background:#f0fff4!important;outline:2px solid #38a169;outl
 .col-notstarted .col-header{border-color:#a0aec0}
 .col-inprogress .col-header{border-color:#4262ff}
 .col-blocked    .col-header{border-color:#e53e3e}
+.kchips{display:flex;flex-wrap:wrap;gap:5px;margin:6px 0 2px}
+.kchip{font-size:.68rem;font-weight:700;padding:2px 8px;border-radius:999px;white-space:nowrap}
+.kdue-overdue{background:#fee2e2;color:#b91c1c}
+.kdue-today{background:#fef3c7;color:#92400e}
+.kdue-soon{background:#fef9c3;color:#854d0e}
+.kdue-ok{background:#eef1ff;color:#3b4ce0}
+.kage{background:#f1f5f9;color:#64748b}
+.kage-hot{background:#ffedd5;color:#c2410c}
 .kcard{background:#fff;border-radius:10px;padding:11px 13px;margin-bottom:9px;
   box-shadow:0 2px 6px rgba(0,0,0,.08);cursor:grab;border-right:4px solid #e2e8f0;
   transition:box-shadow .15s,transform .15s,opacity .15s}
@@ -1404,6 +1412,7 @@ tr:hover .pl-row-ds-btn{opacity:.6}
         <button class="search-clear" id="search-clear" onclick="clearSearch()" title="נקה חיפוש">✕</button>
       </div>
       <select class="sort-sel" id="sort-sel" onchange="setSort(this.value)">
+        <option value="smart">🎯 חכם (דחיפות)</option>
         <option value="default">↕ מיון ידני</option>
         <option value="due">📅 תאריך יעד</option>
         <option value="status">↕ סטטוס</option>
@@ -2279,7 +2288,7 @@ let nextCatalogId=1;
 let catalogCats=['מצלמות','ארונות','כבילה','ציוד יבש'];
 
 // ─── STATE ─────────────────────────────────────────────────
-let currentView='list', priFilter='all', stFilter='all', catFilter='all', sortBy='default';
+let currentView='list', priFilter='all', stFilter='all', catFilter='all', sortBy='smart';
 let dueFilter='all', searchQuery='';
 let expandedIds=new Set();
 let catalogCatFilter='all', catalogExpandedId=null, catalogEditId=null, catalogModalFiles=[];
@@ -2817,9 +2826,13 @@ function taskProgressBar(taskId){
   const allKids=tasks.filter(c=>c.parentId===taskId);
   if(!allKids.length) return '';
   const done=allKids.filter(c=>c.status==='done').length;
-  const pct=Math.round((done/allKids.length)*100);
-  const color=done===allKids.length?'#059669':pct>=50?'#0D9488':'#9CA3AF';
-  return`<div class="task-prog"><div class="task-prog-bar"><div class="task-prog-fill" style="width:${pct}%;background:${color}"></div></div><span class="task-prog-txt" style="color:${color}">${done}/${allKids.length}</span></div>`;
+  // status-weighted: done=1, inprogress=0.5, else 0 — honest mid-progress
+  const weighted=allKids.reduce((s,c)=>s+(c.status==='done'?1:c.status==='inprogress'?0.5:0),0);
+  const pct=Math.round((weighted/allKids.length)*100);
+  const hasBlocked=allKids.some(c=>c.status==='blocked');
+  const color=done===allKids.length?'#059669':hasBlocked?'#f59e0b':pct>=50?'#4262ff':'#9CA3AF';
+  const txt=`${done}/${allKids.length}${hasBlocked?' ⚠':''}`;
+  return`<div class="task-prog" title="${done} בוצעו מתוך ${allKids.length}${hasBlocked?' · יש משימה חסומה':''}"><div class="task-prog-bar"><div class="task-prog-fill" style="width:${pct}%;background:${color}"></div></div><span class="task-prog-txt" style="color:${color}">${txt}</span></div>`;
 }
 
 // ─── EXPORT CSV ────────────────────────────────────────────
@@ -2980,8 +2993,26 @@ function setSort(val){
 }
 const STATUS_ORDER={blocked:0,inprogress:1,notstarted:2};
 const PRI_ORDER={high:0,medium:1,low:2};
+// Smart score blends importance (priority) with urgency (due date) — lower = do first.
+function computeSmartScore(t){
+  const pri=(PRI_ORDER[t.pri]??1);
+  let due=1000; // no due date → least urgent
+  if(t.dueDate){
+    const d=new Date(t.dueDate+'T00:00:00'); const today=new Date(); today.setHours(0,0,0,0);
+    due=Math.round((d-today)/864e5); // overdue = negative = most urgent
+  }
+  return pri*7 + due*1.5 + (t.status==='blocked'?6:0);
+}
+// Days since the task last changed status (from statusHistory) — for aging/stuck detection.
+function daysInStatus(t){
+  if(!t||!t.statusHistory||!t.statusHistory.length) return null;
+  const last=t.statusHistory[t.statusHistory.length-1];
+  if(!last||!last.date) return null;
+  return Math.round((Date.now()-new Date(last.date))/864e5);
+}
 function applySort(parents){
   if(sortBy==='default') return parents;
+  if(sortBy==='smart') return [...parents].sort((a,b)=>computeSmartScore(a)-computeSmartScore(b));
   return [...parents].sort((a,b)=>{
     if(sortBy==='status') return (STATUS_ORDER[a.status]??3)-(STATUS_ORDER[b.status]??3);
     if(sortBy==='pri')    return (PRI_ORDER[a.pri]??3)-(PRI_ORDER[b.pri]??3);
@@ -3250,9 +3281,14 @@ function renderKanban(){
       const catSel=`<span style="display:inline-flex;align-items:center;justify-content:center;background:${kCat.bg};color:${kCat.tx};border-radius:20px;padding:0 8px;height:24px;font-size:.72rem;font-weight:700">${t.cat||'—'}</span>`;
       const kProj=t.projectId?getProject(t.projectId):null;
       const kCity=kProj?.cityId?getCity(kProj.cityId):null;
+      const due=getDueDateInfo(t.dueDate);
+      const dueChip=due?`<span class="kchip kdue-${due.status}">${due.label}</span>`:'';
+      const age=daysInStatus(t);
+      const ageChip=(age!=null&&age>=3&&t.status!=='notstarted')?`<span class="kchip kage${age>7?' kage-hot':''}" title="${age} ימים בעמודה זו">⏳ ${age} ימים</span>`:'';
       card.innerHTML=`
         <div class="kname">${t.name}</div>
         ${t.note?`<div class="knote">${t.note}</div>`:''}
+        ${(dueChip||ageChip)?`<div class="kchips">${dueChip}${ageChip}</div>`:''}
         <div class="kmeta">
           ${catSel}
           <select class="sel-pri ${PRI_CLS[t.pri]}" onchange="changePri(${t.id},this,true)"
