@@ -3040,7 +3040,13 @@ function applySort(parents){
 function renderList(){
   const tbody=document.getElementById('task-body');
   tbody.innerHTML='';
-  const parents=applySort(taskOrder.map(id=>tasks.find(t=>t.id===id)).filter(t=>t&&t.status!=='done'));
+  let parents=applySort(taskOrder.map(id=>tasks.find(t=>t.id===id)).filter(t=>t&&t.status!=='done'));
+  // When a category/priority filter is active, float matching tasks to the TOP
+  // (matches stay highlighted, non-matches are dimmed below) — no scrolling to hunt.
+  if(catFilter!=='all'||priFilter!=='all'||stFilter!=='all'){
+    const _isMatch=t=>(catFilter==='all'||t.cat===catFilter)&&(priFilter==='all'||t.pri===priFilter)&&(stFilter==='all'||t.status===stFilter);
+    parents=[...parents].sort((a,b)=>(_isMatch(b)?1:0)-(_isMatch(a)?1:0));
+  }
   if(!parents.length){tbody.innerHTML='<tr class="empty-row"><td colspan="8">🎉 כל המשימות הושלמו!</td></tr>';updateCounts();return}
 
   parents.forEach(t=>{
