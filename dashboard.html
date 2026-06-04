@@ -209,7 +209,7 @@ body.viewer-mode select.sel-pri
 .vt:hover{border-color:var(--blue);color:var(--blue)}
 .vt.active{background:var(--blue);color:#fff;border-color:var(--blue)}
 
-main{max-width:1280px;margin:0 auto;padding:20px 14px}
+main{max-width:1280px;width:100%;margin:0 auto;padding:20px 14px}
 section{margin-bottom:26px}
 section>h2{font-size:1.15rem;font-weight:800;margin-bottom:11px;color:var(--text);letter-spacing:-.5px;
   border-right:4px solid var(--m-blue);padding-right:9px;display:flex;align-items:center;gap:7px;
@@ -340,6 +340,25 @@ tr.reparent-hover>td{background:#f0fff4!important;outline:2px solid #38a169;outl
 .col-notstarted .col-header{border-color:#a0aec0}
 .col-inprogress .col-header{border-color:#4262ff}
 .col-blocked    .col-header{border-color:#e53e3e}
+/* ── Sites (projects overview) ── */
+.sites-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:16px}
+.sites-empty{padding:40px;text-align:center;color:var(--muted);font-size:.9rem}
+.site-card{background:#fff;border:1px solid var(--border);border-radius:16px;padding:16px 18px;cursor:pointer;transition:.16s;box-shadow:0 1px 0 rgba(0,0,0,.02)}
+.site-card:hover{transform:translateY(-3px);box-shadow:0 12px 28px rgba(28,28,30,.1)}
+.site-top{display:flex;align-items:center;gap:9px;margin-bottom:5px}
+.site-rag{width:11px;height:11px;border-radius:50%;flex-shrink:0}
+.site-name{font-size:1.05rem;font-weight:800;color:var(--text);letter-spacing:-.3px;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.site-num{font-family:'SF Mono',Consolas,monospace;font-size:.72rem;color:var(--muted);background:#f1f5f9;padding:1px 7px;border-radius:6px}
+.site-city{font-size:.78rem;color:var(--muted);margin-bottom:11px}
+.site-prog{height:8px;background:#eef1f5;border-radius:99px;overflow:hidden;margin-bottom:6px}
+.site-prog-fill{height:100%;border-radius:99px;transition:width .3s}
+.site-pct{font-size:.76rem;font-weight:700;color:var(--text);margin-bottom:10px}
+.site-badges{display:flex;flex-wrap:wrap;gap:5px}
+.site-b{font-size:.68rem;font-weight:700;padding:2px 8px;border-radius:999px;background:#f1f5f9;color:#475569;white-space:nowrap}
+.site-b.b-ip{background:#eef1ff;color:#3b4ce0}
+.site-b.b-bl{background:#fee2e2;color:#b91c1c}
+.site-b.b-od{background:#ffedd5;color:#c2410c}
+.site-b.b-done{background:#dcfce7;color:#15803d}
 .kchips{display:flex;flex-wrap:wrap;gap:5px;margin:6px 0 2px}
 .kchip{font-size:.68rem;font-weight:700;padding:2px 8px;border-radius:999px;white-space:nowrap}
 .kdue-overdue{background:#fee2e2;color:#b91c1c}
@@ -1401,6 +1420,7 @@ tr:hover .pl-row-ds-btn{opacity:.6}
       <div class="view-toggle">
         <button class="vt vt-list active" onclick="setView('list')">📋 רשימה</button>
         <button class="vt vt-kanban" onclick="setView('kanban')">🗂️ קנבן</button>
+        <button class="vt vt-sites" onclick="setView('sites')">🏙️ אתרים</button>
       </div>
     </h2>
     <div class="toolbar">
@@ -1464,6 +1484,7 @@ tr:hover .pl-row-ds-btn{opacity:.6}
       <div class="view-toggle">
         <button class="vt vt-list" onclick="setView('list')">📋 רשימה</button>
         <button class="vt vt-kanban active" onclick="setView('kanban')">🗂️ קנבן</button>
+        <button class="vt vt-sites" onclick="setView('sites')">🏙️ אתרים</button>
       </div>
     </h2>
     <div style="margin-bottom:11px;display:flex;gap:8px">
@@ -1487,6 +1508,19 @@ tr:hover .pl-row-ds-btn{opacity:.6}
         <div id="cards-blocked"></div>
       </div>
     </div>
+  </section>
+
+  <!-- ══ SITES (PROJECTS OVERVIEW) VIEW ══ -->
+  <section id="sites-view" style="display:none">
+    <h2>
+      <span>תצוגת אתרים</span>
+      <div class="view-toggle">
+        <button class="vt vt-list" onclick="setView('list')">📋 רשימה</button>
+        <button class="vt vt-kanban" onclick="setView('kanban')">🗂️ קנבן</button>
+        <button class="vt vt-sites active" onclick="setView('sites')">🏙️ אתרים</button>
+      </div>
+    </h2>
+    <div id="sites-grid" class="sites-grid"></div>
   </section>
 
   <!-- ══ CATALOG VIEW ══ -->
@@ -2288,7 +2322,7 @@ let nextCatalogId=1;
 let catalogCats=['מצלמות','ארונות','כבילה','ציוד יבש'];
 
 // ─── STATE ─────────────────────────────────────────────────
-let currentView='list', priFilter='all', stFilter='all', catFilter='all', sortBy='smart';
+let currentView='list', priFilter='all', stFilter='all', catFilter='all', projFilter='all', sortBy='smart';
 let dueFilter='all', searchQuery='';
 let expandedIds=new Set();
 let catalogCatFilter='all', catalogExpandedId=null, catalogEditId=null, catalogModalFiles=[];
@@ -2898,11 +2932,12 @@ function setView(v){
   document.getElementById('vt-docpack').classList.toggle('active',v==='docpack');
   document.getElementById('vt-pricelist').classList.toggle('active',v==='pricelist');
   document.getElementById('vt-requisition').classList.toggle('active',v==='requisition');
-  // Sync sidebar nav active state (kanban treated as part of list section)
+  // Sync sidebar nav active state (kanban + sites treated as part of list/projects section)
   ['list','catalog','warehouse','docpack','pricelist','requisition'].forEach(k=>{
     const sb=document.getElementById('snav-'+k);
-    if(sb) sb.classList.toggle('active', k===v || (k==='list' && v==='kanban'));
+    if(sb) sb.classList.toggle('active', k===v || (k==='list' && (v==='kanban'||v==='sites')));
   });
+  document.querySelectorAll('.vt-sites').forEach(b=>b.classList.toggle('active',v==='sites'));
   // Sync sidebar inline view toggle — only update when inside projects section
   if(v==='list'||v==='kanban'){
     const svtL=document.getElementById('svt-list');
@@ -2911,17 +2946,18 @@ function setView(v){
     if(svtK) svtK.classList.toggle('active',v==='kanban');
   }
   // Update page title in header
-  const titles={list:'פרויקטים — ניהול משימות',kanban:'קנבן',catalog:'מקטים בשימוש לאחרונה',warehouse:'מלאי מחסנים',docpack:'תיק תיעוד',pricelist:'מחירונים',requisition:'דרישת רכש'};
+  const titles={list:'פרויקטים — ניהול משימות',kanban:'קנבן',sites:'תצוגת אתרים',catalog:'מקטים בשימוש לאחרונה',warehouse:'מלאי מחסנים',docpack:'תיק תיעוד',pricelist:'מחירונים',requisition:'דרישת רכש'};
   const pt=document.getElementById('hdr-page-title');
   if(pt && titles[v]) pt.textContent=titles[v];
   document.getElementById('list-view').style.display        =v==='list'?'':'none';
   document.getElementById('kanban-view').style.display      =v==='kanban'?'':'none';
+  const _sv=document.getElementById('sites-view'); if(_sv) _sv.style.display=v==='sites'?'':'none';
   document.getElementById('catalog-view').style.display     =v==='catalog'?'':'none';
   document.getElementById('warehouse-view').style.display   =v==='warehouse'?'':'none';
   document.getElementById('docpack-view').style.display     =v==='docpack'?'':'none';
   document.getElementById('pricelist-view').style.display   =v==='pricelist'?'':'none';
   document.getElementById('requisition-view').style.display =v==='requisition'?'':'none';
-  const _hideExtra=v==='catalog'||v==='pricelist'||v==='warehouse'||v==='docpack'||v==='requisition';
+  const _hideExtra=v==='catalog'||v==='pricelist'||v==='warehouse'||v==='docpack'||v==='requisition'||v==='sites';
   document.getElementById('sec-charts').style.display      =v==='list'?'':'none';
   document.getElementById('sec-stats').style.display       =_hideExtra?'none':'';
   document.getElementById('sec-done').style.display        =_hideExtra?'none':'';
@@ -2931,6 +2967,7 @@ function setView(v){
   document.querySelectorAll('.vt-kanban').forEach(b=>b.classList.toggle('active',v==='kanban'));
 
   if(v==='kanban') renderKanban();
+  else if(v==='sites') renderSites();
   else if(v==='catalog'){renderCatalogCatPills();renderCatalog();
     if(!_whLoaded) ensureWarehouseLoaded().then(()=>{ if(currentView==='catalog') renderCatalog(); });}
   else if(v==='warehouse'){renderWarehouse();if(!_whLoaded) ensureWarehouseLoaded().then(()=>{ if(currentView==='warehouse') renderWarehouse(); });}
@@ -2972,9 +3009,10 @@ function updateFilterLabel(){
   const parts=[];
   if(priFilter!=='all') parts.push('עדיפות '+(priFilter==='high'?'גבוהה':'בינונית'));
   if(catFilter!=='all') parts.push('קטגוריה: '+catFilter);
+  if(projFilter!=='all'){const _p=getProject(projFilter);parts.push('אתר: '+(_p?(_p.name):projFilter));}
   const lbl=document.getElementById('filter-label');
   lbl.innerHTML=parts.length
-    ?'— מסונן: '+parts.join(', ')+' <button onclick="catFilter=\'all\';priFilter=\'all\';document.querySelectorAll(\'.stat-card\').forEach(c=>c.classList.remove(\'active\'));updateFilterLabel();renderList();updateCharts();" style="font-size:.72rem;background:#fee2e2;border:none;border-radius:5px;padding:1px 7px;cursor:pointer;color:#c53030;margin-right:4px">✕ נקה</button>'
+    ?'— מסונן: '+parts.join(', ')+' <button onclick="catFilter=\'all\';priFilter=\'all\';projFilter=\'all\';document.querySelectorAll(\'.stat-card\').forEach(c=>c.classList.remove(\'active\'));updateFilterLabel();renderList();updateCharts();" style="font-size:.72rem;background:#fee2e2;border:none;border-radius:5px;padding:1px 7px;cursor:pointer;color:#c53030;margin-right:4px">✕ נקה</button>'
     :'';
 }
 function scrollToDone(){
@@ -3043,8 +3081,8 @@ function renderList(){
   let parents=applySort(taskOrder.map(id=>tasks.find(t=>t.id===id)).filter(t=>t&&t.status!=='done'));
   // When a category/priority filter is active, float matching tasks to the TOP
   // (matches stay highlighted, non-matches are dimmed below) — no scrolling to hunt.
-  if(catFilter!=='all'||priFilter!=='all'||stFilter!=='all'){
-    const _isMatch=t=>(catFilter==='all'||t.cat===catFilter)&&(priFilter==='all'||t.pri===priFilter)&&(stFilter==='all'||t.status===stFilter);
+  if(catFilter!=='all'||priFilter!=='all'||stFilter!=='all'||projFilter!=='all'){
+    const _isMatch=t=>(catFilter==='all'||t.cat===catFilter)&&(priFilter==='all'||t.pri===priFilter)&&(stFilter==='all'||t.status===stFilter)&&(projFilter==='all'||t.projectId===projFilter);
     parents=[...parents].sort((a,b)=>(_isMatch(b)?1:0)-(_isMatch(a)?1:0));
   }
   if(!parents.length){tbody.innerHTML='<tr class="empty-row"><td colspan="8">🎉 כל המשימות הושלמו!</td></tr>';updateCounts();return}
@@ -3060,6 +3098,7 @@ function renderList(){
     const priOk=priFilter==='all'||t.pri===priFilter;
     const stOk =stFilter==='all' ||t.status===stFilter;
     const catOk=catFilter==='all'||t.cat===catFilter;
+    const projOk=projFilter==='all'||t.projectId===projFilter;
     const exp=expandedIds.has(t.id);
 
     const dueInfo=getDueDateInfo(t.dueDate);
@@ -3069,7 +3108,7 @@ function renderList(){
     const tr=document.createElement('tr');
     tr.id='row-'+t.id; tr.dataset.taskid=t.id;
     if(dueInfo?.status==='overdue') tr.classList.add('row-overdue');
-    if(!priOk||!stOk||!catOk) tr.classList.add('dimmed');
+    if(!priOk||!stOk||!catOk||!projOk) tr.classList.add('dimmed');
 
     // dragover/drop on parent row handles BOTH reorder and reparent
     tr.addEventListener('dragover', e=>{
@@ -3328,6 +3367,66 @@ function renderKanban(){
     });
   });
   updateCounts();
+}
+
+// ─── SITES (PROJECTS OVERVIEW) ─────────────────────────────
+function getProjectStats(pid){
+  const pt=tasks.filter(t=>t.projectId===pid);
+  const total=pt.length;
+  const done=pt.filter(t=>t.status==='done').length;
+  const open=pt.filter(t=>t.status!=='done');
+  const blocked=open.filter(t=>t.status==='blocked').length;
+  const inprog=open.filter(t=>t.status==='inprogress').length;
+  const overdue=open.filter(t=>{const i=getDueDateInfo(t.dueDate);return i&&i.status==='overdue';}).length;
+  const weighted=pt.reduce((s,t)=>s+(t.status==='done'?1:t.status==='inprogress'?0.5:0),0);
+  const pct=total?Math.round((weighted/total)*100):0;
+  const stale=Math.max(0,...open.map(t=>daysInStatus(t)||0));
+  // RAG: red if overdue/blocked or very stale; amber if soon-due or moderately stale; green otherwise
+  let rag='green';
+  if(overdue>0||blocked>0||stale>7) rag='red';
+  else if(stale>=3||open.some(t=>{const i=getDueDateInfo(t.dueDate);return i&&(i.status==='today'||i.status==='soon');})) rag='amber';
+  if(total&&done===total) rag='green';
+  return {total,done,open:open.length,blocked,inprog,overdue,pct,stale,rag};
+}
+function renderSites(){
+  const grid=document.getElementById('sites-grid');
+  if(!grid) return;
+  if(!projects.length){ grid.innerHTML='<div class="sites-empty">אין פרויקטים עדיין. הוסף פרויקט כדי לראות את לוח האתרים.</div>'; return; }
+  const ragColor={red:'#dc2626',amber:'#f59e0b',green:'#16c47f'};
+  const ragLabel={red:'דורש טיפול',amber:'לב תשומת',green:'תקין'};
+  // sort: red first, then amber, then green; within, by open desc
+  const order={red:0,amber:1,green:2};
+  const cards=projects.map(p=>({p,s:getProjectStats(p.id)}))
+    .sort((a,b)=>(order[a.s.rag]-order[b.s.rag])||(b.s.open-a.s.open))
+    .map(({p,s})=>{
+      const city=p.cityId?getCity(p.cityId):null;
+      const barColor=s.rag==='red'?ragColor.red:s.rag==='amber'?ragColor.amber:'#4262ff';
+      return `<div class="site-card" onclick="openProjectTasks(${p.id})" title="לחץ לצפייה במשימות האתר">
+        <div class="site-top">
+          <div class="site-rag" style="background:${ragColor[s.rag]}" title="${ragLabel[s.rag]}"></div>
+          <div class="site-name">${p.name}</div>
+          <div class="site-num">${p.num||''}</div>
+        </div>
+        ${city?`<div class="site-city">🏙️ ${city.name}</div>`:'<div class="site-city">—</div>'}
+        <div class="site-prog"><div class="site-prog-fill" style="width:${s.pct}%;background:${barColor}"></div></div>
+        <div class="site-pct">${s.pct}% · ${s.done}/${s.total} בוצעו</div>
+        <div class="site-badges">
+          ${s.open?`<span class="site-b">📋 ${s.open} פתוחות</span>`:''}
+          ${s.inprog?`<span class="site-b b-ip">🔄 ${s.inprog}</span>`:''}
+          ${s.blocked?`<span class="site-b b-bl">🔴 ${s.blocked} תקוע</span>`:''}
+          ${s.overdue?`<span class="site-b b-od">⏰ ${s.overdue} באיחור</span>`:''}
+          ${(!s.open)?'<span class="site-b b-done">✅ הושלם</span>':''}
+        </div>
+      </div>`;
+    }).join('');
+  grid.innerHTML=cards;
+}
+function openProjectTasks(pid){
+  projFilter=pid;
+  setView('list');
+  updateFilterLabel();
+  renderList();
+  smoothScroll('list-view');
 }
 function kAddSub(pid){
   const inp=document.getElementById('k-sub-'+pid); if(!inp) return;
