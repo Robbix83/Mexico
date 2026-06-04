@@ -5505,28 +5505,33 @@ function _hideDsPopup(){
   pop.style.display='none'; pop.innerHTML='';
   if(_dsBlobUrl){URL.revokeObjectURL(_dsBlobUrl);_dsBlobUrl=null;}
 }
-document.addEventListener('mouseover',e=>{
-  const link=e.target.closest('a.ci-datasheet');
-  if(!link) return;
-  clearTimeout(_dsTimer);
-  _dsTimer=setTimeout(()=>{
-    _getDsPreviewSrc(link,(src,_,name)=>_showDsPopup(link,src,name));
-  },1500);
-});
+let _dsActiveLink=null; // currently-tracked link — prevents timer reset on micro-movements within same link
 let _dsHideTimer=null;
 function _schedHideDs(){ clearTimeout(_dsHideTimer); _dsHideTimer=setTimeout(_hideDsPopup,260); }
 function _cancelHideDs(){ clearTimeout(_dsHideTimer); _dsHideTimer=null; }
+document.addEventListener('mouseover',e=>{
+  const link=e.target.closest('a.ci-datasheet');
+  if(link){
+    if(_dsActiveLink===link) return; // still over same link — don't reset the timer!
+    _dsActiveLink=link;
+    clearTimeout(_dsTimer);
+    _dsTimer=setTimeout(()=>{
+      _getDsPreviewSrc(link,(src,_,name)=>_showDsPopup(link,src,name));
+    },1500);
+    return;
+  }
+  if(e.target.closest&&e.target.closest('#ds-preview-popup')) _cancelHideDs();
+});
 document.addEventListener('mouseout',e=>{
   const link=e.target.closest('a.ci-datasheet');
   if(!link) return;
+  const to=e.relatedTarget;
+  if(to&&link.contains(to)) return; // still within same link — don't cancel
   const pop=document.getElementById('ds-preview-popup');
-  if(pop.contains(e.relatedTarget)) return; // moved into popup → keep open
+  if(to&&to.closest&&to.closest('#ds-preview-popup')) return; // moved into popup
+  _dsActiveLink=null;
   clearTimeout(_dsTimer); _dsTimer=null;
-  if(pop.style.display==='block') _schedHideDs(); // left link → schedule hide (cancels if popup entered)
-});
-// Keep popup open while the cursor is anywhere over it
-document.addEventListener('mouseover',e=>{
-  if(e.target.closest&&e.target.closest('#ds-preview-popup')) _cancelHideDs();
+  if(pop.style.display==='block') _schedHideDs();
 });
 document.addEventListener('mouseleave',e=>{
   if(!e.target.closest||!e.target.closest('#ds-preview-popup')) return;
