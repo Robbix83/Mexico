@@ -1428,7 +1428,10 @@ tr:hover .pl-row-ds-btn{opacity:.6}
       <div class="search-wrap">
         <span class="search-ico">🔍</span>
         <input id="search-input" class="search-input" type="search" placeholder="חיפוש משימות..."
-               oninput="setSearch(this.value)" autocomplete="off"/>
+               name="task-search-q" oninput="setSearch(this.value)"
+               autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"
+               data-lpignore="true" data-1p-ignore data-form-type="other"
+               readonly onfocus="this.removeAttribute('readonly')"/>
         <button class="search-clear" id="search-clear" onclick="clearSearch()" title="נקה חיפוש">✕</button>
       </div>
       <select class="sort-sel" id="sort-sel" onchange="setSort(this.value)">
