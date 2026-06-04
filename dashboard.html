@@ -1328,6 +1328,12 @@ tr:hover .pl-row-ds-btn{opacity:.6}
 </head>
 <body>
 
+<!-- Autofill decoy: absorbs Chrome's saved-credential autofill so it never targets real search/quick-add inputs -->
+<form aria-hidden="true" tabindex="-1" style="position:absolute;top:0;left:-9999px;width:1px;height:1px;overflow:hidden;opacity:0;pointer-events:none">
+  <input type="text" name="username" autocomplete="username" tabindex="-1">
+  <input type="password" name="password" autocomplete="current-password" tabindex="-1">
+</form>
+
 <!-- Auth guard -->
 <div id="page-guard" style="position:fixed;inset:0;background:#fff;z-index:9999"></div>
 
