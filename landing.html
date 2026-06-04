@@ -1,888 +1,252 @@
 <!DOCTYPE html>
 <html lang="he" dir="rtl">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Nuvo — מערכת ניהול</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;700;800;900&display=swap" rel="stylesheet">
-  <style>
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Nuvo — מערכת ניהול</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Rubik:wght@300;400;500;600;700;800;900&family=Heebo:wght@300;400;700;800;900&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing:border-box; margin:0; padding:0; }
+html, body { height:100%; }
+body { font-family:'Rubik','Heebo',sans-serif; background:#0c0a09; overflow:hidden; }
 
-    :root {
-      --bg: #060402;
-      --gold: #c9a227;
-      --gold-rgb: 201,162,39;
-      --card-bg: rgba(10,7,4,.92);
-    }
+/* ══ LAYOUT ══ */
+.page { display:flex; height:100vh; width:100%; }
 
-    html, body {
-      height: 100%;
-      font-family: 'Heebo', sans-serif;
-      background: var(--bg);
-      color: #fff;
-      overflow-x: hidden;
-    }
+/* ══ DARK PANEL (right) ══ */
+.p-dark {
+  flex:1; position:relative;
+  display:flex; align-items:center; justify-content:center;
+  padding:48px 52px;
+  background:#0c0a09;
+  animation:slideL .6s cubic-bezier(.22,1,.36,1) .05s both;
+}
+.p-dark::before {
+  content:''; position:absolute; inset:0;
+  background:radial-gradient(ellipse 400px 400px at 40% 50%, rgba(204,26,26,.06) 0%, transparent 70%);
+  pointer-events:none;
+}
+.vline {
+  position:absolute; left:0; top:8%; bottom:8%; width:1px;
+  background:linear-gradient(to bottom, transparent, rgba(204,26,26,.3) 30%, rgba(204,26,26,.3) 70%, transparent);
+}
+.login-box {
+  position:relative; z-index:2;
+  width:100%; max-width:340px; text-align:center;
+  animation:fadeUp .5s ease .35s both;
+}
 
-    /* ===== BACKGROUND ORB ===== */
-    .orb {
-      position: fixed;
-      bottom: -280px;
-      left: -200px;
-      width: 800px;
-      height: 800px;
-      border-radius: 50%;
-      background: radial-gradient(ellipse, rgba(180,130,20,.12) 0%, transparent 70%);
-      filter: blur(120px);
-      pointer-events: none;
-      z-index: 0;
-      animation: orbBreathe 9s ease-in-out infinite;
-    }
-    @keyframes orbBreathe {
-      0%, 100% { transform: scale(1);   opacity: 1; }
-      50%       { transform: scale(1.1); opacity: .75; }
-    }
+/* Clock + Greeting */
+.lx-clock { font-size:2.6rem; font-weight:800; color:rgba(255,255,255,.85); letter-spacing:4px; direction:ltr; font-variant-numeric:tabular-nums; line-height:1; margin-bottom:4px; }
+.lx-greet { font-size:.7rem; color:rgba(255,255,255,.22); letter-spacing:2px; margin-bottom:32px; }
 
-    /* ===== BACKGROUND WATERMARK ===== */
-    .watermark {
-      position: fixed;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      font-family: 'Heebo', sans-serif;
-      font-size: 260px;
-      font-weight: 900;
-      color: rgba(255,255,255,.018);
-      letter-spacing: -10px;
-      pointer-events: none;
-      z-index: 0;
-      user-select: none;
-      white-space: nowrap;
-    }
+/* Active badge */
+.lx-badge { display:inline-flex; align-items:center; gap:6px; background:rgba(204,26,26,.08); border:1px solid rgba(204,26,26,.2); border-radius:100px; padding:5px 16px; font-size:.7rem; font-weight:600; color:rgba(204,26,26,.7); margin-bottom:26px; }
+.lx-dot { width:6px; height:6px; border-radius:50%; background:#CC1A1A; box-shadow:0 0 6px rgba(204,26,26,.8); animation:dp 2s ease-in-out infinite; }
+@keyframes dp { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.35;transform:scale(.65)} }
 
-    /* ===== STARS ===== */
-    .stars {
-      position: fixed;
-      inset: 0;
-      pointer-events: none;
-      z-index: 0;
-    }
-    .star {
-      position: absolute;
-      border-radius: 50%;
-      background: #fff;
-      animation: starTwinkle var(--d,4s) ease-in-out var(--dl,0s) infinite;
-    }
-    @keyframes starTwinkle {
-      0%, 100% { opacity: var(--min-op, .04); }
-      50%       { opacity: var(--max-op, .18); }
-    }
+/* Title */
+.lx-title { font-size:1.9rem; font-weight:800; color:#fff; letter-spacing:-.5px; margin-bottom:4px; }
+.lx-by { font-size:.67rem; color:rgba(255,255,255,.18); letter-spacing:3px; text-transform:uppercase; margin-bottom:26px; }
+.lx-hr { width:100%; height:1px; background:linear-gradient(90deg,transparent,rgba(255,255,255,.07),transparent); margin-bottom:22px; }
 
-    /* ===== CURSOR SPOTLIGHT ===== */
-    .cursor-light {
-      position: fixed;
-      inset: 0;
-      pointer-events: none;
-      z-index: 1;
-      background: radial-gradient(
-        circle 380px at var(--cx, 50%) var(--cy, 50%),
-        rgba(201,162,39,.04) 0%,
-        transparent 70%
-      );
-    }
+/* Buttons — accessibility: 1rem */
+.lx-btn {
+  display:flex; align-items:center; justify-content:center; gap:8px;
+  width:100%; padding:15px; border-radius:12px;
+  font-family:'Rubik',sans-serif; font-size:1rem; font-weight:700;
+  cursor:pointer; border:none; margin-bottom:10px;
+  text-decoration:none; transition:all .18s;
+}
+.lx-btn-p { background:#CC1A1A; color:#fff; box-shadow:0 8px 24px rgba(204,26,26,.28); }
+.lx-btn-p:hover { background:#e02020; transform:translateY(-1px); }
+.lx-btn-g { background:rgba(255,255,255,.05); color:rgba(255,255,255,.5); border:1px solid rgba(255,255,255,.08); }
+.lx-btn-g:hover { background:rgba(255,255,255,.09); color:rgba(255,255,255,.7); }
 
-    /* ===== PAGE LAYOUT ===== */
-    .page {
-      position: relative;
-      z-index: 2;
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      padding: 40px 20px 24px;
-    }
+/* Bottom strip */
+.lx-strip { display:flex; align-items:center; justify-content:center; gap:12px; padding-top:18px; border-top:1px solid rgba(255,255,255,.05); font-size:.66rem; color:rgba(255,255,255,.16); }
+.lx-strip-s { width:1px; height:10px; background:rgba(255,255,255,.07); }
 
-    /* ===== CARD ===== */
-    .card {
-      background: rgba(10,7,4,.92);
-      border: 1px solid rgba(201,162,39,.32);
-      border-radius: 22px;
-      padding: 44px 44px 36px;
-      max-width: 480px;
-      width: 100%;
-      text-align: center;
-      backdrop-filter: blur(24px);
-      position: relative;
-      overflow: hidden;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      animation: cardIn .9s cubic-bezier(.22,1,.36,1) both, goldBreath 6s ease-in-out 1s infinite, cardFloat 8s ease-in-out 1.5s infinite;
-      box-shadow:
-        0 0 0 1px rgba(201,162,39,.10),
-        0 0 18px  rgba(201,162,39,.13),
-        0 0 48px  rgba(201,162,39,.08),
-        0 0 100px rgba(201,162,39,.05),
-        0 30px 90px rgba(0,0,0,.65),
-        inset 0 1px 0 rgba(201,162,39,.18);
-    }
-    @keyframes cardIn {
-      from { opacity: 0; transform: translateY(32px) scale(.97); }
-      to   { opacity: 1; transform: translateY(0) scale(1); }
-    }
-    @keyframes goldBreath {
-      0%,100% {
-        box-shadow:
-          0 0 0 1px rgba(201,162,39,.10),
-          0 0 18px  rgba(201,162,39,.13),
-          0 0 48px  rgba(201,162,39,.08),
-          0 0 100px rgba(201,162,39,.05),
-          0 30px 90px rgba(0,0,0,.65),
-          inset 0 1px 0 rgba(201,162,39,.18);
-      }
-      50% {
-        box-shadow:
-          0 0 0 1px rgba(201,162,39,.22),
-          0 0 22px  rgba(201,162,39,.22),
-          0 0 60px  rgba(201,162,39,.13),
-          0 0 130px rgba(201,162,39,.08),
-          0 30px 90px rgba(0,0,0,.65),
-          inset 0 1px 0 rgba(201,162,39,.26);
-      }
-    }
-    @keyframes cardFloat {
-      0%, 100% { transform: translateY(0px); }
-      50%       { transform: translateY(-10px); }
-    }
+/* ══ RED PANEL (left) ══ */
+.p-red {
+  width:38%; background:#CC1A1A; position:relative; overflow:hidden;
+  display:flex; flex-direction:column; justify-content:space-between;
+  padding:48px 52px;
+  animation:slideR .6s cubic-bezier(.22,1,.36,1) both;
+}
+.p-red::before { content:''; position:absolute; top:-60%; right:-35%; width:90%; height:180%; background:rgba(255,255,255,.065); transform:rotate(-18deg); pointer-events:none; }
+.p-red::after  { content:''; position:absolute; bottom:0; left:0; width:100%; height:32%; background:linear-gradient(to top,rgba(0,0,0,.2),transparent); pointer-events:none; }
+.wm { position:absolute; bottom:-40px; left:-20px; right:-20px; font-size:clamp(100px,12vw,160px); font-weight:900; color:rgba(0,0,0,.1); letter-spacing:-6px; pointer-events:none; user-select:none; line-height:1; white-space:nowrap; }
+.dots { position:absolute; top:40px; left:40px; display:grid; grid-template-columns:repeat(5,1fr); gap:8px; opacity:.2; }
+.dots span { display:block; width:4px; height:4px; border-radius:50%; background:#fff; }
+.rc { position:relative; z-index:2; height:100%; display:flex; flex-direction:column; justify-content:space-between; }
+.logo-b { display:inline-flex; align-self:flex-start; }
+.logo-b img { height:64px; display:block; filter:brightness(0) invert(1); }
+.mid { flex:1; display:flex; flex-direction:column; justify-content:center; padding:28px 0; }
 
-    /* Subtle scanlines on card */
-    .card::after {
-      content: '';
-      position: absolute;
-      inset: 0;
-      pointer-events: none;
-      background: repeating-linear-gradient(
-        0deg,
-        transparent,
-        transparent 2px,
-        rgba(0,0,0,.03) 2px,
-        rgba(0,0,0,.03) 4px
-      );
-      border-radius: 22px;
-      z-index: 1;
-    }
+/* Typewriter */
+.tw-cur { display:inline-block; color:rgba(255,255,255,.8); font-weight:400; animation:twb .65s step-end infinite; margin-right:2px; }
+.tw-cur::after { content:'_'; }
+@keyframes twb { 0%,100%{opacity:1} 50%{opacity:0} }
 
-    /* ===== STAGGERED ENTRANCE ===== */
-    .card > * {
-      opacity: 0;
-      animation: fadeSlideUp .55s cubic-bezier(.22,1,.36,1) both;
-      position: relative;
-      z-index: 2;
-    }
-    @keyframes fadeSlideUp {
-      from { opacity: 0; transform: translateY(16px); }
-      to   { opacity: 1; transform: translateY(0); }
-    }
-    .card > *:nth-child(1) { animation-delay: .40s; }
-    .card > *:nth-child(2) { animation-delay: .50s; }
-    .card > *:nth-child(3) { animation-delay: .57s; }
-    .card > *:nth-child(4) { animation-delay: .63s; }
-    .card > *:nth-child(5) { animation-delay: .69s; }
-    .card > *:nth-child(6) { animation-delay: .75s; }
-    .card > *:nth-child(7) { animation-delay: .81s; }
-    .card > *:nth-child(8) { animation-delay: .87s; }
-    .card > *:nth-child(9) { animation-delay: .93s; }
+.h1 { font-size:clamp(2.2rem,3vw,3.2rem); font-weight:800; line-height:1.05; color:#fff; letter-spacing:-1.5px; margin-bottom:18px; min-height:3.3em; }
+.sub { font-size:.88rem; font-weight:300; color:rgba(255,255,255,.6); line-height:1.7; }
+.tag { display:inline-flex; align-items:center; gap:6px; align-self:flex-start; margin-top:22px; padding:4px 11px 4px 9px; background:rgba(0,0,0,.28); border:1px solid rgba(255,255,255,.12); border-radius:5px; font-size:.63rem; font-weight:700; letter-spacing:.1em; text-transform:uppercase; color:rgba(255,255,255,.85); }
+.tag::before { content:''; width:7px; height:7px; border-radius:50%; background:rgba(255,255,255,.45); flex-shrink:0; }
 
-    /* ===== GREETING ===== */
-    .greeting {
-      font-size: .72rem;
-      color: rgba(201,162,39,.55);
-      letter-spacing: 2px;
-      margin-bottom: 18px;
-      font-weight: 400;
-    }
+.stats { display:flex; gap:28px; margin-bottom:20px; }
+.sn { font-size:1.5rem; font-weight:800; color:#fff; line-height:1; margin-bottom:3px; }
+.sl { font-size:.67rem; color:rgba(255,255,255,.45); }
+.pdots { display:flex; gap:6px; }
+.pdots span { display:block; height:4px; border-radius:2px; }
+.pdots .on  { width:24px; background:#fff; }
+.pdots .off { width:8px; background:rgba(255,255,255,.3); }
 
-    /* ===== LOGO AREA ===== */
-    .logo-area {
-      position: relative;
-      display: inline-flex;
-      flex-direction: column;
-      align-items: center;
-      margin-bottom: 18px;
-    }
-    .logo-glow {
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      width: 160px;
-      height: 80px;
-      background: radial-gradient(ellipse, rgba(201,162,39,.14) 0%, transparent 70%);
-      pointer-events: none;
-      animation: logoGlowBreath 5s ease-in-out infinite;
-    }
-    @keyframes logoGlowBreath {
-      0%, 100% { opacity: 1; transform: translate(-50%,-50%) scale(1); }
-      50%       { opacity: .6; transform: translate(-50%,-50%) scale(1.12); }
-    }
-    .logo-frame {
-      position: relative;
-      background: rgba(255,255,255,.94);
-      border: 1px solid rgba(201,162,39,.35);
-      border-radius: 14px;
-      padding: 12px 20px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      box-shadow: 0 2px 16px rgba(0,0,0,.35);
-    }
-    .logo-frame img {
-      height: 62px;
-      max-width: 180px;
-      object-fit: contain;
-      display: block;
-      filter: drop-shadow(0 2px 12px rgba(0,0,0,.4));
-    }
-    .logo-fallback {
-      font-size: 1.8rem;
-      font-weight: 900;
-      color: rgba(201,162,39,.9);
-      letter-spacing: 1px;
-    }
+/* ══ ANIMATIONS ══ */
+@keyframes fadeUp { from{opacity:0;transform:translateY(14px)} to{opacity:1;transform:translateY(0)} }
+@keyframes slideR { from{opacity:0;transform:translateX(24px)} to{opacity:1;transform:translateX(0)} }
+@keyframes slideL { from{opacity:0;transform:translateX(-24px)} to{opacity:1;transform:translateX(0)} }
 
-    /* ===== LIVE BADGE ===== */
-    .live-badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 7px;
-      background: rgba(201,162,39,.06);
-      border: 1px solid rgba(201,162,39,.18);
-      border-radius: 100px;
-      padding: 4px 14px 4px 10px;
-      font-size: .78rem;
-      font-weight: 700;
-      color: rgba(201,162,39,.6);
-      margin-bottom: 20px;
-      letter-spacing: .5px;
-    }
-    .live-dot {
-      width: 7px;
-      height: 7px;
-      border-radius: 50%;
-      background: var(--gold);
-      box-shadow: 0 0 8px rgba(201,162,39,.8);
-      flex-shrink: 0;
-      animation: livePulse 2s ease-in-out infinite;
-    }
-    @keyframes livePulse {
-      0%, 100% { opacity: 1; transform: scale(1); }
-      50%       { opacity: .4; transform: scale(.7); }
-    }
+/* ══ MODAL ══ */
+.modal-overlay {
+  position:fixed; inset:0;
+  background:rgba(4,3,2,.85); backdrop-filter:blur(8px);
+  z-index:1000; display:none;
+  align-items:center; justify-content:center;
+  padding:20px; animation:fadeIn .2s ease;
+}
+.modal-overlay.open { display:flex; }
+@keyframes fadeIn { from{opacity:0} to{opacity:1} }
+.modal-card {
+  background:#fff; border-radius:18px;
+  padding:36px 32px 28px;
+  width:100%; max-width:440px;
+  position:relative;
+  animation:modalUp .25s cubic-bezier(.22,1,.36,1);
+}
+@keyframes modalUp { from{opacity:0;transform:translateY(20px)} to{opacity:1;transform:translateY(0)} }
+.modal-close {
+  position:absolute; top:14px; left:14px;
+  width:32px; height:32px; border-radius:50%; border:none;
+  background:#f4f4f4; color:#666; font-size:1rem; cursor:pointer;
+  display:flex; align-items:center; justify-content:center;
+}
+.modal-close:hover { background:#e8e8e8; color:#333; }
+.modal-title { font-size:1.25rem; font-weight:800; color:#111; margin-bottom:4px; text-align:right; }
+.modal-sub { font-size:.82rem; color:#888; margin-bottom:22px; text-align:right; }
 
-    /* ===== TAGLINE ===== */
-    .tagline {
-      font-size: .68rem;
-      font-weight: 700;
-      color: rgba(201,162,39,.55);
-      letter-spacing: 4px;
-      text-transform: uppercase;
-      margin-bottom: 10px;
-      text-align: center;
-    }
+/* Form — accessibility: labels 1rem */
+.form-group { margin-bottom:14px; }
+.form-group label { display:block; font-size:1rem; font-weight:600; color:#333; margin-bottom:5px; text-align:right; }
+.form-group input,
+.form-group textarea,
+.form-group select {
+  width:100%; padding:11px 13px; border:1.5px solid #ddd; border-radius:9px;
+  font-family:'Rubik',sans-serif; font-size:.95rem; color:#111;
+  background:#fafafa; outline:none; transition:border-color .15s;
+  text-align:right;
+}
+.form-group input:focus,
+.form-group textarea:focus { border-color:#CC1A1A; background:#fff; }
+.form-group textarea { min-height:80px; resize:vertical; }
+.modal-actions { display:flex; gap:10px; margin-top:20px; flex-direction:row-reverse; }
+.btn-modal-primary {
+  flex:1; padding:13px; border-radius:10px; border:none;
+  background:#CC1A1A; color:#fff; font-family:'Rubik',sans-serif;
+  font-size:1rem; font-weight:700; cursor:pointer; transition:background .15s;
+}
+.btn-modal-primary:hover { background:#e02020; }
+.btn-modal-outline {
+  padding:13px 20px; border-radius:10px;
+  border:1.5px solid #ddd; background:#fff; color:#555;
+  font-family:'Rubik',sans-serif; font-size:1rem; font-weight:600;
+  cursor:pointer; transition:all .15s;
+}
+.btn-modal-outline:hover { border-color:#bbb; color:#333; }
+.modal-error   { display:none; margin-bottom:10px; padding:10px 13px; background:#fff2f2; border:1px solid #fcc; border-radius:8px; font-size:.85rem; color:#c00; text-align:right; }
+.modal-success { display:none; margin-bottom:10px; padding:10px 13px; background:#f0fff4; border:1px solid #b2dfdb; border-radius:8px; font-size:.85rem; color:#2e7d32; text-align:right; }
+.modal-error.show, .modal-success.show { display:block; }
 
-    /* ===== TITLE ===== */
-    h1.title {
-      font-size: 2.3rem;
-      font-weight: 800;
-      color: #fff;
-      text-align: center;
-      line-height: 1.15;
-      margin-bottom: 10px;
-      text-shadow: 0 2px 20px rgba(0,0,0,.5);
-    }
-
-    /* ===== DIVIDER ===== */
-    .divider {
-      width: 50px;
-      height: 2px;
-      background: linear-gradient(90deg, transparent, rgba(201,162,39,.4), transparent);
-      border-radius: 4px;
-      margin: 0 auto 14px;
-    }
-
-    /* ===== SUBTITLE / TYPEWRITER ===== */
-    .sub {
-      font-size: .95rem;
-      font-weight: 300;
-      color: rgba(255,255,255,.38);
-      text-align: center;
-      min-height: 1.5em;
-      margin-bottom: 30px;
-      letter-spacing: .3px;
-    }
-    .sub .cursor-blink {
-      display: inline-block;
-      width: 2px;
-      height: 1em;
-      background: rgba(201,162,39,.6);
-      vertical-align: middle;
-      margin-right: 1px;
-      animation: blinkCursor .7s step-end infinite;
-    }
-    @keyframes blinkCursor {
-      0%, 100% { opacity: 1; } 50% { opacity: 0; }
-    }
-
-    /* ===== ACTIONS ===== */
-    .actions {
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-      width: 100%;
-      margin-bottom: 26px;
-    }
-    .btn {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-      width: 100%;
-      padding: 14px 20px;
-      border-radius: 12px;
-      font-family: 'Heebo', sans-serif;
-      font-size: 1rem;
-      font-weight: 700;
-      cursor: pointer;
-      border: none;
-      transition: transform .15s, box-shadow .15s, opacity .15s, background .15s;
-      position: relative;
-      overflow: hidden;
-      text-decoration: none;
-    }
-    .btn:active { transform: scale(.97); }
-
-    /* Primary: gold gradient */
-    .btn-primary {
-      background: linear-gradient(135deg, #c9a227 0%, #8b6914 100%);
-      color: #0a0602;
-      font-weight: 800;
-      box-shadow: 0 4px 20px rgba(201,162,39,.2);
-    }
-    .btn-primary:hover {
-      box-shadow: 0 8px 28px rgba(201,162,39,.35);
-      transform: translateY(-1px);
-      filter: brightness(1.06);
-    }
-    /* Shimmer sweep */
-    .btn-primary::after {
-      content: '';
-      position: absolute;
-      inset: 0;
-      background: linear-gradient(105deg, transparent 30%, rgba(255,255,255,.18) 50%, transparent 70%);
-      transform: translateX(-120%);
-      transition: transform .5s;
-    }
-    .btn-primary:hover::after { transform: translateX(120%); }
-
-    .btn-outline {
-      background: rgba(201,162,39,.07);
-      color: rgba(201,162,39,.7);
-      border: 1px solid rgba(201,162,39,.2);
-    }
-    .btn-outline:hover {
-      background: rgba(201,162,39,.12);
-      border-color: rgba(201,162,39,.35);
-      transform: translateY(-1px);
-    }
-
-    /* ===== BOTTOM STRIP ===== */
-    .bottom-strip {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 18px;
-      width: 100%;
-      border-top: 1px solid rgba(201,162,39,.1);
-      padding-top: 18px;
-    }
-    .strip-sep {
-      width: 1px;
-      height: 14px;
-      background: rgba(201,162,39,.15);
-      flex-shrink: 0;
-    }
-    .strip-item {
-      display: flex;
-      align-items: center;
-      gap: 5px;
-      font-size: .74rem;
-      font-weight: 400;
-      color: rgba(201,162,39,.3);
-    }
-    .strip-icon { font-size: .85rem; opacity: .65; }
-
-    /* ===== FOOTER ===== */
-    .footer {
-      margin-top: 22px;
-      font-size: .72rem;
-      font-weight: 300;
-      color: rgba(255,255,255,.16);
-      text-align: center;
-      letter-spacing: .3px;
-      line-height: 1.6;
-    }
-
-
-    /* ===================================================
-       MODALS  (white cards, light theme)
-    =================================================== */
-    .modal-overlay {
-      position: fixed;
-      inset: 0;
-      background: rgba(4,3,2,.85);
-      backdrop-filter: blur(8px);
-      z-index: 1000;
-      display: none;
-      align-items: center;
-      justify-content: center;
-      padding: 20px;
-      animation: fadeIn .2s ease;
-    }
-    .modal-overlay.open { display: flex; }
-    @keyframes fadeIn {
-      from { opacity: 0; }
-      to   { opacity: 1; }
-    }
-
-    .modal-card {
-      background: #fff;
-      border-radius: 18px;
-      padding: 36px 32px 28px;
-      width: 100%;
-      max-width: 420px;
-      color: #1a1a1a;
-      box-shadow: 0 24px 80px rgba(0,0,0,.55);
-      animation: slideUp .25s ease;
-      position: relative;
-    }
-    @keyframes slideUp {
-      from { transform: translateY(20px); opacity: 0; }
-      to   { transform: translateY(0);    opacity: 1; }
-    }
-
-    .modal-close {
-      position: absolute;
-      top: 14px;
-      left: 16px;
-      background: none;
-      border: none;
-      font-size: 1.4rem;
-      cursor: pointer;
-      color: #888;
-      line-height: 1;
-      padding: 2px 6px;
-      border-radius: 6px;
-      transition: background .15s, color .15s;
-    }
-    .modal-close:hover { background: #f0f0f0; color: #333; }
-
-    .modal-title {
-      font-size: 1.35rem;
-      font-weight: 800;
-      color: #0f172a;
-      margin-bottom: 6px;
-      text-align: center;
-    }
-    .modal-sub {
-      font-size: .83rem;
-      color: #64748b;
-      text-align: center;
-      margin-bottom: 22px;
-    }
-
-    .form-group { margin-bottom: 14px; }
-    .form-group label {
-      display: block;
-      font-size: .82rem;
-      font-weight: 700;
-      color: #374151;
-      margin-bottom: 5px;
-    }
-    /* Login form — LTR override */
-    #loginSection .form-group label { text-align: left; }
-    #loginSection .form-group input {
-      direction: ltr;
-      text-align: left;
-    }
-    .form-group input,
-    .form-group select,
-    .form-group textarea {
-      width: 100%;
-      padding: 10px 13px;
-      border: 1.5px solid #e2e8f0;
-      border-radius: 10px;
-      font-family: 'Heebo', sans-serif;
-      font-size: .92rem;
-      color: #1a1a1a;
-      background: #f8fafc;
-      transition: border-color .15s, box-shadow .15s;
-      outline: none;
-      direction: rtl;
-    }
-    .form-group input:focus,
-    .form-group select:focus,
-    .form-group textarea:focus {
-      border-color: #c9a227;
-      box-shadow: 0 0 0 3px rgba(201,162,39,.12);
-      background: #fff;
-    }
-    .form-group textarea {
-      resize: vertical;
-      min-height: 80px;
-    }
-
-    .modal-actions {
-      display: flex;
-      gap: 10px;
-      margin-top: 18px;
-    }
-    .modal-actions .btn { flex: 1; }
-
-    /* Modal buttons override — gold in white modals */
-    .modal-card .btn-primary {
-      background: linear-gradient(135deg, #c9a227 0%, #8b6914 100%);
-      color: #0a0602;
-      border: none;
-      box-shadow: 0 4px 16px rgba(201,162,39,.3);
-      font-weight: 800;
-    }
-    .modal-card .btn-primary:hover {
-      box-shadow: 0 6px 24px rgba(201,162,39,.45);
-      filter: brightness(1.06);
-    }
-    .modal-card .btn-outline {
-      background: #f1f5f9;
-      color: #475569;
-      border: 1.5px solid #e2e8f0;
-    }
-    .modal-card .btn-outline:hover {
-      background: #e2e8f0;
-      border-color: #cbd5e1;
-    }
-
-    .modal-error {
-      background: #fef2f2;
-      border: 1px solid #fecaca;
-      border-radius: 8px;
-      padding: 10px 13px;
-      font-size: .83rem;
-      color: #dc2626;
-      margin-bottom: 12px;
-      display: none;
-    }
-    .modal-error.show { display: block; }
-
-    .modal-success {
-      background: #fefdf0;
-      border: 1px solid #e6cc6a;
-      border-radius: 8px;
-      padding: 10px 13px;
-      font-size: .83rem;
-      color: #7c5c0a;
-      margin-bottom: 12px;
-      display: none;
-      text-align: center;
-    }
-    .modal-success.show { display: block; }
-
-    /* change-password section inside login modal */
-    #changePwSection { display: none; }
-
-    .pw-toggle { position: relative; }
-    .pw-toggle input { padding-left: 38px; }
-    .pw-toggle .eye-btn {
-      position: absolute;
-      left: 10px;
-      top: 50%;
-      transform: translateY(-50%);
-      background: none;
-      border: none;
-      cursor: pointer;
-      color: #94a3b8;
-      font-size: .95rem;
-      padding: 2px;
-    }
-    .pw-toggle .eye-btn:hover { color: #475569; }
-
-    .spinner {
-      display: inline-block;
-      width: 16px;
-      height: 16px;
-      border: 2px solid rgba(10,6,2,.3);
-      border-top-color: #0a0602;
-      border-radius: 50%;
-      animation: spin .6s linear infinite;
-      vertical-align: middle;
-      margin-left: 6px;
-    }
-    @keyframes spin { to { transform: rotate(360deg); } }
-
-    /* ===== LIVE CLOCK ===== */
-    .clock-display {
-      font-size: 2.1rem;
-      font-weight: 900;
-      color: rgba(201,162,39,.72);
-      letter-spacing: 6px;
-      margin-bottom: 2px;
-      line-height: 1;
-      font-variant-numeric: tabular-nums;
-      direction: ltr;
-      unicode-bidi: isolate;
-    }
-    .clock-sep {
-      display: inline-block;
-      animation: clockBlink 1s step-end infinite;
-    }
-    @keyframes clockBlink {
-      0%, 100% { opacity: 1; }
-      50%       { opacity: .2; }
-    }
-
-    /* ===== SECURITY SCAN LINE ===== */
-    .card-scan {
-      position: absolute !important;
-      left: 0;
-      right: 0;
-      height: 2px;
-      background: linear-gradient(90deg, transparent 0%, rgba(201,162,39,.28) 40%, rgba(201,162,39,.48) 50%, rgba(201,162,39,.28) 60%, transparent 100%);
-      z-index: 3;
-      pointer-events: none;
-      opacity: 0;
-      top: 0;
-      animation: cardScan 7s ease-in-out 2.5s infinite !important;
-    }
-    @keyframes cardScan {
-      0%   { top:   0%; opacity: 0; }
-      6%   { opacity: 1; }
-      94%  { opacity: 1; }
-      100% { top: 100%; opacity: 0; }
-    }
-
-    /* extend stagger for child #10 */
-    .card > *:nth-child(10) { animation-delay: .99s; }
-
-    /* ===== RESPONSIVE ===== */
-    @media (max-width: 520px) {
-      .card { padding: 32px 20px 26px; }
-      h1.title { font-size: 1.9rem; }
-      .logo-frame img { height: 50px; }
-      .bottom-strip { gap: 10px; }
-      .strip-item { font-size: .68rem; }
-      .strip-sep { display: none; }
-      .modal-card { padding: 28px 20px 22px; }
-      .watermark { font-size: 120px; }
-    }
-
-    /* ===== MOBILE PERFORMANCE: strip all expensive GPU ops on small screens ===== */
-    @media (max-width: 768px) {
-      /* backdrop-filter is the biggest killer — forces full compositing every frame */
-      .card { backdrop-filter: none !important; }
-      /* Animated blur orb murders the GPU on mobile */
-      .orb { display: none !important; }
-      /* box-shadow animation (goldBreath) forces repaint — freeze it */
-      .card { animation: cardIn .6s ease both !important; }
-      /* Watermark is just dead weight on small screens */
-      .watermark { display: none !important; }
-      /* Scan line is cute on desktop but costs a repaint on mobile */
-      .card-scan { display: none !important; }
-      /* Logo glow blur */
-      .logo-glow { display: none !important; }
-      /* Stars: hidden via JS below, but also via CSS as safety net */
-      .stars { display: none !important; }
-      /* cursor-light gradient recalc on every touchmove */
-      .cursor-light { display: none !important; }
-    }
-
-    /* Respect reduced-motion preference */
-    @media (prefers-reduced-motion: reduce) {
-      *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; }
-    }
-  </style>
+/* ══ RESPONSIVE ══ */
+@media (max-width:768px) {
+  .page { flex-direction:column-reverse; }
+  .p-red { width:100%; min-height:45vh; padding:32px 28px; }
+  .p-dark { padding:32px 28px; }
+  .h1 { font-size:2rem; min-height:unset; }
+  .stats { display:none; }
+}
+</style>
 </head>
 <body>
 
-<!-- Ambient orb -->
-<div class="orb"></div>
-
-<!-- Watermark -->
-<div class="watermark">AFCON</div>
-
-<!-- Stars -->
-<div class="stars" id="starsContainer"></div>
-
-<!-- Cursor spotlight -->
-<div class="cursor-light" id="cursorLight"></div>
-
-<!-- Main page -->
 <div class="page">
 
-  <div class="card" id="mainCard">
-
-    <!-- Live clock -->
-    <div class="clock-display" id="clockDisplay"></div>
-
-    <!-- Greeting -->
-    <div class="greeting" id="greeting"></div>
-
-    <!-- Logo -->
-    <div class="logo-area">
-      <div class="logo-glow"></div>
-      <div class="logo-frame">
-        <img src="logo.png" alt="אפקון"
-             onerror="this.style.display='none';document.getElementById('logo-fb').style.display='flex'">
-        <div class="logo-fallback" id="logo-fb" style="display:none">אפקון</div>
-      </div>
-    </div>
-
-    <!-- Live badge -->
-    <div class="live-badge">
-      <span class="live-dot"></span>מערכת פעילה
-    </div>
-
-    <!-- Tagline -->
-    <div class="tagline">By RobXSystems</div>
-
-    <!-- Title -->
-    <h1 class="title">ברוכים הבאים</h1>
-
-    <!-- Divider -->
-    <div class="divider"></div>
-
-    <!-- Typewriter subtitle -->
-    <div class="sub" id="subText">
-      <span id="twText"></span><span class="cursor-blink" id="twCursor"></span>
-    </div>
-
-    <!-- Action buttons -->
-    <div class="actions">
-      <a class="btn btn-primary" href="/login" style="text-decoration:none">
-        🔐 כניסה למערכת
-      </a>
-      <button class="btn btn-outline" onclick="openRequestModal()">
+  <!-- ══ DARK PANEL ══ -->
+  <div class="p-dark">
+    <div class="vline"></div>
+    <div class="login-box">
+      <div class="lx-clock" id="clockEl">00:00</div>
+      <div class="lx-greet" id="greetEl">טוען...</div>
+      <div class="lx-badge"><span class="lx-dot"></span>מערכת פעילה</div>
+      <div class="lx-title">ברוכים הבאים</div>
+      <div class="lx-by">By RobXSystems</div>
+      <div class="lx-hr"></div>
+      <a class="lx-btn lx-btn-p" href="/login">🔐 כניסה למערכת</a>
+      <button class="lx-btn lx-btn-g" onclick="openRequestModal()">
         <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M18 9v3m0 0v3m0-3h3m-3 0h-3M13 5a2 2 0 1 0-4 0 2 2 0 0 0 4 0zM7 20a7 7 0 0 1 12 0"/></svg>
         בקשת גישה
       </button>
+      <div class="lx-strip">
+        <span>🔒 SSL</span><div class="lx-strip-s"></div>
+        <span>📡 24/7</span><div class="lx-strip-s"></div>
+        <span>🛡 מאובטח</span>
+      </div>
     </div>
+  </div>
 
-    <!-- Bottom strip -->
-    <div class="bottom-strip">
-      <div class="strip-item"><span class="strip-icon">🔒</span> SSL</div>
-      <div class="strip-sep"></div>
-      <div class="strip-item"><span class="strip-icon">📡</span> 24/7 ניטור</div>
-      <div class="strip-sep"></div>
-      <div class="strip-item"><span class="strip-icon">🛡</span> גישה מאובטחת</div>
+  <!-- ══ RED PANEL ══ -->
+  <div class="p-red">
+    <div class="wm">AFCON</div>
+    <div class="dots">
+      <span></span><span></span><span></span><span></span><span></span>
+      <span></span><span></span><span></span><span></span><span></span>
+      <span></span><span></span><span></span><span></span><span></span>
+      <span></span><span></span><span></span><span></span><span></span>
     </div>
-
-    <!-- Security scan line (absolutely positioned, stagger overridden) -->
-    <div class="card-scan" aria-hidden="true"></div>
-
-  </div><!-- /card -->
-
-  <div class="footer">
-    כל הזכויות שמורות ל-Rob X Systems ואפקון בקרה ואוטומציה<br>
-    <span style="opacity:.5">© 2024–2026</span>
+    <div class="rc">
+      <div class="logo-b">
+        <img src="/logo.png" alt="אפקון"
+             onerror="this.style.display='none'">
+      </div>
+      <div class="mid">
+        <div class="h1"><span id="twText"></span><span class="tw-cur"></span></div>
+        <p class="sub">מערכת אחת. כל הנתונים.</p>
+        <div class="tag">by RobXSystems</div>
+      </div>
+      <div>
+        <div class="stats">
+          <div><div class="sn">24/7</div><div class="sl">זמינות</div></div>
+          <div><div class="sn">SSL</div><div class="sl">מוצפן</div></div>
+          <div><div class="sn">99.9%</div><div class="sl">uptime</div></div>
+        </div>
+        <div class="pdots"><span class="on"></span><span class="off"></span><span class="off"></span></div>
+      </div>
+    </div>
   </div>
 
 </div><!-- /page -->
 
 
-<!-- ============================================================
-     LOGIN MODAL
-============================================================ -->
-<div class="modal-overlay" id="loginModal" role="dialog" aria-modal="true" aria-labelledby="loginTitle">
-  <div class="modal-card">
-    <button class="modal-close" onclick="closeLoginModal()" aria-label="סגור">✕</button>
-
-    <!-- Login section -->
-    <div id="loginSection">
-      <div class="modal-title" id="loginTitle">Login</div>
-      <div class="modal-sub">Enter your credentials</div>
-
-      <div class="modal-error" id="loginError"></div>
-      <div class="modal-success" id="loginSuccess"></div>
-
-      <form onsubmit="doLogin(event)" autocomplete="on" novalidate dir="ltr" style="text-align:left">
-        <div class="form-group">
-          <label for="loginUsername">Username</label>
-          <input type="text" id="loginUsername" name="username"
-                 autocomplete="username" placeholder="Enter username" required>
-        </div>
-        <div class="form-group">
-          <label for="loginPassword">Password</label>
-          <div class="pw-toggle">
-            <input type="password" id="loginPassword" name="password"
-                   autocomplete="current-password" placeholder="Enter password" required>
-            <button type="button" class="eye-btn" onclick="togglePwLogin('loginPassword', this)" aria-label="Show/hide password">👁</button>
-          </div>
-        </div>
-        <div class="modal-actions">
-          <button type="submit" class="btn btn-primary" id="loginSubmitBtn">Login</button>
-          <button type="button" class="btn btn-outline" onclick="closeLoginModal()">Cancel</button>
-        </div>
-      </form>
-    </div>
-
-    <!-- Change password section (shown after first login with temp password) -->
-    <div id="changePwSection">
-      <div class="modal-title">עדכון סיסמה</div>
-      <div class="modal-sub">נדרש להגדיר סיסמה חדשה לפני הכניסה</div>
-
-      <div class="modal-error" id="changePwError"></div>
-      <div class="modal-success" id="changePwSuccess"></div>
-
-      <form onsubmit="doChangePassword(event)" autocomplete="off" novalidate>
-        <input type="hidden" id="changePwUsername">
-        <div class="form-group">
-          <label for="changePwNew">סיסמה חדשה</label>
-          <div class="pw-toggle">
-            <input type="password" id="changePwNew" autocomplete="new-password"
-                   placeholder="לפחות 8 תווים" required minlength="8">
-            <button type="button" class="eye-btn" onclick="togglePwLogin('changePwNew', this)" aria-label="הצג/הסתר">👁</button>
-          </div>
-        </div>
-        <div class="form-group">
-          <label for="changePwConfirm">אימות סיסמה חדשה</label>
-          <div class="pw-toggle">
-            <input type="password" id="changePwConfirm" autocomplete="new-password"
-                   placeholder="הכנס שוב את הסיסמה החדשה" required>
-            <button type="button" class="eye-btn" onclick="togglePwLogin('changePwConfirm', this)" aria-label="הצג/הסתר">👁</button>
-          </div>
-        </div>
-        <div class="modal-actions">
-          <button type="submit" class="btn btn-primary" id="changePwSubmitBtn">שמור סיסמה</button>
-        </div>
-      </form>
-    </div>
-
-  </div>
-</div>
-
-
-<!-- ============================================================
-     REQUEST ACCESS MODAL
-============================================================ -->
+<!-- ══ MODAL: בקשת גישה ══ -->
 <div class="modal-overlay" id="requestModal" role="dialog" aria-modal="true" aria-labelledby="requestTitle">
   <div class="modal-card">
     <button class="modal-close" onclick="closeRequestModal()" aria-label="סגור">✕</button>
-
     <div class="modal-title" id="requestTitle">בקשת גישה למערכת</div>
     <div class="modal-sub">מלא את הטופס ונחזור אליך בהקדם</div>
-
-    <div class="modal-error" id="requestError"></div>
+    <div class="modal-error"  id="requestError"></div>
     <div class="modal-success" id="requestSuccess"></div>
-
     <form id="requestForm" onsubmit="submitRequest(event)" novalidate>
       <div class="form-group">
         <label for="reqName">שם מלא</label>
@@ -915,427 +279,109 @@
         <textarea id="reqReason" placeholder="תאר בקצרה מדוע את/ה זקוק/ה לגישה..."></textarea>
       </div>
       <div class="modal-actions">
-        <button type="submit" class="btn btn-primary" id="requestSubmitBtn">שלח בקשה</button>
-        <button type="button" class="btn btn-outline" onclick="closeRequestModal()">ביטול</button>
+        <button type="submit" class="btn-modal-primary" id="requestSubmitBtn">שלח בקשה</button>
+        <button type="button" class="btn-modal-outline" onclick="closeRequestModal()">ביטול</button>
       </div>
     </form>
-
   </div>
 </div>
 
 
 <script>
-  /* =========================================================
-     ISRAEL TIME HELPER  (Asia/Jerusalem — handles DST automatically)
-     Uses formatToParts() so hours/minutes are labelled by type,
-     never depend on the locale's separator or field order.
-  ========================================================= */
-  function ilTime() {
-    var parts = new Intl.DateTimeFormat('en-GB', {
-      timeZone: 'Asia/Jerusalem',
-      hour: '2-digit', minute: '2-digit', hour12: false
-    }).formatToParts(new Date());
-    var h = '', m = '';
-    for (var i = 0; i < parts.length; i++) {
-      if (parts[i].type === 'hour')   h = parts[i].value;
-      if (parts[i].type === 'minute') m = parts[i].value;
-    }
-    return { h: parseInt(h, 10), hStr: h, mStr: m };
+/* ── Israel Time ── */
+function ilTime() {
+  var parts = new Intl.DateTimeFormat('en-GB', {
+    timeZone:'Asia/Jerusalem', hour:'2-digit', minute:'2-digit', hour12:false
+  }).formatToParts(new Date());
+  var h='',m='';
+  for (var i=0;i<parts.length;i++) {
+    if (parts[i].type==='hour')   h=parts[i].value;
+    if (parts[i].type==='minute') m=parts[i].value;
   }
+  return { h:parseInt(h,10), hStr:h, mStr:m };
+}
 
-
-  /* =========================================================
-     TIME-OF-DAY GREETING
-  ========================================================= */
-  (function() {
-    var h = ilTime().h;
-    var g = h >= 5 && h < 12  ? '☀️ בוקר טוב'
-           : h >= 12 && h < 17 ? '🌤 צהריים טובים'
-           : h >= 17 && h < 21 ? '🌆 ערב טוב'
-           : '🌙 לילה טוב';
-    document.getElementById('greeting').textContent = g;
-  })();
-
-
-  /* =========================================================
-     LIVE CLOCK
-  ========================================================= */
-  (function setupClock() {
-    var el = document.getElementById('clockDisplay');
-    function tick() {
-      var t = ilTime();
-      el.innerHTML = t.hStr + '<span class="clock-sep">:</span>' + t.mStr;
-    }
-    tick();
-    setInterval(tick, 10000);
-  })();
-
-
-  /* =========================================================
-     GENERATE STARS  (skip entirely on mobile — too many animations)
-  ========================================================= */
-  (function generateStars() {
-    if (window.innerWidth <= 768) return;  // skip on mobile
-    var container = document.getElementById('starsContainer');
-    var count = 35;
-    for (var i = 0; i < count; i++) {
-      var s = document.createElement('div');
-      s.className = 'star';
-      var size = Math.random() * 1.8 + 0.6;
-      var x    = Math.random() * 100;
-      var y    = Math.random() * 100;
-      var dur  = (Math.random() * 5 + 3).toFixed(1) + 's';
-      var del  = (Math.random() * 6).toFixed(1) + 's';
-      var minO = (Math.random() * 0.04 + 0.01).toFixed(3);
-      var maxO = (Math.random() * 0.14 + 0.06).toFixed(3);
-      s.style.cssText = [
-        'width:' + size + 'px',
-        'height:' + size + 'px',
-        'left:' + x + '%',
-        'top:' + y + '%',
-        '--d:' + dur,
-        '--dl:' + del,
-        '--min-op:' + minO,
-        '--max-op:' + maxO
-      ].join(';');
-      container.appendChild(s);
-    }
-  })();
-
-
-  /* =========================================================
-     CURSOR SPOTLIGHT  (desktop only — touchmove is too expensive)
-  ========================================================= */
-  (function setupCursorLight() {
-    if (window.innerWidth <= 768) return;  // skip on mobile
-    var el = document.getElementById('cursorLight');
-    document.addEventListener('mousemove', function(e) {
-      el.style.setProperty('--cx', e.clientX + 'px');
-      el.style.setProperty('--cy', e.clientY + 'px');
-    });
-  })();
-
-
-  /* =========================================================
-     3D TILT ON CARD (desktop only — no mouse on mobile)
-  ========================================================= */
-  (function setupTilt() {
-    if (window.innerWidth <= 768) return;  // skip on mobile
-    var card = document.getElementById('mainCard');
-    var enabled = false;
-
-    setTimeout(function() { enabled = true; }, 900);
-
-    document.addEventListener('mousemove', function(e) {
-      if (!enabled) return;
-      var rect = card.getBoundingClientRect();
-      var cx   = rect.left + rect.width  / 2;
-      var cy   = rect.top  + rect.height / 2;
-      var dx   = (e.clientX - cx) / (rect.width  / 2);
-      var dy   = (e.clientY - cy) / (rect.height / 2);
-      var maxDeg = 4;
-      var rx = (-dy * maxDeg).toFixed(2);
-      var ry = ( dx * maxDeg).toFixed(2);
-      card.style.transform = 'perspective(900px) rotateX(' + rx + 'deg) rotateY(' + ry + 'deg)';
-    });
-
-    document.addEventListener('mouseleave', function() {
-      card.style.transform = '';   /* restore CSS cardFloat animation */
-    });
-  })();
-
-
-  /* =========================================================
-     TYPEWRITER
-  ========================================================= */
-  (function setupTypewriter() {
-    var phrases = [
-      'מערכת ניהול פרויקטים',
-      'ניהול · בקרה · תיעוד',
-      'פתרונות אבטחה מתקדמים'
-    ];
-    var el = document.getElementById('twText');
-    var phraseIdx = 0;
-    var charIdx = 0;
-    var isDeleting = false;
-    var paused = false;
-    var isMobile     = window.innerWidth <= 768;
-    var CHAR_SPEED   = isMobile ? 45 : 80;
-    var DELETE_SPEED = isMobile ? 22 : 40;
-    var PAUSE_MS     = isMobile ? 1800 : 2200;
-
-    function tick() {
-      if (paused) return;
-      var phrase = phrases[phraseIdx];
-      if (!isDeleting) {
-        charIdx++;
-        el.textContent = phrase.substring(0, charIdx);
-        if (charIdx === phrase.length) {
-          paused = true;
-          setTimeout(function() {
-            paused = false;
-            isDeleting = true;
-            setTimeout(tick, DELETE_SPEED);
-          }, PAUSE_MS);
-          return;
-        }
-        setTimeout(tick, CHAR_SPEED);
-      } else {
-        charIdx--;
-        el.textContent = phrase.substring(0, charIdx);
-        if (charIdx === 0) {
-          isDeleting = false;
-          phraseIdx = (phraseIdx + 1) % phrases.length;
-          setTimeout(tick, CHAR_SPEED + 100);
-          return;
-        }
-        setTimeout(tick, DELETE_SPEED);
-      }
-    }
-
-    setTimeout(tick, 600);
-  })();
-
-
-  /* =========================================================
-     MODAL HELPERS
-  ========================================================= */
-  function _showError(id, msg) {
-    var el = document.getElementById(id);
-    el.textContent = msg;
-    el.classList.add('show');
+/* ── Clock + Greeting ── */
+(function() {
+  var ce = document.getElementById('clockEl');
+  var ge = document.getElementById('greetEl');
+  function tick() {
+    var t = ilTime();
+    ce.textContent = t.hStr + ':' + t.mStr;
+    var hr = t.h;
+    ge.textContent = hr>=5&&hr<12 ? '☀️ בוקר טוב'
+                   : hr>=12&&hr<17? '🌤 צהריים טובים'
+                   : hr>=17&&hr<21? '🌆 ערב טוב'
+                   : '🌙 לילה טוב';
   }
-  function _hideError(id) {
-    var el = document.getElementById(id);
-    el.textContent = '';
-    el.classList.remove('show');
-  }
-  function _showSuccess(id, msg) {
-    var el = document.getElementById(id);
-    el.textContent = msg;
-    el.classList.add('show');
-  }
-  function _hideSuccess(id) {
-    var el = document.getElementById(id);
-    el.textContent = '';
-    el.classList.remove('show');
-  }
-  function _setLoading(btnId, loading, defaultText) {
-    var btn = document.getElementById(btnId);
-    if (loading) {
-      btn.disabled = true;
-      btn.innerHTML = defaultText + '<span class="spinner"></span>';
+  tick(); setInterval(tick, 10000);
+})();
+
+/* ── Typewriter ── */
+(function() {
+  var phrases = ['בקרה ואוטומציה','ניהול משימות','תיעוד מתקדם','ניהול פרויקטים','ניהול מחסנים'];
+  var el = document.getElementById('twText');
+  var pi=0, ci=0, del=false, paused=false;
+  var C=75, D=35, P=2400;
+  function tick() {
+    if (paused) return;
+    var ph = phrases[pi];
+    if (!del) {
+      ci++; el.textContent = ph.substring(0,ci);
+      if (ci===ph.length) { paused=true; setTimeout(function(){paused=false;del=true;setTimeout(tick,D);},P); return; }
+      setTimeout(tick,C);
     } else {
-      btn.disabled = false;
-      btn.innerHTML = defaultText;
+      ci--; el.textContent = ph.substring(0,ci);
+      if (ci===0) { del=false; pi=(pi+1)%phrases.length; setTimeout(tick,C+80); return; }
+      setTimeout(tick,D);
     }
   }
+  setTimeout(tick, 800);
+})();
 
+/* ── Modal helpers ── */
+function _showError(id,msg)   { var e=document.getElementById(id); e.textContent=msg; e.classList.add('show'); }
+function _hideError(id)       { var e=document.getElementById(id); e.textContent='';  e.classList.remove('show'); }
+function _showSuccess(id,msg) { var e=document.getElementById(id); e.textContent=msg; e.classList.add('show'); }
 
-  /* =========================================================
-     LOGIN MODAL
-  ========================================================= */
-  function openLoginModal() {
-    document.getElementById('loginModal').classList.add('open');
-    document.getElementById('loginSection').style.display = '';
-    document.getElementById('changePwSection').style.display = 'none';
-    _hideError('loginError');
-    _hideSuccess('loginSuccess');
-    document.getElementById('loginUsername').value = '';
-    document.getElementById('loginPassword').value = '';
-    setTimeout(function() {
-      document.getElementById('loginUsername').focus();
-    }, 100);
-  }
+function openRequestModal() {
+  document.getElementById('requestModal').classList.add('open');
+  document.getElementById('requestForm').reset();
+  _hideError('requestError');
+  document.getElementById('requestSuccess').classList.remove('show');
+  setTimeout(function(){ document.getElementById('reqName').focus(); }, 100);
+}
+function closeRequestModal() {
+  document.getElementById('requestModal').classList.remove('open');
+}
 
-  function closeLoginModal() {
-    document.getElementById('loginModal').classList.remove('open');
-  }
+async function submitRequest(e) {
+  e.preventDefault();
+  _hideError('requestError');
+  var name     = document.getElementById('reqName').value.trim();
+  var email    = document.getElementById('reqEmail').value.trim();
+  var phone    = document.getElementById('reqPhone').value.trim();
+  var division = document.getElementById('reqDivision').value.trim();
+  var reason   = document.getElementById('reqReason').value.trim();
+  if (!name||!email||!division) { _showError('requestError','נא למלא שם מלא, אימייל ומחלקה.'); return; }
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { _showError('requestError','כתובת האימייל אינה תקינה.'); return; }
+  var btn = document.getElementById('requestSubmitBtn');
+  btn.disabled=true; btn.textContent='שולח...';
+  try {
+    var res  = await fetch('/api/user-requests', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({name,email,phone,division,reason}) });
+    var data = await res.json();
+    if (res.ok) {
+      _showSuccess('requestSuccess','הבקשה נשלחה בהצלחה! נחזור אליך בקרוב.');
+      document.getElementById('requestForm').reset();
+      setTimeout(closeRequestModal, 2800);
+    } else { _showError('requestError', data.message||'שגיאה בשליחת הבקשה.'); }
+  } catch(err) { _showError('requestError','שגיאת תקשורת. נסה שוב.'); }
+  finally { btn.disabled=false; btn.textContent='שלח בקשה'; }
+}
 
-  async function doLogin(e) {
-    e.preventDefault();
-    _hideError('loginError');
-    _hideSuccess('loginSuccess');
-
-    var username = document.getElementById('loginUsername').value.trim();
-    var password = document.getElementById('loginPassword').value;
-
-    if (!username || !password) {
-      _showError('loginError', 'Please enter username and password.');
-      return;
-    }
-
-    _setLoading('loginSubmitBtn', true, 'Logging in...');
-    try {
-      var res = await fetch('/api/auth/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username: username, password: password })
-      });
-      var data = await res.json();
-
-      if (res.ok && data.ok) {
-        if (data.must_change_password) {
-          document.getElementById('changePwUsername').value = username;
-          document.getElementById('loginSection').style.display = 'none';
-          document.getElementById('changePwSection').style.display = '';
-        } else {
-          _showSuccess('loginSuccess', 'Login successful, redirecting...');
-          setTimeout(function() {
-            window.location.href = '/dashboard.html';
-          }, 900);
-        }
-      } else {
-        _showError('loginError', data.error || 'Invalid username or password.');
-      }
-    } catch (err) {
-      _showError('loginError', 'שגיאת תקשורת. נסה שוב.');
-    } finally {
-      _setLoading('loginSubmitBtn', false, 'Login');
-    }
-  }
-
-  async function doChangePassword(e) {
-    e.preventDefault();
-    _hideError('changePwError');
-    _hideSuccess('changePwSuccess');
-
-    var username = document.getElementById('changePwUsername').value;
-    var newPw    = document.getElementById('changePwNew').value;
-    var confirm  = document.getElementById('changePwConfirm').value;
-
-    if (newPw.length < 8) {
-      _showError('changePwError', 'הסיסמה חייבת להכיל לפחות 8 תווים.');
-      return;
-    }
-    if (newPw !== confirm) {
-      _showError('changePwError', 'הסיסמאות אינן תואמות.');
-      return;
-    }
-
-    _setLoading('changePwSubmitBtn', true, 'שמור סיסמה');
-    try {
-      var token = localStorage.getItem('_tempToken') || '';
-      var res = await fetch('/api/auth/change-password', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer ' + token
-        },
-        body: JSON.stringify({ username: username, newPassword: newPw })
-      });
-      var data = await res.json();
-
-      if (res.ok) {
-        localStorage.removeItem('_tempToken');
-        if (data.token) localStorage.setItem('token', data.token);
-        _showSuccess('changePwSuccess', 'הסיסמה עודכנה בהצלחה, מעביר...');
-        setTimeout(function() {
-          window.location.href = data.redirect || '/dashboard.html';
-        }, 1200);
-      } else {
-        _showError('changePwError', data.message || 'שגיאה בעדכון הסיסמה.');
-      }
-    } catch (err) {
-      _showError('changePwError', 'שגיאת תקשורת. נסה שוב.');
-    } finally {
-      _setLoading('changePwSubmitBtn', false, 'שמור סיסמה');
-    }
-  }
-
-
-  /* =========================================================
-     REQUEST ACCESS MODAL
-  ========================================================= */
-  function openRequestModal() {
-    document.getElementById('requestModal').classList.add('open');
-    document.getElementById('requestForm').reset();
-    _hideError('requestError');
-    _hideSuccess('requestSuccess');
-    setTimeout(function() {
-      document.getElementById('reqName').focus();
-    }, 100);
-  }
-
-  function closeRequestModal() {
-    document.getElementById('requestModal').classList.remove('open');
-  }
-
-  async function submitRequest(e) {
-    e.preventDefault();
-    _hideError('requestError');
-    _hideSuccess('requestSuccess');
-
-    var name     = document.getElementById('reqName').value.trim();
-    var email    = document.getElementById('reqEmail').value.trim();
-    var phone    = document.getElementById('reqPhone').value.trim();
-    var division = document.getElementById('reqDivision').value.trim();
-    var reason   = document.getElementById('reqReason').value.trim();
-
-    if (!name || !email || !division) {
-      _showError('requestError', 'נא למלא שם מלא, אימייל ומחלקה.');
-      return;
-    }
-    var emailRx = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRx.test(email)) {
-      _showError('requestError', 'כתובת האימייל אינה תקינה.');
-      return;
-    }
-
-    _setLoading('requestSubmitBtn', true, 'שלח בקשה');
-    try {
-      var res = await fetch('/api/user-requests', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name: name, email: email, phone: phone, division: division, reason: reason })
-      });
-      var data = await res.json();
-
-      if (res.ok) {
-        _showSuccess('requestSuccess', 'הבקשה נשלחה בהצלחה! נחזור אליך בקרוב.');
-        document.getElementById('requestForm').reset();
-        setTimeout(closeRequestModal, 2800);
-      } else {
-        _showError('requestError', data.message || 'שגיאה בשליחת הבקשה.');
-      }
-    } catch (err) {
-      _showError('requestError', 'שגיאת תקשורת. נסה שוב.');
-    } finally {
-      _setLoading('requestSubmitBtn', false, 'שלח בקשה');
-    }
-  }
-
-
-  /* =========================================================
-     TOGGLE PASSWORD VISIBILITY
-  ========================================================= */
-  function togglePwLogin(inputId, btn) {
-    var input = document.getElementById(inputId);
-    if (input.type === 'password') {
-      input.type = 'text';
-      btn.textContent = '🙈';
-    } else {
-      input.type = 'password';
-      btn.textContent = '👁';
-    }
-  }
-
-
-  /* =========================================================
-     CLOSE MODALS ON OVERLAY CLICK / ESCAPE
-  ========================================================= */
-  document.getElementById('loginModal').addEventListener('click', function(e) {
-    if (e.target === this) closeLoginModal();
-  });
-  document.getElementById('requestModal').addEventListener('click', function(e) {
-    if (e.target === this) closeRequestModal();
-  });
-  document.addEventListener('keydown', function(e) {
-    if (e.key === 'Escape') {
-      closeLoginModal();
-      closeRequestModal();
-    }
-  });
+/* ── Close on overlay click / Escape ── */
+document.getElementById('requestModal').addEventListener('click', function(e){ if(e.target===this) closeRequestModal(); });
+document.addEventListener('keydown', function(e){ if(e.key==='Escape') closeRequestModal(); });
 </script>
 </body>
 </html>

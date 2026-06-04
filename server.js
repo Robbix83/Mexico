@@ -2125,6 +2125,15 @@ app.get('/logo.png', (req, res) => {
   res.sendFile(path.join(STATIC_DIR, 'logo.png'));
 });
 
+// Public: design preview files (no auth needed — static mockups only)
+app.get('/preview/:file', (req, res) => {
+  const name = path.basename(req.params.file);
+  if (!name.endsWith('.html')) return res.status(403).send('Forbidden');
+  const filePath = path.join(STATIC_DIR, name);
+  if (!fs.existsSync(filePath)) return res.status(404).send('Not found');
+  res.sendFile(filePath);
+});
+
 // Static assets — auth required
 app.use(requireAuth, express.static(STATIC_DIR, {
   index: false,
