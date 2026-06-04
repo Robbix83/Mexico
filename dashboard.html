@@ -340,6 +340,14 @@ tr.reparent-hover>td{background:#f0fff4!important;outline:2px solid #38a169;outl
 .col-notstarted .col-header{border-color:#a0aec0}
 .col-inprogress .col-header{border-color:#4262ff}
 .col-blocked    .col-header{border-color:#e53e3e}
+/* ── Quick add bar ── */
+.quick-add{display:flex;align-items:center;gap:8px;background:#fff;border:1px solid var(--border);
+  border-radius:12px;padding:6px 8px 6px 14px;margin-bottom:12px;box-shadow:0 1px 0 rgba(0,0,0,.02)}
+.quick-add:focus-within{border-color:var(--blue);box-shadow:0 0 0 3px rgba(66,98,255,.12)}
+.quick-add-ico{font-size:1rem;opacity:.7}
+.quick-add-input{flex:1;border:none;outline:none;font-family:inherit;font-size:.9rem;background:none;color:var(--text);direction:rtl}
+.quick-add-btn{background:var(--blue);color:#fff;border:none;border-radius:9px;padding:8px 16px;font-weight:700;font-size:.82rem;cursor:pointer;white-space:nowrap;transition:.15s}
+.quick-add-btn:hover{background:#3550e0}
 /* ── Sites (projects overview) ── */
 .sites-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:16px}
 .sites-empty{padding:40px;text-align:center;color:var(--muted);font-size:.9rem}
@@ -1454,6 +1462,13 @@ tr:hover .pl-row-ds-btn{opacity:.6}
       <button class="btn-cat" onclick="openProjManager()">🏗️ פרויקטים</button>
       <button class="btn-cat" onclick="openCityManager()">🏙️ ערים</button>
       <button class="btn-export" onclick="exportCSV()" title="ייצא ל-CSV">📥 CSV</button>
+    </div>
+    <div class="quick-add">
+      <span class="quick-add-ico">⚡</span>
+      <input id="quick-add-input" class="quick-add-input" type="text" placeholder="הוספה מהירה — הקלד משימה ולחץ Enter…"
+             autocomplete="off" data-lpignore="true" data-1p-ignore
+             onkeydown="if(event.key==='Enter')quickAddTask()"/>
+      <button class="quick-add-btn" onclick="quickAddTask()">＋ הוסף</button>
     </div>
     <div class="table-wrap">
       <table>
@@ -3370,6 +3385,28 @@ function renderKanban(){
     });
   });
   updateCounts();
+}
+
+// ─── QUICK ADD ─────────────────────────────────────────────
+function quickAddTask(){
+  const inp=document.getElementById('quick-add-input');
+  if(!inp) return;
+  const name=inp.value.trim();
+  if(!name){ inp.focus(); return; }
+  const now=new Date().toISOString();
+  // smart defaults: inherit active category/project filter context
+  const cat=(catFilter!=='all')?catFilter:(categories[0]?.name||'כללי');
+  const proj=(projFilter!=='all')?projFilter:null;
+  const pri=(priFilter==='high'||priFilter==='medium'||priFilter==='low')?priFilter:'medium';
+  const newId=nextId++;
+  tasks.push({id:newId,name,cat,pri,status:'notstarted',note:'',dueDate:null,
+    parentId:null,projectId:proj,files:[],createdAt:now,
+    statusHistory:[{status:'notstarted',date:now}]});
+  taskOrder.unshift(newId); // new task at top
+  saveState();
+  inp.value=''; inp.focus();
+  renderList(); updateCharts();
+  _toast('משימה נוספה ✓','success');
 }
 
 // ─── SITES (PROJECTS OVERVIEW) ─────────────────────────────
