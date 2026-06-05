@@ -156,6 +156,10 @@ try { db.exec("ALTER TABLE doc_pack_files ADD COLUMN note TEXT"); }             
 try { db.exec("ALTER TABLE doc_pack_files ADD COLUMN contributor TEXT"); }                         catch (_) {}
 try { db.exec("ALTER TABLE doc_pack_files ADD COLUMN external_path TEXT"); }                       catch (_) {}
 
+// Migration: is_template flag on doc_packs — lets a pack act as a reusable
+// skeleton (project-specific content stripped) that new projects clone from.
+try { db.exec("ALTER TABLE doc_packs ADD COLUMN is_template INTEGER NOT NULL DEFAULT 0"); } catch (_) {}
+
 // Migration: doc_pack_files.filename was originally NOT NULL. With Drop 2B,
 // datasheets are stored as "linked" rows (filename NULL, external_path set).
 // SQLite can't DROP NOT NULL in place; the only way is to recreate the
@@ -224,6 +228,11 @@ try { db.exec("ALTER TABLE users ADD COLUMN totp_backup_codes TEXT"); } catch(e)
 // Migration: add status column to requisitions (draft/pending/approved/done)
 try {
   db.exec("ALTER TABLE requisitions ADD COLUMN status TEXT NOT NULL DEFAULT 'draft'");
+} catch(e) { /* column already exists — skip */ }
+
+// Migration: add status column to doc_packs (draft/planning/execution/as-made/archived)
+try {
+  db.exec("ALTER TABLE doc_packs ADD COLUMN status TEXT NOT NULL DEFAULT 'draft'");
 } catch(e) { /* column already exists — skip */ }
 
 // Seed admin user from env vars if no users exist
@@ -295,10 +304,11 @@ const stmts = {
   setWarehouse: db.prepare("UPDATE warehouse_state SET data = ?, count = ?, imported_at = datetime('now') WHERE id = 1"),
 
   // Doc packs
-  listDocPacks:   db.prepare('SELECT id, name, type, created_at, updated_at, created_by_username FROM doc_packs ORDER BY updated_at DESC'),
+  listDocPacks:   db.prepare('SELECT id, name, type, status, is_template, created_at, updated_at, created_by_username FROM doc_packs ORDER BY updated_at DESC'),
   getDocPack:     db.prepare('SELECT * FROM doc_packs WHERE id = ?'),
-  createDocPack:  db.prepare("INSERT INTO doc_packs (name, type, data, created_by_id, created_by_username) VALUES (?, ?, ?, ?, ?)"),
-  updateDocPack:  db.prepare("UPDATE doc_packs SET name = ?, data = ?, updated_at = datetime('now') WHERE id = ?"),
+  createDocPack:  db.prepare("INSERT INTO doc_packs (name, type, data, created_by_id, created_by_username, is_template) VALUES (?, ?, ?, ?, ?, ?)"),
+  updateDocPack:  db.prepare("UPDATE doc_packs SET name = ?, data = ?, status = COALESCE(?, status), updated_at = datetime('now') WHERE id = ?"),
+  setDocPackTemplate: db.prepare("UPDATE doc_packs SET is_template = ?, updated_at = datetime('now') WHERE id = ?"),
   deleteDocPack:  db.prepare('DELETE FROM doc_packs WHERE id = ?'),
   // Files
   addDocPackFile: db.prepare(`INSERT INTO doc_pack_files
@@ -509,9 +519,10 @@ module.exports = {
   // Doc packs
   listDocPacks: () => stmts.listDocPacks.all(),
   getDocPack:   (id) => stmts.getDocPack.get(id),
-  createDocPack: (name, type, dataJson, userId, username) =>
-    stmts.createDocPack.run(name, type || 'cctv', dataJson || '{}', userId || null, username || null),
-  updateDocPack: (id, name, dataJson) => stmts.updateDocPack.run(name, dataJson, id),
+  createDocPack: (name, type, dataJson, userId, username, isTemplate = 0) =>
+    stmts.createDocPack.run(name, type || 'cctv', dataJson || '{}', userId || null, username || null, isTemplate ? 1 : 0),
+  updateDocPack: (id, name, dataJson, status) => stmts.updateDocPack.run(name, dataJson, status || null, id),
+  setDocPackTemplate: (id, isTemplate) => stmts.setDocPackTemplate.run(isTemplate ? 1 : 0, id),
   deleteDocPack: (id) => stmts.deleteDocPack.run(id),
 
   // Doc pack files

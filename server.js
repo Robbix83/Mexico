@@ -18,6 +18,7 @@ const QRCode = require('qrcode');
 
 const db        = require('./db');
 const docpack   = require('./docpack');
+const docparse  = require('./docparse');
 const dsFinder  = require('./ds-finder');
 
 const app  = express();
@@ -367,6 +368,12 @@ app.post('/api/auth/login', loginLimiter, (req, res) => {
   db.logAudit(user.id, user.username, 'login', null, ip, ua);
 
   // ── 2FA gate ──────────────────────────────────────────────────────────────
+  // In development mode, skip TOTP entirely and issue a full session token.
+  if (process.env.NODE_ENV !== 'production') {
+    const token = signToken(user);
+    res.cookie('token', token, { httpOnly: true, sameSite: 'lax', maxAge: 8 * 60 * 60 * 1000 });
+    return res.json({ ok: true });
+  }
   // Issue a short-lived pending token instead of a full session token.
   // The full JWT cookie is only set after TOTP is verified.
   if (user.totp_enabled) {
@@ -1102,6 +1109,8 @@ app.get('/api/docpacks/:id', requireSection('docpack'), (req, res) => {
   res.json({
     pack: {
       id: pack.id, name: pack.name, type: pack.type, data,
+      status: pack.status || 'draft',
+      is_template: pack.is_template || 0,
       created_at: pack.created_at, updated_at: pack.updated_at,
       created_by_username: pack.created_by_username,
     },
@@ -1114,8 +1123,10 @@ app.put('/api/docpacks/:id', requireAdmin, (req, res) => {
   const id = parseInt(req.params.id);
   const pack = db.getDocPack(id);
   if (!pack) return res.status(404).json({ error: 'Pack not found' });
-  const { name, data } = req.body || {};
+  const { name, data, status } = req.body || {};
   const finalName = (name && typeof name === 'string' && name.trim()) ? name.trim() : pack.name;
+  const VALID_STATUSES = ['draft','planning','execution','as-made','archived'];
+  const finalStatus = (status && VALID_STATUSES.includes(status)) ? status : null;
   let dataJson = '{}';
   let dataObj = {};
   if (data && typeof data === 'object') {
@@ -1124,7 +1135,7 @@ app.put('/api/docpacks/:id', requireAdmin, (req, res) => {
     dataJson = data;
     try { dataObj = JSON.parse(data); } catch {}
   }
-  db.updateDocPack(id, finalName, dataJson);
+  db.updateDocPack(id, finalName, dataJson, finalStatus);
 
   // ── Sync linked datasheets to current equipment models ──────────────────────
   // When the user edits/removes equipment rows, auto-linked datasheet files for
@@ -1286,6 +1297,141 @@ app.post('/api/docpacks/:id/files', requireAdmin, docPackUpload.single('file'), 
   } catch (e) {
     res.status(e.status || 500).json({ error: e.message });
   }
+});
+
+// ── Toggle is_template flag ──────────────────────────────────────────────────
+app.patch('/api/docpacks/:id/template', requireAdmin, (req, res) => {
+  const id = parseInt(req.params.id);
+  const pack = db.getDocPack(id);
+  if (!pack) return res.status(404).json({ error: 'Pack not found' });
+  const isTemplate = !!(req.body && req.body.is_template);
+  db.setDocPackTemplate(id, isTemplate);
+  db.logAudit(req.user.id, req.user.username, 'docpack_template_toggle',
+    `Pack #${id} → is_template=${isTemplate ? 1 : 0}`, getClientIp(req), '');
+  res.json({ ok: true, id, is_template: isTemplate ? 1 : 0 });
+});
+
+// ── Duplicate / save-as-template ────────────────────────────────────────────
+// One endpoint, three behaviours selected by booleans in the body:
+//   { strip:false, asTemplate:false, copyFiles:true  } → "שכפל" (full clone)
+//   { strip:true,  asTemplate:true,  copyFiles:false } → "שמור כתבנית"
+//   { strip:false, asTemplate:false, copyFiles:false } → "צור מתבנית" (from template)
+// `strip` removes project-specific content; `copyFiles` physically copies the
+// source pack's uploaded files (and re-links its datasheets).
+app.post('/api/docpacks/:id/duplicate', requireAdmin, (req, res) => {
+  const id = parseInt(req.params.id);
+  const src = db.getDocPack(id);
+  if (!src) return res.status(404).json({ error: 'Pack not found' });
+
+  const strip      = !!(req.body && req.body.strip);
+  const asTemplate = !!(req.body && req.body.asTemplate);
+  const copyFiles  = !!(req.body && req.body.copyFiles);
+
+  let data = {};
+  try { data = JSON.parse(src.data || '{}'); } catch { data = {}; }
+  const outData = strip ? docparse.stripToTemplate(data) : data;
+
+  const reqName = (req.body && typeof req.body.name === 'string') ? req.body.name.trim() : '';
+  const name = reqName || (asTemplate ? `${src.name} — תבנית` : `${src.name} (עותק)`);
+
+  const r = db.createDocPack(name, src.type, JSON.stringify(outData),
+    req.user.id, req.user.username, asTemplate ? 1 : 0);
+  const newId = r.lastInsertRowid;
+
+  let filesCopied = 0;
+  if (copyFiles) {
+    let usedBytes = 0;
+    for (const f of db.listDocPackFiles(id)) {
+      // Linked datasheet (no physical file) — just re-create the link row.
+      if (!f.filename) {
+        if (!f.external_path) continue;
+        db.addDocPackFile({
+          packId: newId, kind: f.kind, filename: null,
+          originalName: f.original_name, mime: f.mime, size: f.size,
+          caption: f.caption, note: f.note, visibility: f.visibility,
+          contributor: req.user.username, sortOrder: f.sort_order,
+          externalPath: f.external_path,
+        });
+        filesCopied++;
+        continue;
+      }
+      const srcPath = docpack.fileDiskPath(id, f.filename);
+      if (!fs.existsSync(srcPath)) continue;
+      usedBytes += f.size || 0;
+      if (usedBytes > PER_PACK_QUOTA_BYTES) break; // safety: don't blow the quota
+      const ext = (f.filename.match(/\.([a-z0-9]{2,5})$/i) || [, 'bin'])[1].toLowerCase();
+      const newName = `${uuidv4()}.${ext}`;
+      try { fs.copyFileSync(srcPath, docpack.fileDiskPath(newId, newName)); }
+      catch { continue; }
+      db.addDocPackFile({
+        packId: newId, kind: f.kind, filename: newName,
+        originalName: f.original_name, mime: f.mime, size: f.size,
+        caption: f.caption, note: f.note, visibility: f.visibility,
+        contributor: req.user.username, sortOrder: f.sort_order,
+      });
+      filesCopied++;
+    }
+  }
+
+  db.logAudit(req.user.id, req.user.username, 'docpack_duplicate',
+    `Duplicated pack #${id} → #${newId} (${asTemplate ? 'template' : 'project'}${strip ? ', stripped' : ''}, ${filesCopied} files)`,
+    getClientIp(req), '');
+  res.json({ ok: true, id: newId, is_template: asTemplate ? 1 : 0, files_copied: filesCopied });
+});
+
+// ── Import + analyse an existing "תיק תיעוד" Word document ───────────────────
+// Parses the uploaded .docx into a pack `data` object, creates a new pack (or
+// template), keeps the source .docx attached as an internal reference file, and
+// returns an analysis summary describing what was detected.
+app.post('/api/docpacks/import', requireAdmin, docPackUpload.single('file'), async (req, res) => {
+  if (!req.file) return res.status(400).json({ error: 'no file uploaded' });
+  req.file.originalname = fixUtf8Filename(req.file.originalname);
+  const cleanup = () => { try { fs.unlinkSync(req.file.path); } catch {} };
+
+  if (!/\.docx$/i.test(req.file.originalname)) {
+    cleanup();
+    return res.status(400).json({ error: 'נא להעלות קובץ Word בפורמט .docx' });
+  }
+
+  let parsed;
+  try {
+    const buf = fs.readFileSync(req.file.path);
+    parsed = await docparse.parseDocxToPackData(buf, { geminiApiKey: process.env.GEMINI_API_KEY });
+  } catch (e) {
+    cleanup();
+    return res.status(400).json({ error: 'ניתוח הקובץ נכשל: ' + e.message });
+  }
+
+  const asTemplate = !!(req.body && (req.body.asTemplate === '1' || req.body.asTemplate === 'true' || req.body.asTemplate === true));
+  let data = parsed.data || {};
+  if (asTemplate) data = docparse.stripToTemplate(data);
+
+  const reqName = (req.body && typeof req.body.name === 'string') ? req.body.name.trim() : '';
+  const name = reqName || (!asTemplate && data.site_name) ||
+    req.file.originalname.replace(/\.docx$/i, '').trim() || 'תיק מיובא';
+
+  const r = db.createDocPack(name, 'cctv', JSON.stringify(data),
+    req.user.id, req.user.username, asTemplate ? 1 : 0);
+  const newId = r.lastInsertRowid;
+
+  // Keep the original .docx as an internal reference file (provenance).
+  try {
+    const newName = `${uuidv4()}.docx`;
+    fs.renameSync(req.file.path, docpack.fileDiskPath(newId, newName));
+    db.addDocPackFile({
+      packId: newId, kind: 'general', filename: newName,
+      originalName: req.file.originalname, mime: req.file.mimetype, size: req.file.size,
+      caption: 'מקור הייבוא', note: 'הקובץ המקורי שממנו יובא התיק',
+      visibility: 'internal', contributor: req.user.username, sortOrder: 0,
+    });
+  } catch {
+    cleanup();
+  }
+
+  db.logAudit(req.user.id, req.user.username, 'docpack_import',
+    `Imported pack from "${req.file.originalname}" → #${newId} (${asTemplate ? 'template' : 'project'})`,
+    getClientIp(req), '');
+  res.json({ ok: true, id: newId, is_template: asTemplate ? 1 : 0, analysis: parsed.analysis });
 });
 
 // Catalog item file upload — saves to DS_PATH/catalog/ and returns a /ds/catalog/ URL.

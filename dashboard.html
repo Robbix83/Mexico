@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
 <title>פרויקטים - ניהול משימות | אפקון</title>
-<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&family=Rubik:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
@@ -778,60 +778,84 @@ kbd{background:#edf2f7;border:1px solid #cbd5e0;border-radius:4px;padding:1px 5p
 .wh-group-row:hover td{background:#dbeafe}
 .wh-mfr-badge{display:inline-block;padding:1px 6px;border-radius:8px;font-size:.65rem;
   font-weight:700;background:#e2e8f0;color:#4a5568;margin-left:5px;vertical-align:middle}
-/* ─── DOC PACK (תיק תיעוד) ─── */
-.dp-shell{display:grid;grid-template-columns:260px 1fr;gap:18px;align-items:start}
-.dp-side{grid-column:1;background:#fff;border:1px solid #e2e8f0;border-radius:10px;padding:12px;position:sticky;top:14px;max-height:calc(100vh - 130px);overflow-y:auto}
-.dp-main{grid-column:2;background:#fff;border:1px solid #e2e8f0;border-radius:10px;padding:18px 20px;min-height:400px}
-.dp-list-item{padding:8px 10px;border-radius:7px;cursor:pointer;font-size:.85rem;display:flex;flex-direction:row-reverse;justify-content:space-between;align-items:center;gap:6px;border:1px solid transparent}
-.dp-list-item:hover{background:#f7fafc}
-.dp-list-item.active{background:#eef4ff;border-color:#c3cdff;color:#1d4ed8;font-weight:700}
+/* ─── DOC PACK (תיק תיעוד) — Plus Jakarta Sans × Miro-E style ─── */
+.dp-shell{display:grid;grid-template-columns:260px 1fr;gap:18px;align-items:start;font-family:'Plus Jakarta Sans','Rubik',sans-serif}
+.dp-side{grid-column:1;background:#fff;border:1px solid #e8e8ed;border-radius:12px;padding:12px;position:sticky;top:14px;max-height:calc(100vh - 130px);overflow-y:auto;box-shadow:0 1px 4px rgba(0,0,0,.06)}
+.dp-main{grid-column:2;background:#f2f2f5;border:1px solid #e8e8ed;border-radius:12px;padding:18px 20px;min-height:400px;box-shadow:0 1px 4px rgba(0,0,0,.06)}
+.dp-list-item{padding:8px 10px;border-radius:8px;cursor:pointer;font-size:.84rem;display:flex;flex-direction:row-reverse;justify-content:space-between;align-items:center;gap:6px;border:1px solid transparent;font-family:'Plus Jakarta Sans','Rubik',sans-serif}
+.dp-list-item:hover{background:#f7f7f9}
+.dp-list-item.active{background:#fff5f5;border-color:#fecaca;color:#CC1A1A;font-weight:700}
 .dp-list-item .dp-list-date{font-size:.7rem;color:#a0aec0;font-weight:400}
-.dp-section{margin-bottom:20px;border:1px solid #edf2f7;border-radius:8px;background:#fafbfc}
-.dp-section-head{padding:10px 14px;font-weight:700;color:#1c1c1e;font-size:.9rem;background:#f0f4fa;border-bottom:1px solid #e2e8f0;border-radius:8px 8px 0 0;cursor:pointer;user-select:none;display:flex;align-items:center;justify-content:space-between}
-.dp-section-head:hover{background:#e8eef7}
-.dp-section-body{padding:14px}
+.dp-list-group{font-size:.7rem;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:.04em;margin:10px 2px 2px;display:flex;align-items:center;gap:6px}
+.dp-list-group:first-child{margin-top:2px}
+.dp-list-item.is-tpl{background:#fdf4ff;border-color:#f5d0fe}
+.dp-list-item.is-tpl.active{background:#fae8ff;border-color:#e9a8f5;color:#a21caf}
+.dp-tpl-badge{font-size:.64rem;font-weight:700;color:#a21caf;background:#fae8ff;border:1px solid #f5d0fe;border-radius:5px;padding:1px 6px;white-space:nowrap}
+.dp-tpl-use{font-size:.66rem;color:#7c3aed;background:none;border:1px solid #ddd6fe;border-radius:5px;padding:2px 8px;cursor:pointer;font-weight:600}
+.dp-tpl-use:hover{background:#ede9fe}
+.dp-section{margin-bottom:12px;border:1px solid #e8e8ed;border-radius:10px;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.05)}
+.dp-section-head{padding:10px 14px;font-weight:700;color:#111;font-size:.88rem;background:#fff;border-bottom:1px solid #f0f0f2;border-radius:10px 10px 0 0;cursor:pointer;user-select:none;display:flex;align-items:center;justify-content:space-between;font-family:'Plus Jakarta Sans','Rubik',sans-serif}
+.dp-section-head:hover{background:#fafafa}
+.dp-section-body{padding:14px;background:#fff;border-radius:0 0 10px 10px}
 .dp-section.collapsed .dp-section-body{display:none}
-.dp-section.collapsed .dp-section-head{border-radius:8px;border-bottom:none}
+.dp-section.collapsed .dp-section-head{border-radius:10px;border-bottom:none}
 .dp-grid-2{display:grid;grid-template-columns:1fr 1fr;gap:10px 14px}
 .dp-grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px 14px}
 .dp-field{display:flex;flex-direction:column;gap:3px}
-.dp-field label{font-size:.78rem;font-weight:600;color:#4a5568;text-align:right}
-.dp-field input,.dp-field textarea,.dp-field select{padding:7px 10px;border:1.5px solid #e2e8f0;border-radius:6px;font-size:.85rem;font-family:inherit;background:#fff;direction:rtl;text-align:right}
-.dp-field input:focus,.dp-field textarea:focus{outline:none;border-color:#c3cdff;box-shadow:0 0 0 3px rgba(59,130,246,.1)}
+.dp-field label{font-size:.75rem;font-weight:600;color:#999;text-align:right;font-family:'Plus Jakarta Sans','Rubik',sans-serif}
+.dp-field input,.dp-field textarea,.dp-field select{padding:7px 10px;border:1.5px solid #e8e8ed;border-radius:8px;font-size:.85rem;font-family:'Plus Jakarta Sans','Rubik',sans-serif;background:#fafafa;direction:rtl;text-align:right;color:#111}
+.dp-field input:focus,.dp-field textarea:focus{outline:none;border-color:#CC1A1A;box-shadow:0 0 0 3px rgba(204,26,26,.08);background:#fff}
 .dp-field textarea{min-height:80px;resize:vertical}
-.dp-table{width:100%;border-collapse:collapse;font-size:.78rem;margin-top:6px}
-.dp-table th{background:#1c1c1e;color:#fff;padding:6px 8px;font-weight:600;text-align:right;font-size:.75rem}
-.dp-table td{padding:4px 6px;border:1px solid #e2e8f0}
-.dp-table input{width:100%;padding:5px 7px;border:1px solid transparent;border-radius:4px;font-size:.78rem;background:transparent;font-family:inherit}
-.dp-table input:focus{outline:none;border-color:#c3cdff;background:#fff}
+.dp-table{width:100%;border-collapse:collapse;font-size:.78rem;margin-top:6px;font-family:'Plus Jakarta Sans','Rubik',sans-serif}
+.dp-table th{background:#f7f7f9;color:#555;padding:6px 8px;font-weight:600;text-align:right;font-size:.72rem;border-bottom:2px solid #CC1A1A}
+.dp-table td{padding:4px 6px;border:1px solid #f0f0f2;color:#222}
+.dp-table input{width:100%;padding:5px 7px;border:1px solid transparent;border-radius:4px;font-size:.78rem;background:transparent;font-family:'Plus Jakarta Sans','Rubik',sans-serif}
+.dp-table input:focus{outline:none;border-color:#CC1A1A;background:#fff5f5}
 .dp-row-del{background:none;border:none;color:#dc2626;cursor:pointer;font-size:.95rem;padding:2px 6px;border-radius:4px}
 .dp-row-del:hover{background:#fee2e2}
-.dp-add-row{margin-top:6px;padding:5px 12px;background:#eef4ff;color:#1d4ed8;border:1px dashed #c3cdff;border-radius:6px;cursor:pointer;font-size:.78rem;font-weight:600}
-.dp-add-row:hover{background:#dbeafe}
-.dp-upload-box{border:2px dashed #cbd5e0;border-radius:8px;padding:18px;text-align:center;color:#718096;font-size:.85rem;cursor:pointer;transition:all .15s;background:#fafbfc}
-.dp-upload-box:hover,.dp-upload-box.drag-over{border-color:#3b82f6;background:#eef4ff;color:#1d4ed8}
+.dp-row-num{width:28px;min-width:28px;text-align:center;font-size:.72rem;color:#bbb;font-weight:600;background:#fafafa;user-select:none;padding:4px 2px}
+.dp-status-dot{display:inline-block;width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.dp-status-select{font-size:.72rem;padding:3px 8px;border:1px solid #e8e8ed;border-radius:7px;cursor:pointer;background:#fff;font-weight:600;color:#555;font-family:'Plus Jakarta Sans','Rubik',sans-serif}
+.dp-add-row{margin-top:6px;padding:5px 12px;background:#fff5f5;color:#CC1A1A;border:1px dashed #fca5a5;border-radius:7px;cursor:pointer;font-size:.78rem;font-weight:600;font-family:'Plus Jakarta Sans','Rubik',sans-serif}
+.dp-add-row:hover{background:#fef2f2}
+.dp-upload-box{border:2px dashed #e0e0e5;border-radius:10px;padding:18px;text-align:center;color:#aaa;font-size:.85rem;cursor:pointer;transition:all .15s;background:#fafafa;font-family:'Plus Jakarta Sans','Rubik',sans-serif}
+.dp-upload-box:hover,.dp-upload-box.drag-over{border-color:#CC1A1A;background:#fff5f5;color:#CC1A1A}
 .dp-gallery{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px;margin-top:10px}
-.dp-photo{position:relative;border:1px solid #e2e8f0;border-radius:6px;overflow:hidden;background:#f7fafc}
+.dp-photo{position:relative;border:1px solid #e8e8ed;border-radius:8px;overflow:hidden;background:#fafafa}
 .dp-photo img{width:100%;height:120px;object-fit:cover;display:block}
 .dp-photo-del{position:absolute;top:4px;left:4px;background:rgba(0,0,0,.6);color:#fff;border:none;width:22px;height:22px;border-radius:50%;cursor:pointer;font-size:.75rem;line-height:1;font-weight:700}
-.dp-photo-del:hover{background:#dc2626}
-.dp-photo-caption{padding:4px 6px;font-size:.7rem;color:#4a5568;background:#fff;border-top:1px solid #edf2f7}
-.dp-photo-caption input{width:100%;border:none;background:transparent;font-size:.7rem;color:#4a5568;font-family:inherit;padding:0}
+.dp-photo-del:hover{background:#CC1A1A}
+.dp-photo-caption{padding:4px 6px;font-size:.7rem;color:#555;background:#fff;border-top:1px solid #f0f0f2}
+.dp-photo-caption input{width:100%;border:none;background:transparent;font-size:.7rem;color:#555;font-family:'Plus Jakarta Sans','Rubik',sans-serif;padding:0}
 .dp-photo-caption input:focus{outline:none}
 .dp-slot{display:flex;gap:14px;align-items:flex-start;margin-top:8px}
-.dp-slot-preview{width:160px;height:110px;border:1px solid #e2e8f0;border-radius:6px;background:#f7fafc center/contain no-repeat;display:flex;align-items:center;justify-content:center;color:#a0aec0;font-size:.75rem;flex-shrink:0}
-.dp-toolbar{display:flex;justify-content:space-between;align-items:center;padding-bottom:14px;margin-bottom:14px;border-bottom:1px solid #e2e8f0;gap:10px;flex-wrap:wrap}
-.dp-title{font-size:1.1rem;font-weight:700;color:#1c1c1e;flex:1;min-width:200px}
-.dp-title input{width:100%;padding:8px 12px;border:1.5px solid #e2e8f0;border-radius:7px;font-size:1.05rem;font-weight:700;color:#1c1c1e;background:#fff;font-family:inherit}
-.dp-title input:focus{outline:none;border-color:#c3cdff;box-shadow:0 0 0 3px rgba(59,130,246,.1)}
-.dp-btn-export{background:#10b981;color:#fff;border:none;padding:8px 18px;border-radius:7px;font-size:.88rem;font-weight:700;cursor:pointer}
-.dp-btn-export:hover{background:#059669}
+.dp-slot-preview{width:160px;height:110px;border:1px solid #e8e8ed;border-radius:8px;background:#fafafa center/contain no-repeat;display:flex;align-items:center;justify-content:center;color:#bbb;font-size:.75rem;flex-shrink:0}
+.dp-toolbar{display:flex;align-items:center;padding-bottom:14px;margin-bottom:16px;border-bottom:1px solid #f0f0f2;gap:8px;flex-wrap:nowrap;font-family:'Plus Jakarta Sans','Rubik',sans-serif}
+.dp-toolbar .dp-title{flex:1;min-width:0;display:flex;align-items:center;gap:8px}
+.dp-toolbar .dp-title input{flex:1;min-width:0}
+.dp-toolbar-actions{display:flex;align-items:center;gap:6px;flex-shrink:0}
+/* overflow menu */
+.dp-more-wrap{position:relative}
+.dp-more-btn{background:#f4f4f6;border:1px solid #e8e8ed;color:#666;border-radius:8px;padding:6px 10px;font-size:1.1rem;cursor:pointer;line-height:1;font-weight:700}
+.dp-more-btn:hover{background:#eaeaed}
+.dp-more-menu{display:none;position:absolute;top:calc(100% + 4px);left:0;min-width:200px;background:#fff;border:1px solid #e8e8ed;border-radius:10px;box-shadow:0 4px 20px rgba(0,0,0,.1);z-index:200;padding:5px 0;text-align:right;font-family:'Plus Jakarta Sans','Rubik',sans-serif}
+.dp-more-menu.open{display:block}
+.dp-more-menu button{display:block;width:100%;background:none;border:none;text-align:right;padding:9px 16px;font-size:.84rem;cursor:pointer;color:#374151;font-family:inherit;white-space:nowrap}
+.dp-more-menu button:hover{background:#fafafa}
+.dp-more-menu .dp-menu-sep{height:1px;background:#f0f0f2;margin:4px 0}
+.dp-more-menu .dp-menu-danger{color:#CC1A1A}
+.dp-more-menu .dp-menu-danger:hover{background:#fff5f5}
+.dp-title{font-size:1.05rem;font-weight:700;color:#111;flex:1;min-width:200px;font-family:'Plus Jakarta Sans','Rubik',sans-serif}
+.dp-title input{width:100%;padding:7px 12px;border:1.5px solid #e8e8ed;border-radius:8px;font-size:1rem;font-weight:700;color:#111;background:#fff;font-family:'Plus Jakarta Sans','Rubik',sans-serif}
+.dp-title input:focus{outline:none;border-color:#CC1A1A;box-shadow:0 0 0 3px rgba(204,26,26,.08)}
+.dp-btn-export{background:#CC1A1A;color:#fff;border:none;padding:8px 18px;border-radius:8px;font-size:.88rem;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans','Rubik',sans-serif;box-shadow:0 2px 8px rgba(204,26,26,.25)}
+.dp-btn-export:hover{background:#b31515}
 .dp-btn-export:disabled{opacity:.5;cursor:not-allowed}
-.dp-btn-del{background:#fee2e2;color:#b91c1c;border:1px solid #fecaca;padding:6px 12px;border-radius:6px;font-size:.78rem;font-weight:600;cursor:pointer}
+.dp-btn-del{background:#fee2e2;color:#b91c1c;border:1px solid #fecaca;padding:6px 12px;border-radius:7px;font-size:.78rem;font-weight:600;cursor:pointer;font-family:'Plus Jakarta Sans','Rubik',sans-serif}
 .dp-btn-del:hover{background:#fca5a5}
-.dp-btn-preview{background:#e0e7ff;color:#3730a3;border:1px solid #c7d2fe;padding:8px 16px;border-radius:7px;font-size:.88rem;font-weight:700;cursor:pointer;transition:.15s}
-.dp-btn-preview:hover{background:#c7d2fe}
-.dp-status{font-size:.75rem;color:#718096;margin-left:8px}
+.dp-btn-preview{background:#f4f4f6;color:#444;border:1px solid #e8e8ed;padding:8px 16px;border-radius:8px;font-size:.88rem;font-weight:600;cursor:pointer;transition:.15s;font-family:'Plus Jakarta Sans','Rubik',sans-serif}
+.dp-btn-preview:hover{background:#eaeaed}
+.dp-status{font-size:.75rem;color:#aaa;margin-left:8px;font-family:'Plus Jakarta Sans','Rubik',sans-serif}
 /* ── Doc-pack preview modal ── */
 .dp-preview-overlay{position:fixed;inset:0;z-index:2000;background:#3a3a3a;display:flex;flex-direction:column;overflow:hidden}
 .dp-preview-toolbar{background:#1c1c1e;color:#fff;padding:10px 18px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;gap:12px}
@@ -1596,9 +1620,17 @@ tr:hover .pl-row-ds-btn{opacity:.6}
       <aside class="dp-side">
         <button class="btn-cat dp-admin-only" id="dp-new-btn"
           onclick="dpCreatePack()"
-          style="background:#eef4ff;color:var(--blue);border-color:#c3cdff;width:100%;margin-bottom:10px">
+          style="background:#eef4ff;color:var(--blue);border-color:#c3cdff;width:100%;margin-bottom:8px">
           + פרויקט חדש
         </button>
+        <button class="btn-cat dp-admin-only" id="dp-import-btn"
+          onclick="document.getElementById('dp-import-input').click()"
+          title="העלה תיק תיעוד קיים (Word .docx) ונתח אותו אוטומטית"
+          style="background:#f0fdf4;color:#15803d;border-color:#bbf7d0;width:100%;margin-bottom:10px">
+          ⬆ ייבא תיק (Word)
+        </button>
+        <input type="file" id="dp-import-input" accept=".docx" style="display:none"
+          onchange="dpImportWord(this.files[0],this)"/>
         <div id="dp-list" style="display:flex;flex-direction:column;gap:6px"></div>
       </aside>
       <div class="dp-main" id="dp-main">
@@ -1618,10 +1650,45 @@ tr:hover .pl-row-ds-btn{opacity:.6}
       </p>
       <input type="text" id="dp-new-name" placeholder="לדוגמה: חוף סאנסט"
         style="width:100%;padding:9px 12px;border:1.5px solid #e2e8f0;border-radius:7px;font-size:.95rem"/>
+      <div id="dp-new-tpl-wrap" style="margin-top:12px;display:none">
+        <label style="font-size:.82rem;font-weight:600;color:#4a5568;display:block;margin-bottom:4px">התחל מ:</label>
+        <select id="dp-new-tpl"
+          style="width:100%;padding:9px 12px;border:1.5px solid #e2e8f0;border-radius:7px;font-size:.9rem;background:#fff">
+          <option value="">תיק ריק</option>
+        </select>
+        <div style="font-size:.74rem;color:#a0aec0;margin-top:4px">בחירת תבנית תיצור פרויקט עם המבנה והתוכן הקבוע מוכנים.</div>
+      </div>
       <div id="dp-new-err" style="color:#c53030;font-size:.8rem;margin-top:8px;min-height:18px"></div>
       <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:14px">
         <button class="pl-step-cancel" onclick="dpCloseNewModal()">ביטול</button>
         <button class="pl-step-next" onclick="dpSubmitNew()">צור</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ DOC PACK IMPORT MODAL ══ -->
+  <div id="dp-import-overlay" class="pl-import-overlay" onclick="if(event.target===this)dpCloseImportModal()">
+    <div class="pl-import-modal" style="max-width:460px">
+      <h3>⬆ ייבוא תיק תיעוד</h3>
+      <p style="font-size:.85rem;color:#718096;margin-bottom:6px">
+        קובץ: <span id="dp-import-fname" style="font-weight:600;color:#1c1c1e"></span>
+      </p>
+      <p style="font-size:.82rem;color:#718096;margin-bottom:14px;line-height:1.5">
+        ננתח את המסמך ונחלץ ממנו את הפרקים, הטבלאות (מצלמות / עורקים / מתגים) והגורמים. כיצד לייבא?
+      </p>
+      <div style="display:flex;flex-direction:column;gap:8px">
+        <button onclick="dpDoImport(false)" style="text-align:right;background:#eff6ff;border:1.5px solid #bfdbfe;border-radius:8px;padding:11px 14px;cursor:pointer">
+          <div style="font-weight:700;color:#1d4ed8">📁 כפרויקט חדש</div>
+          <div style="font-size:.76rem;color:#64748b;margin-top:2px">ייבוא כל התוכן כפרויקט עצמאי לעריכה</div>
+        </button>
+        <button onclick="dpDoImport(true)" style="text-align:right;background:#fdf4ff;border:1.5px solid #f5d0fe;border-radius:8px;padding:11px 14px;cursor:pointer">
+          <div style="font-weight:700;color:#a21caf">📑 כתבנית לשימוש חוזר</div>
+          <div style="font-size:.76rem;color:#64748b;margin-top:2px">שמירת המבנה והתוכן הקבוע בלבד (ללא שם אתר, אנשי קשר, IP)</div>
+        </button>
+      </div>
+      <div id="dp-import-err" style="color:#c53030;font-size:.8rem;margin-top:10px;min-height:16px"></div>
+      <div style="display:flex;justify-content:flex-end;margin-top:10px">
+        <button class="pl-step-cancel" onclick="dpCloseImportModal()">ביטול</button>
       </div>
     </div>
   </div>
@@ -7426,6 +7493,16 @@ async function ensureDocPacksLoaded(force){
 function dpCreatePack(){
   document.getElementById('dp-new-name').value='';
   document.getElementById('dp-new-err').textContent='';
+  // Populate the "start from template" picker from loaded packs.
+  const tpls=_docPacks.filter(p=>p.is_template);
+  const wrap=document.getElementById('dp-new-tpl-wrap');
+  const sel=document.getElementById('dp-new-tpl');
+  if(sel){
+    sel.innerHTML='<option value="">תיק ריק</option>'+
+      tpls.map(t=>`<option value="${t.id}">${_escDp(t.name)}</option>`).join('');
+    sel.value='';
+  }
+  if(wrap) wrap.style.display=tpls.length?'block':'none';
   document.getElementById('dp-new-overlay').style.display='flex';
   setTimeout(()=>document.getElementById('dp-new-name').focus(),50);
 }
@@ -7436,19 +7513,158 @@ async function dpSubmitNew(){
   const name=(document.getElementById('dp-new-name').value||'').trim();
   const err=document.getElementById('dp-new-err');
   if(!name){err.textContent='נא להזין שם פרויקט';return;}
+  const tplSel=document.getElementById('dp-new-tpl');
+  const tplId=tplSel?tplSel.value:'';
   try{
-    const r=await fetch('/api/docpacks',{
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({name,type:'cctv'})
-    });
-    if(!r.ok){const j=await r.json().catch(()=>({}));throw new Error(j.error||'שגיאה ביצירה');}
-    const j=await r.json();
+    let newId;
+    if(tplId){
+      // Create from template: clone its structure (no files, not a template).
+      const r=await fetch('/api/docpacks/'+tplId+'/duplicate',{
+        method:'POST',headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({name,strip:false,asTemplate:false,copyFiles:false})
+      });
+      if(!r.ok){const j=await r.json().catch(()=>({}));throw new Error(j.error||'שגיאה ביצירה מתבנית');}
+      newId=(await r.json()).id;
+    }else{
+      const r=await fetch('/api/docpacks',{
+        method:'POST',headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({name,type:'cctv'})
+      });
+      if(!r.ok){const j=await r.json().catch(()=>({}));throw new Error(j.error||'שגיאה ביצירה');}
+      newId=(await r.json()).id;
+    }
     dpCloseNewModal();
+    await ensureDocPacksLoaded(true);
+    await dpSelectPack(newId);
+    renderDocPack();
+  }catch(e){err.textContent=e.message;}
+}
+
+// ── Duplicate / template / import ──
+function dpToggleMore(e){e.stopPropagation();document.getElementById('dp-more-menu').classList.toggle('open');}
+function dpCloseMore(){document.getElementById('dp-more-menu')?.classList.remove('open');}
+document.addEventListener('click',()=>dpCloseMore());
+async function dpDuplicate(){
+  if(!_currentDocPack) return;
+  if(!await _confirm(`ליצור עותק מלא של "${_escDp(_currentDocPack.name)}" כולל כל הקבצים?`,
+     {title:'שכפול תיק',ok:'שכפל',type:'info'})) return;
+  try{
+    const r=await fetch('/api/docpacks/'+_currentDocPack.id+'/duplicate',{
+      method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({strip:false,asTemplate:false,copyFiles:true})
+    });
+    if(!r.ok){const j=await r.json().catch(()=>({}));throw new Error(j.error||'שגיאה');}
+    const j=await r.json();
+    _toast(`התיק שוכפל בהצלחה (${j.files_copied||0} קבצים הועתקו)`,'success');
     await ensureDocPacksLoaded(true);
     await dpSelectPack(j.id);
     renderDocPack();
+  }catch(e){_toast('שגיאה בשכפול: '+e.message,'error');}
+}
+
+async function dpSaveAsTemplate(){
+  if(!_currentDocPack) return;
+  if(!await _confirm('לשמור את מבנה התיק כתבנית? התוכן הספציפי לפרויקט (שם אתר, אנשי קשר, כתובות IP, תמונות) לא יישמר בתבנית.',
+     {title:'שמירה כתבנית',ok:'צור תבנית',type:'info'})) return;
+  try{
+    const r=await fetch('/api/docpacks/'+_currentDocPack.id+'/duplicate',{
+      method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({strip:true,asTemplate:true,copyFiles:false})
+    });
+    if(!r.ok){const j=await r.json().catch(()=>({}));throw new Error(j.error||'שגיאה');}
+    const j=await r.json();
+    _toast('התבנית נוצרה בהצלחה','success');
+    await ensureDocPacksLoaded(true);
+    renderDocPackList();
+  }catch(e){_toast('שגיאה ביצירת התבנית: '+e.message,'error');}
+}
+
+async function dpToggleTemplate(){
+  if(!_currentDocPack) return;
+  const making=!_currentDocPack.is_template;
+  const msg=making
+    ?'להפוך תיק זה לתבנית? יהיה זמין לשימוש חוזר ברשימת התבניות.'
+    :'להמיר תבנית זו לפרויקט רגיל?';
+  if(!await _confirm(msg,{title:making?'הפוך לתבנית':'המר לפרויקט',ok:making?'הפוך לתבנית':'המר',type:'info'})) return;
+  try{
+    const r=await fetch('/api/docpacks/'+_currentDocPack.id+'/template',{
+      method:'PATCH',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({is_template:making})
+    });
+    if(!r.ok){const j=await r.json().catch(()=>({}));throw new Error(j.error||'שגיאה');}
+    _currentDocPack.is_template=making?1:0;
+    _toast(making?'הפך לתבנית בהצלחה':'הומר לפרויקט בהצלחה','success');
+    await ensureDocPacksLoaded(true);
+    renderDocPack();
+    renderDocPackList();
+  }catch(e){_toast('שגיאה: '+e.message,'error');}
+}
+
+async function dpCreateFromTemplate(tplId,tplName){
+  const name=(tplName||'פרויקט').replace(/\s*—\s*תבנית\s*$/,'')+' (חדש)';
+  try{
+    const r=await fetch('/api/docpacks/'+tplId+'/duplicate',{
+      method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({name,strip:false,asTemplate:false,copyFiles:false})
+    });
+    if(!r.ok){const j=await r.json().catch(()=>({}));throw new Error(j.error||'שגיאה');}
+    const j=await r.json();
+    _toast('נוצר פרויקט חדש מהתבנית','success');
+    await ensureDocPacksLoaded(true);
+    await dpSelectPack(j.id);
+    renderDocPack();
+  }catch(e){_toast('שגיאה: '+e.message,'error');}
+}
+
+let _dpImportFile=null;
+function dpImportWord(file,inputEl){
+  if(inputEl) inputEl.value='';   // allow re-selecting the same file later
+  if(!file) return;
+  if(!/\.docx$/i.test(file.name||'')){_toast('נא לבחור קובץ Word בפורמט .docx','warn');return;}
+  if(file.size>200*1024*1024){_toast('הקובץ גדול מדי (מקסימום 200MB)','warn');return;}
+  _dpImportFile=file;
+  document.getElementById('dp-import-fname').textContent=file.name;
+  document.getElementById('dp-import-err').textContent='';
+  document.getElementById('dp-import-overlay').style.display='flex';
+}
+function dpCloseImportModal(){
+  document.getElementById('dp-import-overlay').style.display='none';
+  _dpImportFile=null;
+}
+async function dpDoImport(asTemplate){
+  const file=_dpImportFile;
+  if(!file){dpCloseImportModal();return;}
+  const err=document.getElementById('dp-import-err');
+  err.textContent='מנתח…';
+  try{
+    const fd=new FormData();
+    fd.append('file',file);
+    fd.append('asTemplate',asTemplate?'1':'0');
+    const r=await fetch('/api/docpacks/import',{method:'POST',body:fd});
+    if(!r.ok){const j=await r.json().catch(()=>({}));throw new Error(j.error||'הייבוא נכשל');}
+    const j=await r.json();
+    dpCloseImportModal();
+    await ensureDocPacksLoaded(true);
+    await dpSelectPack(j.id);
+    renderDocPack();
+    dpShowImportSummary(j.analysis,j.is_template);
   }catch(e){err.textContent=e.message;}
+}
+
+function dpShowImportSummary(a,isTpl){
+  a=a||{};
+  const parts=[];
+  if(a.sections&&a.sections.length) parts.push(`זוהו ${a.sections.length} פרקים`);
+  if(a.tables&&a.tables.length){
+    const byType={cameras:'מצלמות',backhauls:'עורקים',switches:'מתגים'};
+    const t=a.tables.map(x=>`${x.rows} ${byType[x.type]||x.type}`).join(', ');
+    parts.push('טבלאות: '+t);
+  }
+  if(a.parties) parts.push(`${a.parties} שדות גורמים`);
+  let msg=(isTpl?'התבנית יובאה. ':'התיק יובא. ')+(parts.length?parts.join(' · '):'לא זוהה מבנה מובנה — בדוק את התוכן.');
+  if(a.photosNote) msg+=' · '+a.photosNote;
+  _toast(msg,'success',8000);
+  if(a.warnings&&a.warnings.length) setTimeout(()=>_toast(a.warnings.join(' '),'warn',7000),400);
 }
 
 async function dpSelectPack(id){
@@ -7495,7 +7711,7 @@ function dpScheduleSave(){
 }
 async function dpFlushSave(){
   if(!_currentDocPack) return;
-  const body={name:_currentDocPack.name,data:_currentDocPack.data||{}};
+  const body={name:_currentDocPack.name,data:_currentDocPack.data||{},status:_currentDocPack.status||'draft'};
   try{
     const r=await fetch('/api/docpacks/'+_currentDocPack.id,{
       method:'PUT',
@@ -7506,7 +7722,7 @@ async function dpFlushSave(){
     dpSetSaveStatus('saved');
     // Update side-list metadata
     const idx=_docPacks.findIndex(p=>p.id===_currentDocPack.id);
-    if(idx>=0){_docPacks[idx].name=_currentDocPack.name;_docPacks[idx].updated_at=new Date().toISOString();}
+    if(idx>=0){_docPacks[idx].name=_currentDocPack.name;_docPacks[idx].status=_currentDocPack.status||'draft';_docPacks[idx].updated_at=new Date().toISOString();}
     setTimeout(()=>{if(_dpSaveStatus==='saved') dpSetSaveStatus('');},2000);
   }catch(e){dpSetSaveStatus('error');}
 }
@@ -7525,6 +7741,21 @@ function dpSetField(key,val){
 function dpSetTitle(val){
   if(!_currentDocPack) return;
   _currentDocPack.name=val;
+  dpScheduleSave();
+}
+const DP_STATUS_META={
+  'draft':    {label:'טיוטה',    color:'#94a3b8'},
+  'planning': {label:'תכנון',    color:'#3b82f6'},
+  'execution':{label:'ביצוע',    color:'#f59e0b'},
+  'as-made':  {label:'AS-MADE', color:'#10b981'},
+  'archived': {label:'ארכיון',   color:'#cbd5e0'},
+};
+function dpSetStatus(val){
+  if(!_currentDocPack) return;
+  _currentDocPack.status=val;
+  // Update the dot in the side list immediately
+  const dot=document.getElementById('dp-status-dot-'+_currentDocPack.id);
+  if(dot) dot.style.background=(DP_STATUS_META[val]||DP_STATUS_META.draft).color;
   dpScheduleSave();
 }
 
@@ -7897,13 +8128,36 @@ function renderDocPackList(){
   if(!_docPacksLoaded){list.innerHTML='<div style="color:#a0aec0;font-size:.8rem;padding:8px">טוען…</div>';return;}
   if(_docPacks.length===0){list.innerHTML='<div style="color:#a0aec0;font-size:.8rem;padding:8px">אין פרויקטים עדיין.</div>';return;}
   const fmt=t=>{try{const d=new Date(t);return d.toLocaleDateString('he-IL');}catch{return '';}};
-  list.innerHTML=_docPacks.map(p=>{
+  const templates=_docPacks.filter(p=>p.is_template);
+  const projects =_docPacks.filter(p=>!p.is_template);
+  const tplItem=p=>{
     const active=p.id===_currentDocPackId?'active':'';
+    const nm=_escDp(p.name).replace(/'/g,"\\'");
+    return `<div class="dp-list-item is-tpl ${active}" onclick="dpSelectPack(${p.id})">
+      <span style="display:flex;align-items:center;gap:5px;min-width:0"><span class="dp-tpl-badge">תבנית</span><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${_escDp(p.name)}</span></span>
+      <button class="dp-tpl-use dp-admin-only" title="צור פרויקט חדש מתבנית זו"
+        onclick="event.stopPropagation();dpCreateFromTemplate(${p.id},'${nm}')">＋ שימוש</button>
+    </div>`;
+  };
+  const projItem=p=>{
+    const active=p.id===_currentDocPackId?'active':'';
+    const sm=DP_STATUS_META[p.status||'draft']||DP_STATUS_META.draft;
     return `<div class="dp-list-item ${active}" onclick="dpSelectPack(${p.id})">
-      <span>${_escDp(p.name)}</span>
+      <span style="display:flex;align-items:center;gap:5px;min-width:0;overflow:hidden">
+        <span class="dp-status-dot" id="dp-status-dot-${p.id}" title="${sm.label}" style="background:${sm.color}"></span>
+        <span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${_escDp(p.name)}</span>
+      </span>
       <span class="dp-list-date">${fmt(p.updated_at)}</span>
     </div>`;
-  }).join('');
+  };
+  let html='';
+  if(templates.length){
+    html+=`<div class="dp-list-group">📑 תבניות</div>`+templates.map(tplItem).join('');
+  }
+  html+=`<div class="dp-list-group">📁 פרויקטים</div>`+
+        (projects.length?projects.map(projItem).join('')
+                         :'<div style="color:#a0aec0;font-size:.78rem;padding:6px 4px">אין פרויקטים עדיין.</div>');
+  list.innerHTML=html;
 }
 
 function _escDp(s){return String(s||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
@@ -7925,17 +8179,33 @@ function renderDocPackForm(){
   const quotaHuman=v=>v<1024*1024?`${(v/1024).toFixed(0)}KB`:`${(v/1024/1024).toFixed(1)}MB`;
   main.innerHTML=`
     <div class="dp-toolbar">
-      <div class="dp-title">
-        <input type="text" value="${_escDp(_currentDocPack.name)}" oninput="dpSetTitle(this.value)"/>
+      <div class="dp-title" style="display:flex;align-items:center;gap:8px">
+        ${_currentDocPack.is_template?'<span class="dp-tpl-badge" title="זוהי תבנית לשימוש חוזר">📑 תבנית</span>':''}
+        <input type="text" value="${_escDp(_currentDocPack.name)}" oninput="dpSetTitle(this.value)" style="flex:1"/>
       </div>
       <span id="dp-save-status" class="dp-status"></span>
-      <span style="font-size:.72rem;color:#718096">📊 ${quotaHuman(quota.used)} / ${(quota.max/1024/1024/1024).toFixed(1)}GB ${quotaPct>=90?'⚠':''}</span>
-      <button class="dp-btn-req" onclick="dpExportToReq()">📝 דרישת רכש</button>
-      <button class="dp-btn-preview" onclick="dpOpenPreview()">👁 תצוגה מקדימה</button>
-      <button class="dp-btn-export" id="dp-export-btn" onclick="dpExportWord()">⬇ ייצוא Word</button>
-      <button class="dp-admin-only" onclick="dpCleanupDatasheets()" title="מחק דפי מוצר שלא שייכים לציוד הנוכחי" style="background:#fff7ed;color:#c2410c;border:1px solid #fed7aa;padding:6px 12px;border-radius:7px;font-size:.82rem;font-weight:600;cursor:pointer">🧹 נקה שאריות</button>
-      <button class="dp-btn-share dp-admin-only" onclick="dpOpenShareModal()" style="background:#fbbf24;color:#0F4C5C;border:none;padding:8px 14px;border-radius:7px;font-size:.85rem;font-weight:700;cursor:pointer">🔗 קישור שיתוף</button>
-      <button class="dp-btn-del dp-admin-only" onclick="dpDeletePack(${_currentDocPack.id},'${_escDp(_currentDocPack.name).replace(/'/g,"\\'")}')">🗑 מחק תיק</button>
+      <div class="dp-toolbar-actions">
+        <select class="dp-status-select dp-admin-only" onchange="dpSetStatus(this.value)" title="סטטוס תיק">
+          ${[['draft','טיוטה','#94a3b8'],['planning','תכנון','#3b82f6'],['execution','ביצוע','#f59e0b'],['as-made','AS-MADE','#10b981'],['archived','ארכיון','#e2e8f0']].map(([v,l,c])=>`<option value="${v}" style="color:${c==='#e2e8f0'?'#94a3b8':c}" ${(_currentDocPack.status||'draft')===v?'selected':''}>${l}</option>`).join('')}
+        </select>
+        <span style="font-size:.7rem;color:#94a3b8;white-space:nowrap">📊 ${quotaHuman(quota.used)} / ${(quota.max/1024/1024/1024).toFixed(1)}GB${quotaPct>=90?' ⚠':''}</span>
+        <button class="dp-btn-preview" onclick="dpOpenPreview()">👁 תצוגה מקדימה</button>
+        <button class="dp-btn-export" id="dp-export-btn" onclick="dpExportWord()">⬇ ייצוא Word</button>
+        <div class="dp-more-wrap dp-admin-only">
+          <button class="dp-more-btn" onclick="dpToggleMore(event)" title="עוד פעולות">⋯</button>
+          <div class="dp-more-menu" id="dp-more-menu">
+            <button onclick="dpCloseMore();dpOpenShareModal()">🔗 קישור שיתוף</button>
+            <button onclick="dpCloseMore();dpDuplicate()">⧉ שכפל תיק</button>
+            ${_currentDocPack.is_template
+              ?`<button onclick="dpCloseMore();dpToggleTemplate()">📁 המר לפרויקט</button>`
+              :`<button onclick="dpCloseMore();dpSaveAsTemplate()">📑 שמור כתבנית</button>
+            <button onclick="dpCloseMore();dpToggleTemplate()">📑 הפוך לתבנית</button>`}
+            <button onclick="dpCloseMore();dpCleanupDatasheets()">🧹 נקה שאריות</button>
+            <div class="dp-menu-sep"></div>
+            <button class="dp-menu-danger" onclick="dpCloseMore();dpDeletePack(${_currentDocPack.id},'${_escDp(_currentDocPack.name).replace(/\n|\r/g,' ').replace(/'/g,"\\'")}')">🗑 מחק תיק</button>
+          </div>
+        </div>
+      </div>
     </div>
 
     <div class="dp-section">
@@ -8045,8 +8315,8 @@ function renderDocPackForm(){
       </div>
       <div class="dp-section-body">
         ${_dpTable('cameras',
-          ['מס"ד','ארון תקשורת','שם המצלמה','סוג מצלמה','פורט בפנל','כתובת IP','מיקום בתכנית'],
-          ['idx','cabinet','name','model','port','ip','location'],
+          ['ארון תקשורת','שם המצלמה','סוג מצלמה','פורט בפנל','כתובת IP','מיקום בתכנית'],
+          ['cabinet','name','model','port','ip','location'],
           'model')}
         <button class="dp-add-row dp-admin-only" onclick="dpAddRow('cameras')">+ הוסף שורה</button>
       </div>
@@ -8058,8 +8328,8 @@ function renderDocPackForm(){
       </div>
       <div class="dp-section-body">
         ${_dpTable('backhauls',
-          ['מס"ד','סוג עורק','מק"ט','יצרן','מיקום','כתובת IP'],
-          ['idx','type','mpn','vendor','location','ip'],
+          ['סוג עורק','מק"ט','יצרן','מיקום','כתובת IP'],
+          ['type','mpn','vendor','location','ip'],
           'mpn')}
         <button class="dp-add-row dp-admin-only" onclick="dpAddRow('backhauls')">+ הוסף שורה</button>
       </div>
@@ -8071,8 +8341,8 @@ function renderDocPackForm(){
       </div>
       <div class="dp-section-body">
         ${_dpTable('switches',
-          ['מס"ד','מתגים','מק"ט','יצרן','כתובת IP'],
-          ['idx','name','mpn','vendor','ip'],
+          ['מתגים','מק"ט','יצרן','כתובת IP'],
+          ['name','mpn','vendor','ip'],
           'mpn')}
         <button class="dp-add-row dp-admin-only" onclick="dpAddRow('switches')">+ הוסף שורה</button>
       </div>
@@ -8116,8 +8386,9 @@ function _dpInp(key,label,type='text'){
 
 function _dpTable(tableKey,headers,fields,autocompleteField){
   const rows=dpRows(tableKey);
-  const headHtml=`<tr>${headers.map(h=>`<th>${h}</th>`).join('')}<th style="width:32px"></th></tr>`;
+  const headHtml=`<tr><th class="dp-row-num">#</th>${headers.map(h=>`<th>${h}</th>`).join('')}<th style="width:32px"></th></tr>`;
   const bodyHtml=rows.map((r,i)=>`<tr>
+    <td class="dp-row-num">${i+1}</td>
     ${fields.map(f=>{
       if(f==='ip'){
         return `<td><input type="text" inputmode="numeric" maxlength="15"
@@ -8132,7 +8403,7 @@ function _dpTable(tableKey,headers,fields,autocompleteField){
     }).join('')}
     <td><button class="dp-row-del dp-admin-only" title="מחק שורה" onclick="dpDelRow('${tableKey}',${i})">🗑</button></td>
   </tr>`).join('');
-  return `<table class="dp-table"><thead>${headHtml}</thead><tbody>${bodyHtml||`<tr><td colspan="${headers.length+1}" style="text-align:center;color:#a0aec0;padding:10px">אין שורות עדיין</td></tr>`}</tbody></table>`;
+  return `<table class="dp-table"><thead>${headHtml}</thead><tbody>${bodyHtml||`<tr><td colspan="${headers.length+2}" style="text-align:center;color:#a0aec0;padding:10px">אין שורות עדיין</td></tr>`}</tbody></table>`;
 }
 
 function _dpUploadBox(kind){
