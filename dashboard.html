@@ -36,9 +36,7 @@ body{font-family:'Plus Jakarta Sans','Rubik','Segoe UI',Arial,sans-serif;backgro
   border-bottom:1px solid var(--border)
 }
 .sidebar-logo img{
-  height:46px;width:auto;object-fit:contain;flex-shrink:0;
-  background:#fff;border-radius:11px;padding:4px 6px;
-  border:1px solid var(--border)
+  height:60px;width:auto;object-fit:contain;flex-shrink:0;
 }
 .sidebar-logo-text strong{display:block;font-size:.82rem;font-weight:800;color:var(--text);line-height:1.3;letter-spacing:-.01em}
 .sidebar-logo-text span{display:block;font-size:.68rem;color:var(--muted);letter-spacing:.03em;margin-top:2px;font-weight:500}
@@ -1575,7 +1573,6 @@ tr:hover .pl-row-ds-btn{opacity:.6}
 
   <!-- ══ CATALOG VIEW ══ -->
   <section id="catalog-view" style="display:none">
-    <h2>📦 מקטים בשימוש לאחרונה</h2>
     <div class="catalog-toolbar">
       <button class="btn-add" onclick="openCatalogModal(null)">＋ הוסף מקט</button>
       <div class="catalog-search-wrap">
@@ -1596,7 +1593,6 @@ tr:hover .pl-row-ds-btn{opacity:.6}
 
   <!-- ══ WAREHOUSE INVENTORY VIEW ══ -->
   <section id="warehouse-view" style="display:none">
-    <h2>🏭 מלאי מחסנים</h2>
     <div class="wh-toolbar">
       <button class="btn-cat" id="wh-import-trigger-btn" onclick="openWhImportModal()"
         style="background:#eef4ff;color:var(--blue);border-color:#c3cdff">
@@ -1615,7 +1611,6 @@ tr:hover .pl-row-ds-btn{opacity:.6}
 
   <!-- ══ DOC PACK (תיק תיעוד) VIEW ══ -->
   <section id="docpack-view" style="display:none">
-    <h2>📁 תיק תיעוד</h2>
     <div class="dp-shell">
       <aside class="dp-side">
         <button class="btn-cat dp-admin-only" id="dp-new-btn"
@@ -1711,7 +1706,6 @@ tr:hover .pl-row-ds-btn{opacity:.6}
 
   <!-- ══ PRICE LIST VIEW ══ -->
   <section id="pricelist-view" style="display:none">
-    <h2>💲 מחירונים</h2>
     <div class="pl-toolbar">
       <div class="pl-mfr-pills" id="pl-mfr-pills"></div>
       <div class="pl-controls">
@@ -1792,7 +1786,6 @@ tr:hover .pl-row-ds-btn{opacity:.6}
 
   <!-- ══ PURCHASE REQUISITION (דרישת רכש) VIEW ══ -->
   <section id="requisition-view" style="display:none">
-    <h2>📝 דרישת רכש</h2>
     <div class="rq-shell">
 
       <!-- Header form -->
@@ -10266,7 +10259,7 @@ async function clearPlImported(){
       <button class="rq-btn" style="background:#f8fafc;color:#0f4c5c;border-color:#ccfbf1"
               onclick="rqViewerPrint()">🖨️ הדפס / PDF</button>
       <button class="rq-btn" style="background:#0F766E;color:#fff;border-color:#0F766E"
-              onclick="rqCloseViewer();rqLoadInto(window._rqvId)">✏️ ערוך</button>
+              onclick="const _id=window._rqvId;rqCloseViewer();rqLoadInto(_id)">✏️ ערוך</button>
     </div>
   </div>
 </div>
