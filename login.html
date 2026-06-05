@@ -1121,8 +1121,16 @@ function doFinishSetup() {
     'ניהול מחסנים'
   ];
   const el = document.getElementById('twText');
-  let pIdx=0, cIdx=0, deleting=false, paused=false;
+  // Restore state saved by landing page, or start fresh
+  let saved = null;
+  try { saved = JSON.parse(sessionStorage.getItem('twState')); sessionStorage.removeItem('twState'); } catch(e){}
+  let pIdx    = (saved && saved.pi != null) ? saved.pi : 0;
+  let cIdx    = (saved && saved.ci != null) ? saved.ci : 0;
+  let deleting = saved ? !!saved.del : false;
+  let paused  = false;
   const CHAR=75, DEL=35, PAUSE=2400;
+  // Render current text immediately if resuming mid-word
+  if (saved && cIdx > 0) el.textContent = phrases[pIdx].substring(0, cIdx);
   function tick() {
     if (paused) return;
     const phrase = phrases[pIdx];
@@ -1147,7 +1155,7 @@ function doFinishSetup() {
       setTimeout(tick, DEL);
     }
   }
-  setTimeout(tick, 700);
+  setTimeout(tick, saved ? 0 : 700);
 })();
 </script>
 </body>

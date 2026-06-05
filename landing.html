@@ -322,6 +322,7 @@ function ilTime() {
   var el = document.getElementById('twText');
   var pi=0, ci=0, del=false, paused=false;
   var C=75, D=35, P=2400;
+  window._tw = { get pi(){return pi;}, get ci(){return ci;}, get del(){return del;}, get paused(){return paused;} };
   function tick() {
     if (paused) return;
     var ph = phrases[pi];
@@ -336,6 +337,9 @@ function ilTime() {
     }
   }
   setTimeout(tick, 800);
+  window.addEventListener('pagehide', function() {
+    try { sessionStorage.setItem('twState', JSON.stringify({pi:pi, ci:ci, del:del})); } catch(e){}
+  });
 })();
 
 /* ── Modal helpers ── */
