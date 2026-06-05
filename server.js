@@ -2167,6 +2167,32 @@ function _isPrivateHost(host) {
   if (h === '0.0.0.0' || h === '::1') return true;
   return false;
 }
+// ── Weather — proxy to Open-Meteo (no API key, Tel Aviv coords) ─────────────
+// Caches for 10 min server-side so we don't hammer the free API.
+let _wxCache = null, _wxCacheAt = 0;
+app.get('/api/weather', requireAuth, async (req, res) => {
+  const now = Date.now();
+  if (_wxCache && now - _wxCacheAt < 10 * 60 * 1000) return res.json(_wxCache);
+  try {
+    const url = 'https://api.open-meteo.com/v1/forecast' +
+      '?latitude=32.0853&longitude=34.7818&current_weather=true&timezone=Asia%2FJerusalem';
+    const data = await new Promise((resolve, reject) => {
+      const req2 = require('https').get(url, { timeout: 8000 }, r => {
+        let raw = '';
+        r.on('data', c => raw += c);
+        r.on('end', () => { try { resolve(JSON.parse(raw)); } catch { reject(new Error('parse')); } });
+      });
+      req2.on('error', reject);
+      req2.on('timeout', () => { req2.destroy(); reject(new Error('timeout')); });
+    });
+    _wxCache = data;
+    _wxCacheAt = now;
+    res.json(data);
+  } catch (e) {
+    res.status(502).json({ error: 'weather unavailable: ' + e.message });
+  }
+});
+
 app.get('/api/ds-proxy', requireAuth, async (req, res) => {
   const raw = String(req.query.url || '');
   let u;
