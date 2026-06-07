@@ -54,7 +54,7 @@ async function sendMail(to, subject, html) {
   }
   try {
     await _mailer.sendMail({
-      from: `"אפקון" <${process.env.SMTP_USER}>`,
+      from: `"מערכת ניהול" <${process.env.SMTP_USER}>`,
       to,
       subject,
       html,
@@ -706,13 +706,13 @@ app.post('/api/user-requests', requestLimiter, async (req, res) => {
   // Send confirmation to requester (best-effort)
   await sendMail(
     String(email).trim(),
-    'בקשתך התקבלה — מערכת ניהול פרויקטים אפקון',
+    'בקשתך התקבלה — מערכת ניהול פרויקטים',
     `<div dir="rtl" style="font-family:Arial,sans-serif;max-width:520px;margin:auto">
       <h2 style="color:#1a2a4a">בקשתך התקבלה ✅</h2>
       <p>שלום ${fullName},</p>
-      <p>קיבלנו את בקשתך לפתיחת משתמש במערכת ניהול הפרויקטים של אפקון.</p>
+      <p>קיבלנו את בקשתך לפתיחת משתמש במערכת ניהול הפרויקטים.</p>
       <p>הבקשה נמצאת בבדיקה — נחזור אליך בהקדם.</p>
-      <br><p style="color:#64748b;font-size:.88em">אפקון בקרה ואוטומציה</p>
+      <br><p style="color:#64748b;font-size:.88em">מערכת ניהול פרויקטים</p>
     </div>`
   );
 
@@ -798,7 +798,7 @@ app.put('/api/user-requests/:id/approve', requireAdmin, async (req, res) => {
       <p style="background:#fef3c7;border:1px solid #fde68a;border-radius:8px;padding:10px 14px;font-size:.9em;color:#92400e">
         ⚠️ בכניסה הראשונה תתבקש להחליף את הסיסמה הזמנית לסיסמה אישית.
       </p>
-      <br><p style="color:#64748b;font-size:.88em">אפקון בקרה ואוטומציה</p>
+      <br><p style="color:#64748b;font-size:.88em">מערכת ניהול פרויקטים</p>
     </div>`
   );
 
@@ -823,14 +823,14 @@ app.put('/api/user-requests/:id/reject', requireAdmin, async (req, res) => {
   // Send rejection email
   await sendMail(
     request.email,
-    'עדכון בקשת הצטרפות — אפקון',
+    'עדכון בקשת הצטרפות',
     `<div dir="rtl" style="font-family:Arial,sans-serif;max-width:520px;margin:auto">
       <h2 style="color:#1a2a4a">עדכון לגבי בקשתך</h2>
       <p>שלום ${fullName},</p>
       <p>לצערנו, בקשתך לפתיחת משתמש במערכת לא אושרה בשלב זה.</p>
       ${note ? `<p style="background:#f1f5f9;border-radius:8px;padding:10px 14px;color:#374151"><strong>הערת המנהל:</strong> ${note}</p>` : ''}
       <p>לשאלות, ניתן לפנות ישירות לאחראי המערכת.</p>
-      <br><p style="color:#64748b;font-size:.88em">אפקון בקרה ואוטומציה</p>
+      <br><p style="color:#64748b;font-size:.88em">מערכת ניהול פרויקטים</p>
     </div>`
   );
 

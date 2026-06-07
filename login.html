@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>כניסה — אפקון</title>
+<title>כניסה</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&family=Rubik:wght@300;400;500;600;700;800;900&family=Heebo:wght@300;400;700;800;900&display=swap" rel="stylesheet">
@@ -783,9 +783,9 @@ input:focus {
 
     <div class="pr-content">
       <div class="pr-logo-box">
-        <img src="/logo.png" alt="אפקון"
-             onerror="this.style.display='none'; this.nextElementSibling.style.display='block'">
-        <span class="pr-logo-fb" style="display:none">אפקון</span>
+        <img src="/logo.png" alt=""
+             onerror="this.style.display='none'">
+        <span class="pr-logo-fb" style="display:none"></span>
       </div>
 
       <div class="pr-middle">
@@ -1100,9 +1100,9 @@ function copyBackupCodes() {
   setTimeout(() => { btn.textContent = '📋 העתק'; }, 2000);
 }
 function downloadBackupCodes() {
-  const text = `קודי גיבוי — אפקון\nכל קוד חד פעמי.\n\n${_backupCodes.join('\n')}`;
+  const text = `קודי גיבוי\nכל קוד חד פעמי.\n\n${_backupCodes.join('\n')}`;
   const url  = URL.createObjectURL(new Blob([text], { type: 'text/plain;charset=utf-8' }));
-  const a    = Object.assign(document.createElement('a'), { href: url, download: 'afkon-backup-codes.txt' });
+  const a    = Object.assign(document.createElement('a'), { href: url, download: 'backup-codes.txt' });
   a.click();
   setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
