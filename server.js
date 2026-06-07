@@ -10,6 +10,8 @@ const path         = require('path');
 const fs           = require('fs');
 const multer       = require('multer');
 const { v4: uuidv4 } = require('uuid');
+const { GoogleGenerativeAI } = require('@google/generative-ai');
+const pdfParse     = require('pdf-parse');
 
 const crypto  = require('crypto');
 const nodemailer = require('nodemailer');
@@ -655,7 +657,7 @@ app.post('/api/users/:id/unlock', requireAdmin, (req, res) => {
 app.put('/api/users/:id/sections', requireAdmin, (req, res) => {
   const id = parseInt(req.params.id);
   const { sections } = req.body;
-  const valid = ['list', 'kanban', 'catalog', 'pricelist', 'warehouse', 'docpack', 'requisition'];
+  const valid = ['list', 'kanban', 'catalog', 'pricelist', 'warehouse', 'docpack', 'requisition', 'boq', 'budget', 'orders'];
   if (!Array.isArray(sections) || sections.some(s => !valid.includes(s)))
     return res.status(400).json({ error: 'Invalid sections value' });
   db.setSections(id, sections);
@@ -2292,6 +2294,556 @@ app.get('/ds/*', requireAuth, (req, res) => {
   res.sendFile(filePath);
 });
 
+// ── BOQ (כתב כמויות) ──────────────────────────────────────────────────────────
+
+const boq = require('./boq');
+boq.seedSystemTemplates();
+
+const boqUpload = multer({
+  dest: path.join(__dirname, 'data', '_boq_staging'),
+  limits: { fileSize: 200 * 1024 * 1024 },
+  fileFilter: (_req, file, cb) => {
+    if (/\.xlsx?$/i.test(file.originalname)) return cb(null, true);
+    cb(new Error('Only .xlsx files are allowed'));
+  },
+});
+
+// Shared: fetch exchange rates for rollup (reuses the /api/rates cache in memory)
+let _boqRatesCache = null, _boqRatesCacheAt = 0;
+async function _getBoqRates() {
+  if (_boqRatesCache && Date.now() - _boqRatesCacheAt < 55 * 60 * 1000) return _boqRatesCache;
+  try {
+    const res = await fetch('https://boi.org.il/PublicApi/GetExchangeRates?key=USD,EUR');
+    const json = await res.json();
+    const rates = {};
+    for (const r of json?.result?.exchangeRates || []) {
+      if (r.key === 'USD') rates.USD = r.currentExchangeRate;
+      if (r.key === 'EUR') rates.EUR = r.currentExchangeRate;
+    }
+    _boqRatesCache = rates;
+    _boqRatesCacheAt = Date.now();
+    return rates;
+  } catch { return { USD: 3.7, EUR: 4.1 }; }
+}
+
+// ── Templates ──
+
+app.get('/api/boq/templates', requireSection('boq'), (_req, res) => {
+  const templates = db.listBoqTemplates();
+  res.json(templates.map(t => ({
+    ...t,
+    keywords:   JSON.parse(t.keywords_json   || '[]'),
+    components: JSON.parse(t.components_json || '[]'),
+  })));
+});
+
+app.post('/api/boq/templates', requireSection('boq'), (req, res) => {
+  const { name, keywords, components } = req.body;
+  if (!name) return res.status(400).json({ error: 'name required' });
+  const r = db.createBoqTemplate({
+    name,
+    keywordsJson:   JSON.stringify(keywords   || []),
+    componentsJson: JSON.stringify(components || []),
+    isSystem: false,
+  });
+  res.json({ id: r.lastInsertRowid });
+});
+
+app.put('/api/boq/templates/:id', requireSection('boq'), (req, res) => {
+  const { name, keywords, components } = req.body;
+  if (!name) return res.status(400).json({ error: 'name required' });
+  db.updateBoqTemplate(parseInt(req.params.id), {
+    name,
+    keywordsJson:   JSON.stringify(keywords   || []),
+    componentsJson: JSON.stringify(components || []),
+  });
+  res.json({ ok: true });
+});
+
+app.delete('/api/boq/templates/:id', requireAdmin, (req, res) => {
+  db.deleteBoqTemplate(parseInt(req.params.id));
+  res.json({ ok: true });
+});
+
+// ── Projects ──
+
+app.get('/api/boq/projects', requireSection('boq'), (_req, res) => {
+  res.json(db.listBoqProjects());
+});
+
+app.post('/api/boq/projects', requireSection('boq'), (req, res) => {
+  const { name, description, site, status, currency, notes } = req.body;
+  if (!name) return res.status(400).json({ error: 'name required' });
+  const r = db.createBoqProject({ name, description, site, status, currency, notes, createdBy: req.user.username });
+  db.logAudit(req.user.id, req.user.username, 'boq_create_project', name, getClientIp(req), '');
+  res.json({ id: r.lastInsertRowid });
+});
+
+app.get('/api/boq/projects/:id', requireSection('boq'), (req, res) => {
+  const project = db.getBoqProject(parseInt(req.params.id));
+  if (!project) return res.status(404).json({ error: 'Not found' });
+  const items = db.listBoqItems(project.id);
+  const allComponents = db.listBoqComponentsByProject(project.id);
+  const compsByItemId = {};
+  for (const c of allComponents) (compsByItemId[c.item_id] = compsByItemId[c.item_id] || []).push(c);
+  res.json({ project, items, componentsByItemId: compsByItemId });
+});
+
+app.put('/api/boq/projects/:id', requireSection('boq'), (req, res) => {
+  const project = db.getBoqProject(parseInt(req.params.id));
+  if (!project) return res.status(404).json({ error: 'Not found' });
+  const { name, description, site, status, currency, notes } = req.body;
+  if (!name) return res.status(400).json({ error: 'name required' });
+  db.updateBoqProject(project.id, { name, description, site, status, currency, notes });
+  res.json({ ok: true });
+});
+
+app.delete('/api/boq/projects/:id', requireAdmin, (req, res) => {
+  const project = db.getBoqProject(parseInt(req.params.id));
+  if (!project) return res.status(404).json({ error: 'Not found' });
+  db.deleteBoqProject(project.id);
+  db.logAudit(req.user.id, req.user.username, 'boq_delete_project', project.name, getClientIp(req), '');
+  res.json({ ok: true });
+});
+
+// ── Items ──
+
+// Compare hierarchical item numbers like "1.20" vs "1.21" vs "2.0"
+function _compareItemNums(a, b) {
+  if (!a && !b) return 0;
+  if (!a) return -1;
+  if (!b) return 1;
+  const pa = String(a).split('.').map(s => parseFloat(s) || 0);
+  const pb = String(b).split('.').map(s => parseFloat(s) || 0);
+  for (let i = 0; i < Math.max(pa.length, pb.length); i++) {
+    const d = (pa[i] ?? 0) - (pb[i] ?? 0);
+    if (d !== 0) return d;
+  }
+  return 0;
+}
+
+app.post('/api/boq/projects/:id/items', requireSection('boq'), (req, res) => {
+  const project = db.getBoqProject(parseInt(req.params.id));
+  if (!project) return res.status(404).json({ error: 'Not found' });
+  const { description, itemNumber, parentNumber, unit, quantity, isRfq, isSection, notes } = req.body;
+  if (!description) return res.status(400).json({ error: 'description required' });
+
+  // Prevent duplicate item numbers within the same project
+  if (itemNumber) {
+    const existing = db.listBoqItems(project.id).find(i => i.item_number === itemNumber);
+    if (existing) return res.status(409).json({ error: `מספר סעיף ${itemNumber} כבר קיים בפרויקט` });
+  }
+
+  let sortOrder;
+  if (itemNumber) {
+    // Insert at the correct chronological position based on item number
+    const allItems = db.listBoqItems(project.id); // ordered by sort_order ASC
+    let insertAfterSortOrder = -1;
+    for (let i = 0; i < allItems.length; i++) {
+      const existingNum = allItems[i].item_number;
+      // Skip items without a number — only numbered items define the insertion point
+      if (!existingNum) continue;
+      if (_compareItemNums(existingNum, itemNumber) < 0) {
+        insertAfterSortOrder = allItems[i].sort_order;
+      }
+    }
+    sortOrder = insertAfterSortOrder + 1;
+    // Always shift: make room at this exact sort_order position
+    db.db.prepare('UPDATE boq_items SET sort_order = sort_order + 1 WHERE project_id = ? AND sort_order >= ?')
+      .run(project.id, sortOrder);
+  } else {
+    sortOrder = db.countBoqItems(project.id);
+  }
+
+  const r = db.createBoqItem({ projectId: project.id, description, itemNumber, parentNumber, unit, quantity: quantity || 1, isRfq: !!isRfq, isSection: !!isSection, sortOrder, notes });
+  res.json({ id: r.lastInsertRowid });
+});
+
+app.put('/api/boq/items/:itemId', requireSection('boq'), (req, res) => {
+  const item = db.getBoqItem(parseInt(req.params.itemId));
+  if (!item) return res.status(404).json({ error: 'Not found' });
+  const { description, itemNumber, parentNumber, unit, quantity, isRfq, rfqVendor, rfqNotes, rfqPriceIls, isSection, notes, contractUnitPrice } = req.body;
+  if (!description) return res.status(400).json({ error: 'description required' });
+  db.updateBoqItem(item.id, { description, itemNumber, parentNumber, unit, quantity, isRfq: !!isRfq, rfqVendor, rfqNotes, rfqPriceIls: rfqPriceIls != null ? parseFloat(rfqPriceIls) : null, isSection: !!isSection, notes });
+  if (contractUnitPrice !== undefined) db.updateBoqItemContractPrice(item.id, contractUnitPrice != null ? parseFloat(contractUnitPrice) : null);
+  res.json({ ok: true });
+});
+
+app.delete('/api/boq/items/:itemId/components', requireSection('boq'), (req, res) => {
+  try {
+    const item = db.getBoqItem(parseInt(req.params.itemId));
+    if (!item) return res.status(404).json({ error: 'Not found' });
+    db.deleteBoqComponentsByItem(item.id);
+    res.json({ ok: true });
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
+app.delete('/api/boq/items/:itemId', requireSection('boq'), (req, res) => {
+  const item = db.getBoqItem(parseInt(req.params.itemId));
+  if (!item) return res.status(404).json({ error: 'Not found' });
+  db.deleteBoqItem(item.id);
+  res.json({ ok: true });
+});
+
+// Clear all items in a project (reset before re-import) — keeps the project record itself
+app.delete('/api/boq/projects/:id/items', requireSection('boq'), (req, res) => {
+  const project = db.getBoqProject(parseInt(req.params.id));
+  if (!project) return res.status(404).json({ error: 'Not found' });
+  db.deleteAllBoqItemsByProject(project.id);
+  db.logAudit(req.user.id, req.user.username, 'boq_clear_items', project.name, getClientIp(req), '');
+  res.json({ ok: true });
+});
+
+app.post('/api/boq/projects/:id/items/reorder', requireSection('boq'), (req, res) => {
+  const { pairs } = req.body; // [{id, sortOrder}]
+  if (!Array.isArray(pairs)) return res.status(400).json({ error: 'pairs array required' });
+  db.reorderBoqItems(pairs.map(p => ({ id: parseInt(p.id), sortOrder: parseInt(p.sortOrder) })));
+  res.json({ ok: true });
+});
+
+app.patch('/api/boq/items/:itemId/contract-price', requireSection('boq'), (req, res) => {
+  const item = db.getBoqItem(parseInt(req.params.itemId));
+  if (!item) return res.status(404).json({ error: 'Not found' });
+  const raw = req.body.price;
+  const price = raw === '' || raw == null ? null : parseFloat(raw);
+  if (price !== null && isNaN(price)) return res.status(400).json({ error: 'price must be a number' });
+  db.updateBoqItemContractPrice(item.id, price);
+  res.json({ ok: true });
+});
+
+app.patch('/api/boq/items/:itemId/rfq-price', requireSection('boq'), (req, res) => {
+  const item = db.getBoqItem(parseInt(req.params.itemId));
+  if (!item) return res.status(404).json({ error: 'Not found' });
+  const price = parseFloat(req.body.priceIls);
+  if (isNaN(price)) return res.status(400).json({ error: 'priceIls must be a number' });
+  db.updateBoqItemRfqPrice(item.id, price);
+  res.json({ ok: true });
+});
+
+// ── Components ──
+
+app.post('/api/boq/items/:itemId/components', requireSection('boq'), (req, res) => {
+  try {
+    const item = db.getBoqItem(parseInt(req.params.itemId));
+    if (!item) return res.status(404).json({ error: 'Not found' });
+    const { componentKey, label, unitPrice, currency, quantity, quantityFormula } = req.body;
+    if (!label) return res.status(400).json({ error: 'label required' });
+    const existing = db.listBoqComponents(item.id);
+    const r = db.createBoqComponent({ itemId: item.id, componentKey: componentKey || 'custom', label, unitPrice: parseFloat(unitPrice) || 0, currency: currency || 'ILS', quantity: parseFloat(quantity) || 1, quantityFormula: quantityFormula || null, sortOrder: existing.length });
+    res.json({ id: r.lastInsertRowid });
+  } catch(e) { console.error('[boq POST comp]', e); res.status(500).json({ error: e.message }); }
+});
+
+app.put('/api/boq/components/:compId', requireSection('boq'), (req, res) => {
+  try {
+    const comp = db.db.prepare('SELECT * FROM boq_components WHERE id=?').get(parseInt(req.params.compId));
+    if (!comp) return res.status(404).json({ error: 'Not found' });
+    const { componentKey, label, unitPrice, currency, quantity, quantityFormula, sortOrder } = req.body;
+    if (!label) return res.status(400).json({ error: 'label required' });
+    db.updateBoqComponent(comp.id, { componentKey: componentKey || 'custom', label, unitPrice: parseFloat(unitPrice) || 0, currency: currency || 'ILS', quantity: parseFloat(quantity) || 1, quantityFormula: quantityFormula || null, sortOrder: sortOrder != null ? parseInt(sortOrder) : comp.sort_order });
+    res.json({ ok: true });
+  } catch(e) { console.error('[boq PUT comp]', e); res.status(500).json({ error: e.message }); }
+});
+
+app.delete('/api/boq/components/:compId', requireSection('boq'), (req, res) => {
+  try {
+    const comp = db.db.prepare('SELECT * FROM boq_components WHERE id=?').get(parseInt(req.params.compId));
+    if (!comp) return res.status(404).json({ error: 'Not found' });
+    db.deleteBoqComponent(comp.id);
+    res.json({ ok: true });
+  } catch(e) { console.error('[boq DELETE comp]', e); res.status(500).json({ error: e.message }); }
+});
+
+app.post('/api/boq/items/:itemId/apply-template/:templateId', requireSection('boq'), (req, res) => {
+  const item = db.getBoqItem(parseInt(req.params.itemId));
+  const tmpl = db.getBoqTemplate(parseInt(req.params.templateId));
+  if (!item || !tmpl) return res.status(404).json({ error: 'Not found' });
+  db.deleteBoqComponentsByItem(item.id);
+  db.updateBoqItemTemplate(item.id, tmpl.id);
+  let comps;
+  try { comps = JSON.parse(tmpl.components_json || '[]'); } catch { comps = []; }
+  let i = 0;
+  for (const c of comps) {
+    db.createBoqComponent({ itemId: item.id, componentKey: c.key || 'custom', label: c.label, unitPrice: c.unitPrice || 0, currency: c.currency || 'ILS', quantity: c.quantity || 1, quantityFormula: c.formula || null, sortOrder: i++ });
+  }
+  res.json({ ok: true, applied: comps.length });
+});
+
+// Link a template to an item WITHOUT replacing its components
+app.put('/api/boq/items/:itemId/link-template/:templateId', requireSection('boq'), (req, res) => {
+  const item = db.getBoqItem(parseInt(req.params.itemId));
+  const tmpl = db.getBoqTemplate(parseInt(req.params.templateId));
+  if (!item || !tmpl) return res.status(404).json({ error: 'Not found' });
+  db.updateBoqItemTemplate(item.id, tmpl.id);
+  res.json({ ok: true });
+});
+
+// Sync current item component prices back to the template
+app.post('/api/boq/templates/:id/sync-prices', requireSection('boq'), (req, res) => {
+  const tmpl = db.getBoqTemplate(parseInt(req.params.id));
+  if (!tmpl) return res.status(404).json({ error: 'Template not found' });
+  const { itemId } = req.body;
+  if (!itemId) return res.status(400).json({ error: 'itemId required' });
+  const item = db.getBoqItem(parseInt(itemId));
+  if (!item) return res.status(404).json({ error: 'Item not found' });
+  const liveComps = db.listBoqComponents(item.id);
+  let tmplComps;
+  try { tmplComps = JSON.parse(tmpl.components_json || '[]'); } catch { tmplComps = []; }
+  // Merge: update unitPrice for matching keys; append new keys
+  const byKey = {};
+  for (const tc of tmplComps) byKey[tc.key] = tc;
+  for (const lc of liveComps) {
+    if (byKey[lc.component_key]) {
+      byKey[lc.component_key].unitPrice = lc.unit_price;
+    } else {
+      tmplComps.push({ key: lc.component_key, label: lc.label, unitPrice: lc.unit_price, currency: lc.currency, quantity: lc.quantity, formula: lc.quantity_formula || null, sort: lc.sort_order });
+    }
+  }
+  db.updateBoqTemplate(tmpl.id, { name: tmpl.name, keywordsJson: tmpl.keywords_json, componentsJson: JSON.stringify(tmplComps) });
+  res.json({ ok: true, syncedCount: liveComps.length });
+});
+
+// ── Import ──
+
+app.post('/api/boq/projects/:id/import/xlsx', requireSection('boq'), boqUpload.single('file'), async (req, res) => {
+  const project = db.getBoqProject(parseInt(req.params.id));
+  if (!project) return res.status(404).json({ error: 'Not found' });
+  if (!req.file) return res.status(400).json({ error: 'No file uploaded' });
+  const ip = getClientIp(req);
+  try {
+    const buf = fs.readFileSync(req.file.path);
+    fs.unlinkSync(req.file.path);
+    const { items: parsedItems, warnings, colMapDebug } = await boq.parseXlsx(buf);
+    let inserted = 0;
+    const tx = db.db.transaction(() => {
+      let sortOrder = db.countBoqItems(project.id);
+      for (const pi of parsedItems) {
+        db.createBoqItem({ projectId: project.id, itemNumber: pi.itemNumber, parentNumber: pi.parentNumber, description: pi.description, unit: pi.unit, quantity: pi.quantity || 1, isRfq: pi.isRfq, isSection: pi.isSection, sortOrder: sortOrder++, templateId: null, contractUnitPrice: pi.contractUnitPrice ?? null });
+        inserted++;
+      }
+    });
+    tx();
+    db.logAudit(req.user.id, req.user.username, 'boq_import_xlsx', `Project ${project.id}: ${inserted} items`, ip, '');
+    res.json({ ok: true, insertedCount: inserted, warnings, colMapDebug });
+  } catch (e) {
+    if (req.file?.path) try { fs.unlinkSync(req.file.path); } catch {}
+    console.error('[boq] xlsx import error:', e);
+    res.status(500).json({ error: e.message });
+  }
+});
+
+app.post('/api/boq/projects/:id/import/csv', requireSection('boq'), async (req, res) => {
+  const project = db.getBoqProject(parseInt(req.params.id));
+  if (!project) return res.status(404).json({ error: 'Not found' });
+  const { csv } = req.body;
+  if (!csv) return res.status(400).json({ error: 'csv required' });
+  const { items: parsedItems, warnings } = boq.parseCsv(csv);
+  let inserted = 0;
+  const tx = db.db.transaction(() => {
+    let sortOrder = db.countBoqItems(project.id);
+    for (const pi of parsedItems) {
+      db.createBoqItem({ projectId: project.id, itemNumber: pi.itemNumber, parentNumber: pi.parentNumber, description: pi.description, unit: pi.unit, quantity: pi.quantity || 1, isRfq: pi.isRfq, isSection: false, sortOrder: sortOrder++, templateId: null, contractUnitPrice: pi.contractUnitPrice ?? null });
+      inserted++;
+    }
+  });
+  tx();
+  res.json({ ok: true, insertedCount: inserted, warnings });
+});
+
+app.post('/api/boq/projects/:id/import/rows', requireSection('boq'), (req, res) => {
+  const project = db.getBoqProject(parseInt(req.params.id));
+  if (!project) return res.status(404).json({ error: 'Not found' });
+  const { rows } = req.body;
+  if (!Array.isArray(rows)) return res.status(400).json({ error: 'rows array required' });
+  let inserted = 0;
+  const tx = db.db.transaction(() => {
+    let sortOrder = db.countBoqItems(project.id);
+    for (const row of rows) {
+      if (!row.description) continue;
+      const match = boq.matchTemplate(row.description);
+      const r = db.createBoqItem({ projectId: project.id, itemNumber: row.itemNumber || null, parentNumber: row.parentNumber || null, description: row.description, unit: row.unit || null, quantity: row.quantity || 1, isRfq: !!row.isRfq, isSection: !!row.isSection, sortOrder: sortOrder++, templateId: match?.template?.id || null, contractUnitPrice: row.contractUnitPrice ?? null });
+      if (match && !row.isSection) {
+        let tmplComps;
+        try { tmplComps = JSON.parse(match.template.components_json || '[]'); } catch { tmplComps = []; }
+        let ci = 0;
+        for (const c of tmplComps) db.createBoqComponent({ itemId: r.lastInsertRowid, componentKey: c.key || 'custom', label: c.label, unitPrice: c.unitPrice || 0, currency: c.currency || 'ILS', quantity: c.quantity || 1, sortOrder: ci++ });
+      }
+      inserted++;
+    }
+  });
+  tx();
+  res.json({ ok: true, insertedCount: inserted });
+});
+
+// ── Summary & Export ──
+
+app.get('/api/boq/projects/:id/summary', requireSection('boq'), async (req, res) => {
+  const project = db.getBoqProject(parseInt(req.params.id));
+  if (!project) return res.status(404).json({ error: 'Not found' });
+  const items = db.listBoqItems(project.id);
+  const allComponents = db.listBoqComponentsByProject(project.id);
+  const rates = await _getBoqRates();
+  const rollup = boq.rollupProject(items, allComponents, rates);
+  res.json({ ...rollup, rates });
+});
+
+app.get('/api/boq/projects/:id/export/xlsx', requireSection('boq'), async (req, res) => {
+  const project = db.getBoqProject(parseInt(req.params.id));
+  if (!project) return res.status(404).json({ error: 'Not found' });
+  const items = db.listBoqItems(project.id);
+  const allComponents = db.listBoqComponentsByProject(project.id);
+  const rates = await _getBoqRates();
+  try {
+    const buf = await boq.exportXlsx(project, items, allComponents, rates);
+    const filename = encodeURIComponent(`BOQ-${project.name}.xlsx`);
+    res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    res.setHeader('Content-Disposition', `attachment; filename*=UTF-8''${filename}`);
+    res.send(buf);
+  } catch (e) {
+    console.error('[boq] xlsx export error:', e);
+    res.status(500).json({ error: e.message });
+  }
+});
+
+app.get('/api/boq/projects/:id/export/pdf', requireSection('boq'), async (req, res) => {
+  const project = db.getBoqProject(parseInt(req.params.id));
+  if (!project) return res.status(404).json({ error: 'Not found' });
+  const items = db.listBoqItems(project.id);
+  const allComponents = db.listBoqComponentsByProject(project.id);
+  const rates = await _getBoqRates();
+  try {
+    const buf = await boq.exportPdf(project, items, allComponents, rates);
+    const filename = encodeURIComponent(`BOQ-${project.name}.pdf`);
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', `attachment; filename*=UTF-8''${filename}`);
+    res.send(buf);
+  } catch (e) {
+    console.error('[boq] pdf export error:', e);
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// ── Budget Control (בקרה תקציבית) ─────────────────────────────────────────────
+
+const budget = require('./budget');
+
+const budgetUpload = multer({
+  dest: path.join(__dirname, 'data', '_budget_staging'),
+  limits: { fileSize: 50 * 1024 * 1024 },
+  fileFilter: (_req, file, cb) => {
+    if (/\.xlsx?$/i.test(file.originalname)) return cb(null, true);
+    cb(new Error('Only .xlsx files are allowed'));
+  },
+});
+
+app.get('/api/budget/projects', requireSection('budget'), (_req, res) => {
+  const projects = db.listBudgetProjects();
+  const result = projects.map(p => {
+    const items  = db.listBudgetItems(p.id);
+    const rollup = budget.rollupBudget(items);
+    return { ...p, itemCount: items.length, rollup };
+  });
+  res.json(result);
+});
+
+app.post('/api/budget/projects', requireSection('budget'), (req, res) => {
+  const { name, site, notes } = req.body || {};
+  if (!name) return res.status(400).json({ error: 'name required' });
+  const r = db.createBudgetProject({ name, site, notes, createdBy: req.user.username });
+  res.json(db.getBudgetProject(r.lastInsertRowid));
+});
+
+app.get('/api/budget/projects/:id', requireSection('budget'), (req, res) => {
+  const id = parseInt(req.params.id);
+  const proj = db.getBudgetProject(id);
+  if (!proj) return res.status(404).json({ error: 'Not found' });
+  const items  = db.listBudgetItems(id);
+  const rollup = budget.rollupBudget(items);
+  res.json({ ...proj, items, rollup });
+});
+
+app.put('/api/budget/projects/:id', requireSection('budget'), (req, res) => {
+  const id = parseInt(req.params.id);
+  const proj = db.getBudgetProject(id);
+  if (!proj) return res.status(404).json({ error: 'Not found' });
+  const { name, site, notes } = req.body || {};
+  if (!name) return res.status(400).json({ error: 'name required' });
+  db.updateBudgetProject(id, { name, site, notes });
+  res.json(db.getBudgetProject(id));
+});
+
+app.delete('/api/budget/projects/:id', requireAdmin, (req, res) => {
+  const id = parseInt(req.params.id);
+  const proj = db.getBudgetProject(id);
+  if (!proj) return res.status(404).json({ error: 'Not found' });
+  db.deleteBudgetProject(id);
+  db.logAudit(req.user.id, req.user.username, 'budget_delete_project', proj.name, getClientIp(req), '');
+  res.json({ ok: true });
+});
+
+app.post('/api/budget/projects/:id/import/xlsx', requireSection('budget'), budgetUpload.single('file'), async (req, res) => {
+  const id   = parseInt(req.params.id);
+  const proj = db.getBudgetProject(id);
+  if (!proj) return res.status(404).json({ error: 'Not found' });
+  if (!req.file) return res.status(400).json({ error: 'No file uploaded' });
+  try {
+    const buf = fs.readFileSync(req.file.path);
+    fs.unlinkSync(req.file.path);
+    const { items: parsed, warnings } = await budget.parseBudgetXlsx(buf);
+    if (!parsed.length) return res.status(422).json({ error: warnings.join('; ') || 'No items found' });
+
+    // Replace existing items
+    db.deleteBudgetItemsByProject(id);
+    for (let i = 0; i < parsed.length; i++) {
+      db.createBudgetItem({ ...parsed[i], projectId: id, sortOrder: i });
+    }
+    db.logAudit(req.user.id, req.user.username, 'budget_import', `Project ${id}: ${parsed.length} items`, getClientIp(req), '');
+    res.json({ insertedCount: parsed.length, warnings });
+  } catch (e) {
+    console.error('[budget] import error:', e);
+    res.status(500).json({ error: e.message });
+  }
+});
+
+app.delete('/api/budget/projects/:id/items', requireSection('budget'), (req, res) => {
+  const id = parseInt(req.params.id);
+  db.deleteBudgetItemsByProject(id);
+  res.json({ ok: true });
+});
+
+app.put('/api/budget/items/:itemId', requireSection('budget'), (req, res) => {
+  const id   = parseInt(req.params.itemId);
+  const item = db.db.prepare('SELECT * FROM budget_items WHERE id=?').get(id);
+  if (!item) return res.status(404).json({ error: 'Not found' });
+  db.updateBudgetItem(id, req.body);
+  res.json(db.db.prepare('SELECT * FROM budget_items WHERE id=?').get(id));
+});
+
+app.delete('/api/budget/items/:itemId', requireSection('budget'), (req, res) => {
+  const id   = parseInt(req.params.itemId);
+  const item = db.db.prepare('SELECT * FROM budget_items WHERE id=?').get(id);
+  if (!item) return res.status(404).json({ error: 'Not found' });
+  db.deleteBudgetItem(id);
+  res.json({ ok: true });
+});
+
+app.get('/api/budget/projects/:id/export/xlsx', requireSection('budget'), async (req, res) => {
+  const id   = parseInt(req.params.id);
+  const proj = db.getBudgetProject(id);
+  if (!proj) return res.status(404).json({ error: 'Not found' });
+  const items = db.listBudgetItems(id);
+  try {
+    const buf      = await budget.exportBudgetXlsx(proj, items);
+    const filename = encodeURIComponent(`Budget-${proj.name}.xlsx`);
+    res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    res.setHeader('Content-Disposition', `attachment; filename*=UTF-8''${filename}`);
+    res.send(buf);
+  } catch (e) {
+    console.error('[budget] export error:', e);
+    res.status(500).json({ error: e.message });
+  }
+});
+
 // Public: logo served without auth (needed on landing page before login)
 app.get('/logo.png', (req, res) => {
   res.sendFile(path.join(STATIC_DIR, 'logo.png'));
@@ -2305,6 +2857,488 @@ app.get('/preview/:file', (req, res) => {
   if (!fs.existsSync(filePath)) return res.status(404).send('Not found');
   res.sendFile(filePath);
 });
+
+// ══════════════════════════════════════════════════════════════════════════════
+// ── ORDERS (הזמנות נכנסות) ────────────────────────────────────────────────────
+// ══════════════════════════════════════════════════════════════════════════════
+
+const ORDER_STORAGE_DIR  = path.join(__dirname, 'data', 'orders');
+const INVOICE_STORAGE_DIR = path.join(__dirname, 'data', 'invoices');
+[ORDER_STORAGE_DIR, INVOICE_STORAGE_DIR,
+ path.join(__dirname, 'data', '_order_staging'),
+ path.join(__dirname, 'data', '_invoice_staging')
+].forEach(d => { if (!fs.existsSync(d)) fs.mkdirSync(d, { recursive: true }); });
+
+const orderUpload = multer({
+  dest: path.join(__dirname, 'data', '_order_staging'),
+  limits: { fileSize: 50 * 1024 * 1024 },
+  fileFilter: (req, file, cb) => {
+    if (/\.pdf$/i.test(file.originalname)) cb(null, true);
+    else cb(new Error('יש להעלות קובץ PDF בלבד'));
+  }
+});
+const invoiceUpload = multer({
+  dest: path.join(__dirname, 'data', '_invoice_staging'),
+  limits: { fileSize: 50 * 1024 * 1024 },
+  fileFilter: (req, file, cb) => {
+    if (/\.(pdf|jpe?g|png)$/i.test(file.originalname)) cb(null, true);
+    else cb(new Error('יש להעלות PDF או תמונה'));
+  }
+});
+
+const EXTRACT_PROMPT = `אתה מנתח הזמנות רכש ישראליות. חלץ את השדות הבאים וחזור JSON בלבד ללא markdown:
+{
+  "order_number": "מספר ההזמנה",
+  "order_date": "YYYY-MM-DD או null",
+  "ordering_entity": "שם הגורם המזמין / הרשות / החברה",
+  "description": "תיאור קצר של מה שהוזמן (עד 200 תווים)",
+  "amount_pre_vat": 12345.67,
+  "currency": "ILS"
+}
+אם שדה לא נמצא — החזר null עבורו. הסכום חייב להיות מספר (לא מחרוזת).`;
+
+
+// ── Helper: parse line items from the work items section ─────────────────────
+
+
+function parseOrderItems(rawText) {
+  // Remove PUA chars, normalise inline whitespace (keep newlines for line splitting)
+  const text = rawText.replace(/[-]/g, '').replace(/[ \t]+/g, ' ');
+
+  const items = [];
+
+  const SEC_HEADER = 'רשימת פריטי העבודה';
+  const secStart = text.indexOf(SEC_HEADER);
+  if (secStart === -1) return items;
+
+  // Take the whole remaining text from section start — end is detected while parsing
+  const lines = text.slice(secStart).split('\n').map(l => l.trim()).filter(Boolean);
+  if (lines.length > 1) console.log('[parse-debug] first 3 lines:', JSON.stringify(lines.slice(0,3)));
+
+  // Unit words that appear between qty and description in RTL column order
+  const UNIT_RE = /^(קומפלט|יח\.|חודש|שנה|סט)[ \t]*/u;
+
+  let current   = null;
+  let extra     = [];
+  let seenItems = false; // true once the first real item line is processed
+
+  const saveItem = () => {
+    if (!current) return;
+    if (extra.length)
+      current.description = (current.description + ' ' + extra.join(' ')).trim().slice(0, 300);
+    if (current.total > 0) items.push(current);
+    current = null;
+    extra   = [];
+  };
+
+  for (const line of lines) {
+    // ── Non-amount line ────────────────────────────────────────────────────────
+    if (!/^[\d,]+\.\d{2}/.test(line)) {
+      // Stop once items have started and we see a totals-section marker
+      if (seenItems && /סה.{0,3}כ/.test(line)) { saveItem(); break; }
+
+      // Append as description continuation (skip totals text)
+      if (current &&
+          /[א-ת]/.test(line) &&
+          !/^\d+$/.test(line) &&
+          !/סה.{0,3}כ/.test(line))
+        extra.push(line);
+      continue;
+    }
+
+    // ── Amount line: extract all leading numbers ───────────────────────────────
+    let r = line;
+    const nums = [];
+    let m;
+    while ((m = r.match(/^([\d,]+\.\d{2})/))) {
+      nums.push(parseFloat(m[1].replace(/,/g, '')));
+      r = r.slice(m[1].length);
+    }
+
+    // Skip single-amount summary lines and zero-total lines
+    if (nums.length < 2 || nums[0] === 0) continue;
+
+    // Stop if the text after the amounts contains a totals marker
+    if (/סה.{0,3}כ/.test(r)) { saveItem(); break; }
+
+    // ── Qty: in RTL layout the LAST extracted number is qty ───────────────────
+    let qty = 1;
+    if (nums.length >= 3) {
+      qty = nums.pop();           // [total, pre_disc, unit_price, qty] → pop qty
+    } else if (nums.length === 2 && nums[0] !== nums[1]) {
+      const implied = nums[0] / nums[1];
+      if (Number.isInteger(implied) && implied >= 1 && implied <= 999) qty = implied;
+    }
+
+    const total      = nums[0];
+    const unit_price = nums.length > 1 && nums[nums.length - 1] !== nums[0]
+                         ? nums[nums.length - 1] : null;
+
+    // ── Unit word ──────────────────────────────────────────────────────────────
+    let unit = '';
+    const unitM = r.match(UNIT_RE);
+    if (unitM) { unit = unitM[1].trim(); r = r.slice(unitM[0].length); }
+
+    // ── Description cleanup ────────────────────────────────────────────────────
+    let desc = r
+      .replace(/\d+\.\d+סעיף\s*/gu, '')   // strip "15.3סעיף" section codes
+      .replace(/\s+\d+\s*$/, '')            // strip trailing item number
+      .trim();
+
+    // Fix RTL extraction artifacts:
+    // 1. Leading "5%" (or any NN%) before Hebrew → move to end
+    //    e.g. "5%הוצאה בלתי מתוכננת" → "הוצאה בלתי מתוכננת 5%"
+    const leadPct = desc.match(/^(\d+%)\s*/);
+    if (leadPct && /[א-ת]/.test(desc.slice(leadPct[0].length))) {
+      desc = desc.slice(leadPct[0].length).trim() + ' ' + leadPct[1];
+    }
+    // 2. Isolated lone digit sandwiched between Hebrew words → remove
+    //    e.g. "כל שנה 2 נוספת" → "כל שנה נוספת"
+    desc = desc.replace(/([א-ת])\s+\d{1,2}\s+([א-ת])/gu, '$1 $2');
+
+    saveItem();
+    seenItems = true;
+    current   = { description: desc, qty, unit: unit || null, total, unit_price };
+  }
+  saveItem();
+  return items;
+}
+
+
+async function extractOrderFromPdf(buffer) {
+  let rawText = '';
+  try {
+    const pdfData = await pdfParse(buffer);
+    rawText = (pdfData.text || '').trim();
+  } catch (e) {
+    console.warn('[extractOrderFromPdf] pdf-parse error:', e.message);
+  }
+
+  if (rawText.length < 80) {
+    return { order_number: null, order_date: null, ordering_entity: null,
+             description: null, amount_pre_vat: null, currency: 'ILS', items: [] };
+  }
+
+  // Clean text: remove PUA chars, collapse whitespace (no newlines)
+  const flat = rawText.replace(/[\uE000-\uF8FF]/g, '').replace(/\s+/g, ' ');
+  // Clean text preserving newlines (for description extraction)
+  const cleanText = rawText.replace(/[\uE000-\uF8FF]/g, '');
+
+  // ── Order number ──────────────────────────────────────────────────────
+  let order_number = null;
+  const onMatch =
+    flat.match(/\u05D4\u05D6\u05DE\u05E0\u05EA \u05E2\u05D1\u05D5\u05D3\u05D4 \u05DE\u05E1'? ?(\d+)/) ||
+    flat.match(/\u05DE\u05E1' \u05D4\u05D6\u05DE\u05E0\u05D4 (\d+)/i) ||
+    flat.match(/purchase order #? ?([\d\-\/]+)/i) ||
+    flat.match(/order (?:no|number|#) ?:? ?([\d\-\/]+)/i);
+  if (onMatch) order_number = onMatch[1].trim();
+
+  // ── Date (Israeli DD/MM/YYYY → stored as YYYY-MM-DD) ─────────────────
+  let order_date = null;
+  const dateMatch =
+    flat.match(/\u05EA\u05D0\u05E8\u05D9\u05DA \u05E4\u05EA\u05D9\u05D7\u05EA \u05D4\S+:? ?(\d{1,2}[\/\-\.]\d{1,2}[\/\-\.]\d{4})/) ||
+    flat.match(/\u05EA\u05D0\u05E8\u05D9\u05DA[^:]*: ?(\d{1,2}[\/\-\.]\d{1,2}[\/\-\.]\d{4})/) ||
+    flat.match(/(\d{2}\.\d{2}\.\d{4})/);
+  if (dateMatch) {
+    const parts = dateMatch[1].split(/[\/\-\.]/);
+    if (parts.length === 3) {
+      let [d, mo, y] = parts;
+      if (y.length === 2) y = '20' + y;
+      if (parseInt(y) > 1900 && parseInt(y) < 2100)
+        order_date = String(y) + '-' + String(mo).padStart(2,'0') + '-' + String(d).padStart(2,'0');
+    }
+  }
+
+  // ── Ordering entity ───────────────────────────────────────────────────
+  let ordering_entity = null;
+  const entityMatch =
+    flat.match(/(\u05E2\u05D9\u05E8\u05D9\u05D9\u05EA [^\d,]{3,35})/) ||
+    flat.match(/(\u05DE\u05D5\u05E2\u05E6\u05D4 [^\d,]{3,35})/) ||
+    flat.match(/(?:\u05DC\u05DB\u05D1\u05D5\u05D3 )([^\n\r,]{3,50})/);
+  if (entityMatch) {
+    ordering_entity = entityMatch[1].trim()
+      .replace(/\s+(?:\u05D8\u05DC\u05E4\u05D5\u05DF|\u05E4\u05E7\u05E1|\u05DE\u05E1'|\u05DB\u05EA\u05D5\u05D1\u05EA).*$/i, '')
+      .replace(/\s+/g, ' ').trim().slice(0, 60);
+  } else {
+    const ls = flat.split(' ');
+    const cand = ls.find(w => /[\u05D0-\u05EA]{4,}/.test(w));
+    if (cand) ordering_entity = cand.slice(0, 60);
+  }
+
+  // ── Amount pre-VAT ────────────────────────────────────────────────────
+  let amount_pre_vat = null;
+  // Match "סה"כ לפני מע"מ 160,402.20" in various quote styles
+  const amtMatch =
+    flat.match(/\u05E1\u05D4.{0,5}\u05DB.{0,15}\u05DE\u05E2.{0,5}\u05DE\s*([\d,]+\.\d{2})/) ||
+    flat.match(/(?:subtotal|net amount)\s*([\d,]+\.\d{2})/i);
+  if (amtMatch) {
+    const num = parseFloat(amtMatch[1].replace(/,/g, ''));
+    if (!isNaN(num) && num > 0) amount_pre_vat = num;
+  }
+
+  // תיאור from תאור: שדה
+  // In RTL-extracted PDFs the label can appear reversed as "ור:" — match both.
+  let description = null;
+  {
+    // cleanText preserves newlines so [^\n] correctly stops at line boundary
+    const vorPat = new RegExp("\u05D5\u05E8:\\s*([^\n\r]{3,180})");
+    const taorPat = new RegExp("\u05EA\u05D0\u05D5\u05E8\\s*:\\s*([^\n\r]{3,180})");
+    const descMatch = cleanText.match(vorPat) || cleanText.match(taorPat);
+    if (descMatch) {
+      description = descMatch[1]
+        .replace(new RegExp("\u05EA\u05D0\\s*$"), "")   // strip stray תא artifact
+        .replace(/\s+/g, " ").trim().slice(0, 180);
+    }
+  }
+
+    // ── Line items ─────────────────────────────────────────────────────────
+  const items = parseOrderItems(rawText);
+
+  return { order_number, order_date, ordering_entity, description, amount_pre_vat, currency: 'ILS', items };
+}
+
+// ── Cities ───────────────────────────────────────────────────────────────────
+app.get('/api/orders/cities', requireSection('orders'), (req, res) => {
+  const cities = db.listOrderCities();
+  // Attach project counts
+  res.json(cities.map(c => ({
+    ...c,
+    projects: db.listOrderProjects(c.id)
+  })));
+});
+
+app.post('/api/orders/cities', requireSection('orders'), (req, res) => {
+  const { name, notes } = req.body;
+  if (!name) return res.status(400).json({ error: 'שם עיר נדרש' });
+  try {
+    const r = db.createOrderCity(name.trim(), notes);
+    res.json({ id: r.lastInsertRowid, name: name.trim() });
+  } catch (e) {
+    if (e.message.includes('UNIQUE')) return res.status(409).json({ error: 'עיר עם שם זה כבר קיימת' });
+    throw e;
+  }
+});
+
+app.delete('/api/orders/cities/:id', requireSection('orders'), (req, res) => {
+  db.deleteOrderCity(parseInt(req.params.id));
+  res.json({ ok: true });
+});
+
+// ── Projects ─────────────────────────────────────────────────────────────────
+app.post('/api/orders/cities/:cityId/projects', requireSection('orders'), (req, res) => {
+  const cityId = parseInt(req.params.cityId);
+  const { name, client, contractNumber, notes } = req.body;
+  if (!name) return res.status(400).json({ error: 'שם פרויקט נדרש' });
+  const r = db.createOrderProject({ cityId, name: name.trim(), client, contractNumber, notes, createdBy: req.user.username });
+  res.json({ id: r.lastInsertRowid });
+});
+
+app.put('/api/orders/projects/:id', requireSection('orders'), (req, res) => {
+  const { name, client, contractNumber, notes } = req.body;
+  if (!name) return res.status(400).json({ error: 'שם פרויקט נדרש' });
+  db.updateOrderProject(parseInt(req.params.id), { name, client, contractNumber, notes });
+  res.json({ ok: true });
+});
+
+app.delete('/api/orders/projects/:id', requireSection('orders'), (req, res) => {
+  db.deleteOrderProject(parseInt(req.params.id));
+  res.json({ ok: true });
+});
+
+// ── Orders ───────────────────────────────────────────────────────────────────
+app.get('/api/orders/projects/:id', requireSection('orders'), (req, res) => {
+  const project = db.getOrderProject(parseInt(req.params.id));
+  if (!project) return res.status(404).json({ error: 'Not found' });
+  const orders = db.listOrders(project.id);
+  res.json({ project, orders });
+});
+
+// Upload PDF → extract with Claude → return extracted data (not yet saved)
+app.post('/api/orders/projects/:id/upload', requireSection('orders'),
+  orderUpload.single('file'),
+  async (req, res) => {
+    if (!req.file) return res.status(400).json({ error: 'קובץ PDF נדרש' });
+    const stagingPath = req.file.path;
+    try {
+      // No API key check needed — extraction is fully local
+      const buffer = fs.readFileSync(stagingPath);
+      const extracted = await extractOrderFromPdf(buffer);
+
+      // Move to permanent storage
+      const ext = '.pdf';
+      const storedName = uuidv4() + ext;
+      const destPath = path.join(ORDER_STORAGE_DIR, storedName);
+      fs.renameSync(stagingPath, destPath);
+
+      // Convert ISO date → DD/MM/YYYY for display in the confirm modal
+      if (extracted.order_date && /^\d{4}-\d{2}-\d{2}$/.test(extracted.order_date)) {
+        const [y, mo, d] = extracted.order_date.split('-');
+        extracted.order_date_display = `${d}/${mo}/${y}`;
+      } else {
+        extracted.order_date_display = extracted.order_date || '';
+      }
+
+      res.json({
+        extracted,
+        tempFile: { storedName, originalName: Buffer.from(req.file.originalname, 'latin1').toString('utf8') }
+      });
+    } catch (e) {
+      try { fs.unlinkSync(stagingPath); } catch (_) {}
+      console.error('[orders/upload]', e);
+      res.status(500).json({ error: 'שגיאה בניתוח ה-PDF: ' + e.message });
+    }
+  }
+);
+
+// Confirm & save order after user reviews extracted data
+app.post('/api/orders/projects/:id/confirm', requireSection('orders'), (req, res) => {
+  const project = db.getOrderProject(parseInt(req.params.id));
+  if (!project) return res.status(404).json({ error: 'Not found' });
+  const { orderNumber, orderDate, orderingEntity, description, amountPreVat,
+          currency, notes, pdfStoredName, pdfOriginalName, rawExtracted, items } = req.body;
+  const pdfPath = pdfStoredName ? path.join(ORDER_STORAGE_DIR, pdfStoredName) : null;
+  const r = db.createOrder({
+    projectId: project.id, orderNumber, orderDate, orderingEntity,
+    description, amountPreVat: amountPreVat != null ? parseFloat(amountPreVat) : null,
+    currency: currency || 'ILS',
+    pdfPath: pdfPath ? pdfPath : null,
+    pdfOriginalName: pdfOriginalName || null,
+    notes: notes || null,
+    rawExtracted: rawExtracted ? JSON.stringify(rawExtracted) : null,
+    itemsJson: items ? JSON.stringify(items) : '[]'
+  });
+  res.json({ id: r.lastInsertRowid });
+});
+
+app.put('/api/orders/:id', requireSection('orders'), (req, res) => {
+  const order = db.getOrder(parseInt(req.params.id));
+  if (!order) return res.status(404).json({ error: 'Not found' });
+  const { orderNumber, orderDate, orderingEntity, description, amountPreVat,
+          isInvoiced, invoiceDate, invoiceNumber, notes } = req.body;
+  db.updateOrder(order.id, { orderNumber, orderDate, orderingEntity, description,
+    amountPreVat: amountPreVat != null ? parseFloat(amountPreVat) : null,
+    isInvoiced: !!isInvoiced, invoiceDate, invoiceNumber, notes });
+  res.json({ ok: true });
+});
+
+app.delete('/api/orders/:id', requireSection('orders'), (req, res) => {
+  const order = db.getOrder(parseInt(req.params.id));
+  if (!order) return res.status(404).json({ error: 'Not found' });
+  // Delete physical PDF if exists
+  if (order.pdf_path && fs.existsSync(order.pdf_path)) {
+    try { fs.unlinkSync(order.pdf_path); } catch (_) {}
+  }
+  if (order.invoice_file_path && fs.existsSync(order.invoice_file_path)) {
+    try { fs.unlinkSync(order.invoice_file_path); } catch (_) {}
+  }
+  db.deleteOrder(order.id);
+  res.json({ ok: true });
+});
+
+// Attach invoice to order
+app.post('/api/orders/:id/invoice', requireSection('orders'),
+  invoiceUpload.single('file'),
+  (req, res) => {
+    const order = db.getOrder(parseInt(req.params.id));
+    if (!order) { try { fs.unlinkSync(req.file?.path); } catch (_) {} return res.status(404).json({ error: 'Not found' }); }
+    const { invoiceNumber, invoiceDate } = req.body;
+    const ext = path.extname(req.file.originalname).toLowerCase();
+    const storedName = uuidv4() + ext;
+    const destPath = path.join(INVOICE_STORAGE_DIR, storedName);
+    fs.renameSync(req.file.path, destPath);
+    const originalName = Buffer.from(req.file.originalname, 'latin1').toString('utf8');
+    db.updateOrderInvoice(order.id, {
+      invoiceFilePath: destPath,
+      invoiceOriginalName: originalName,
+      invoiceDate: invoiceDate || null,
+      invoiceNumber: invoiceNumber || null
+    });
+    res.json({ ok: true, originalName });
+  }
+);
+
+// Serve order PDF
+app.get('/api/orders/:id/pdf', requireSection('orders'), (req, res) => {
+  const order = db.getOrder(parseInt(req.params.id));
+  if (!order || !order.pdf_path) return res.status(404).send('Not found');
+  if (!fs.existsSync(order.pdf_path)) return res.status(404).send('File not found');
+  res.setHeader('Content-Type', 'application/pdf');
+  res.setHeader('Content-Disposition', `inline; filename="${encodeURIComponent(order.pdf_original_name || 'order.pdf')}"`);
+  fs.createReadStream(order.pdf_path).pipe(res);
+});
+
+// Export orders to Excel
+app.get('/api/orders/projects/:id/export/xlsx', requireSection('orders'), async (req, res) => {
+  const project = db.getOrderProject(parseInt(req.params.id));
+  if (!project) return res.status(404).json({ error: 'Not found' });
+  const orders = db.listOrders(project.id);
+  const city = db.getOrderCity(project.city_id);
+
+  const ExcelJS = require('exceljs');
+  const wb = new ExcelJS.Workbook();
+  const ws = wb.addWorksheet('הזמנות', { views: [{ rightToLeft: true }] });
+
+  ws.columns = [
+    { header: 'מס׳', key: 'idx',     width: 6  },
+    { header: 'מס׳ הזמנה',  key: 'order_number',    width: 18 },
+    { header: 'תאריך',      key: 'order_date',       width: 13 },
+    { header: 'גורם מזמין', key: 'ordering_entity',  width: 28 },
+    { header: 'תיאור',      key: 'description',      width: 40 },
+    { header: 'סכום לפני מעמ', key: 'amount_pre_vat', width: 16 },
+    { header: 'חויבה',      key: 'is_invoiced',      width: 10 },
+    { header: 'מס׳ חשבונית', key: 'invoice_number',  width: 18 },
+    { header: 'תאריך חשבונית', key: 'invoice_date',  width: 15 },
+    { header: 'הערות',      key: 'notes',            width: 30 },
+  ];
+
+  // Header row style
+  const headerRow = ws.getRow(1);
+  headerRow.font = { bold: true, color: { argb: 'FFFFFFFF' } };
+  headerRow.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF1e3a5f' } };
+  headerRow.alignment = { horizontal: 'center', vertical: 'middle' };
+
+  // Title row above headers
+  ws.spliceRows(1, 0, [`הזמנות — ${city?.name || ''} / ${project.name}`]);
+  ws.mergeCells('A1:J1');
+  const titleCell = ws.getCell('A1');
+  titleCell.font = { bold: true, size: 13 };
+  titleCell.alignment = { horizontal: 'center' };
+  titleCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFe8f0fe' } };
+
+  let totalAmount = 0;
+  orders.forEach((o, i) => {
+    const row = ws.addRow({
+      idx: i + 1,
+      order_number: o.order_number || '',
+      order_date: o.order_date || '',
+      ordering_entity: o.ordering_entity || '',
+      description: o.description || '',
+      amount_pre_vat: o.amount_pre_vat != null ? o.amount_pre_vat : '',
+      is_invoiced: o.is_invoiced ? 'כן' : 'לא',
+      invoice_number: o.invoice_number || '',
+      invoice_date: o.invoice_date || '',
+      notes: o.notes || ''
+    });
+    if (o.amount_pre_vat) totalAmount += o.amount_pre_vat;
+    // Stripe rows
+    if (i % 2 === 1) {
+      row.eachCell(cell => { cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFf8faff' } }; });
+    }
+    // Color invoiced
+    const invCell = row.getCell('is_invoiced');
+    invCell.font = { color: { argb: o.is_invoiced ? 'FF15803d' : 'FFc53030' } };
+  });
+
+  // Totals row
+  const totalRow = ws.addRow({ idx: '', order_number: 'סה"כ', amount_pre_vat: totalAmount });
+  totalRow.font = { bold: true };
+
+  const buf = await wb.xlsx.writeBuffer();
+  res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+  res.setHeader('Content-Disposition', `attachment; filename="orders-${project.id}.xlsx"`);
+  res.send(buf);
+});
+
 
 // Static assets — auth required
 app.use(requireAuth, express.static(STATIC_DIR, {

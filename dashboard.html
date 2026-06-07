@@ -18,7 +18,8 @@
   --m-yellow:#ffd02f;--m-green:#16c47f;--m-orange:#ff9332;--m-pink:#ff5d8f;--m-violet:#8a5cf6;--m-cyan:#19c5d8;--m-blue:#4262ff;
   --m-blue-s:#e9edff;--m-green-s:#e3f9f0;--m-orange-s:#fff0e3;--m-pink-s:#ffe9f1;--m-violet-s:#f0e9ff;--m-cyan-s:#e2f8fb
 }
-body{font-family:'Plus Jakarta Sans','Rubik','Segoe UI',Arial,sans-serif;background:var(--bg);color:var(--text);direction:rtl}
+html{overflow-x:hidden}
+body{font-family:'Plus Jakarta Sans','Rubik','Segoe UI',Arial,sans-serif;background:var(--bg);color:var(--text);direction:rtl;overflow-x:hidden}
 
 /* ─── SIDEBAR ─────────────────────────────────────────── */
 .sidebar{
@@ -70,6 +71,7 @@ body{font-family:'Plus Jakarta Sans','Rubik','Segoe UI',Arial,sans-serif;backgro
 #snav-pricelist .snav-icon{background:var(--m-cyan-s);color:var(--m-cyan)}
 #snav-boq    .snav-icon{background:#fef3c7;color:#d97706}
 #snav-budget .snav-icon{background:#f0fdf4;color:#15803d}
+#snav-orders .snav-icon{background:#fff0f0;color:#CC1A1A}
 .sidebar-footer{
   padding:10px 14px;border-top:1px solid var(--border);
   flex-shrink:0;display:flex;flex-direction:column;gap:6px;background:#fff
@@ -1157,6 +1159,12 @@ tr:hover .pl-row-ds-btn{opacity:.6}
 .note-tt-body{font-size:.86rem;color:#374151;line-height:1.6;white-space:pre-wrap;
   max-height:160px;overflow-y:auto}
 
+/* ── BOQ table row styles ─────────────────────────────────── */
+.boq-item-row:hover:not(.boq-item-selected) { background:#f1f5f9 !important; }
+.boq-item-selected  { background:#dbeafe !important; border-right:3px solid #2563eb !important; }
+.boq-section-row    { background:#fff0f0 !important; border-right:3px solid #CC1A1A !important; }
+.boq-section-row:hover { background:#ffe4e4 !important; }
+
 /* ── Requisition view ─────────────────────────────────────── */
 .rq-shell{display:grid;grid-template-columns:1fr;gap:14px}
 .rq-card{background:#fff;border:1px solid var(--border);border-radius:10px;padding:14px 16px}
@@ -1386,6 +1394,7 @@ tr:hover .pl-row-ds-btn{opacity:.6}
     <button class="snav-item"        id="snav-pricelist" onclick="setView('pricelist')"> <span class="snav-icon"><svg viewBox="0 0 24 24"><path d="M3 5a2 2 0 0 1 2-2h6.2a2 2 0 0 1 1.4.6l8 8a2 2 0 0 1 0 2.8l-6.2 6.2a2 2 0 0 1-2.8 0l-8-8A2 2 0 0 1 3 11.2Z"/><circle cx="7.5" cy="7.5" r="1.2"/></svg></span> מחירונים</button>
     <button class="snav-item"        id="snav-boq"       onclick="setView('boq')">      <span class="snav-icon"><svg viewBox="0 0 24 24"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/><path d="M9 12h6M9 16h4"/></svg></span> כתב כמויות</button>
     <button class="snav-item"        id="snav-budget"    onclick="setView('budget')">   <span class="snav-icon"><svg viewBox="0 0 24 24"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></span> בקרה תקציבית</button>
+    <button class="snav-item"        id="snav-orders"    onclick="setView('orders')">   <span class="snav-icon"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg></span> הזמנות נכנסות</button>
   </nav>
   <div class="sidebar-footer">
     <div class="sidebar-user">
@@ -1990,6 +1999,8 @@ tr:hover .pl-row-ds-btn{opacity:.6}
           <button class="btn-cat" onclick="boqAddItemManual()">+ שורה</button>
           <button class="btn-cat" onclick="boqExportXlsx()" style="background:#eef4ff;color:#3b82f6;border-color:#c3cdff">⬇ Excel</button>
           <button class="btn-cat" onclick="boqExportPdf()" style="background:#fff7ed;color:#d97706;border-color:#fed7aa">⬇ PDF</button>
+          <button class="btn-cat" onclick="boqResetAndReimport()" style="background:#fff5f5;color:#e53e3e;border-color:#fed7d7" title="מחק את כל הסעיפים ויבא מחדש">🔄 אפס ויבא מחדש</button>
+          <button class="btn-cat" onclick="boqOpenCostSummary()" style="background:#f5f3ff;color:#6d28d9;border-color:#c4b5fd">📊 סיכום עלויות</button>
         </div>
       </div>
 
@@ -2001,36 +2012,42 @@ tr:hover .pl-row-ds-btn{opacity:.6}
           <table style="width:100%;border-collapse:collapse;font-size:.82rem">
             <thead>
               <tr style="background:#1e3a5f;color:#fff;text-align:right">
-                <th style="padding:7px 10px;width:60px">מס׳</th>
-                <th style="padding:7px 10px">תיאור</th>
-                <th style="padding:7px 10px;width:55px">יחידה</th>
-                <th style="padding:7px 10px;width:50px">כמות</th>
-                <th style="padding:7px 10px;width:40px">RFQ</th>
-                <th style="padding:7px 10px;width:70px">תבנית</th>
-                <th style="padding:7px 10px;width:90px">מחיר חוזה</th>
-                <th style="padding:7px 10px;width:90px">עלות ₪</th>
-                <th style="padding:7px 10px;width:90px">רווח</th>
-                <th style="padding:7px 6px;width:60px"></th>
+                <th style="padding:7px 8px;width:58px">מס׳</th>
+                <th style="padding:7px 8px">תיאור</th>
+                <th style="padding:7px 8px;width:65px;text-align:center">כמות</th>
+                <th style="padding:7px 8px;width:110px;text-align:right">מחיר יחידה</th>
+                <th style="padding:7px 8px;width:110px;text-align:right">סה"כ חוזה</th>
+                <th style="padding:7px 8px;width:110px;text-align:right">סה"כ עלויות</th>
+                <th style="padding:7px 8px;width:110px;text-align:right">רווח</th>
+                <th style="padding:7px 4px;width:44px;text-align:center" title="RFQ / תבנית"></th>
+                <th style="padding:7px 8px;width:80px;text-align:center">עלויות</th>
+                <th style="padding:7px 4px;width:52px"></th>
               </tr>
             </thead>
             <tbody id="boq-items-tbody"></tbody>
           </table>
         </div>
 
-        <!-- Component breakdown panel -->
-        <div id="boq-comp-panel" style="display:none;flex:0 0 300px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:14px">
-          <h3 id="boq-comp-title" style="margin:0 0 10px;font-size:.88rem;font-weight:700;color:#1e3a5f">רכיבי עלות</h3>
-          <div id="boq-comp-body" style="display:flex;flex-direction:column;gap:6px"></div>
-          <button class="btn-cat" onclick="boqAddComponent()" style="margin-top:10px;width:100%;justify-content:center">+ רכיב</button>
-        </div>
       </div>
 
       <!-- Summary bar -->
-      <div id="boq-summary-bar" style="margin-top:16px;padding:12px 16px;background:#fff;border:1px solid #e2e8f0;border-radius:10px;display:flex;gap:24px;flex-wrap:wrap;font-size:.85rem">
-        <span>סה"כ חוזה: <strong id="boq-total-contract" style="color:#1e3a5f">—</strong></span>
-        <span>סה"כ עלות: <strong id="boq-total-known" style="color:#15803d">—</strong></span>
-        <span>רווח גולמי: <strong id="boq-total-profit" style="color:#15803d">—</strong></span>
-        <span>RFQ בהמתנה: <strong id="boq-total-rfq-count" style="color:#d97706">—</strong></span>
+      <div id="boq-summary-bar" style="margin-top:16px;display:grid;grid-template-columns:repeat(4,1fr);gap:10px">
+        <div style="background:#fff;border:1px solid #e2e8f0;border-radius:10px;padding:14px 16px;border-top:3px solid #1e3a5f;box-shadow:0 1px 4px rgba(0,0,0,.05)">
+          <div style="font-size:.62rem;color:#8492a6;font-weight:700;letter-spacing:.05em;text-align:right;margin-bottom:5px">סה"כ חוזה</div>
+          <div id="boq-total-contract" style="font-size:1.05rem;font-weight:700;color:#1e3a5f;direction:ltr;text-align:left;white-space:nowrap">—</div>
+        </div>
+        <div style="background:#fff;border:1px solid #e2e8f0;border-radius:10px;padding:14px 16px;border-top:3px solid #15803d;box-shadow:0 1px 4px rgba(0,0,0,.05)">
+          <div style="font-size:.62rem;color:#8492a6;font-weight:700;letter-spacing:.05em;text-align:right;margin-bottom:5px">סה"כ עלויות</div>
+          <div id="boq-total-known" style="font-size:1.05rem;font-weight:700;color:#15803d;direction:ltr;text-align:left;white-space:nowrap">—</div>
+        </div>
+        <div style="background:#fff;border:1px solid #e2e8f0;border-radius:10px;padding:14px 16px;border-top:3px solid #2563eb;box-shadow:0 1px 4px rgba(0,0,0,.05)">
+          <div style="font-size:.62rem;color:#8492a6;font-weight:700;letter-spacing:.05em;text-align:right;margin-bottom:5px">רווח גולמי</div>
+          <div id="boq-total-profit" style="font-size:1.05rem;font-weight:700;direction:ltr;text-align:left;white-space:nowrap">—</div>
+        </div>
+        <div style="background:#fff;border:1px solid #e2e8f0;border-radius:10px;padding:14px 16px;border-top:3px solid #d97706;box-shadow:0 1px 4px rgba(0,0,0,.05)">
+          <div style="font-size:.62rem;color:#8492a6;font-weight:700;letter-spacing:.05em;text-align:right;margin-bottom:5px">RFQ בהמתנה</div>
+          <div id="boq-total-rfq-count" style="font-size:1.05rem;font-weight:700;color:#d97706;text-align:right">—</div>
+        </div>
       </div>
     </div>
   </section>
@@ -2061,14 +2078,25 @@ tr:hover .pl-row-ds-btn{opacity:.6}
 
   <!-- BOQ: Import xlsx modal -->
   <div id="boq-import-overlay" class="pl-import-overlay" onclick="if(event.target===this)boqCloseImportModal()" style="display:none">
-    <div class="pl-import-modal" style="max-width:420px">
-      <h3>📥 ייבוא כתב כמויות מ-Excel</h3>
-      <p style="font-size:.84rem;color:#718096;margin:8px 0 14px;line-height:1.5">
-        בחר קובץ .xlsx עם כתב הכמויות. המערכת תזהה את הכותרות אוטומטית ותתאים תבניות עלות.
+    <div class="pl-import-modal" style="max-width:440px">
+      <h3 style="margin:0 0 8px">📥 ייבוא כתב כמויות מ-Excel</h3>
+      <p style="font-size:.82rem;color:#718096;margin:0 0 14px;line-height:1.5">
+        בחר קובץ <strong>.xlsx</strong> עם כתב הכמויות — המערכת תזהה את הכותרות אוטומטית.
       </p>
-      <input type="file" id="boq-import-file" accept=".xlsx"
-        style="display:block;width:100%;padding:10px;border:2px dashed #c3cdff;border-radius:8px;cursor:pointer;font-size:.85rem;box-sizing:border-box"/>
-      <div id="boq-import-err" style="color:#c53030;font-size:.8rem;margin-top:8px;min-height:16px"></div>
+      <!-- Hidden real input -->
+      <input type="file" id="boq-import-file" accept=".xlsx,.xls"
+        style="display:none" onchange="boqImportFileChanged(this)"/>
+      <!-- Styled drop zone -->
+      <div id="boq-import-dropzone"
+        onclick="document.getElementById('boq-import-file').click()"
+        ondragover="event.preventDefault();this.style.background='#eff6ff';this.style.borderColor='#3b82f6'"
+        ondragleave="this.style.background='';this.style.borderColor='#c3cdff'"
+        ondrop="event.preventDefault();this.style.background='';this.style.borderColor='#c3cdff';const f=event.dataTransfer.files[0];if(f){const dt=new DataTransfer();dt.items.add(f);document.getElementById('boq-import-file').files=dt.files;boqImportFileChanged(document.getElementById('boq-import-file'));}"
+        style="border:2px dashed #c3cdff;border-radius:10px;padding:22px 16px;text-align:center;cursor:pointer;transition:background .15s,border-color .15s;background:#f8faff">
+        <div style="font-size:1.6rem;margin-bottom:6px">📂</div>
+        <div id="boq-import-filename" style="font-size:.85rem;color:#718096">לחץ לבחירת קובץ — או גרור לכאן</div>
+      </div>
+      <div id="boq-import-err" style="color:#c53030;font-size:.82rem;margin-top:10px;min-height:18px;background:#fff5f5;border-radius:6px;padding:0;display:none"></div>
       <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:14px">
         <button class="pl-step-cancel" onclick="boqCloseImportModal()">ביטול</button>
         <button class="pl-step-next" id="boq-import-btn" onclick="boqDoImport()">📥 ייבא</button>
@@ -2118,6 +2146,11 @@ tr:hover .pl-row-ds-btn{opacity:.6}
           <div style="flex:1">
             <label style="font-size:.78rem;font-weight:600;color:#4a5568;display:block;margin-bottom:3px">כמות</label>
             <input type="number" id="boq-item-qty" placeholder="1" min="0" step="any"
+              style="width:100%;padding:7px 10px;border:1.5px solid #e2e8f0;border-radius:7px;font-size:.88rem;box-sizing:border-box"/>
+          </div>
+          <div style="flex:1">
+            <label style="font-size:.78rem;font-weight:600;color:#4a5568;display:block;margin-bottom:3px">מחיר יחידה (₪)</label>
+            <input type="number" id="boq-item-contract-price" placeholder="0" min="0" step="any"
               style="width:100%;padding:7px 10px;border:1.5px solid #e2e8f0;border-radius:7px;font-size:.88rem;box-sizing:border-box"/>
           </div>
         </div>
@@ -2190,6 +2223,363 @@ tr:hover .pl-row-ds-btn{opacity:.6}
       </div>
     </div>
   </div>
+
+  <!-- ══ BOQ COST MODAL ══ -->
+  <div id="boq-cost-overlay" class="pl-import-overlay" onclick="if(event.target===this)boqCostClose()" style="display:none">
+    <div style="background:#fff;border-radius:14px;width:min(96vw,620px);max-height:90vh;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 12px 48px rgba(0,0,0,.22);direction:rtl">
+      <!-- Header: compact, 1 line title -->
+      <div style="background:#1e3a5f;color:#fff;padding:11px 16px;display:flex;justify-content:space-between;align-items:center;flex-shrink:0">
+        <div style="min-width:0;flex:1">
+          <div style="font-size:.65rem;color:#93c5fd;font-weight:600;letter-spacing:.04em;margin-bottom:1px">עלויות סעיף</div>
+          <div id="boq-cost-title" style="font-size:.85rem;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis"></div>
+          <div id="boq-cost-meta" style="font-size:.7rem;color:#93c5fd;margin-top:1px"></div>
+        </div>
+        <button onclick="boqCostClose()" style="flex-shrink:0;margin-right:12px;border:none;background:rgba(255,255,255,.18);color:#fff;border-radius:6px;padding:5px 12px;cursor:pointer;font-size:.78rem">✕ סגור</button>
+      </div>
+      <!-- Template quick-apply -->
+      <div style="padding:8px 14px;background:#f8fafc;border-bottom:1px solid var(--border);flex-shrink:0">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:5px">
+          <div style="font-size:.68rem;color:var(--muted);font-weight:600">תבניות מהירות:</div>
+          <button onclick="boqCostSaveAsTemplate()" title="שמור שורות נוכחיות כתבנית חדשה"
+            style="border:1px solid #c4b5fd;background:#f5f3ff;color:#6d28d9;border-radius:10px;padding:2px 9px;font-size:.68rem;cursor:pointer;font-weight:600">
+            ✚ שמור כתבנית
+          </button>
+        </div>
+        <div id="boq-cost-tmpl-btns" style="display:flex;flex-wrap:wrap;gap:4px"></div>
+      </div>
+      <!-- Component rows — scrollable -->
+      <div style="flex:1;overflow-y:auto;padding:10px 14px;min-height:0">
+        <table style="width:100%;border-collapse:collapse;font-size:.8rem">
+          <thead>
+            <tr style="color:var(--muted);font-size:.7rem;text-align:right;border-bottom:2px solid var(--border)">
+              <th style="padding:4px 6px;font-weight:600">תיאור</th>
+              <th style="padding:4px 6px;width:78px;text-align:right;font-weight:600">מחיר</th>
+              <th style="padding:4px 6px;width:58px;text-align:center;font-weight:600">מט׳</th>
+              <th style="padding:4px 6px;width:54px;text-align:right;font-weight:600">כמות</th>
+              <th style="padding:4px 6px;width:80px;text-align:right;font-weight:600;color:#15803d">סה"כ</th>
+              <th style="width:22px"></th>
+            </tr>
+          </thead>
+          <tbody id="boq-cost-rows"></tbody>
+        </table>
+        <button onclick="boqCostAddRow()" style="margin-top:7px;width:100%;padding:6px;border:1.5px dashed var(--border);background:transparent;color:var(--muted);border-radius:6px;cursor:pointer;font-size:.76rem">+ הוסף שורה</button>
+      </div>
+      <!-- Footer: always visible -->
+      <div style="padding:10px 14px;border-top:1px solid var(--border);background:#f8fafc;display:flex;justify-content:space-between;align-items:center;flex-shrink:0">
+        <div style="display:flex;align-items:center;gap:10px">
+          <div style="font-size:.82rem">סה"כ עלויות: <strong id="boq-cost-total" style="color:#15803d">—</strong></div>
+          <button onclick="boqCostClearAll()" title="נקה את כל השורות"
+            style="border:1px solid #fca5a5;background:#fff5f5;color:#c53030;border-radius:7px;padding:3px 10px;font-size:.72rem;cursor:pointer;white-space:nowrap">🗑 נקה הכל</button>
+        </div>
+        <div style="display:flex;gap:8px">
+          <button class="pl-step-cancel" onclick="boqCostClose()">ביטול</button>
+          <button class="pl-step-next" onclick="boqCostSave()">💾 שמור עלויות</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ BOQ TEMPLATE NAME DIALOG ══ -->
+  <div id="boq-tmpl-name-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:9200;align-items:center;justify-content:center;direction:rtl">
+    <div style="background:#fff;border-radius:14px;width:min(92vw,380px);padding:24px 22px 20px;box-shadow:0 10px 42px rgba(0,0,0,.28)">
+      <div style="font-size:.95rem;font-weight:700;margin-bottom:4px;color:#1e3a5f">שמירת תבנית</div>
+      <div style="font-size:.75rem;color:#718096;margin-bottom:14px">הזן שם קצר לתבנית (לדוגמה: "חדר שרתים")</div>
+      <input id="boq-tmpl-name-input" type="text" placeholder="שם התבנית..." maxlength="60"
+        style="width:100%;padding:9px 12px;border:1.5px solid #cbd5e0;border-radius:8px;font-size:.9rem;box-sizing:border-box;direction:rtl;outline:none;transition:border-color .15s"
+        onfocus="this.style.borderColor='#2563eb'" onblur="this.style.borderColor='#cbd5e0'"/>
+      <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:14px">
+        <button id="boq-tmpl-name-cancel"
+          style="padding:8px 18px;border:1px solid #e2e8f0;background:#f7f7f8;border-radius:8px;cursor:pointer;font-size:.85rem;color:#4a5568">ביטול</button>
+        <button id="boq-tmpl-name-ok"
+          style="padding:8px 20px;border:none;background:#1e3a5f;color:#fff;border-radius:8px;cursor:pointer;font-size:.85rem;font-weight:600">✚ שמור</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ BOQ COST SUMMARY MODAL ══ -->
+  <div id="boq-summary-overlay" class="pl-import-overlay" onclick="if(event.target===this)boqCloseCostSummary()" style="display:none">
+    <div style="background:#fff;border-radius:14px;width:min(96vw,720px);max-height:90vh;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 12px 48px rgba(0,0,0,.22);direction:rtl">
+      <!-- Header -->
+      <div style="background:#1e3a5f;color:#fff;padding:13px 18px;display:flex;justify-content:space-between;align-items:center;flex-shrink:0">
+        <div>
+          <div style="font-size:.68rem;color:#93c5fd;font-weight:600;letter-spacing:.04em">ניתוח עלויות</div>
+          <div id="boq-csumm-title" style="font-size:.92rem;font-weight:700;margin-top:2px"></div>
+        </div>
+        <button onclick="boqCloseCostSummary()" style="border:none;background:rgba(255,255,255,.18);color:#fff;border-radius:6px;padding:5px 12px;cursor:pointer;font-size:.78rem">✕ סגור</button>
+      </div>
+      <!-- KPI strip -->
+      <div id="boq-csumm-kpis" style="display:flex;gap:0;background:#f8fafc;border-bottom:1px solid #e2e8f0;flex-shrink:0;flex-wrap:wrap"></div>
+      <!-- Breakdown table -->
+      <div style="flex:1;overflow-y:auto;padding:14px 16px;min-height:0">
+        <table id="boq-csumm-table" style="width:100%;border-collapse:collapse;font-size:.8rem"></table>
+      </div>
+      <!-- Footer note -->
+      <div style="padding:8px 16px;border-top:1px solid #e2e8f0;background:#f8fafc;font-size:.7rem;color:#a0aec0;flex-shrink:0">
+        * מוצגות רק קבוצות/פריטים שהוזנו להם עלויות
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ BOQ TEMPLATE EDITOR ══ -->
+  <div id="boq-tmpl-editor-overlay" class="pl-import-overlay" onclick="if(event.target===this)boqCloseTmplEditor()" style="display:none">
+    <div class="pl-import-modal" style="max-width:480px">
+      <div style="margin:0 0 14px;display:flex;align-items:flex-start;justify-content:space-between;gap:8px">
+        <div>
+          <div style="font-size:1rem;font-weight:700;color:#1e3a5f">✏️ עריכת תבנית</div>
+          <div id="boq-tmpl-editor-context" style="font-size:.72rem;color:#6d28d9;margin-top:3px;display:none">
+            עבור סעיף: <span id="boq-tmpl-editor-item-label"></span>
+          </div>
+        </div>
+        <button onclick="boqCloseTmplEditor()" style="border:none;background:none;cursor:pointer;color:#a0aec0;font-size:1.1rem;flex-shrink:0">✕</button>
+      </div>
+      <div style="margin-bottom:12px">
+        <label style="font-size:.78rem;font-weight:600;color:#4a5568;display:block;margin-bottom:3px">שם תבנית *</label>
+        <input id="boq-tmpl-editor-name" type="text" placeholder="שם התבנית"
+          style="width:100%;padding:7px 10px;border:1.5px solid #e2e8f0;border-radius:7px;font-size:.88rem;box-sizing:border-box"/>
+      </div>
+      <div style="margin-bottom:10px">
+        <div style="font-size:.78rem;font-weight:600;color:#4a5568;margin-bottom:6px">רכיבים</div>
+        <div id="boq-tmpl-editor-comp-list" style="display:flex;flex-direction:column;gap:5px;max-height:220px;overflow-y:auto"></div>
+        <button onclick="boqTmplAddComp()" style="margin-top:7px;width:100%;padding:6px;border:1.5px dashed #cbd5e0;background:#f8fafc;color:#4a5568;border-radius:7px;cursor:pointer;font-size:.8rem">
+          + הוסף רכיב לתבנית
+        </button>
+      </div>
+      <div id="boq-tmpl-editor-comp-form" style="display:none;background:#f1f5f9;border-radius:8px;padding:10px 12px;margin-bottom:10px;border:1px solid #e2e8f0">
+        <div style="font-size:.75rem;font-weight:700;color:#4a5568;margin-bottom:8px" id="boq-tmpl-ce-title">➕ הוספת רכיב</div>
+        <div style="display:flex;flex-direction:column;gap:7px">
+          <input id="boq-tmpl-ce-label" type="text" placeholder="תיאור רכיב *"
+            style="width:100%;padding:6px 9px;border:1.5px solid #e2e8f0;border-radius:6px;font-size:.84rem;box-sizing:border-box"/>
+          <div style="display:flex;gap:6px">
+            <input id="boq-tmpl-ce-price" type="number" placeholder="מחיר יחידה" min="0" step="any"
+              style="flex:1;padding:6px 9px;border:1.5px solid #e2e8f0;border-radius:6px;font-size:.84rem"/>
+            <select id="boq-tmpl-ce-currency" style="flex:0 0 80px;padding:6px 8px;border:1.5px solid #e2e8f0;border-radius:6px;font-size:.84rem">
+              <option value="ILS">₪ ILS</option>
+              <option value="USD">$ USD</option>
+              <option value="EUR">€ EUR</option>
+            </select>
+            <input id="boq-tmpl-ce-qty" type="number" placeholder="כמות" min="0" step="any"
+              style="flex:0 0 70px;padding:6px 9px;border:1.5px solid #e2e8f0;border-radius:6px;font-size:.84rem"/>
+          </div>
+          <div id="boq-tmpl-ce-err" style="color:#c53030;font-size:.76rem;min-height:14px"></div>
+          <div style="display:flex;gap:6px;justify-content:flex-end">
+            <button onclick="boqTmplCancelComp()" class="pl-step-cancel" style="padding:5px 14px;font-size:.8rem">ביטול</button>
+            <button onclick="boqTmplSaveComp()" class="pl-step-next" style="padding:5px 14px;font-size:.8rem">שמור רכיב</button>
+          </div>
+        </div>
+      </div>
+      <input type="hidden" id="boq-tmpl-editor-id"/>
+      <div id="boq-tmpl-editor-err" style="color:#c53030;font-size:.8rem;margin-bottom:8px;min-height:16px"></div>
+      <div style="display:flex;gap:8px;justify-content:flex-end">
+        <button class="pl-step-cancel" onclick="boqCloseTmplEditor()">ביטול</button>
+        <button class="pl-step-next" onclick="boqSaveTmplEditor()">💾 שמור תבנית</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ ORDERS (הזמנות נכנסות) VIEW ══ -->
+  <section id="orders-view" style="display:none;padding:0 4px">
+
+    <!-- KPI bar -->
+    <div id="ord-kpi-bar" style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:16px">
+      <div style="background:#fff;border:1px solid #e2e8f0;border-radius:10px;padding:14px 16px;border-top:3px solid #CC1A1A;box-shadow:0 1px 4px rgba(0,0,0,.05)">
+        <div style="font-size:.62rem;color:#8492a6;font-weight:700;text-transform:uppercase;letter-spacing:.04em;text-align:right;margin-bottom:5px">סה"כ הזמנות</div>
+        <div id="ord-kpi-count" style="font-size:1.1rem;font-weight:700;color:#CC1A1A">—</div>
+      </div>
+      <div style="background:#fff;border:1px solid #e2e8f0;border-radius:10px;padding:14px 16px;border-top:3px solid #1e3a5f;box-shadow:0 1px 4px rgba(0,0,0,.05)">
+        <div style="font-size:.62rem;color:#8492a6;font-weight:700;text-transform:uppercase;letter-spacing:.04em;text-align:right;margin-bottom:5px">סה"כ סכום (לפני מעמ)</div>
+        <div id="ord-kpi-total" style="font-size:1.05rem;font-weight:700;color:#1e3a5f;direction:ltr;text-align:left">—</div>
+      </div>
+      <div style="background:#fff;border:1px solid #e2e8f0;border-radius:10px;padding:14px 16px;border-top:3px solid #15803d;box-shadow:0 1px 4px rgba(0,0,0,.05)">
+        <div style="font-size:.62rem;color:#8492a6;font-weight:700;text-transform:uppercase;letter-spacing:.04em;text-align:right;margin-bottom:5px">חויבו</div>
+        <div id="ord-kpi-invoiced" style="font-size:1.05rem;font-weight:700;color:#15803d">—</div>
+      </div>
+      <div style="background:#fff;border:1px solid #e2e8f0;border-radius:10px;padding:14px 16px;border-top:3px solid #d97706;box-shadow:0 1px 4px rgba(0,0,0,.05)">
+        <div style="font-size:.62rem;color:#8492a6;font-weight:700;text-transform:uppercase;letter-spacing:.04em;text-align:right;margin-bottom:5px">ממתינות לחיוב</div>
+        <div id="ord-kpi-pending" style="font-size:1.05rem;font-weight:700;color:#d97706">—</div>
+      </div>
+    </div>
+
+    <!-- Main layout -->
+    <div style="display:grid;grid-template-columns:270px 1fr;gap:16px;align-items:start">
+
+      <!-- Left panel: cities + projects tree -->
+      <div style="background:#fff;border:1px solid #e2e8f0;border-radius:12px;overflow:hidden">
+        <div style="padding:12px 14px;border-bottom:1px solid #f1f5f9;display:flex;align-items:center;justify-content:space-between">
+          <span style="font-size:.82rem;font-weight:700;color:#1e3a5f">ערים ופרויקטים</span>
+          <button onclick="ordOpenCityModal()" style="border:none;background:#fff0f0;color:#CC1A1A;border-radius:7px;padding:3px 9px;font-size:.72rem;font-weight:600;cursor:pointer">+ עיר</button>
+        </div>
+        <div id="ord-city-tree" style="padding:8px;max-height:calc(100vh - 300px);overflow-y:auto">
+          <div style="text-align:center;color:#a0aec0;font-size:.78rem;padding:20px">טוען...</div>
+        </div>
+      </div>
+
+      <!-- Right panel: orders table -->
+      <div id="ord-right-panel">
+        <div style="text-align:center;color:#a0aec0;font-size:.88rem;padding:60px 0">
+          בחר פרויקט מהעמודה השמאלית לצפייה בהזמנות
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ── City modal ─────────────────────────────────────────────────────── -->
+    <div id="ord-city-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:3100;align-items:center;justify-content:center;direction:rtl">
+      <div style="background:#fff;border-radius:14px;width:min(92vw,420px);padding:24px 22px 20px;box-shadow:0 10px 40px rgba(0,0,0,.25)">
+        <div style="font-size:.95rem;font-weight:700;color:#1e3a5f;margin-bottom:14px">🏙 הוספת עיר</div>
+        <label style="font-size:.75rem;font-weight:600;color:#4a5568;display:block;margin-bottom:4px">שם העיר</label>
+        <input id="ord-city-name" type="text" maxlength="60" placeholder="לדוגמה: תל אביב"
+          style="width:100%;border:1px solid #e2e8f0;border-radius:8px;padding:8px 10px;font-size:.88rem;direction:rtl;outline:none"/>
+        <label style="font-size:.75rem;font-weight:600;color:#4a5568;display:block;margin-top:10px;margin-bottom:4px">הערות (אופציונלי)</label>
+        <input id="ord-city-notes" type="text" maxlength="200" placeholder=""
+          style="width:100%;border:1px solid #e2e8f0;border-radius:8px;padding:8px 10px;font-size:.88rem;direction:rtl;outline:none"/>
+        <div id="ord-city-err" style="color:#c53030;font-size:.75rem;margin-top:8px;min-height:1em"></div>
+        <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:14px">
+          <button onclick="ordCloseCityModal()" style="border:1px solid #e2e8f0;background:#f8fafc;color:#4a5568;border-radius:8px;padding:7px 16px;font-size:.82rem;cursor:pointer">ביטול</button>
+          <button onclick="ordSaveCityModal()" style="border:none;background:#CC1A1A;color:#fff;border-radius:8px;padding:7px 16px;font-size:.82rem;font-weight:600;cursor:pointer">✚ שמור</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Project modal ──────────────────────────────────────────────────── -->
+    <div id="ord-proj-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:3100;align-items:center;justify-content:center;direction:rtl">
+      <div style="background:#fff;border-radius:14px;width:min(92vw,460px);padding:24px 22px 20px;box-shadow:0 10px 40px rgba(0,0,0,.25)">
+        <div id="ord-proj-title" style="font-size:.95rem;font-weight:700;color:#1e3a5f;margin-bottom:14px">📁 הוספת פרויקט</div>
+        <input type="hidden" id="ord-proj-city-id"/>
+        <input type="hidden" id="ord-proj-edit-id"/>
+        <label style="font-size:.75rem;font-weight:600;color:#4a5568;display:block;margin-bottom:4px">שם הפרויקט *</label>
+        <input id="ord-proj-name" type="text" maxlength="100"
+          style="width:100%;border:1px solid #e2e8f0;border-radius:8px;padding:8px 10px;font-size:.88rem;direction:rtl;outline:none"/>
+        <label style="font-size:.75rem;font-weight:600;color:#4a5568;display:block;margin-top:10px;margin-bottom:4px">לקוח / גורם מזמין</label>
+        <input id="ord-proj-client" type="text" maxlength="120"
+          style="width:100%;border:1px solid #e2e8f0;border-radius:8px;padding:8px 10px;font-size:.88rem;direction:rtl;outline:none"/>
+        <label style="font-size:.75rem;font-weight:600;color:#4a5568;display:block;margin-top:10px;margin-bottom:4px">מס׳ חוזה (אופציונלי)</label>
+        <input id="ord-proj-contract" type="text" maxlength="80"
+          style="width:100%;border:1px solid #e2e8f0;border-radius:8px;padding:8px 10px;font-size:.88rem;direction:rtl;outline:none"/>
+        <div id="ord-proj-err" style="color:#c53030;font-size:.75rem;margin-top:8px;min-height:1em"></div>
+        <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:14px">
+          <button onclick="ordCloseProjModal()" style="border:1px solid #e2e8f0;background:#f8fafc;color:#4a5568;border-radius:8px;padding:7px 16px;font-size:.82rem;cursor:pointer">ביטול</button>
+          <button onclick="ordSaveProjModal()" style="border:none;background:#CC1A1A;color:#fff;border-radius:8px;padding:7px 16px;font-size:.82rem;font-weight:600;cursor:pointer">✚ שמור</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Upload PDF modal ───────────────────────────────────────────────── -->
+    <div id="ord-upload-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:3100;align-items:center;justify-content:center;direction:rtl">
+      <div style="background:#fff;border-radius:14px;width:min(92vw,500px);padding:24px 22px 20px;box-shadow:0 10px 40px rgba(0,0,0,.25)">
+        <div style="font-size:.95rem;font-weight:700;color:#1e3a5f;margin-bottom:4px">📥 העלאת הזמנה PDF</div>
+        <div style="font-size:.72rem;color:#718096;margin-bottom:14px">הקובץ ינותח על ידי Claude AI</div>
+        <div id="ord-upload-dropzone"
+          ondragover="event.preventDefault();this.style.borderColor='#CC1A1A'"
+          ondragleave="this.style.borderColor='#e2e8f0'"
+          ondrop="event.preventDefault();this.style.borderColor='#e2e8f0';const f=event.dataTransfer.files[0];if(f){document.getElementById('ord-upload-file').files=Object.assign(new DataTransfer(),[f].reduce((d,fi)=>{d.items.add(fi);return d;},new DataTransfer())).files;ordUploadFileChanged(document.getElementById('ord-upload-file'))}"
+          onclick="document.getElementById('ord-upload-file').click()"
+          style="border:2px dashed #e2e8f0;border-radius:10px;padding:28px;text-align:center;cursor:pointer;transition:border-color .15s">
+          <div style="font-size:2rem;margin-bottom:6px">📄</div>
+          <div id="ord-upload-filename" style="font-size:.82rem;color:#718096">לחץ לבחירה או גרור קובץ PDF</div>
+        </div>
+        <input type="file" id="ord-upload-file" accept=".pdf" style="display:none" onchange="ordUploadFileChanged(this)"/>
+        <div id="ord-upload-err" style="color:#c53030;font-size:.75rem;margin-top:8px;min-height:1em"></div>
+        <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:14px">
+          <button onclick="ordCloseUploadModal()" style="border:1px solid #e2e8f0;background:#f8fafc;color:#4a5568;border-radius:8px;padding:7px 16px;font-size:.82rem;cursor:pointer">ביטול</button>
+          <button id="ord-upload-btn" onclick="ordDoUpload()" style="border:none;background:#CC1A1A;color:#fff;border-radius:8px;padding:7px 16px;font-size:.82rem;font-weight:600;cursor:pointer">🔍 נתח הזמנה</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Confirm extracted data modal ──────────────────────────────────── -->
+    <div id="ord-confirm-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:3200;align-items:center;justify-content:center;direction:rtl">
+      <div style="background:#fff;border-radius:14px;width:min(92vw,520px);padding:24px 22px 20px;box-shadow:0 10px 40px rgba(0,0,0,.25);max-height:90vh;overflow-y:auto">
+        <div style="font-size:.95rem;font-weight:700;color:#1e3a5f;margin-bottom:4px">✅ אישור נתונים שחולצו</div>
+        <div style="font-size:.72rem;color:#718096;margin-bottom:14px">בדוק ועדכן לפי הצורך לפני שמירה</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+          <div>
+            <label style="font-size:.72rem;font-weight:600;color:#4a5568;display:block;margin-bottom:3px">מס׳ הזמנה</label>
+            <input id="ord-cf-number" type="text" style="width:100%;border:1px solid #e2e8f0;border-radius:7px;padding:7px 9px;font-size:.85rem;direction:rtl"/>
+          </div>
+          <div>
+            <label style="font-size:.72rem;font-weight:600;color:#4a5568;display:block;margin-bottom:3px">תאריך הזמנה</label>
+            <input id="ord-cf-date" type="text" placeholder="DD/MM/YYYY" style="width:100%;border:1px solid #e2e8f0;border-radius:7px;padding:7px 9px;font-size:.85rem;direction:ltr"/>
+          </div>
+        </div>
+        <div style="margin-top:10px">
+          <label style="font-size:.72rem;font-weight:600;color:#4a5568;display:block;margin-bottom:3px">גורם מזמין</label>
+          <input id="ord-cf-entity" type="text" style="width:100%;border:1px solid #e2e8f0;border-radius:7px;padding:7px 9px;font-size:.85rem;direction:rtl"/>
+        </div>
+        <div style="margin-top:10px">
+          <label style="font-size:.72rem;font-weight:600;color:#4a5568;display:block;margin-bottom:3px">תיאור ההזמנה</label>
+          <textarea id="ord-cf-desc" rows="3" style="width:100%;border:1px solid #e2e8f0;border-radius:7px;padding:7px 9px;font-size:.85rem;direction:rtl;resize:vertical"></textarea>
+        </div>
+        <div style="margin-top:10px">
+          <label style="font-size:.72rem;font-weight:600;color:#4a5568;display:block;margin-bottom:3px">סכום לפני מעמ (₪)</label>
+          <input id="ord-cf-amount" type="number" min="0" step="0.01" style="width:100%;border:1px solid #e2e8f0;border-radius:7px;padding:7px 9px;font-size:.85rem;direction:ltr"/>
+        </div>
+        <div style="margin-top:10px">
+          <label style="font-size:.72rem;font-weight:600;color:#4a5568;display:block;margin-bottom:3px">הערות</label>
+          <input id="ord-cf-notes" type="text" style="width:100%;border:1px solid #e2e8f0;border-radius:7px;padding:7px 9px;font-size:.85rem;direction:rtl"/>
+        </div>
+        <!-- Items table — shown when PDF has line items -->
+        <div id="ord-cf-items-wrap" style="margin-top:12px;display:none">
+          <div style="font-size:.72rem;font-weight:700;color:#4a5568;margin-bottom:5px">📋 סעיפי ההזמנה</div>
+          <div style="max-height:200px;overflow-y:auto;border:1px solid #e2e8f0;border-radius:7px">
+            <table id="ord-cf-items-table" style="width:100%;border-collapse:collapse;font-size:.75rem;direction:rtl">
+              <thead>
+        <tr style="background:#f1f5f9;position:sticky;top:0">
+          <th style="padding:5px 8px;font-size:.7rem;color:#4a5568;text-align:center">#</th>
+          <th style="padding:5px 8px;font-size:.7rem;color:#4a5568;text-align:right">תיאור</th>
+          <th style="padding:5px 8px;font-size:.7rem;color:#4a5568;text-align:center">כמות</th>
+          <th style="padding:5px 8px;font-size:.7rem;color:#4a5568;text-align:center">יח'</th>
+          <th style="padding:5px 8px;font-size:.7rem;color:#4a5568;text-align:left">מחיר</th>
+          <th style="padding:5px 8px;font-size:.7rem;color:#4a5568;text-align:left">סה"כ</th>
+        </tr>
+      </thead>
+              <tbody id="ord-cf-items-tbody"></tbody>
+            </table>
+          </div>
+        </div>
+        <input type="hidden" id="ord-cf-stored-name"/>
+        <input type="hidden" id="ord-cf-orig-name"/>
+        <input type="hidden" id="ord-cf-items-json" value="[]"/>
+        <div id="ord-confirm-err" style="color:#c53030;font-size:.75rem;margin-top:8px;min-height:1em"></div>
+        <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:14px">
+          <button onclick="ordCloseConfirmModal()" style="border:1px solid #e2e8f0;background:#f8fafc;color:#4a5568;border-radius:8px;padding:7px 16px;font-size:.82rem;cursor:pointer">ביטול</button>
+          <button id="ord-confirm-save-btn" onclick="ordConfirmSave()" style="border:none;background:#15803d;color:#fff;border-radius:8px;padding:7px 16px;font-size:.82rem;font-weight:600;cursor:pointer">💾 שמור הזמנה</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Invoice modal ──────────────────────────────────────────────────── -->
+    <div id="ord-invoice-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:3100;align-items:center;justify-content:center;direction:rtl">
+      <div style="background:#fff;border-radius:14px;width:min(92vw,440px);padding:24px 22px 20px;box-shadow:0 10px 40px rgba(0,0,0,.25)">
+        <div style="font-size:.95rem;font-weight:700;color:#1e3a5f;margin-bottom:14px">🧾 צירוף חשבונית</div>
+        <input type="hidden" id="ord-inv-order-id"/>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+          <div>
+            <label style="font-size:.72rem;font-weight:600;color:#4a5568;display:block;margin-bottom:3px">מס׳ חשבונית</label>
+            <input id="ord-inv-number" type="text" style="width:100%;border:1px solid #e2e8f0;border-radius:7px;padding:7px 9px;font-size:.85rem"/>
+          </div>
+          <div>
+            <label style="font-size:.72rem;font-weight:600;color:#4a5568;display:block;margin-bottom:3px">תאריך חשבונית</label>
+            <input id="ord-inv-date" type="text" placeholder="YYYY-MM-DD" style="width:100%;border:1px solid #e2e8f0;border-radius:7px;padding:7px 9px;font-size:.85rem;direction:ltr"/>
+          </div>
+        </div>
+        <div style="margin-top:12px">
+          <label style="font-size:.72rem;font-weight:600;color:#4a5568;display:block;margin-bottom:6px">קובץ חשבונית (PDF / תמונה)</label>
+          <div onclick="document.getElementById('ord-inv-file').click()"
+            style="border:2px dashed #e2e8f0;border-radius:8px;padding:16px;text-align:center;cursor:pointer">
+            <div id="ord-inv-filename" style="font-size:.78rem;color:#718096">לחץ לבחירת קובץ (אופציונלי)</div>
+          </div>
+          <input type="file" id="ord-inv-file" accept=".pdf,.jpg,.jpeg,.png" style="display:none"
+            onchange="document.getElementById('ord-inv-filename').textContent=this.files[0]?.name||'לחץ לבחירת קובץ'"/>
+        </div>
+        <div id="ord-inv-err" style="color:#c53030;font-size:.75rem;margin-top:8px;min-height:1em"></div>
+        <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:14px">
+          <button onclick="ordCloseInvoiceModal()" style="border:1px solid #e2e8f0;background:#f8fafc;color:#4a5568;border-radius:8px;padding:7px 16px;font-size:.82rem;cursor:pointer">ביטול</button>
+          <button id="ord-inv-save-btn" onclick="ordSaveInvoice()" style="border:none;background:#1e3a5f;color:#fff;border-radius:8px;padding:7px 16px;font-size:.82rem;font-weight:600;cursor:pointer">💾 שמור</button>
+        </div>
+      </div>
+    </div>
+
+  </section>
 
   <!-- ══ BUDGET CONTROL (בקרה תקציבית) VIEW ══ -->
   <section id="budget-view" style="display:none;padding:0 4px">
@@ -2635,8 +3025,10 @@ function _confirm(msg, {title='אישור פעולה', ok='אישור', cancel='
     const okBtn=document.getElementById('app-confirm-ok');
     okBtn.textContent=ok;
     okBtn.className='is-'+(type==='delete'?'delete':type==='warn'?'warn':'action');
-    okBtn.onclick=()=>{ overlay.classList.remove('active'); resolve(true); };
-    document.getElementById('app-confirm-cancel').textContent=cancel;
+    okBtn.onclick=()=>{ overlay.classList.remove('active'); resolve(true); document.removeEventListener('keydown',onKey); };
+    const cancelBtn=document.getElementById('app-confirm-cancel');
+    cancelBtn.textContent=cancel;
+    cancelBtn.onclick=()=>{ overlay.classList.remove('active'); resolve(false); document.removeEventListener('keydown',onKey); };
     overlay.classList.add('active');
     // Keyboard support
     const onKey=e=>{
@@ -3380,7 +3772,9 @@ function setView(v){
   document.getElementById('requisition-view').style.display =v==='requisition'?'':'none';
   document.getElementById('boq-view').style.display         =v==='boq'?'':'none';
   document.getElementById('budget-view').style.display      =v==='budget'?'':'none';
-  const _hideExtra=v==='catalog'||v==='pricelist'||v==='warehouse'||v==='docpack'||v==='requisition'||v==='boq'||v==='budget'||v==='sites';
+  document.getElementById('orders-view').style.display      =v==='orders'?'':'none';
+  if(v==='orders') ordLoad();
+  const _hideExtra=v==='catalog'||v==='pricelist'||v==='warehouse'||v==='docpack'||v==='requisition'||v==='boq'||v==='budget'||v==='orders'||v==='sites';
   document.getElementById('sec-charts').style.display      =v==='list'?'':'none';
   document.getElementById('sec-stats').style.display       =_hideExtra?'none':'';
   document.getElementById('sec-done').style.display        =_hideExtra?'none':'';
@@ -10488,7 +10882,9 @@ let _boqRates = null;
 
 function _boqFmt(n){
   if(n==null) return '—';
-  return '₪' + Math.round(n).toLocaleString('he-IL');
+  const s = Math.abs(Math.round(n)).toLocaleString('he-IL');
+  const sign = n < 0 ? '-' : '';
+  return `<span style="direction:ltr;unicode-bidi:isolate;white-space:nowrap">${sign}${s} ש"ח</span>`;
 }
 
 function _boqRate(currency){
@@ -10502,7 +10898,11 @@ function _boqCalcItemTotal(item, comps){
   if(item.is_section) return null;
   if(item.is_rfq && item.rfq_price_ils!=null) return item.rfq_price_ils;
   if(item.is_rfq) return null;
-  return (comps||[]).reduce((s,c)=>s+(c.unit_price||0)*(c.quantity||1)*_boqRate(c.currency),0);
+  if(!(comps||[]).length) return null; // no components → unknown cost, not zero
+  return comps.reduce((s,c)=>{
+    const effQty = c.quantity_formula ? item.quantity*(parseFloat(c.quantity_formula)||1) : (c.quantity||1);
+    return s+(c.unit_price||0)*effQty*_boqRate(c.currency);
+  },0);
 }
 
 function _boqCalcProjectTotal(){
@@ -10543,7 +10943,7 @@ function renderBoqProjects(){
   grid.innerHTML = _boqProjects.map(p=>{
     const statusColor={draft:'#a0aec0',active:'#3b82f6',locked:'#6d28d9'}[p.status]||'#a0aec0';
     const statusLabel={draft:'טיוטה',active:'פעיל',locked:'נעול'}[p.status]||p.status;
-    return `<div style="background:#fff;border:1.5px solid #e2e8f0;border-radius:12px;padding:16px;cursor:pointer;transition:box-shadow .15s"
+    return `<div style="background:#fff;border:1.5px solid #e2e8f0;border-radius:12px;padding:16px;cursor:pointer;transition:box-shadow .15s;position:relative"
       onmouseover="this.style.boxShadow='0 4px 16px rgba(0,0,0,.08)'" onmouseout="this.style.boxShadow=''"
       onclick="boqOpenProject(${p.id})">
       <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:8px">
@@ -10551,7 +10951,13 @@ function renderBoqProjects(){
         <span style="font-size:.7rem;font-weight:600;color:${statusColor};background:${statusColor}18;border-radius:6px;padding:2px 7px;flex-shrink:0">${statusLabel}</span>
       </div>
       ${p.site?`<div style="font-size:.78rem;color:#718096;margin-bottom:4px">📍 ${p.site}</div>`:''}
-      <div style="font-size:.73rem;color:#a0aec0;margin-top:6px">${new Date(p.updated_at).toLocaleDateString('he-IL')}</div>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-top:8px">
+        <span style="font-size:.73rem;color:#a0aec0">${new Date(p.updated_at).toLocaleDateString('he-IL')}</span>
+        <button onclick="event.stopPropagation();boqDeleteProject(${p.id},'${p.name.replace(/'/g,"\\'")}')"
+          style="border:none;background:none;cursor:pointer;color:#e53e3e;font-size:.78rem;padding:2px 4px;border-radius:4px;opacity:.6"
+          onmouseover="this.style.opacity=1;this.style.background='#fff5f5'" onmouseout="this.style.opacity=.6;this.style.background='none'"
+          title="מחק פרויקט">🗑 מחק</button>
+      </div>
     </div>`;
   }).join('');
 }
@@ -10578,7 +10984,7 @@ async function boqOpenProject(id){
 function boqBackToList(){
   _boqCurrentProjectId=null; _boqSelectedItemId=null;
   document.getElementById('boq-editor-panel').style.display='none';
-  document.getElementById('boq-comp-panel').style.display='none';
+  const _bcp1=document.getElementById('boq-comp-panel'); if(_bcp1) _bcp1.style.display='none';
   document.getElementById('boq-list-panel').style.display='';
   boqRender();
 }
@@ -10586,7 +10992,7 @@ function boqBackToList(){
 function renderBoqItems(){
   const tbody = document.getElementById('boq-items-tbody');
   if(!_boqItems.length){
-    tbody.innerHTML=`<tr><td colspan="10" style="padding:24px;text-align:center;color:#a0aec0">
+    tbody.innerHTML=`<tr><td colspan="9" style="padding:24px;text-align:center;color:#a0aec0">
       אין סעיפים — ייבא Excel, הדבק CSV, או הוסף שורה ידנית
     </td></tr>`;
     return;
@@ -10595,33 +11001,64 @@ function renderBoqItems(){
     const comps = _boqComponentsByItemId[item.id]||[];
     const total = _boqCalcItemTotal(item, comps);
     const isSelected = item.id===_boqSelectedItemId;
-    const bg = item.is_section ? 'background:#e8f0fe' : (isSelected ? 'background:#eff6ff' : '');
+    const rowClass = item.is_section ? 'boq-section-row' : (isSelected ? 'boq-item-row boq-item-selected' : 'boq-item-row');
+    const bg = item.is_section
+      ? ''
+      : (isSelected ? 'background:#dbeafe;border-right:3px solid #2563eb' : '');
     const rfqBadge = item.is_rfq ? `<span style="font-size:.68rem;font-weight:600;background:#fff7ed;color:#d97706;border-radius:5px;padding:1px 5px">RFQ</span>` : '';
     const tmplBadge = item.template_id ? `<span style="font-size:.65rem;color:#6d28d9;background:#f5f3ff;border-radius:4px;padding:1px 5px">✓</span>` : '';
-    const totalStr = item.is_section ? '' : (total!=null ? _boqFmt(total) : '<span style="color:#d97706">—</span>');
+    const totalStr = item.is_section ? '' : (total!=null ? _boqFmt(total) : '');
     const contractTotal = (!item.is_section && item.contract_unit_price!=null) ? item.contract_unit_price * item.quantity : null;
     const contractStr = contractTotal!=null ? _boqFmt(contractTotal) : (item.is_section?'':'<span style="color:#a0aec0">—</span>');
     const profit = (contractTotal!=null && total!=null) ? contractTotal - total : null;
     const profitPct = (profit!=null && contractTotal) ? (profit/contractTotal*100).toFixed(1) : null;
     const profitStr = item.is_section ? '' : profit!=null
-      ? `<span style="color:${profit>=0?'#15803d':'#c53030'};font-weight:600">${profit>=0?'+':''}${_boqFmt(profit)}</span>${profitPct!=null?`<br><span style="font-size:.68rem;color:#718096">${profitPct}%</span>`:''}`
+      ? `<span style="color:${profit>=0?'#15803d':'#c53030'};font-weight:600;white-space:nowrap">${profit>=0?'+':''}${_boqFmt(profit)}${profitPct!=null?` <span style="font-weight:400;font-size:.72rem;opacity:.75">(${profitPct}%)</span>`:''}</span>`
       : '<span style="color:#a0aec0">—</span>';
-    return `<tr style="${bg};cursor:pointer" onclick="boqSelectItem(${item.id})">
-      <td style="padding:6px 10px;color:#718096;font-size:.78rem">${item.item_number||''}</td>
-      <td style="padding:6px 10px;font-weight:${item.is_section?700:400};color:${item.is_section?'#1e3a5f':'#1c1c1e'}">${item.description}</td>
-      <td style="padding:6px 10px;color:#718096;font-size:.78rem;text-align:center">${item.unit||''}</td>
-      <td style="padding:6px 10px;text-align:center;font-size:.82rem">${item.is_section?'':item.quantity}</td>
-      <td style="padding:6px 10px;text-align:center">${rfqBadge}</td>
-      <td style="padding:6px 10px;text-align:center">${tmplBadge}</td>
-      <td style="padding:6px 10px;text-align:left;font-size:.82rem;color:#1e3a5f">${contractStr}</td>
-      <td style="padding:6px 10px;text-align:left;font-weight:${total?600:400};color:${total?'#15803d':'#718096'};font-size:.82rem">${totalStr}</td>
-      <td style="padding:6px 10px;text-align:left;font-size:.82rem;line-height:1.3">${profitStr}</td>
+    const unitPriceRaw = item.contract_unit_price != null
+      ? (Number.isInteger(item.contract_unit_price) ? item.contract_unit_price : +item.contract_unit_price.toFixed(2))
+      : '';
+    const unitPriceStr = item.is_section ? '' :
+      item.contract_unit_price != null
+        ? `<span class="boq-price-cell" title="לחץ פעמיים לעריכה" style="cursor:text">${_boqFmt(item.contract_unit_price)}</span>`
+        : item.is_rfq
+          ? '<span style="font-size:.68rem;font-weight:600;background:#fff7ed;color:#d97706;border-radius:5px;padding:1px 5px">RFQ</span>'
+          : '<span class="boq-price-cell boq-price-empty" title="לחץ פעמיים להזנת מחיר" style="cursor:text;color:#a0aec0">הזן מחיר</span>';
+    const qtyCell = item.is_section ? '' :
+      `<span style="font-size:.82rem">${item.quantity}</span>${item.unit?` <span style="font-size:.7rem;color:#a0aec0">${item.unit}</span>`:''}`;
+    const indicators = [rfqBadge, tmplBadge].filter(Boolean).join(' ');
+    return `<tr class="${rowClass}" style="${bg};cursor:pointer" onclick="boqSelectItem(${item.id})">
+      <td style="padding:6px 8px;color:#718096;font-size:.78rem;white-space:nowrap">${item.item_number||''}</td>
+      <td style="padding:6px 8px;font-weight:${item.is_section?700:400};color:${item.is_section?'#9b1515':'#1c1c1e'}">${item.description}</td>
+      <td style="padding:6px 8px;text-align:right;white-space:nowrap">${qtyCell}</td>
+      <td style="padding:3px 8px;text-align:right;font-size:.82rem;color:#1e3a5f" ondblclick="event.stopPropagation();boqInlineEditPrice(${item.id},this,${unitPriceRaw||0})">${unitPriceStr}</td>
+      <td style="padding:6px 8px;text-align:right;font-size:.82rem;color:#1e3a5f">${contractStr}</td>
+      <td style="padding:6px 8px;text-align:right;font-weight:${total?600:400};color:${total?'#15803d':'#718096'};font-size:.82rem">${totalStr}</td>
+      <td style="padding:6px 8px;text-align:right;font-size:.82rem;line-height:1.3">${profitStr}</td>
+      <td style="padding:6px 4px;text-align:center">${indicators}</td>
+      <td style="padding:4px 6px;text-align:center">
+        ${item.is_section ? '' : `<button onclick="event.stopPropagation();boqOpenCostModal(${item.id})"
+          style="border:none;border-radius:6px;cursor:pointer;padding:3px 8px;font-size:.75rem;font-weight:600;white-space:nowrap;
+          ${comps.length ? 'background:#dcfce7;color:#15803d' : 'background:#f1f5f9;color:#64748b'}"
+          title="${comps.length ? comps.length+' רכיבים' : 'הגדר עלויות'}">
+          ${comps.length ? '✓ '+comps.length : '+ עלויות'}
+        </button>`}
+      </td>
       <td style="padding:6px 4px;text-align:center;white-space:nowrap">
-        <button onclick="event.stopPropagation();boqEditItem(${item.id})" style="border:none;background:none;cursor:pointer;color:#3b82f6;padding:2px 4px;font-size:.78rem" title="עריכה">✏️</button>
-        <button onclick="event.stopPropagation();boqDeleteItemConfirm(${item.id})" style="border:none;background:none;cursor:pointer;color:#e53e3e;padding:2px 4px;font-size:.78rem" title="מחיקה">🗑</button>
+        <button onclick="event.stopPropagation();boqEditItem(${item.id})" style="border:none;background:none;cursor:pointer;color:#94a3b8;padding:2px 4px;font-size:.78rem" title="עריכת פריט">✏️</button>
+        <button onclick="event.stopPropagation();boqDeleteItemConfirm(${item.id})" style="border:none;background:none;cursor:pointer;color:#fca5a5;padding:2px 4px;font-size:.78rem" title="מחיקה">🗑</button>
       </td>
     </tr>`;
   }).join('');
+}
+
+function _boqFmtKPI(n, opts){
+  // Returns clean HTML for KPI bar: "₪ 154,324" (currency symbol before number)
+  if(n==null) return '<span style="color:#b0bec5">—</span>';
+  const abs = Math.round(Math.abs(n)).toLocaleString('he-IL');
+  const sign = opts?.sign && n>0 ? '+' : n<0 ? '−' : '';
+  const color = opts?.color || 'inherit';
+  return `<span style="font-size:.72em;font-weight:500;color:#9ca3af;margin-left:3px">₪</span><span style="color:${color}">${sign}${abs}</span>`;
 }
 
 function renderBoqSummary(){
@@ -10631,15 +11068,34 @@ function renderBoqSummary(){
     if(item.is_section) continue;
     if(item.contract_unit_price!=null){ contractTotal += item.contract_unit_price * item.quantity; hasContract=true; }
   }
-  const profit = hasContract ? contractTotal - known : null;
+  const profit = (hasContract && known!=null) ? contractTotal - known : null;
   const profitPct = (profit!=null && contractTotal) ? (profit/contractTotal*100).toFixed(1) : null;
-  const profitColor = profit==null ? '#a0aec0' : profit>=0 ? '#15803d' : '#c53030';
-  const profitLabel = profit==null ? '—' : (profit>=0?'+':'')+_boqFmt(profit)+(profitPct!=null?' ('+profitPct+'%)':'');
-  document.getElementById('boq-total-contract').textContent = hasContract ? _boqFmt(contractTotal) : '—';
-  document.getElementById('boq-total-known').textContent = _boqFmt(known);
-  document.getElementById('boq-total-profit').textContent = profitLabel;
-  document.getElementById('boq-total-profit').style.color = profitColor;
-  document.getElementById('boq-total-rfq-count').textContent = rfqPending ? rfqPending+' פריטים' : '0';
+  const profitColor = profit==null ? '#b0bec5' : profit>=0 ? '#15803d' : '#c53030';
+
+  document.getElementById('boq-total-contract').innerHTML = hasContract
+    ? _boqFmtKPI(contractTotal, {color:'#1e3a5f'})
+    : '<span style="color:#b0bec5">—</span>';
+
+  document.getElementById('boq-total-known').innerHTML = known
+    ? _boqFmtKPI(known, {color:'#15803d'})
+    : '<span style="color:#b0bec5">—</span>';
+
+  const profitEl = document.getElementById('boq-total-profit');
+  if(profit==null){
+    profitEl.innerHTML = '<span style="color:#b0bec5">—</span>';
+  } else {
+    const pctStr = profitPct!=null
+      ? ` <span style="font-size:.68em;font-weight:500;color:${profitColor};opacity:.8">(${profitPct}%)</span>`
+      : '';
+    profitEl.innerHTML = _boqFmtKPI(profit, {color:profitColor, sign:true}) + pctStr;
+  }
+
+  const rfqEl = document.getElementById('boq-total-rfq-count');
+  if(rfqPending){
+    rfqEl.innerHTML = `<span style="color:#d97706">${rfqPending}</span><span style="font-size:.65em;color:#9ca3af;margin-right:4px"> פריטים</span>`;
+  } else {
+    rfqEl.innerHTML = '<span style="color:#b0bec5">0</span>';
+  }
 }
 
 function boqSelectItem(id){
@@ -10649,44 +11105,9 @@ function boqSelectItem(id){
 }
 
 function renderBoqComponents(itemId){
-  const panel = document.getElementById('boq-comp-panel');
-  const item = _boqItems.find(i=>i.id===itemId);
-  if(!item || item.is_section){ panel.style.display='none'; return; }
-  panel.style.display='';
-  document.getElementById('boq-comp-title').textContent = 'רכיבי עלות — '+item.description.substring(0,30);
-  const comps = _boqComponentsByItemId[itemId]||[];
-  const body = document.getElementById('boq-comp-body');
-
-  if(!comps.length && item.is_rfq){
-    body.innerHTML=`<div style="font-size:.8rem;color:#d97706;padding:8px;background:#fff7ed;border-radius:6px">
-      פריט RFQ — ${item.rfq_price_ils!=null?'מחיר: '+_boqFmt(item.rfq_price_ils):'ממתין להצעת מחיר'}
-      <button onclick="boqSetRfqPrice(${item.id})" style="margin-right:6px;font-size:.75rem;border:none;background:#fed7aa;color:#92400e;border-radius:4px;padding:2px 6px;cursor:pointer">עדכן מחיר</button>
-    </div>`;
-    _renderBoqTemplateBar(itemId);
-    return;
-  }
-
-  if(!comps.length){
-    body.innerHTML=`<div style="font-size:.8rem;color:#a0aec0;text-align:center;padding:12px">אין רכיבי עלות עדיין</div>`;
-    _renderBoqTemplateBar(itemId);
-    return;
-  }
-
-  body.innerHTML = comps.map(c=>{
-    const ils = (c.unit_price||0)*(c.quantity||1)*_boqRate(c.currency);
-    return `<div style="background:#fff;border:1px solid #e2e8f0;border-radius:7px;padding:8px 10px;display:flex;justify-content:space-between;align-items:center;gap:6px">
-      <div style="flex:1;min-width:0">
-        <div style="font-size:.8rem;font-weight:600;color:#1c1c1e;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${c.label}</div>
-        <div style="font-size:.7rem;color:#718096">${c.unit_price||0} ${c.currency} × ${c.quantity}</div>
-      </div>
-      <div style="font-size:.8rem;font-weight:600;color:#15803d;flex-shrink:0">${_boqFmt(ils)}</div>
-      <div style="display:flex;gap:2px">
-        <button onclick="boqEditComp(${c.id})" style="border:none;background:none;cursor:pointer;color:#3b82f6;font-size:.75rem;padding:2px 3px" title="עריכה">✏️</button>
-        <button onclick="boqDeleteComp(${c.id},${itemId})" style="border:none;background:none;cursor:pointer;color:#e53e3e;font-size:.75rem;padding:2px 3px" title="מחיקה">🗑</button>
-      </div>
-    </div>`;
-  }).join('');
-  _renderBoqTemplateBar(itemId);
+  // The component side-panel was removed in the redesign.
+  // Components are now managed via the cost modal (boqOpenCostModal).
+  // This function is a no-op — kept only so call-sites don't break.
 }
 
 function _renderBoqTemplateBar(itemId){
@@ -10695,21 +11116,42 @@ function _renderBoqTemplateBar(itemId){
   const item = _boqItems.find(i=>i.id===itemId);
   const bar = document.createElement('div');
   bar.style.cssText='margin-top:8px;border-top:1px solid #e2e8f0;padding-top:8px';
-  const syncBtn = item?.template_id
-    ? `<button onclick="boqSyncPrices(${itemId})" style="margin-top:4px;width:100%;padding:6px;border:none;background:#f0fdf4;color:#15803d;border-radius:6px;cursor:pointer;font-size:.8rem;font-weight:600;border:1px solid #bbf7d0">
-        ↑ שמור מחירים לתבנית
-      </button>`
-    : '';
+  const syncBtn = '';
   bar.innerHTML = `<div style="font-size:.73rem;color:#718096;margin-bottom:4px">החל תבנית:</div>
-    <select id="boq-tmpl-sel-${itemId}" style="width:100%;padding:5px 8px;border:1.5px solid #e2e8f0;border-radius:6px;font-size:.8rem">
+    <select id="boq-tmpl-sel-${itemId}" onchange="boqShowTemplatePreview(this.value,${itemId})"
+      style="width:100%;padding:5px 8px;border:1.5px solid #e2e8f0;border-radius:6px;font-size:.8rem">
       <option value="">— בחר תבנית —</option>
       ${_boqTemplates.map(t=>`<option value="${t.id}">${t.name}</option>`).join('')}
     </select>
-    <button onclick="boqApplyTemplate(${itemId})" style="margin-top:6px;width:100%;padding:6px;border:none;background:#e8f0fe;color:#1d4ed8;border-radius:6px;cursor:pointer;font-size:.8rem;font-weight:600">
-      החל תבנית →
-    </button>
-    ${syncBtn}`;
+    <div id="boq-tmpl-preview-${itemId}" style="margin-top:5px;display:none;background:#f1f5f9;border-radius:6px;padding:6px 8px;font-size:.72rem;color:#374151"></div>
+    <div style="display:flex;gap:5px;margin-top:6px">
+      <button onclick="boqApplyTemplate(${itemId})" style="flex:1;padding:6px;border:none;background:#e8f0fe;color:#1d4ed8;border-radius:6px;cursor:pointer;font-size:.8rem;font-weight:600" title="קשר תבנית לסעיף והחלף את רכיביו">
+        🔗 החל תבנית
+      </button>
+      <button onclick="boqOpenTmplEditor(document.getElementById('boq-tmpl-sel-${itemId}').value,${itemId})" style="flex:0 0 auto;padding:6px 10px;border:1px solid #cbd5e0;background:#fff;color:#374151;border-radius:6px;cursor:pointer;font-size:.8rem" title="ערוך תבנית">
+        ✏️
+      </button>
+    </div>
+    ${syncBtn}
+    <div style="margin-top:8px;border-top:1px solid #e2e8f0;padding-top:8px">
+      <div style="font-size:.73rem;color:#718096;margin-bottom:4px">תבנית חדשה:</div>
+      <input id="boq-new-tmpl-name-${itemId}" type="text" placeholder="שם התבנית..."
+        style="width:100%;padding:5px 8px;border:1.5px solid #e2e8f0;border-radius:6px;font-size:.8rem;box-sizing:border-box;margin-bottom:5px"/>
+      <div style="display:flex;gap:5px">
+        <button onclick="boqCreateBlankTemplate(${itemId})" style="flex:1;padding:5px 4px;border:none;background:#f8fafc;color:#374151;border-radius:6px;cursor:pointer;font-size:.75rem;font-weight:600;border:1px solid #e2e8f0">
+          ➕ תבנית ריקה
+        </button>
+        <button onclick="boqCreateTemplateFromComps(${itemId})" style="flex:1;padding:5px 4px;border:none;background:#f5f3ff;color:#6d28d9;border-radius:6px;cursor:pointer;font-size:.75rem;font-weight:600;border:1px solid #c4b5fd">
+          💾 שמור רכיבים נוכחיים
+        </button>
+      </div>
+    </div>`;
   body.appendChild(bar);
+  // Pre-select item's linked template (if any) so ✏️ edit button works immediately
+  if(item?.template_id){
+    const sel = document.getElementById('boq-tmpl-sel-'+itemId);
+    if(sel) sel.value = item.template_id;
+  }
 }
 
 async function boqSyncPrices(itemId){
@@ -10760,6 +11202,7 @@ function boqAddItemManual(){
   document.getElementById('boq-item-desc').value='';
   document.getElementById('boq-item-unit').value='';
   document.getElementById('boq-item-qty').value='1';
+  document.getElementById('boq-item-contract-price').value='';
   document.getElementById('boq-item-rfq').checked=false;
   document.getElementById('boq-item-section').checked=false;
   document.getElementById('boq-item-notes').value='';
@@ -10778,6 +11221,7 @@ function boqEditItem(id){
   document.getElementById('boq-item-desc').value=item.description;
   document.getElementById('boq-item-unit').value=item.unit||'';
   document.getElementById('boq-item-qty').value=item.quantity||1;
+  document.getElementById('boq-item-contract-price').value=item.contract_unit_price!=null?item.contract_unit_price:'';
   document.getElementById('boq-item-rfq').checked=!!item.is_rfq;
   document.getElementById('boq-item-section').checked=!!item.is_section;
   document.getElementById('boq-item-notes').value=item.notes||'';
@@ -10798,10 +11242,11 @@ async function boqSaveItemModal(){
     itemNumber:  document.getElementById('boq-item-num').value.trim()||null,
     unit:        document.getElementById('boq-item-unit').value.trim()||null,
     quantity:    parseFloat(document.getElementById('boq-item-qty').value)||1,
-    isRfq:       document.getElementById('boq-item-rfq').checked,
-    isSection:   document.getElementById('boq-item-section').checked,
-    notes:       document.getElementById('boq-item-notes').value.trim()||null,
-    rfqPriceIls: document.getElementById('boq-item-rfq-price').value ? parseFloat(document.getElementById('boq-item-rfq-price').value) : null,
+    isRfq:             document.getElementById('boq-item-rfq').checked,
+    isSection:         document.getElementById('boq-item-section').checked,
+    notes:             document.getElementById('boq-item-notes').value.trim()||null,
+    rfqPriceIls:       document.getElementById('boq-item-rfq-price').value ? parseFloat(document.getElementById('boq-item-rfq-price').value) : null,
+    contractUnitPrice: document.getElementById('boq-item-contract-price').value !== '' ? parseFloat(document.getElementById('boq-item-contract-price').value) : null,
   };
   try {
     let r;
@@ -10822,9 +11267,75 @@ async function boqDeleteItemConfirm(id){
   if(!await _confirm('למחוק את הסעיף "'+item?.description+'"?',{title:'מחיקת סעיף',ok:'מחק',type:'delete'})) return;
   try {
     await fetch('/api/boq/items/'+id,{method:'DELETE'});
-    if(_boqSelectedItemId===id){ _boqSelectedItemId=null; document.getElementById('boq-comp-panel').style.display='none'; }
+    if(_boqSelectedItemId===id){ _boqSelectedItemId=null; const _bcp2=document.getElementById('boq-comp-panel'); if(_bcp2) _bcp2.style.display='none'; }
     await _boqReloadProject();
   } catch(e){ _toast('שגיאה במחיקה','error'); }
+}
+
+function boqInlineEditPrice(itemId, td, currentVal){
+  if(td.querySelector('input')) return; // already editing
+  const prev = td.innerHTML;
+  const input = document.createElement('input');
+  input.type = 'number';
+  input.min = '0';
+  input.step = 'any';
+  input.value = currentVal || '';
+  input.placeholder = '0';
+  input.style.cssText = 'width:90px;padding:3px 6px;border:2px solid #3b82f6;border-radius:5px;font-size:.82rem;text-align:left;outline:none;background:#eff6ff';
+  td.innerHTML = '';
+  td.appendChild(input);
+  input.focus();
+  input.select();
+
+  const commit = async () => {
+    const val = input.value.trim();
+    const price = val === '' ? null : parseFloat(val);
+    if (price !== null && isNaN(price)) { td.innerHTML = prev; return; }
+    try {
+      const r = await fetch(`/api/boq/items/${itemId}/contract-price`, {
+        method:'PATCH', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({ price })
+      });
+      if(!r.ok) throw new Error();
+      const item = _boqItems.find(i=>i.id===itemId);
+      if(item) item.contract_unit_price = price;
+      renderBoqItems();
+      renderBoqSummary();
+    } catch { td.innerHTML = prev; _toast('שגיאה בשמירת מחיר','error'); }
+  };
+  const cancel = () => { td.innerHTML = prev; };
+  input.addEventListener('keydown', e => {
+    if(e.key==='Enter'){ e.preventDefault(); commit(); }
+    if(e.key==='Escape'){ cancel(); }
+  });
+  input.addEventListener('blur', commit);
+}
+
+async function boqDeleteProject(id, name){
+  if(!await _confirm(`למחוק לצמיתות את הפרויקט "${name}" וכל הסעיפים שבו?`,{title:'מחיקת פרויקט',ok:'מחק',type:'delete'})) return;
+  try {
+    const r=await fetch('/api/boq/projects/'+id,{method:'DELETE'});
+    if(!r.ok) throw new Error((await r.json()).error);
+    _boqProjects=_boqProjects.filter(p=>p.id!==id);
+    boqRender();
+    _toast('הפרויקט נמחק','success');
+  } catch(e){ _toast('שגיאה במחיקת הפרויקט','error'); }
+}
+
+async function boqResetAndReimport(){
+  const proj=_boqProjects.find(p=>p.id===_boqCurrentProjectId);
+  if(!proj) return;
+  if(!await _confirm(`לאפס את כל הסעיפים של "${proj.name}" ולייבא מחדש?\nפעולה זו תמחק את כל ${_boqItems.length} הסעיפים הקיימים.`,
+      {title:'איפוס ויבוא מחדש',ok:'אפס ויבא',type:'delete'})) return;
+  try {
+    const r=await fetch('/api/boq/projects/'+_boqCurrentProjectId+'/items',{method:'DELETE'});
+    if(!r.ok) throw new Error((await r.json()).error);
+    _boqItems=[]; _boqComponentsByItemId={}; _boqSelectedItemId=null;
+    const _bcp3=document.getElementById('boq-comp-panel'); if(_bcp3) _bcp3.style.display='none';
+    renderBoqItems(); renderBoqSummary();
+    _toast('כל הסעיפים נמחקו — ייבא קובץ חדש','info');
+    boqOpenImport();
+  } catch(e){ _toast('שגיאה באיפוס','error'); }
 }
 
 function boqSetRfqPrice(itemId){
@@ -10832,17 +11343,340 @@ function boqSetRfqPrice(itemId){
   boqEditItem(itemId);
 }
 
+// ── Cost Modal ───────────────────────────────────────────
+let _boqCostDraft = null; // { itemId, rows:[{label,price,currency,qty}] }
+
+function boqOpenCostModal(itemId){
+  const item = _boqItems.find(i=>i.id===itemId);
+  if(!item) return;
+  const comps = _boqComponentsByItemId[itemId]||[];
+  _boqCostDraft = {
+    itemId,
+    rows: comps.map(c=>({label:c.label, price:c.unit_price||0, currency:c.currency||'ILS', qty:c.quantity||1}))
+  };
+  // Header
+  document.getElementById('boq-cost-title').textContent = (item.item_number?item.item_number+' — ':'')+item.description;
+  const contractTotal = item.contract_unit_price!=null ? item.contract_unit_price*item.quantity : null;
+  document.getElementById('boq-cost-meta').textContent =
+    'כמות: '+(item.quantity||1)+(item.unit?' '+item.unit:'')+
+    (contractTotal!=null ? '  |  חוזה: '+Math.round(contractTotal).toLocaleString('he-IL')+' ש"ח' : '');
+  // Template buttons
+  _boqRenderCostTmplBtns();
+  _boqRenderCostRows();
+  document.getElementById('boq-cost-overlay').style.display='flex';
+}
+
+function _boqRenderCostTmplBtns(){
+  const btns = document.getElementById('boq-cost-tmpl-btns');
+  if(!btns) return;
+  if(!_boqTemplates.length){
+    btns.innerHTML='<span style="font-size:.72rem;color:#a0aec0">אין תבניות — צור תבנית ראשונה ↑</span>';
+    return;
+  }
+  btns.innerHTML = _boqTemplates.map(t=>
+    `<span style="display:inline-flex;align-items:center;border:1px solid var(--border);background:#fff;border-radius:16px;overflow:hidden;font-size:.72rem">
+      <button onclick="boqCostApplyTemplate(${t.id})"
+        style="padding:4px 10px;border:none;background:transparent;cursor:pointer;color:var(--text)"
+        onmouseover="this.parentNode.style.background='#e8f0fe';this.parentNode.style.borderColor='#2563eb'"
+        onmouseout="this.parentNode.style.background='#fff';this.parentNode.style.borderColor='var(--border)'">${t.name}</button>
+      <button onclick="event.stopPropagation();boqCostDeleteTemplate(${t.id},'${t.name.replace(/'/g,"\\'")}')"
+        title="מחק תבנית"
+        style="padding:2px 7px 2px 4px;border:none;background:transparent;cursor:pointer;color:#ccc;font-size:.75rem;line-height:1"
+        onmouseover="this.style.color='#e53e3e'" onmouseout="this.style.color='#ccc'">✕</button>
+    </span>`
+  ).join('');
+}
+
+async function boqCostDeleteTemplate(tmplId, tmplName){
+  if(!await _confirm('למחוק את התבנית "'+tmplName+'"?',{title:'מחיקת תבנית',ok:'מחק',type:'delete'})) return;
+  try {
+    const r = await fetch('/api/boq/templates/'+tmplId, {method:'DELETE'});
+    if(!r.ok) throw new Error((await r.json()).error);
+    _boqTemplates = _boqTemplates.filter(t=>t.id!==tmplId);
+    _boqRenderCostTmplBtns();
+    _toast('תבנית "'+tmplName+'" נמחקה','success');
+  } catch(e){ _toast('שגיאה במחיקה: '+e.message,'error'); }
+}
+
+function _promptTemplateName(){
+  return new Promise(resolve=>{
+    const overlay = document.getElementById('boq-tmpl-name-overlay');
+    const input   = document.getElementById('boq-tmpl-name-input');
+    const okBtn   = document.getElementById('boq-tmpl-name-ok');
+    const cancelBtn = document.getElementById('boq-tmpl-name-cancel');
+    input.value = '';
+    overlay.style.display = 'flex';
+    setTimeout(()=>input.focus(), 50);
+    function done(val){
+      overlay.style.display = 'none';
+      resolve(val || null);
+    }
+    okBtn.onclick    = ()=>{ const v=input.value.trim(); if(!v) return input.focus(); done(v); };
+    cancelBtn.onclick = ()=>done(null);
+    input.onkeydown  = e=>{ if(e.key==='Enter'){ const v=input.value.trim(); if(!v) return; done(v); } if(e.key==='Escape') done(null); };
+  });
+}
+
+async function boqCostSaveAsTemplate(){
+  if(!_boqCostDraft?.rows?.length){ _toast('הוסף שורות לפני שמירה כתבנית','info'); return; }
+  const name = await _promptTemplateName();
+  if(!name) return;
+  const components = _boqCostDraft.rows
+    .filter(r=>r.label.trim())
+    .map((r,i)=>({key:'custom_'+i, label:r.label, unitPrice:r.price||0, currency:r.currency||'ILS', quantity:r.qty||1, formula:null, sort:i}));
+  try {
+    const res = await fetch('/api/boq/templates',{
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({name:name.trim(), keywords:[], components})
+    });
+    if(!res.ok) throw new Error((await res.json()).error);
+    const newTmpl = await res.json();
+    // Reload templates
+    const tRes = await fetch('/api/boq/templates');
+    if(tRes.ok) _boqTemplates = await tRes.json();
+    _boqRenderCostTmplBtns();
+    _toast('תבנית "'+name.trim()+'" נשמרה ✓','success');
+  } catch(e){ _toast('שגיאה: '+e.message,'error'); }
+}
+
+async function boqCostClearAll(){
+  if(!_boqCostDraft?.rows?.length) return;
+  if(!await _confirm('למחוק את כל השורות מהפריט הזה?',{title:'ניקוי עלויות',ok:'נקה הכל',type:'delete'})) return;
+  _boqCostDraft.rows = [];
+  _boqRenderCostRows();
+  _toast('כל השורות נוקו','info');
+}
+
+function boqCostClose(){
+  document.getElementById('boq-cost-overlay').style.display='none';
+  _boqCostDraft=null;
+}
+
+// ── Cost Summary Modal ──────────────────────────────────────────────────────
+function boqOpenCostSummary(){
+  const proj = _boqProjects.find(p=>p.id===_boqCurrentProjectId)||{name:''};
+  document.getElementById('boq-csumm-title').textContent = proj.name + (proj.site?' — '+proj.site:'');
+
+  // Build section buckets
+  let contractGrand=0, costGrand=0, itemsTotal=0, itemsWithCost=0;
+  const sections = []; // {label, items:[]}
+  let currentSection = null;
+
+  for(const item of _boqItems){
+    if(item.is_section){
+      currentSection = {label: item.description, items:[]};
+      sections.push(currentSection);
+    } else {
+      itemsTotal++;
+      const comps = _boqComponentsByItemId[item.id]||[];
+      const cost = _boqCalcItemTotal(item, comps);
+      const contract = item.contract_unit_price!=null ? item.contract_unit_price*item.quantity : null;
+      if(contract!=null) contractGrand += contract;
+      if(cost!=null){ costGrand += cost; itemsWithCost++; }
+      const entry = {id:item.id, num:item.item_number||'', desc:item.description, qty:item.quantity, unit:item.unit||'', contract, cost};
+      if(currentSection) currentSection.items.push(entry);
+      else {
+        if(!sections.length || sections[0].label!=='ללא קבוצה') sections.unshift({label:'ללא קבוצה',items:[]});
+        sections[0].items.push(entry);
+      }
+    }
+  }
+
+  // KPI strip
+  const profitGrand = contractGrand - costGrand;
+  const marginPct = contractGrand ? (profitGrand/contractGrand*100).toFixed(1) : null;
+  const kpiEl = document.getElementById('boq-csumm-kpis');
+  const kpi = (label, val, color='#1e3a5f') =>
+    `<div style="padding:10px 18px;border-left:1.5px solid #e2e8f0;flex:1;min-width:130px">
+      <div style="font-size:.63rem;color:#a0aec0;font-weight:600;margin-bottom:2px">${label}</div>
+      <div style="font-size:.9rem;font-weight:700;color:${color}">${val}</div>
+    </div>`;
+  const fmtK = n => n==null?'—': Math.round(Math.abs(n)).toLocaleString('he-IL')+' ש"ח';
+  kpiEl.innerHTML =
+    kpi('סה"כ חוזה', fmtK(contractGrand)) +
+    kpi('סה"כ עלויות', fmtK(costGrand), '#15803d') +
+    kpi('רווח גולמי', (profitGrand>=0?'+':'')+fmtK(profitGrand)+(marginPct?' ('+marginPct+'%)':''), profitGrand>=0?'#15803d':'#c53030') +
+    kpi('פריטים עם עלויות', itemsWithCost+'/'+itemsTotal, '#6d28d9');
+
+  // Breakdown table — only sections that have at least one item with cost
+  const tbl = document.getElementById('boq-csumm-table');
+  let html = `<thead><tr style="background:#1e3a5f;color:#fff;font-size:.72rem">
+    <th style="padding:6px 8px;text-align:right">מס׳</th>
+    <th style="padding:6px 8px;text-align:right">תיאור</th>
+    <th style="padding:6px 8px;width:90px;text-align:right">סה"כ חוזה</th>
+    <th style="padding:6px 8px;width:90px;text-align:right">עלויות</th>
+    <th style="padding:6px 8px;width:80px;text-align:right">רווח</th>
+    <th style="padding:6px 8px;width:52px;text-align:right">מרג'</th>
+  </tr></thead><tbody>`;
+
+  for(const sec of sections){
+    const itemsWithCostInSec = sec.items.filter(i=>i.cost!=null);
+    if(!itemsWithCostInSec.length) continue; // skip empty sections
+
+    // Section header row
+    let secContract=0, secCost=0;
+    sec.items.forEach(i=>{ if(i.contract!=null) secContract+=i.contract; if(i.cost!=null) secCost+=i.cost; });
+    const secProfit = secCost>0 ? secContract - secCost : null;
+    const secMargin = (secProfit!=null && secContract) ? (secProfit/secContract*100).toFixed(0) : null;
+    const secProfitColor = secProfit==null?'#718096':secProfit>=0?'#15803d':'#c53030';
+
+    html += `<tr style="background:#1e3a5f18;font-weight:700;font-size:.76rem">
+      <td colspan="2" style="padding:6px 8px;color:#1e3a5f">${sec.label}</td>
+      <td style="padding:6px 8px;text-align:right;color:#1e3a5f">${secContract?fmtK(secContract):'—'}</td>
+      <td style="padding:6px 8px;text-align:right;color:#15803d">${secCost?fmtK(secCost):'—'}</td>
+      <td style="padding:6px 8px;text-align:right;color:${secProfitColor}">${secProfit!=null?(secProfit>=0?'+':'')+fmtK(secProfit):'—'}</td>
+      <td style="padding:6px 8px;text-align:right;color:${secProfitColor}">${secMargin!=null?secMargin+'%':'—'}</td>
+    </tr>`;
+
+    // Item rows — only items with costs
+    for(const item of itemsWithCostInSec){
+      const p = item.contract!=null && item.cost!=null ? item.contract - item.cost : null;
+      const m = (p!=null && item.contract) ? (p/item.contract*100).toFixed(0) : null;
+      const pc = p==null?'#718096':p>=0?'#15803d':'#c53030';
+      html += `<tr style="border-bottom:1px solid #f0f0f5;font-size:.78rem">
+        <td style="padding:5px 8px;color:#718096;white-space:nowrap">${item.num}</td>
+        <td style="padding:5px 8px;color:#374151;max-width:250px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${item.desc}">${item.desc}</td>
+        <td style="padding:5px 8px;text-align:right;color:#1e3a5f">${item.contract!=null?fmtK(item.contract):'—'}</td>
+        <td style="padding:5px 8px;text-align:right;color:#15803d">${fmtK(item.cost)}</td>
+        <td style="padding:5px 8px;text-align:right;color:${pc}">${p!=null?(p>=0?'+':'')+fmtK(p):'—'}</td>
+        <td style="padding:5px 8px;text-align:right;color:${pc}">${m!=null?m+'%':'—'}</td>
+      </tr>`;
+    }
+  }
+
+  if(!sections.some(s=>s.items.some(i=>i.cost!=null))){
+    html += `<tr><td colspan="6" style="padding:32px;text-align:center;color:#a0aec0">
+      טרם הוזנו עלויות — לחץ על "עלויות" ליד כל פריט להזנה
+    </td></tr>`;
+  }
+
+  html += '</tbody>';
+  tbl.innerHTML = html;
+  document.getElementById('boq-summary-overlay').style.display='flex';
+}
+
+function boqCloseCostSummary(){
+  document.getElementById('boq-summary-overlay').style.display='none';
+}
+
+function boqCostApplyTemplate(tmplId){
+  const tmpl = _boqTemplates.find(t=>t.id===tmplId);
+  if(!tmpl) return;
+  _boqCostDraft.rows = (tmpl.components||[]).map(c=>({
+    label:c.label, price:c.unitPrice||0, currency:c.currency||'ILS',
+    qty: c.quantity||1
+  }));
+  _boqRenderCostRows();
+}
+
+function boqCostAddRow(){
+  _boqCostDraft.rows.push({label:'',price:0,currency:'ILS',qty:1});
+  _boqRenderCostRows();
+  // Focus the new label input
+  const inputs = document.querySelectorAll('#boq-cost-rows tr:last-child input');
+  if(inputs[0]) setTimeout(()=>inputs[0].focus(),30);
+}
+
+function boqCostDeleteRow(idx){
+  _boqCostDraft.rows.splice(idx,1);
+  _boqRenderCostRows();
+}
+
+function _boqRenderCostRows(){
+  const tbody = document.getElementById('boq-cost-rows');
+  const item = _boqItems.find(i=>i.id===_boqCostDraft?.itemId);
+  let grandTotal = 0;
+  tbody.innerHTML = (_boqCostDraft?.rows||[]).map((r,i)=>{
+    const total = (r.price||0)*(r.qty||1)*_boqRate(r.currency||'ILS');
+    grandTotal += total;
+    const sign = r.currency==='USD'?'$':r.currency==='EUR'?'€':'₪';
+    return `<tr style="border-bottom:1px solid var(--border)">
+      <td style="padding:4px 6px">
+        <input value="${r.label.replace(/"/g,'&quot;')}" oninput="_boqCostDraftSync(${i},'label',this.value)"
+          style="width:100%;border:1px solid var(--border);border-radius:5px;padding:4px 7px;font-size:.8rem;font-family:inherit"/>
+      </td>
+      <td style="padding:4px 4px">
+        <input type="number" value="${r.price}" min="0" step="any" oninput="_boqCostDraftSync(${i},'price',parseFloat(this.value)||0)"
+          style="width:74px;border:1px solid var(--border);border-radius:5px;padding:4px 6px;font-size:.8rem;text-align:right"/>
+      </td>
+      <td style="padding:4px 4px;text-align:center">
+        <select onchange="_boqCostDraftSync(${i},'currency',this.value)"
+          style="border:1px solid var(--border);border-radius:5px;padding:3px 4px;font-size:.76rem">
+          <option value="ILS"${r.currency==='ILS'?' selected':''}>₪</option>
+          <option value="USD"${r.currency==='USD'?' selected':''}>$</option>
+          <option value="EUR"${r.currency==='EUR'?' selected':''}>€</option>
+        </select>
+      </td>
+      <td style="padding:4px 4px">
+        <input type="number" value="${r.qty}" min="0.01" step="any" oninput="_boqCostDraftSync(${i},'qty',parseFloat(this.value)||1)"
+          style="width:50px;border:1px solid var(--border);border-radius:5px;padding:4px 6px;font-size:.8rem;text-align:right"/>
+      </td>
+      <td style="padding:4px 6px;text-align:right;color:#15803d;font-weight:600;font-size:.78rem;white-space:nowrap">${Math.round(total).toLocaleString('he-IL')}</td>
+      <td style="padding:4px 2px;text-align:center">
+        <button onclick="boqCostDeleteRow(${i})" style="border:none;background:none;cursor:pointer;color:#ccc;font-size:.8rem"
+          onmouseover="this.style.color='#e53e3e'" onmouseout="this.style.color='#ccc'">✕</button>
+      </td>
+    </tr>`;
+  }).join('');
+  document.getElementById('boq-cost-total').innerHTML =
+    `<span style="direction:ltr;unicode-bidi:isolate">${Math.round(grandTotal).toLocaleString('he-IL')} ש"ח</span>`;
+}
+
+function _boqCostDraftSync(idx,field,val){
+  if(!_boqCostDraft?.rows[idx]) return;
+  _boqCostDraft.rows[idx][field]=val;
+  // Update only the total cell of this row
+  const r = _boqCostDraft.rows[idx];
+  const total = (r.price||0)*(r.qty||1)*_boqRate(r.currency||'ILS');
+  const tds = document.querySelectorAll('#boq-cost-rows tr')[idx]?.querySelectorAll('td');
+  if(tds?.[4]) tds[4].textContent = Math.round(total).toLocaleString('he-IL');
+  // Update grand total
+  let grand=0;
+  _boqCostDraft.rows.forEach(row=>{ grand+=(row.price||0)*(row.qty||1)*_boqRate(row.currency||'ILS'); });
+  document.getElementById('boq-cost-total').innerHTML =
+    `<span style="direction:ltr;unicode-bidi:isolate">${Math.round(grand).toLocaleString('he-IL')} ש"ח</span>`;
+}
+
+async function boqCostSave(){
+  const {itemId,rows} = _boqCostDraft||{};
+  if(!itemId) return;
+  const btn = document.querySelector('#boq-cost-overlay .pl-step-next');
+  btn.disabled=true; btn.textContent='שומר...';
+  try {
+    // Delete all existing components
+    await fetch('/api/boq/items/'+itemId+'/components',{method:'DELETE'});
+    // Post each row (skip empty labels)
+    for(const r of rows){
+      const label = r.label.trim();
+      if(!label) continue;
+      await fetch('/api/boq/items/'+itemId+'/components',{
+        method:'POST', headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({label, unitPrice:r.price||0, currency:r.currency||'ILS', quantity:r.qty||1, quantityFormula:null})
+      });
+    }
+    _toast('עלויות נשמרו ✓','success');
+    boqCostClose();
+    await _boqReloadProject();
+    renderBoqItems();
+    renderBoqSummary();
+  } catch(e){ _toast('שגיאה בשמירה: '+e.message,'error'); }
+  finally { btn.disabled=false; btn.textContent='💾 שמור עלויות'; }
+}
+
 // ── Component CRUD ──────────────────────────────────────
 
 function boqAddComponent(){
   if(!_boqSelectedItemId){ _toast('בחר סעיף תחילה','info'); return; }
+  const parentItem = _boqItems.find(i=>i.id===_boqSelectedItemId);
   document.getElementById('boq-comp-modal-title').textContent='➕ הוספת רכיב עלות';
   document.getElementById('boq-comp-editing-id').value='';
   document.getElementById('boq-comp-editing-item-id').value=_boqSelectedItemId;
   document.getElementById('boq-comp-label').value='';
   document.getElementById('boq-comp-price').value='0';
   document.getElementById('boq-comp-currency').value='ILS';
-  document.getElementById('boq-comp-qty').value='1';
+  document.getElementById('boq-comp-qty').value=parentItem?.quantity||1;
+  document.getElementById('boq-comp-qty').disabled=false;
+  document.getElementById('boq-comp-qty').style.opacity='1';
   document.getElementById('boq-comp-err').textContent='';
   document.getElementById('boq-comp-overlay').style.display='flex';
   setTimeout(()=>document.getElementById('boq-comp-label').focus(),50);
@@ -10861,11 +11695,227 @@ function boqEditComp(compId){
   document.getElementById('boq-comp-price').value=comp.unit_price||0;
   document.getElementById('boq-comp-currency').value=comp.currency||'ILS';
   document.getElementById('boq-comp-qty').value=comp.quantity||1;
+  document.getElementById('boq-comp-qty').disabled=false;
+  document.getElementById('boq-comp-qty').style.opacity='1';
   document.getElementById('boq-comp-err').textContent='';
   document.getElementById('boq-comp-overlay').style.display='flex';
+  setTimeout(()=>document.getElementById('boq-comp-label').focus(),50);
 }
 
 function boqCloseCompModal(){ document.getElementById('boq-comp-overlay').style.display='none'; }
+
+
+// ── Template Editor Modal ────────────────────────────────────────────────────
+let _boqTmplEditing = null;   // { id, name, components:[{key,label,unitPrice,currency,quantity,formula}] }
+let _boqTmplCompEditIdx = null; // number = editing index, -1 = new
+
+function boqOpenTmplEditor(tmplId, itemId){
+  if(!tmplId){ _toast('בחר תבנית תחילה','info'); return; }
+  const tmpl = _boqTemplates.find(t=>String(t.id)===String(tmplId));
+  if(!tmpl){ _toast('תבנית לא נמצאה','error'); return; }
+  _boqTmplEditing = { id: tmpl.id, name: tmpl.name, components: JSON.parse(JSON.stringify(tmpl.components||[])) };
+  _boqTmplCompEditIdx = null;
+  document.getElementById('boq-tmpl-editor-id').value = tmpl.id;
+  document.getElementById('boq-tmpl-editor-name').value = tmpl.name;
+  document.getElementById('boq-tmpl-editor-err').textContent = '';
+  document.getElementById('boq-tmpl-editor-comp-form').style.display = 'none';
+  // Show which item this is being edited for
+  const ctxEl = document.getElementById('boq-tmpl-editor-context');
+  const lblEl = document.getElementById('boq-tmpl-editor-item-label');
+  if(itemId){
+    const item = _boqItems.find(i=>i.id===parseInt(itemId));
+    if(item && lblEl && ctxEl){
+      lblEl.textContent = (item.item_number ? item.item_number+' — ' : '') + item.description;
+      ctxEl.style.display = '';
+    }
+  } else if(ctxEl){ ctxEl.style.display='none'; }
+  _boqRenderTmplEditorComps();
+  document.getElementById('boq-tmpl-editor-overlay').style.display = 'flex';
+  setTimeout(()=>document.getElementById('boq-tmpl-editor-name').focus(),50);
+}
+
+function boqCloseTmplEditor(){
+  document.getElementById('boq-tmpl-editor-overlay').style.display = 'none';
+  _boqTmplEditing = null;
+}
+
+function _boqRenderTmplEditorComps(){
+  const list = document.getElementById('boq-tmpl-editor-comp-list');
+  const comps = _boqTmplEditing?.components || [];
+  if(!comps.length){
+    list.innerHTML = '<div style="text-align:center;color:#a0aec0;font-size:.78rem;padding:10px">אין רכיבים — לחץ "+ הוסף רכיב לתבנית"</div>';
+    return;
+  }
+  list.innerHTML = comps.map((c,i)=>`
+    <div style="background:#fff;border:1px solid #e2e8f0;border-radius:7px;padding:7px 10px;display:flex;justify-content:space-between;align-items:center;gap:6px">
+      <div style="flex:1;min-width:0">
+        <div style="font-size:.82rem;font-weight:600;color:#1c1c1e;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${c.label}</div>
+        <div style="font-size:.72rem;color:#718096">${c.unitPrice||0} ${c.currency||'ILS'} × ${c.formula?'נוסחה×'+c.formula:(c.quantity||1)}</div>
+      </div>
+      <div style="display:flex;gap:3px">
+        <button onclick="boqTmplEditComp(${i})" style="border:none;background:none;cursor:pointer;color:#3b82f6;font-size:.75rem;padding:2px 5px">✏️</button>
+        <button onclick="boqTmplDeleteComp(${i})" style="border:none;background:none;cursor:pointer;color:#e53e3e;font-size:.75rem;padding:2px 5px">🗑</button>
+      </div>
+    </div>`).join('');
+}
+
+function boqTmplAddComp(){
+  _boqTmplCompEditIdx = -1;
+  document.getElementById('boq-tmpl-ce-title').textContent = '➕ הוספת רכיב';
+  document.getElementById('boq-tmpl-ce-label').value = '';
+  document.getElementById('boq-tmpl-ce-price').value = '0';
+  document.getElementById('boq-tmpl-ce-currency').value = 'ILS';
+  document.getElementById('boq-tmpl-ce-qty').value = '1';
+  document.getElementById('boq-tmpl-ce-err').textContent = '';
+  document.getElementById('boq-tmpl-editor-comp-form').style.display = '';
+  setTimeout(()=>document.getElementById('boq-tmpl-ce-label').focus(),50);
+}
+
+function boqTmplEditComp(idx){
+  const c = _boqTmplEditing.components[idx];
+  if(!c) return;
+  _boqTmplCompEditIdx = idx;
+  document.getElementById('boq-tmpl-ce-title').textContent = '✏️ עריכת רכיב';
+  document.getElementById('boq-tmpl-ce-label').value = c.label;
+  document.getElementById('boq-tmpl-ce-price').value = c.unitPrice||0;
+  document.getElementById('boq-tmpl-ce-currency').value = c.currency||'ILS';
+  document.getElementById('boq-tmpl-ce-qty').value = c.quantity||1;
+  document.getElementById('boq-tmpl-ce-err').textContent = '';
+  document.getElementById('boq-tmpl-editor-comp-form').style.display = '';
+  setTimeout(()=>document.getElementById('boq-tmpl-ce-label').focus(),50);
+}
+
+function boqTmplDeleteComp(idx){
+  _boqTmplEditing.components.splice(idx,1);
+  if(_boqTmplCompEditIdx===idx) document.getElementById('boq-tmpl-editor-comp-form').style.display='none';
+  _boqRenderTmplEditorComps();
+}
+
+function boqTmplSaveComp(){
+  const label = document.getElementById('boq-tmpl-ce-label').value.trim();
+  if(!label){ document.getElementById('boq-tmpl-ce-err').textContent='נדרש תיאור'; return; }
+  const comp = {
+    key: 'custom',
+    label,
+    unitPrice: parseFloat(document.getElementById('boq-tmpl-ce-price').value)||0,
+    currency:  document.getElementById('boq-tmpl-ce-currency').value,
+    quantity:  parseFloat(document.getElementById('boq-tmpl-ce-qty').value)||1,
+    formula:   null,
+  };
+  if(_boqTmplCompEditIdx===-1){
+    _boqTmplEditing.components.push(comp);
+  } else {
+    _boqTmplEditing.components[_boqTmplCompEditIdx] = comp;
+  }
+  document.getElementById('boq-tmpl-editor-comp-form').style.display='none';
+  _boqTmplCompEditIdx = null;
+  _boqRenderTmplEditorComps();
+}
+
+function boqTmplCancelComp(){
+  document.getElementById('boq-tmpl-editor-comp-form').style.display='none';
+  _boqTmplCompEditIdx = null;
+}
+
+async function boqSaveTmplEditor(){
+  const name = document.getElementById('boq-tmpl-editor-name').value.trim();
+  if(!name){ document.getElementById('boq-tmpl-editor-err').textContent='נדרש שם לתבנית'; return; }
+  const id = _boqTmplEditing?.id;
+  if(!id) return;
+  try {
+    const r = await fetch('/api/boq/templates/'+id,{method:'PUT',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({name, components:_boqTmplEditing.components})});
+    const j = await r.json();
+    if(!r.ok) throw new Error(j.error);
+    _toast('תבנית "'+name+'" עודכנה ✓','success');
+    const res = await fetch('/api/boq/templates');
+    if(res.ok) _boqTemplates = await res.json();
+    boqCloseTmplEditor();
+    if(_boqSelectedItemId) renderBoqComponents(_boqSelectedItemId);
+  } catch(e){ document.getElementById('boq-tmpl-editor-err').textContent=e.message; }
+}
+
+function boqShowTemplatePreview(tmplId, itemId){
+  const body = document.getElementById('boq-comp-body');
+  if(!body) return;
+  // hide inline preview div (no longer needed — we use the main body)
+  const inlinePrev = document.getElementById('boq-tmpl-preview-'+itemId);
+  if(inlinePrev) inlinePrev.style.display='none';
+
+  if(!tmplId){
+    // restore actual components
+    renderBoqComponents(itemId);
+    return;
+  }
+  const tmpl = _boqTemplates.find(t=>String(t.id)===String(tmplId));
+  if(!tmpl){ renderBoqComponents(itemId); return; }
+  const comps = tmpl.components || [];
+  const item = _boqItems.find(i=>i.id===itemId);
+
+  // replace body content with template preview
+  const banner = `<div style="background:#fffbeb;border:1px solid #fcd34d;border-radius:6px;padding:5px 9px;font-size:.74rem;color:#92400e;margin-bottom:6px;display:flex;align-items:center;gap:5px">
+    👁 תצוגה מקדימה — <strong>${tmpl.name}</strong> <span style="color:#a0aec0">(לא הוחל עדיין)</span>
+  </div>`;
+
+  if(!comps.length){
+    body.innerHTML = banner + '<div style="font-size:.8rem;color:#a0aec0;text-align:center;padding:10px">תבנית ריקה — אין רכיבים</div>';
+  } else {
+    const rows = comps.map(c=>{
+      const effQty = c.formula ? (item?.quantity||1)*parseFloat(c.formula) : (c.quantity||1);
+      const total = (c.unitPrice||0)*effQty;
+      const qtyLabel = c.formula ? `${item?.quantity||1}×${c.formula}=${effQty}` : effQty;
+      return `<div style="background:#fff;border:1px solid #e2e8f0;border-radius:7px;padding:7px 10px;display:flex;justify-content:space-between;align-items:center;gap:6px;opacity:.85">
+        <div style="flex:1;min-width:0">
+          <div style="font-size:.8rem;font-weight:600;color:#1c1c1e;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${c.label}</div>
+          <div style="font-size:.7rem;color:#718096">${c.unitPrice||0} ${c.currency||'ILS'} × ${qtyLabel}</div>
+        </div>
+        <div style="font-size:.8rem;font-weight:600;color:#15803d;flex-shrink:0">${total?'₪'+Math.round(total).toLocaleString('he-IL'):'—'}</div>
+      </div>`;
+    }).join('');
+    body.innerHTML = banner + `<div style="display:flex;flex-direction:column;gap:5px">${rows}</div>`;
+  }
+  // re-append the template bar and restore selected value
+  _renderBoqTemplateBar(itemId);
+  if(tmplId){
+    const sel = document.getElementById('boq-tmpl-sel-'+itemId);
+    if(sel) sel.value = tmplId;
+  }
+}
+
+async function boqCreateBlankTemplate(itemId){
+  const nameEl = document.getElementById('boq-new-tmpl-name-'+itemId);
+  const name = nameEl?.value.trim();
+  if(!name){ _toast('נדרש שם לתבנית','info'); nameEl?.focus(); return; }
+  try {
+    const r = await fetch('/api/boq/templates',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name,components:[]})});
+    const j = await r.json();
+    if(!r.ok) throw new Error(j.error);
+    _toast('תבנית ריקה "'+name+'" נוצרה ✓','success');
+    nameEl.value='';
+    const res = await fetch('/api/boq/templates');
+    if(res.ok) _boqTemplates = await res.json();
+    renderBoqComponents(itemId);
+  } catch(e){ _toast('שגיאה: '+e.message,'error'); }
+}
+
+async function boqCreateTemplateFromComps(itemId){
+  const nameEl = document.getElementById('boq-new-tmpl-name-'+itemId);
+  const name = nameEl?.value.trim();
+  if(!name){ _toast('נדרש שם לתבנית','info'); nameEl?.focus(); return; }
+  const comps = _boqComponentsByItemId[itemId]||[];
+  if(!comps.length){ _toast('אין רכיבים לשמור','info'); return; }
+  const components = comps.map(c=>({ key: c.component_key||'custom', label: c.label, unitPrice: c.unit_price||0, currency: c.currency||'ILS', quantity: c.quantity||1, formula: c.quantity_formula||null }));
+  try {
+    const r = await fetch('/api/boq/templates',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name,components})});
+    const j = await r.json();
+    if(!r.ok) throw new Error(j.error);
+    _toast('תבנית "'+name+'" נשמרה ✓','success');
+    nameEl.value='';
+    const res = await fetch('/api/boq/templates');
+    if(res.ok) _boqTemplates = await res.json();
+    renderBoqComponents(itemId);
+  } catch(e){ _toast('שגיאה: '+e.message,'error'); }
+}
 
 async function boqSaveCompModal(){
   const editId=document.getElementById('boq-comp-editing-id').value;
@@ -10877,6 +11927,7 @@ async function boqSaveCompModal(){
     unitPrice: parseFloat(document.getElementById('boq-comp-price').value)||0,
     currency:  document.getElementById('boq-comp-currency').value,
     quantity:  parseFloat(document.getElementById('boq-comp-qty').value)||1,
+    quantityFormula: null,
   };
   try {
     let r;
@@ -10905,6 +11956,8 @@ async function boqDeleteComp(compId, itemId){
 async function boqApplyTemplate(itemId){
   const sel=document.getElementById('boq-tmpl-sel-'+itemId);
   const tmplId=sel?.value; if(!tmplId){ _toast('בחר תבנית','info'); return; }
+  const existing=(_boqComponentsByItemId[itemId]||[]).length;
+  if(existing>0 && !await _confirm(`החלת התבנית תמחק ${existing} רכיבים קיימים. להמשיך?`,{title:'החלת תבנית',ok:'החל',type:'delete'})) return;
   try {
     const r=await fetch('/api/boq/items/'+itemId+'/apply-template/'+tmplId,{method:'POST'});
     const j=await r.json();
@@ -10915,32 +11968,79 @@ async function boqApplyTemplate(itemId){
   } catch(e){ _toast(e.message,'error'); }
 }
 
+async function boqClearComponents(itemId){
+  const existing=(_boqComponentsByItemId[itemId]||[]).length;
+  if(!existing){ _toast('אין רכיבים למחיקה','info'); return; }
+  if(!await _confirm(`למחוק את כל ${existing} הרכיבים של הסעיף?`,{title:'ניקוי רכיבים',ok:'מחק הכל',type:'delete'})) return;
+  try {
+    const r=await fetch('/api/boq/items/'+itemId+'/components',{method:'DELETE'});
+    if(!r.ok){ const j=await r.json(); throw new Error(j.error); }
+    _toast('רכיבים נמחקו','success');
+    await _boqReloadProject();
+    renderBoqComponents(itemId);
+  } catch(e){ _toast(e.message,'error'); }
+}
+
 // ── Import ──────────────────────────────────────────────
 
 function boqOpenImport(){
-  document.getElementById('boq-import-file').value='';
-  document.getElementById('boq-import-err').textContent='';
+  const fi = document.getElementById('boq-import-file');
+  fi.value='';
+  document.getElementById('boq-import-filename').textContent='לחץ לבחירת קובץ — או גרור לכאן';
+  document.getElementById('boq-import-dropzone').style.borderColor='#c3cdff';
+  const errEl = document.getElementById('boq-import-err');
+  errEl.textContent=''; errEl.style.display='none'; errEl.style.padding='0';
   document.getElementById('boq-import-btn').disabled=false;
   document.getElementById('boq-import-overlay').style.display='flex';
 }
 function boqCloseImportModal(){ document.getElementById('boq-import-overlay').style.display='none'; }
 
+function boqImportFileChanged(input){
+  const f = input.files[0];
+  const nameEl = document.getElementById('boq-import-filename');
+  const dz = document.getElementById('boq-import-dropzone');
+  if(f){
+    nameEl.innerHTML = `<span style="color:#1e3a5f;font-weight:600">✓ ${f.name}</span> <span style="color:#a0aec0;font-size:.75rem">(${(f.size/1024).toFixed(0)} KB)</span>`;
+    dz.style.borderColor='#3b82f6'; dz.style.background='#eff6ff';
+  } else {
+    nameEl.textContent='לחץ לבחירת קובץ — או גרור לכאן';
+    dz.style.borderColor='#c3cdff'; dz.style.background='#f8faff';
+  }
+}
+
 async function boqDoImport(){
   const file=document.getElementById('boq-import-file').files[0];
-  if(!file){ document.getElementById('boq-import-err').textContent='בחר קובץ'; return; }
-  document.getElementById('boq-import-btn').disabled=true;
-  document.getElementById('boq-import-btn').textContent='מייבא...';
+  const errEl=document.getElementById('boq-import-err');
+  const showErr = msg => { errEl.textContent=msg; errEl.style.display='block'; errEl.style.padding='7px 10px'; };
+  errEl.style.display='none';
+  if(!file){ showErr('יש לבחור קובץ תחילה'); return; }
+  if(!_boqCurrentProjectId){ showErr('שגיאה: אין פרויקט פתוח'); return; }
+  const btn=document.getElementById('boq-import-btn');
+  btn.disabled=true; btn.textContent='מייבא...';
   try {
     const fd=new FormData(); fd.append('file',file);
     const r=await fetch('/api/boq/projects/'+_boqCurrentProjectId+'/import/xlsx',{method:'POST',body:fd});
     const j=await r.json();
-    if(!r.ok) throw new Error(j.error);
+    if(!r.ok) throw new Error(j.error||'שגיאת שרת '+r.status);
     boqCloseImportModal();
-    const warnings=j.warnings?.length?' ('+j.warnings.join('; ')+')':'';
-    _toast('יובאו '+j.insertedCount+' סעיפים'+warnings,'success',4000);
+    const warnings=j.warnings?.length?' ⚠ '+j.warnings.join('; '):'';
+    if(j.colMapDebug){
+      const map=j.colMapDebug;
+      const mapStr = Object.entries(map).map(([f,v])=>`${f}→עמ'${v.colIndex+1}("${v.header}")`).join(' | ');
+      console.info('[BOQ import] column map:', mapStr);
+      // Warn if unitPrice mapped to a budget-specific column
+      const up = map.unitPrice;
+      if(up && /עלות\s*פריט|עלות\s*כולל|סהכ\s*עלות/i.test(up.header)){
+        _toast('⚠ עמודת "'+up.header+'" זוהתה כמחיר — ייתכן שגוי','info',6000);
+      }
+      // Warn if description column appears to be empty/numeric
+      const dc = map.description;
+      if(dc) console.info('[BOQ import] description column header:', dc.header);
+    }
+    _toast('✓ יובאו '+j.insertedCount+' סעיפים'+warnings, warnings?'info':'success', 5000);
     await _boqReloadProject();
-  } catch(e){ document.getElementById('boq-import-err').textContent=e.message; }
-  finally { document.getElementById('boq-import-btn').disabled=false; document.getElementById('boq-import-btn').textContent='📥 ייבא'; }
+  } catch(e){ showErr('שגיאה: '+e.message); }
+  finally { btn.disabled=false; btn.textContent='📥 ייבא'; }
 }
 
 function boqPasteCsv(){
@@ -11253,6 +12353,500 @@ async function budgetExportXlsx(){
   } catch(e){ _toast('שגיאה בייצוא: '+e.message,'error'); }
 }
 
+
+// ══════════════════════════════════════════════════════════════════════════════
+// ── ORDERS MODULE (הזמנות נכנסות) ────────────────────────────────────────────
+// ══════════════════════════════════════════════════════════════════════════════
+
+let _ordCities          = [];   // [{ id, name, notes, projects: [{id,name,client,...}] }]
+let _ordCurrentCityId   = null;
+let _ordCurrentProjId   = null;
+let _ordOrders          = [];   // orders for current project
+let _ordLoaded          = false;
+
+async function ordLoad() {
+  if (_ordLoaded) return;
+  try {
+    const r = await fetch('/api/orders/cities');
+    if (!r.ok) throw new Error();
+    _ordCities = await r.json();
+    _ordLoaded = true;
+    ordRenderCityTree();
+    ordRenderKpi();
+  } catch { _toast('שגיאה בטעינת הזמנות', 'error'); }
+}
+
+async function ordReload() {
+  _ordLoaded = false;
+  _ordOrders = [];
+  await ordLoad();
+  if (_ordCurrentProjId) await ordSelectProject(_ordCurrentProjId);
+}
+
+// ── City tree ─────────────────────────────────────────────────────────────────
+function ordRenderCityTree() {
+  const el = document.getElementById('ord-city-tree');
+  if (!_ordCities.length) {
+    el.innerHTML = `<div style="text-align:center;color:#a0aec0;font-size:.78rem;padding:20px">אין ערים עדיין<br><br>
+      <button onclick="ordOpenCityModal()" style="border:none;background:#fff0f0;color:#CC1A1A;border-radius:7px;padding:5px 12px;font-size:.75rem;font-weight:600;cursor:pointer">+ הוסף עיר</button></div>`;
+    return;
+  }
+  el.innerHTML = _ordCities.map(city => `
+    <div style="margin-bottom:6px">
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:6px 8px;border-radius:7px;background:#fff0f0">
+        <span style="font-size:.82rem;font-weight:700;color:#CC1A1A">🏙 ${city.name}</span>
+        <div style="display:flex;gap:4px">
+          <button onclick="ordOpenProjModal(${city.id})" title="הוסף פרויקט"
+            style="border:none;background:transparent;color:#CC1A1A;cursor:pointer;font-size:.72rem;padding:2px 5px;font-weight:600">+ פרויקט</button>
+          <button onclick="ordDeleteCity(${city.id},'${city.name.replace(/'/g,"\\\'")}')" title="מחק עיר"
+            style="border:none;background:transparent;color:#fca5a5;cursor:pointer;font-size:.78rem;padding:2px 4px">🗑</button>
+        </div>
+      </div>
+      ${(city.projects||[]).map(p => `
+        <div onclick="ordSelectProject(${p.id})" class="ord-proj-item"
+          style="padding:5px 8px 5px 14px;margin-top:2px;border-radius:6px;cursor:pointer;font-size:.78rem;
+            ${_ordCurrentProjId===p.id?'background:#dbeafe;font-weight:600;color:#1e3a5f':'color:#374151'}">
+          <div style="display:flex;align-items:center;justify-content:space-between">
+            <span>📁 ${p.name}</span>
+            <div style="display:flex;gap:2px" onclick="event.stopPropagation()">
+              <button onclick="ordOpenProjModal(${city.id},${p.id})" title="עריכה"
+                style="border:none;background:transparent;color:#94a3b8;cursor:pointer;font-size:.7rem;padding:1px 3px">✏️</button>
+              <button onclick="ordDeleteProject(${p.id},'${p.name.replace(/'/g,"\\\'")}')" title="מחק"
+                style="border:none;background:transparent;color:#fca5a5;cursor:pointer;font-size:.7rem;padding:1px 3px">🗑</button>
+            </div>
+          </div>
+          ${p.client?`<div style="font-size:.68rem;color:#718096;margin-top:1px">${p.client}</div>`:''}
+        </div>
+      `).join('')}
+    </div>
+  `).join('');
+}
+
+// ── KPI ───────────────────────────────────────────────────────────────────────
+function ordRenderKpi() {
+  const allOrders = _ordOrders;
+  const count     = allOrders.length;
+  const total     = allOrders.reduce((s,o) => s + (o.amount_pre_vat||0), 0);
+  const invoiced  = allOrders.filter(o => o.is_invoiced).length;
+  const pending   = count - invoiced;
+  document.getElementById('ord-kpi-count').textContent    = count || '—';
+  document.getElementById('ord-kpi-total').innerHTML      = count
+    ? `<span style="font-size:.72em;color:#9ca3af">₪</span>${Math.round(total).toLocaleString('he-IL')}`
+    : '—';
+  document.getElementById('ord-kpi-invoiced').textContent  = count ? invoiced : '—';
+  document.getElementById('ord-kpi-pending').textContent   = count ? pending  : '—';
+}
+
+// ── Select project ────────────────────────────────────────────────────────────
+async function ordSelectProject(projId) {
+  _ordCurrentProjId = projId;
+  ordRenderCityTree(); // re-highlight
+  const panel = document.getElementById('ord-right-panel');
+  panel.innerHTML = `<div style="text-align:center;color:#a0aec0;padding:40px">טוען הזמנות...</div>`;
+  try {
+    const r = await fetch('/api/orders/projects/' + projId);
+    if (!r.ok) throw new Error();
+    const data = await r.json();
+    _ordOrders = data.orders || [];
+    _ordCurrentCityId = data.project.city_id;
+    ordRenderKpi();
+    ordRenderOrders(data.project);
+  } catch { _toast('שגיאה בטעינת הזמנות', 'error'); }
+}
+
+// ── Render orders table ───────────────────────────────────────────────────────
+function ordRenderOrders(project) {
+  const panel = document.getElementById('ord-right-panel');
+  panel.innerHTML = `
+    <div style="background:#fff;border:1px solid #e2e8f0;border-radius:12px;overflow:hidden">
+      <div style="padding:12px 16px;border-bottom:1px solid #f1f5f9;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px">
+        <div>
+          <span style="font-size:.9rem;font-weight:700;color:#1e3a5f">📁 ${project.name}</span>
+          ${project.client?`<span style="font-size:.72rem;color:#718096;margin-right:8px">— ${project.client}</span>`:''}
+        </div>
+        <div style="display:flex;gap:6px">
+          <button onclick="ordOpenUploadModal()" style="border:none;background:#CC1A1A;color:#fff;border-radius:7px;padding:5px 12px;font-size:.78rem;font-weight:600;cursor:pointer">📥 העלאת הזמנה PDF</button>
+          <button onclick="ordExport()" style="border:1px solid #e2e8f0;background:#f8fafc;color:#4a5568;border-radius:7px;padding:5px 12px;font-size:.78rem;cursor:pointer">⬇ Excel</button>
+        </div>
+      </div>
+      ${_ordOrders.length === 0
+        ? `<div style="text-align:center;color:#a0aec0;padding:40px;font-size:.85rem">אין הזמנות עדיין — העלה PDF הזמנה</div>`
+        : `<div style="overflow-x:auto">
+          <table style="width:100%;border-collapse:collapse;font-size:.8rem">
+            <thead>
+              <tr style="background:#f8fafc;border-bottom:2px solid #e2e8f0">
+                <th style="padding:8px 10px;text-align:right;color:#4a5568;font-weight:600;white-space:nowrap">מס׳ הזמנה</th>
+                <th style="padding:8px 6px;text-align:right;color:#4a5568;font-weight:600">תאריך</th>
+                <th style="padding:8px 10px;text-align:right;color:#4a5568;font-weight:600">גורם מזמין</th>
+                <th style="padding:8px 10px;text-align:right;color:#4a5568;font-weight:600">תיאור</th>
+                <th style="padding:8px 10px;text-align:left;color:#4a5568;font-weight:600;white-space:nowrap">סכום לפני מעמ</th>
+                <th style="padding:8px 6px;text-align:center;color:#4a5568;font-weight:600">סעיפים</th>
+                <th style="padding:8px 6px;text-align:center;color:#4a5568;font-weight:600">חויבה</th>
+                <th style="padding:8px 8px;text-align:right;color:#4a5568;font-weight:600">חשבונית</th>
+                <th style="padding:8px 4px;width:60px"></th>
+              </tr>
+            </thead>
+            <tbody>
+              ${_ordOrders.map((o,i) => `
+                <tr style="${i%2===1?'background:#fafafa':''}">
+                  <td style="padding:7px 10px;color:#1e3a5f;font-weight:600;white-space:nowrap">
+                    ${o.pdf_path
+                      ? `<a href="/api/orders/${o.id}/pdf" target="_blank" style="color:#CC1A1A;text-decoration:none" title="פתח PDF">${o.order_number||'—'} 📄</a>`
+                      : (o.order_number||'—')}
+                  </td>
+                  <td style="padding:7px 6px;color:#718096;white-space:nowrap">${o.order_date ? o.order_date.split('-').reverse().join('/') : '—'}</td>
+                  <td style="padding:7px 10px;max-width:160px"><div style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${o.ordering_entity||''}">${o.ordering_entity||'—'}</div></td>
+                  <td style="padding:7px 10px;max-width:220px"><div style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${o.description||''}">${o.description||'—'}</div></td>
+                  <td style="padding:7px 10px;text-align:left;direction:ltr;font-weight:600;color:#1e3a5f;white-space:nowrap">
+                    ${o.amount_pre_vat!=null?'<span style="font-size:.72em;color:#9ca3af">₪</span>'+Math.round(o.amount_pre_vat).toLocaleString('he-IL'):'—'}
+                  </td>
+                  <td style="padding:7px 6px;text-align:center">
+                    ${(()=>{ const its = (() => { try { return JSON.parse(o.items_json||'[]'); } catch(_){return[];} })(); return its.length ? `<button onclick="ordShowItems(${o.id})" title="הצג סעיפים" style="border:1px solid #bfdbfe;background:#eff6ff;color:#1d4ed8;border-radius:12px;padding:2px 8px;font-size:.7rem;font-weight:700;cursor:pointer">${its.length}</button>` : '<span style="color:#d1d5db">—</span>'; })()}
+                  </td>
+                  <td style="padding:7px 6px;text-align:center">
+                    <input type="checkbox" ${o.is_invoiced?'checked':''} onchange="ordToggleInvoiced(${o.id},this.checked)"
+                      style="width:15px;height:15px;cursor:pointer;accent-color:#15803d"/>
+                  </td>
+                  <td style="padding:7px 8px">
+                    ${o.is_invoiced&&o.invoice_number
+                      ? `<span style="font-size:.72rem;color:#15803d;font-weight:600">${o.invoice_number}</span>${o.invoice_date?`<span style="font-size:.65rem;color:#a0aec0;display:block">${o.invoice_date}</span>`:''}`
+                      : `<button onclick="ordOpenInvoiceModal(${o.id})" style="border:1px solid #e2e8f0;background:#f8fafc;color:#64748b;border-radius:5px;padding:2px 7px;font-size:.68rem;cursor:pointer">+ חשבונית</button>`}
+                  </td>
+                  <td style="padding:4px 4px;text-align:center;white-space:nowrap">
+                    <button onclick="ordDeleteOrder(${o.id})" title="מחק" style="border:none;background:none;color:#fca5a5;cursor:pointer;font-size:.75rem;padding:2px 4px">🗑</button>
+                  </td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+        </div>`}
+    </div>`;
+}
+
+// ── Show items breakdown popup ────────────────────────────────────────────────
+function ordShowItems(orderId) {
+  const o = _ordOrders.find(x => x.id === orderId);
+  if (!o) return;
+  let items = [];
+  try { items = JSON.parse(o.items_json || '[]'); } catch(_) {}
+  if (!items.length) return _toast('אין פריטים', 'info');
+
+  // Build a simple popup
+  const existing = document.getElementById('ord-items-popup');
+  if (existing) existing.remove();
+
+  const rows = items.map((it, i) => `
+    <tr style="${i%2===1?'background:#f8fafc':''}">
+      <td style="padding:6px 10px;color:#6b7280;text-align:center">${i+1}</td>
+      <td style="padding:6px 10px;direction:rtl;max-width:280px">${it.description||'—'}</td>
+      <td style="padding:6px 10px;text-align:center">${it.qty||1}</td>
+      <td style="padding:6px 10px;text-align:center;color:#64748b">${it.unit||'יח\u0027'}</td>
+      ${it.unit_price ? `<td style="padding:6px 10px;text-align:left">₪${it.unit_price.toLocaleString('he-IL',{minimumFractionDigits:2})}</td>` : '<td style="padding:6px 10px;text-align:center;color:#d1d5db">—</td>'}
+      <td style="padding:6px 10px;text-align:left;font-weight:700;color:#1e3a5f">₪${(it.total||0).toLocaleString('he-IL',{minimumFractionDigits:2})}</td>
+    </tr>`).join('');
+
+  const popup = document.createElement('div');
+  popup.id = 'ord-items-popup';
+  popup.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:4000;display:flex;align-items:center;justify-content:center;direction:rtl';
+  popup.innerHTML = `
+    <div style="background:#fff;border-radius:14px;padding:22px;min-width:560px;max-width:90vw;max-height:80vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.25)">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+        <div style="font-size:.95rem;font-weight:700;color:#1e3a5f">📋 סעיפי הזמנה ${o.order_number||''}</div>
+        <button onclick="document.getElementById('ord-items-popup').remove()" style="border:none;background:none;font-size:1.2rem;cursor:pointer;color:#9ca3af">✕</button>
+      </div>
+      <table style="width:100%;border-collapse:collapse;font-size:.8rem">
+        <thead>
+          <tr style="background:#f1f5f9;border-bottom:2px solid #e2e8f0">
+            <th style="padding:7px 10px;color:#4a5568;font-weight:600;text-align:center">#</th>
+            <th style="padding:7px 10px;color:#4a5568;font-weight:600;text-align:right">תיאור</th>
+            <th style="padding:7px 10px;color:#4a5568;font-weight:600;text-align:center">כמות</th>
+            <th style="padding:7px 10px;color:#4a5568;font-weight:600;text-align:center">יח'</th>
+            <th style="padding:7px 10px;color:#4a5568;font-weight:600;text-align:left">מחיר יח'</th>
+            <th style="padding:7px 10px;color:#4a5568;font-weight:600;text-align:left">סה"כ</th>
+          </tr>
+        </thead>
+        <tbody>${rows}</tbody>
+      </table>
+      <div style="margin-top:12px;padding-top:10px;border-top:2px solid #e2e8f0;display:flex;justify-content:flex-end">
+        <span style="font-size:.85rem;font-weight:700;color:#1e3a5f">
+          סה״כ: ₪${items.reduce((s,it)=>s+(it.total||0),0).toLocaleString('he-IL',{minimumFractionDigits:2})}
+        </span>
+      </div>
+    </div>`;
+  popup.onclick = e => { if (e.target === popup) popup.remove(); };
+  document.body.appendChild(popup);
+}
+
+// ── Upload PDF ────────────────────────────────────────────────────────────────
+function ordOpenUploadModal() {
+  if (!_ordCurrentProjId) return _toast('בחר פרויקט תחילה', 'info');
+  document.getElementById('ord-upload-file').value = '';
+  document.getElementById('ord-upload-filename').textContent = 'לחץ לבחירה או גרור קובץ PDF';
+  document.getElementById('ord-upload-err').textContent = '';
+  document.getElementById('ord-upload-btn').disabled = false;
+  document.getElementById('ord-upload-btn').textContent = '🔍 נתח הזמנה';
+  document.getElementById('ord-upload-overlay').style.display = 'flex';
+}
+function ordCloseUploadModal() { document.getElementById('ord-upload-overlay').style.display = 'none'; }
+function ordUploadFileChanged(input) {
+  const f = input.files[0];
+  document.getElementById('ord-upload-filename').textContent = f ? `✓ ${f.name}` : 'לחץ לבחירה או גרור';
+}
+
+async function ordDoUpload() {
+  const file = document.getElementById('ord-upload-file').files[0];
+  if (!file) { document.getElementById('ord-upload-err').textContent = 'יש לבחור קובץ PDF'; return; }
+  const btn = document.getElementById('ord-upload-btn');
+  btn.disabled = true; btn.textContent = '⏳ מנתח...';
+  document.getElementById('ord-upload-err').textContent = '';
+  try {
+    const fd = new FormData(); fd.append('file', file);
+    const r = await fetch('/api/orders/projects/' + _ordCurrentProjId + '/upload', { method: 'POST', body: fd });
+    const j = await r.json();
+    if (!r.ok) throw new Error(j.error || 'שגיאה בניתוח');
+    ordCloseUploadModal();
+    // Populate confirm modal
+    const ex = j.extracted || {};
+    document.getElementById('ord-cf-number').value  = ex.order_number || '';
+    document.getElementById('ord-cf-date').value    = ex.order_date_display || ex.order_date || '';
+    document.getElementById('ord-cf-entity').value  = ex.ordering_entity || '';
+    document.getElementById('ord-cf-desc').value    = ex.description  || '';
+    document.getElementById('ord-cf-amount').value  = ex.amount_pre_vat != null ? ex.amount_pre_vat : '';
+    document.getElementById('ord-cf-notes').value   = '';
+    document.getElementById('ord-cf-stored-name').value = j.tempFile?.storedName || '';
+    document.getElementById('ord-cf-orig-name').value   = j.tempFile?.originalName || '';
+    document.getElementById('ord-confirm-err').textContent = '';
+    document.getElementById('ord-confirm-save-btn').disabled = false;
+    document.getElementById('ord-confirm-save-btn').textContent = '💾 שמור הזמנה';
+    // Show extracted line items
+    const items = ex.items || [];
+    document.getElementById('ord-cf-items-json').value = JSON.stringify(items);
+    const wrap = document.getElementById('ord-cf-items-wrap');
+    const tbody = document.getElementById('ord-cf-items-tbody');
+    if (items.length) {
+      tbody.innerHTML = items.map((it, i) => `
+        <tr style="border-top:1px solid #e2e8f0">
+          <td style="padding:5px 8px;color:#718096;text-align:center">${i+1}</td>
+          <td style="padding:5px 8px;direction:rtl">${it.description || '—'}</td>
+          <td style="padding:5px 8px;text-align:center">${it.qty || 1}</td>
+          <td style="padding:5px 8px;text-align:center;color:#64748b">${it.unit || 'יח\u0027'}</td>
+          ${it.unit_price ? `<td style="padding:5px 8px;text-align:left">₪${it.unit_price.toLocaleString('he-IL',{minimumFractionDigits:2})}</td>` : '<td></td>'}
+          <td style="padding:5px 8px;text-align:left;font-weight:600;color:#1e3a5f">₪${(it.total||0).toLocaleString('he-IL',{minimumFractionDigits:2})}</td>
+        </tr>`).join('');
+      wrap.style.display = 'block';
+    } else {
+      wrap.style.display = 'none';
+    }
+    document.getElementById('ord-confirm-overlay').style.display = 'flex';
+  } catch (e) {
+    document.getElementById('ord-upload-err').textContent = e.message;
+    btn.disabled = false; btn.textContent = '🔍 נתח הזמנה';
+  }
+}
+
+function ordCloseConfirmModal() { document.getElementById('ord-confirm-overlay').style.display = 'none'; }
+
+async function ordConfirmSave() {
+  const btn = document.getElementById('ord-confirm-save-btn');
+  btn.disabled = true; btn.textContent = '⏳ שומר...';
+  document.getElementById('ord-confirm-err').textContent = '';
+  try {
+    const body = {
+      orderNumber:    document.getElementById('ord-cf-number').value.trim() || null,
+      orderDate:      (()=>{ const v = document.getElementById('ord-cf-date').value.trim(); if(!v) return null; const p=v.split('/'); return p.length===3 ? p.reverse().join('-') : v; })(),
+      orderingEntity: document.getElementById('ord-cf-entity').value.trim() || null,
+      description:    document.getElementById('ord-cf-desc').value.trim()   || null,
+      amountPreVat:   document.getElementById('ord-cf-amount').value !== '' ? parseFloat(document.getElementById('ord-cf-amount').value) : null,
+      notes:          document.getElementById('ord-cf-notes').value.trim()  || null,
+      pdfStoredName:  document.getElementById('ord-cf-stored-name').value   || null,
+      pdfOriginalName:document.getElementById('ord-cf-orig-name').value     || null,
+      items: JSON.parse(document.getElementById('ord-cf-items-json').value || '[]'),
+    };
+    const r = await fetch('/api/orders/projects/' + _ordCurrentProjId + '/confirm', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body)
+    });
+    const j = await r.json();
+    if (!r.ok) throw new Error(j.error || 'שגיאה');
+    ordCloseConfirmModal();
+    _toast('הזמנה נשמרה ✓', 'success');
+    await ordSelectProject(_ordCurrentProjId);
+  } catch (e) {
+    document.getElementById('ord-confirm-err').textContent = e.message;
+    btn.disabled = false; btn.textContent = '💾 שמור הזמנה';
+  }
+}
+
+// ── Toggle invoiced ───────────────────────────────────────────────────────────
+async function ordToggleInvoiced(orderId, val) {
+  try {
+    const o = _ordOrders.find(x => x.id === orderId);
+    if (!o) return;
+    await fetch('/api/orders/' + orderId, {
+      method: 'PUT', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ...o, isInvoiced: val })
+    });
+    o.is_invoiced = val ? 1 : 0;
+    ordRenderKpi();
+    // Reload orders to reflect changes
+    const r = await fetch('/api/orders/projects/' + _ordCurrentProjId);
+    if (r.ok) { const d = await r.json(); _ordOrders = d.orders || []; ordRenderKpi(); }
+  } catch { _toast('שגיאה בשמירת סטטוס', 'error'); }
+}
+
+// ── Delete order ──────────────────────────────────────────────────────────────
+async function ordDeleteOrder(orderId) {
+  const o = _ordOrders.find(x => x.id === orderId);
+  if (!await _confirm(`למחוק הזמנה ${o?.order_number||''} ?`, { title: 'מחיקת הזמנה', ok: 'מחק', type: 'delete' })) return;
+  try {
+    const r = await fetch('/api/orders/' + orderId, { method: 'DELETE' });
+    if (!r.ok) throw new Error();
+    _toast('הזמנה נמחקה', 'info');
+    await ordSelectProject(_ordCurrentProjId);
+  } catch { _toast('שגיאה במחיקה', 'error'); }
+}
+
+// ── Invoice modal ─────────────────────────────────────────────────────────────
+function ordOpenInvoiceModal(orderId) {
+  document.getElementById('ord-inv-order-id').value = orderId;
+  document.getElementById('ord-inv-number').value = '';
+  document.getElementById('ord-inv-date').value = '';
+  document.getElementById('ord-inv-file').value = '';
+  document.getElementById('ord-inv-filename').textContent = 'לחץ לבחירת קובץ (אופציונלי)';
+  document.getElementById('ord-inv-err').textContent = '';
+  document.getElementById('ord-inv-save-btn').disabled = false;
+  document.getElementById('ord-inv-save-btn').textContent = '💾 שמור';
+  document.getElementById('ord-invoice-overlay').style.display = 'flex';
+}
+function ordCloseInvoiceModal() { document.getElementById('ord-invoice-overlay').style.display = 'none'; }
+
+async function ordSaveInvoice() {
+  const orderId = document.getElementById('ord-inv-order-id').value;
+  const btn = document.getElementById('ord-inv-save-btn');
+  btn.disabled = true; btn.textContent = '⏳ שומר...';
+  document.getElementById('ord-inv-err').textContent = '';
+  try {
+    const file = document.getElementById('ord-inv-file').files[0];
+    if (file) {
+      const fd = new FormData();
+      fd.append('file', file);
+      fd.append('invoiceNumber', document.getElementById('ord-inv-number').value.trim());
+      fd.append('invoiceDate',   document.getElementById('ord-inv-date').value.trim());
+      const r = await fetch('/api/orders/' + orderId + '/invoice', { method: 'POST', body: fd });
+      if (!r.ok) throw new Error((await r.json()).error || 'שגיאה');
+    } else {
+      // Just update invoice number/date without file
+      const o = _ordOrders.find(x => x.id === parseInt(orderId));
+      await fetch('/api/orders/' + orderId, {
+        method: 'PUT', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          ...o,
+          isInvoiced: true,
+          invoiceNumber: document.getElementById('ord-inv-number').value.trim() || null,
+          invoiceDate:   document.getElementById('ord-inv-date').value.trim()   || null,
+        })
+      });
+    }
+    ordCloseInvoiceModal();
+    _toast('חשבונית נשמרה ✓', 'success');
+    await ordSelectProject(_ordCurrentProjId);
+  } catch (e) {
+    document.getElementById('ord-inv-err').textContent = e.message;
+    btn.disabled = false; btn.textContent = '💾 שמור';
+  }
+}
+
+// ── Export Excel ──────────────────────────────────────────────────────────────
+async function ordExport() {
+  if (!_ordCurrentProjId) return;
+  try {
+    const r = await fetch('/api/orders/projects/' + _ordCurrentProjId + '/export/xlsx');
+    if (!r.ok) throw new Error(await r.text());
+    const blob = await r.blob();
+    const url  = URL.createObjectURL(blob);
+    const a    = document.createElement('a'); a.href = url; a.download = 'orders-' + _ordCurrentProjId + '.xlsx'; a.click();
+    URL.revokeObjectURL(url);
+  } catch (e) { _toast('שגיאה ביצוא: ' + e.message, 'error'); }
+}
+
+// ── City CRUD ─────────────────────────────────────────────────────────────────
+function ordOpenCityModal() {
+  document.getElementById('ord-city-name').value = '';
+  document.getElementById('ord-city-notes').value = '';
+  document.getElementById('ord-city-err').textContent = '';
+  document.getElementById('ord-city-overlay').style.display = 'flex';
+  setTimeout(() => document.getElementById('ord-city-name').focus(), 50);
+}
+function ordCloseCityModal() { document.getElementById('ord-city-overlay').style.display = 'none'; }
+async function ordSaveCityModal() {
+  const name = document.getElementById('ord-city-name').value.trim();
+  if (!name) { document.getElementById('ord-city-err').textContent = 'שם עיר נדרש'; return; }
+  try {
+    const r = await fetch('/api/orders/cities', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name, notes: document.getElementById('ord-city-notes').value.trim() || null })
+    });
+    const j = await r.json();
+    if (!r.ok) throw new Error(j.error);
+    ordCloseCityModal();
+    await ordReload();
+    _toast('עיר נוספה ✓', 'success');
+  } catch (e) { document.getElementById('ord-city-err').textContent = e.message; }
+}
+async function ordDeleteCity(cityId, name) {
+  if (!await _confirm(`למחוק את העיר "${name}" וכל הפרויקטים וההזמנות שלה?`, { title: 'מחיקת עיר', ok: 'מחק', type: 'delete' })) return;
+  await fetch('/api/orders/cities/' + cityId, { method: 'DELETE' });
+  if (_ordCurrentCityId === cityId) { _ordCurrentProjId = null; _ordOrders = []; document.getElementById('ord-right-panel').innerHTML = '<div style="text-align:center;color:#a0aec0;padding:60px">בחר פרויקט</div>'; }
+  await ordReload();
+}
+
+// ── Project CRUD ──────────────────────────────────────────────────────────────
+function ordOpenProjModal(cityId, projId) {
+  document.getElementById('ord-proj-city-id').value  = cityId;
+  document.getElementById('ord-proj-edit-id').value  = projId || '';
+  document.getElementById('ord-proj-title').textContent = projId ? '✏️ עריכת פרויקט' : '📁 הוספת פרויקט';
+  const proj = projId ? (_ordCities.flatMap(c=>c.projects||[]).find(p=>p.id===projId)) : null;
+  document.getElementById('ord-proj-name').value     = proj?.name || '';
+  document.getElementById('ord-proj-client').value   = proj?.client || '';
+  document.getElementById('ord-proj-contract').value = proj?.contract_number || '';
+  document.getElementById('ord-proj-err').textContent = '';
+  document.getElementById('ord-proj-overlay').style.display = 'flex';
+  setTimeout(() => document.getElementById('ord-proj-name').focus(), 50);
+}
+function ordCloseProjModal() { document.getElementById('ord-proj-overlay').style.display = 'none'; }
+async function ordSaveProjModal() {
+  const name     = document.getElementById('ord-proj-name').value.trim();
+  const client   = document.getElementById('ord-proj-client').value.trim()   || null;
+  const contract = document.getElementById('ord-proj-contract').value.trim() || null;
+  const cityId   = parseInt(document.getElementById('ord-proj-city-id').value);
+  const editId   = document.getElementById('ord-proj-edit-id').value;
+  if (!name) { document.getElementById('ord-proj-err').textContent = 'שם פרויקט נדרש'; return; }
+  try {
+    let r;
+    if (editId) {
+      r = await fetch('/api/orders/projects/' + editId, {
+        method: 'PUT', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, client, contractNumber: contract })
+      });
+    } else {
+      r = await fetch('/api/orders/cities/' + cityId + '/projects', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, client, contractNumber: contract })
+      });
+    }
+    const j = await r.json();
+    if (!r.ok) throw new Error(j.error);
+    ordCloseProjModal();
+    await ordReload();
+    _toast('פרויקט נשמר ✓', 'success');
+  } catch (e) { document.getElementById('ord-proj-err').textContent = e.message; }
+}
+async function ordDeleteProject(projId, name) {
+  if (!await _confirm(`למחוק את הפרויקט "${name}" וכל ההזמנות שלו?`, { title: 'מחיקת פרויקט', ok: 'מחק', type: 'delete' })) return;
+  await fetch('/api/orders/projects/' + projId, { method: 'DELETE' });
+  if (_ordCurrentProjId === projId) { _ordCurrentProjId = null; _ordOrders = []; document.getElementById('ord-right-panel').innerHTML = '<div style="text-align:center;color:#a0aec0;padding:60px">בחר פרויקט</div>'; ordRenderKpi(); }
+  await ordReload();
+}
+
 </script>
 <!-- Toast stack -->
 <div id="app-toast-stack"></div>
@@ -11275,7 +12869,7 @@ async function budgetExportXlsx(){
     <div id="app-confirm-msg"></div>
     <div class="app-confirm-btns">
       <button id="app-confirm-ok">אישור</button>
-      <button id="app-confirm-cancel" onclick="_confirmResolve(false)">ביטול</button>
+      <button id="app-confirm-cancel">ביטול</button>
     </div>
   </div>
 </div>

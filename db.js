@@ -147,6 +147,148 @@ db.exec(`
     rejection_note       TEXT
   );
   CREATE INDEX IF NOT EXISTS idx_user_requests_status ON user_requests(status, created_at DESC);
+
+  -- BOQ: Component template library (כתב כמויות — תבניות רכיבי עלות) --
+  CREATE TABLE IF NOT EXISTS boq_component_templates (
+    id              INTEGER PRIMARY KEY AUTOINCREMENT,
+    name            TEXT    NOT NULL,
+    keywords_json   TEXT    NOT NULL DEFAULT '[]',
+    components_json TEXT    NOT NULL DEFAULT '[]',
+    is_system       INTEGER NOT NULL DEFAULT 0,
+    created_at      TEXT    NOT NULL DEFAULT (datetime('now')),
+    updated_at      TEXT    NOT NULL DEFAULT (datetime('now'))
+  );
+
+  -- BOQ: Projects --
+  CREATE TABLE IF NOT EXISTS boq_projects (
+    id          INTEGER PRIMARY KEY AUTOINCREMENT,
+    name        TEXT    NOT NULL,
+    description TEXT,
+    site        TEXT,
+    status      TEXT    NOT NULL DEFAULT 'draft',
+    currency    TEXT    NOT NULL DEFAULT 'ILS',
+    notes       TEXT,
+    created_at  TEXT    NOT NULL DEFAULT (datetime('now')),
+    updated_at  TEXT    NOT NULL DEFAULT (datetime('now')),
+    created_by  TEXT
+  );
+  CREATE INDEX IF NOT EXISTS idx_boq_projects_updated ON boq_projects(updated_at DESC);
+
+  -- BOQ: Line items (סעיפים) --
+  CREATE TABLE IF NOT EXISTS boq_items (
+    id             INTEGER PRIMARY KEY AUTOINCREMENT,
+    project_id     INTEGER NOT NULL REFERENCES boq_projects(id) ON DELETE CASCADE,
+    item_number    TEXT,
+    parent_number  TEXT,
+    description    TEXT    NOT NULL,
+    unit           TEXT,
+    quantity       REAL    NOT NULL DEFAULT 0,
+    is_rfq         INTEGER NOT NULL DEFAULT 0,
+    rfq_vendor     TEXT,
+    rfq_notes      TEXT,
+    rfq_price_ils  REAL,
+    sort_order     INTEGER NOT NULL DEFAULT 0,
+    is_section     INTEGER NOT NULL DEFAULT 0,
+    template_id    INTEGER REFERENCES boq_component_templates(id) ON DELETE SET NULL,
+    notes          TEXT,
+    created_at     TEXT    NOT NULL DEFAULT (datetime('now')),
+    updated_at     TEXT    NOT NULL DEFAULT (datetime('now'))
+  );
+  CREATE INDEX IF NOT EXISTS idx_boq_items_project ON boq_items(project_id, sort_order);
+  CREATE INDEX IF NOT EXISTS idx_boq_items_number  ON boq_items(project_id, item_number);
+
+  -- BOQ: Cost components (רכיבי עלות) --
+  CREATE TABLE IF NOT EXISTS boq_components (
+    id               INTEGER PRIMARY KEY AUTOINCREMENT,
+    item_id          INTEGER NOT NULL REFERENCES boq_items(id) ON DELETE CASCADE,
+    component_key    TEXT    NOT NULL,
+    label            TEXT    NOT NULL,
+    unit_price       REAL    NOT NULL DEFAULT 0,
+    currency         TEXT    NOT NULL DEFAULT 'ILS',
+    quantity         REAL    NOT NULL DEFAULT 1,
+    quantity_formula TEXT,
+    sort_order       INTEGER NOT NULL DEFAULT 0
+  );
+  CREATE INDEX IF NOT EXISTS idx_boq_components_item ON boq_components(item_id, sort_order);
+
+  -- Budget Control (בקרה תקציבית) --
+  CREATE TABLE IF NOT EXISTS budget_projects (
+    id          INTEGER PRIMARY KEY AUTOINCREMENT,
+    name        TEXT    NOT NULL,
+    site        TEXT,
+    status      TEXT    NOT NULL DEFAULT 'active',
+    file_name   TEXT,
+    notes       TEXT,
+    created_at  TEXT    NOT NULL DEFAULT (datetime('now')),
+    updated_at  TEXT    NOT NULL DEFAULT (datetime('now')),
+    created_by  TEXT
+  );
+  CREATE INDEX IF NOT EXISTS idx_budget_projects_updated ON budget_projects(updated_at DESC);
+
+  CREATE TABLE IF NOT EXISTS budget_items (
+    id                  INTEGER PRIMARY KEY AUTOINCREMENT,
+    project_id          INTEGER NOT NULL REFERENCES budget_projects(id) ON DELETE CASCADE,
+    item_number         TEXT,
+    description         TEXT    NOT NULL,
+    unit                TEXT,
+    quantity            REAL    NOT NULL DEFAULT 0,
+    contract_unit_price REAL,
+    contract_total      REAL    NOT NULL DEFAULT 0,
+    item_cost           REAL    NOT NULL DEFAULT 0,
+    total_cost          REAL    NOT NULL DEFAULT 0,
+    manufacturer        TEXT,
+    model               TEXT,
+    sku                 TEXT,
+    notes               TEXT,
+    is_section          INTEGER NOT NULL DEFAULT 0,
+    sort_order          INTEGER NOT NULL DEFAULT 0,
+    created_at          TEXT    NOT NULL DEFAULT (datetime('now'))
+  );
+  CREATE INDEX IF NOT EXISTS idx_budget_items_project ON budget_items(project_id, sort_order);
+
+  -- Incoming purchase orders (הזמנות נכנסות) --
+  CREATE TABLE IF NOT EXISTS order_cities (
+    id         INTEGER PRIMARY KEY AUTOINCREMENT,
+    name       TEXT    NOT NULL UNIQUE,
+    notes      TEXT,
+    created_at TEXT    NOT NULL DEFAULT (datetime('now'))
+  );
+
+  CREATE TABLE IF NOT EXISTS order_projects (
+    id              INTEGER PRIMARY KEY AUTOINCREMENT,
+    city_id         INTEGER NOT NULL REFERENCES order_cities(id) ON DELETE CASCADE,
+    name            TEXT    NOT NULL,
+    client          TEXT,
+    contract_number TEXT,
+    notes           TEXT,
+    status          TEXT    NOT NULL DEFAULT 'active',
+    created_at      TEXT    NOT NULL DEFAULT (datetime('now')),
+    updated_at      TEXT    NOT NULL DEFAULT (datetime('now')),
+    created_by      TEXT
+  );
+
+  CREATE TABLE IF NOT EXISTS orders (
+    id                    INTEGER PRIMARY KEY AUTOINCREMENT,
+    project_id            INTEGER NOT NULL REFERENCES order_projects(id) ON DELETE CASCADE,
+    order_number          TEXT,
+    order_date            TEXT,
+    ordering_entity       TEXT,
+    description           TEXT,
+    amount_pre_vat        REAL,
+    currency              TEXT    NOT NULL DEFAULT 'ILS',
+    is_invoiced           INTEGER NOT NULL DEFAULT 0,
+    invoice_date          TEXT,
+    invoice_number        TEXT,
+    invoice_file_path     TEXT,
+    invoice_original_name TEXT,
+    pdf_path              TEXT,
+    pdf_original_name     TEXT,
+    notes                 TEXT,
+    raw_extracted         TEXT,
+    created_at            TEXT    NOT NULL DEFAULT (datetime('now')),
+    updated_at            TEXT    NOT NULL DEFAULT (datetime('now'))
+  );
+  CREATE INDEX IF NOT EXISTS idx_orders_project ON orders(project_id, created_at DESC);
 `);
 
 // ── Migrations for Drop 2B (extra columns on doc_pack_files) ──
@@ -155,6 +297,8 @@ try { db.exec("ALTER TABLE doc_pack_files ADD COLUMN visibility TEXT NOT NULL DE
 try { db.exec("ALTER TABLE doc_pack_files ADD COLUMN note TEXT"); }                                catch (_) {}
 try { db.exec("ALTER TABLE doc_pack_files ADD COLUMN contributor TEXT"); }                         catch (_) {}
 try { db.exec("ALTER TABLE doc_pack_files ADD COLUMN external_path TEXT"); }                       catch (_) {}
+// Orders module migrations
+try { db.exec("ALTER TABLE orders ADD COLUMN items_json TEXT NOT NULL DEFAULT '[]'"); }            catch (_) {}
 
 // Migration: is_template flag on doc_packs — lets a pack act as a reusable
 // skeleton (project-specific content stripped) that new projects clone from.
@@ -234,6 +378,9 @@ try {
 try {
   db.exec("ALTER TABLE doc_packs ADD COLUMN status TEXT NOT NULL DEFAULT 'draft'");
 } catch(e) { /* column already exists — skip */ }
+
+// Migration: add contract_unit_price to boq_items
+try { db.exec("ALTER TABLE boq_items ADD COLUMN contract_unit_price REAL"); } catch(e) {}
 
 // Seed admin user from env vars if no users exist
 const userCount = db.prepare('SELECT COUNT(*) as n FROM users').get().n;
@@ -451,6 +598,103 @@ const stmts = {
     SET status='approved', reviewed_at=datetime('now'), reviewed_by_username=? WHERE id=?`),
   rejectUserRequest:    db.prepare(`UPDATE user_requests
     SET status='rejected', reviewed_at=datetime('now'), reviewed_by_username=?, rejection_note=? WHERE id=?`),
+
+  // BOQ: Component templates
+  listBoqTemplates:   db.prepare('SELECT * FROM boq_component_templates ORDER BY is_system DESC, name ASC'),
+  getBoqTemplate:     db.prepare('SELECT * FROM boq_component_templates WHERE id = ?'),
+  createBoqTemplate:  db.prepare('INSERT INTO boq_component_templates (name, keywords_json, components_json, is_system) VALUES (?,?,?,?)'),
+  updateBoqTemplate:  db.prepare("UPDATE boq_component_templates SET name=?, keywords_json=?, components_json=?, updated_at=datetime('now') WHERE id=?"),
+  deleteBoqTemplate:  db.prepare('DELETE FROM boq_component_templates WHERE id = ? AND is_system = 0'),
+  countBoqTemplates:  db.prepare('SELECT COUNT(*) AS n FROM boq_component_templates'),
+
+  // BOQ: Projects
+  listBoqProjects:    db.prepare('SELECT id,name,description,site,status,currency,notes,created_at,updated_at,created_by FROM boq_projects ORDER BY updated_at DESC'),
+  getBoqProject:      db.prepare('SELECT * FROM boq_projects WHERE id = ?'),
+  createBoqProject:   db.prepare("INSERT INTO boq_projects (name,description,site,status,currency,notes,created_by) VALUES (?,?,?,?,?,?,?)"),
+  updateBoqProject:   db.prepare("UPDATE boq_projects SET name=?,description=?,site=?,status=?,currency=?,notes=?,updated_at=datetime('now') WHERE id=?"),
+  deleteBoqProject:   db.prepare('DELETE FROM boq_projects WHERE id = ?'),
+
+  // BOQ: Items
+  listBoqItems:       db.prepare('SELECT * FROM boq_items WHERE project_id = ? ORDER BY sort_order ASC, id ASC'),
+  getBoqItem:         db.prepare('SELECT * FROM boq_items WHERE id = ?'),
+  createBoqItem:      db.prepare(`INSERT INTO boq_items
+    (project_id,item_number,parent_number,description,unit,quantity,is_rfq,rfq_vendor,rfq_notes,sort_order,is_section,template_id,notes,contract_unit_price)
+    VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)`),
+  updateBoqItem:      db.prepare(`UPDATE boq_items SET
+    item_number=?,parent_number=?,description=?,unit=?,quantity=?,
+    is_rfq=?,rfq_vendor=?,rfq_notes=?,rfq_price_ils=?,is_section=?,notes=?,contract_unit_price=?,
+    updated_at=datetime('now') WHERE id=?`),
+  updateBoqItemContractPrice: db.prepare("UPDATE boq_items SET contract_unit_price=?,updated_at=datetime('now') WHERE id=?"),
+  updateBoqItemRfqPrice: db.prepare("UPDATE boq_items SET rfq_price_ils=?,updated_at=datetime('now') WHERE id=?"),
+  updateBoqItemTemplate:  db.prepare("UPDATE boq_items SET template_id=?,updated_at=datetime('now') WHERE id=?"),
+  deleteBoqItem:           db.prepare('DELETE FROM boq_items WHERE id = ?'),
+  deleteAllBoqItemsByProject: db.prepare('DELETE FROM boq_items WHERE project_id = ?'),
+  reorderBoqItem:          db.prepare('UPDATE boq_items SET sort_order=? WHERE id=?'),
+  countBoqItems:           db.prepare('SELECT COUNT(*) AS n FROM boq_items WHERE project_id = ?'),
+
+  // BOQ: Components
+  listBoqComponents:             db.prepare('SELECT * FROM boq_components WHERE item_id = ? ORDER BY sort_order ASC'),
+  listBoqComponentsByProject:    db.prepare(`
+    SELECT c.* FROM boq_components c
+    JOIN boq_items i ON i.id = c.item_id
+    WHERE i.project_id = ?
+    ORDER BY i.sort_order ASC, c.sort_order ASC
+  `),
+  createBoqComponent:  db.prepare(`INSERT INTO boq_components
+    (item_id,component_key,label,unit_price,currency,quantity,quantity_formula,sort_order)
+    VALUES (?,?,?,?,?,?,?,?)`),
+  updateBoqComponent:  db.prepare(`UPDATE boq_components SET
+    component_key=?,label=?,unit_price=?,currency=?,quantity=?,quantity_formula=?,sort_order=?
+    WHERE id=?`),
+  deleteBoqComponent:          db.prepare('DELETE FROM boq_components WHERE id = ?'),
+  deleteBoqComponentsByItem:   db.prepare('DELETE FROM boq_components WHERE item_id = ?'),
+
+  // Budget Control
+  listBudgetProjects:   db.prepare('SELECT * FROM budget_projects ORDER BY updated_at DESC'),
+  getBudgetProject:     db.prepare('SELECT * FROM budget_projects WHERE id = ?'),
+  createBudgetProject:  db.prepare("INSERT INTO budget_projects (name,site,status,file_name,notes,created_by) VALUES (?,?,?,?,?,?)"),
+  updateBudgetProject:  db.prepare("UPDATE budget_projects SET name=?,site=?,notes=?,updated_at=datetime('now') WHERE id=?"),
+  deleteBudgetProject:  db.prepare('DELETE FROM budget_projects WHERE id = ?'),
+
+  listBudgetItems:      db.prepare('SELECT * FROM budget_items WHERE project_id = ? ORDER BY sort_order ASC, id ASC'),
+  createBudgetItem:     db.prepare(`INSERT INTO budget_items
+    (project_id,item_number,description,unit,quantity,contract_unit_price,contract_total,
+     item_cost,total_cost,manufacturer,model,sku,notes,is_section,sort_order)
+    VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`),
+  updateBudgetItem:     db.prepare(`UPDATE budget_items SET
+    item_number=?,description=?,unit=?,quantity=?,contract_unit_price=?,contract_total=?,
+    item_cost=?,total_cost=?,manufacturer=?,model=?,sku=?,notes=?
+    WHERE id=?`),
+  deleteBudgetItem:     db.prepare('DELETE FROM budget_items WHERE id = ?'),
+  deleteBudgetItemsByProject: db.prepare('DELETE FROM budget_items WHERE project_id = ?'),
+  countBudgetItems:     db.prepare('SELECT COUNT(*) AS n FROM budget_items WHERE project_id = ?'),
+
+  // Orders
+  listOrderCities:      db.prepare('SELECT * FROM order_cities ORDER BY name ASC'),
+  createOrderCity:      db.prepare("INSERT INTO order_cities (name, notes) VALUES (?, ?)"),
+  deleteOrderCity:      db.prepare('DELETE FROM order_cities WHERE id = ?'),
+  getOrderCity:         db.prepare('SELECT * FROM order_cities WHERE id = ?'),
+
+  listOrderProjects:    db.prepare('SELECT * FROM order_projects WHERE city_id = ? ORDER BY name ASC'),
+  getOrderProject:      db.prepare('SELECT * FROM order_projects WHERE id = ?'),
+  createOrderProject:   db.prepare("INSERT INTO order_projects (city_id, name, client, contract_number, notes, created_by) VALUES (?,?,?,?,?,?)"),
+  updateOrderProject:   db.prepare("UPDATE order_projects SET name=?,client=?,contract_number=?,notes=?,updated_at=datetime('now') WHERE id=?"),
+  deleteOrderProject:   db.prepare('DELETE FROM order_projects WHERE id = ?'),
+
+  listOrders:           db.prepare('SELECT * FROM orders WHERE project_id = ? ORDER BY created_at DESC'),
+  getOrder:             db.prepare('SELECT * FROM orders WHERE id = ?'),
+  createOrder:          db.prepare(`INSERT INTO orders
+    (project_id, order_number, order_date, ordering_entity, description,
+     amount_pre_vat, currency, pdf_path, pdf_original_name, notes, raw_extracted, items_json)
+    VALUES (?,?,?,?,?,?,?,?,?,?,?,?)`),
+  updateOrder:          db.prepare(`UPDATE orders SET
+    order_number=?, order_date=?, ordering_entity=?, description=?,
+    amount_pre_vat=?, is_invoiced=?, invoice_date=?, invoice_number=?,
+    notes=?, updated_at=datetime('now') WHERE id=?`),
+  updateOrderInvoice:   db.prepare(`UPDATE orders SET
+    invoice_file_path=?, invoice_original_name=?, invoice_date=?, invoice_number=?,
+    is_invoiced=1, updated_at=datetime('now') WHERE id=?`),
+  deleteOrder:          db.prepare('DELETE FROM orders WHERE id = ?'),
 };
 
 module.exports = {
@@ -613,4 +857,132 @@ module.exports = {
   getUserRequest:      (id) => stmts.getUserRequest.get(id),
   approveUserRequest:  (id, byUsername) => stmts.approveUserRequest.run(byUsername, id),
   rejectUserRequest:   (id, byUsername, note) => stmts.rejectUserRequest.run(byUsername, note || null, id),
+
+  // BOQ: Component templates
+  listBoqTemplates:  () => stmts.listBoqTemplates.all(),
+  getBoqTemplate:    (id) => stmts.getBoqTemplate.get(id),
+  createBoqTemplate: ({ name, keywordsJson, componentsJson, isSystem }) =>
+    stmts.createBoqTemplate.run(name, keywordsJson || '[]', componentsJson || '[]', isSystem ? 1 : 0),
+  updateBoqTemplate: (id, { name, keywordsJson, componentsJson }) =>
+    stmts.updateBoqTemplate.run(name, keywordsJson || '[]', componentsJson || '[]', id),
+  deleteBoqTemplate: (id) => stmts.deleteBoqTemplate.run(id),
+  countBoqTemplates: () => stmts.countBoqTemplates.get().n,
+
+  // BOQ: Projects
+  listBoqProjects:   () => stmts.listBoqProjects.all(),
+  getBoqProject:     (id) => stmts.getBoqProject.get(id),
+  createBoqProject:  ({ name, description, site, status, currency, notes, createdBy }) =>
+    stmts.createBoqProject.run(name, description || null, site || null, status || 'draft', currency || 'ILS', notes || null, createdBy || null),
+  updateBoqProject:  (id, { name, description, site, status, currency, notes }) =>
+    stmts.updateBoqProject.run(name, description || null, site || null, status || 'draft', currency || 'ILS', notes || null, id),
+  deleteBoqProject:  (id) => stmts.deleteBoqProject.run(id),
+
+  // BOQ: Items
+  listBoqItems:   (projectId) => stmts.listBoqItems.all(projectId),
+  getBoqItem:     (id) => stmts.getBoqItem.get(id),
+  createBoqItem:  (opts) => stmts.createBoqItem.run(
+    opts.projectId, opts.itemNumber || null, opts.parentNumber || null,
+    opts.description, opts.unit || null, opts.quantity || 0,
+    opts.isRfq ? 1 : 0, opts.rfqVendor || null, opts.rfqNotes || null,
+    opts.sortOrder || 0, opts.isSection ? 1 : 0, opts.templateId || null, opts.notes || null,
+    opts.contractUnitPrice != null ? opts.contractUnitPrice : null
+  ),
+  updateBoqItem:  (id, opts) => stmts.updateBoqItem.run(
+    opts.itemNumber || null, opts.parentNumber || null, opts.description,
+    opts.unit || null, opts.quantity || 0,
+    opts.isRfq ? 1 : 0, opts.rfqVendor || null, opts.rfqNotes || null,
+    opts.rfqPriceIls != null ? opts.rfqPriceIls : null,
+    opts.isSection ? 1 : 0, opts.notes || null,
+    opts.contractUnitPrice != null ? opts.contractUnitPrice : null,
+    id
+  ),
+  updateBoqItemContractPrice: (id, price) => stmts.updateBoqItemContractPrice.run(price != null ? price : null, id),
+  updateBoqItemRfqPrice:  (id, priceIls) => stmts.updateBoqItemRfqPrice.run(priceIls, id),
+  updateBoqItemTemplate:  (id, templateId) => stmts.updateBoqItemTemplate.run(templateId || null, id),
+  deleteBoqItem:  (id) => stmts.deleteBoqItem.run(id),
+  deleteAllBoqItemsByProject: (projectId) => stmts.deleteAllBoqItemsByProject.run(projectId),
+  reorderBoqItems: (pairs) => {
+    const tx = db.transaction((pairs) => {
+      for (const p of pairs) stmts.reorderBoqItem.run(p.sortOrder, p.id);
+    });
+    return tx(pairs);
+  },
+  countBoqItems:  (projectId) => stmts.countBoqItems.get(projectId).n,
+
+  // BOQ: Components
+  listBoqComponents:          (itemId)    => stmts.listBoqComponents.all(itemId),
+  listBoqComponentsByProject: (projectId) => stmts.listBoqComponentsByProject.all(projectId),
+  createBoqComponent: (opts) => stmts.createBoqComponent.run(
+    opts.itemId, opts.componentKey || 'custom', opts.label,
+    opts.unitPrice || 0, opts.currency || 'ILS', opts.quantity || 1,
+    opts.quantityFormula || null, opts.sortOrder || 0
+  ),
+  updateBoqComponent: (id, opts) => stmts.updateBoqComponent.run(
+    opts.componentKey || 'custom', opts.label,
+    opts.unitPrice || 0, opts.currency || 'ILS', opts.quantity || 1,
+    opts.quantityFormula || null, opts.sortOrder || 0, id
+  ),
+  deleteBoqComponent:         (id)        => stmts.deleteBoqComponent.run(id),
+  deleteBoqComponentsByItem:  (itemId)    => stmts.deleteBoqComponentsByItem.run(itemId),
+
+  // Budget Control
+  listBudgetProjects:  ()   => stmts.listBudgetProjects.all(),
+  getBudgetProject:    (id) => stmts.getBudgetProject.get(id),
+  createBudgetProject: ({ name, site, fileName, notes, createdBy }) =>
+    stmts.createBudgetProject.run(name, site || null, 'active', fileName || null, notes || null, createdBy || null),
+  updateBudgetProject: (id, { name, site, notes }) =>
+    stmts.updateBudgetProject.run(name, site || null, notes || null, id),
+  deleteBudgetProject: (id) => stmts.deleteBudgetProject.run(id),
+
+  listBudgetItems:  (projectId) => stmts.listBudgetItems.all(projectId),
+  createBudgetItem: (opts) => stmts.createBudgetItem.run(
+    opts.projectId, opts.itemNumber || null, opts.description,
+    opts.unit || null, opts.quantity || 0,
+    opts.contractUnitPrice != null ? opts.contractUnitPrice : null,
+    opts.contractTotal || 0, opts.itemCost || 0, opts.totalCost || 0,
+    opts.manufacturer || null, opts.model || null, opts.sku || null,
+    opts.notes || null, opts.isSection ? 1 : 0, opts.sortOrder || 0
+  ),
+  updateBudgetItem: (id, opts) => stmts.updateBudgetItem.run(
+    opts.itemNumber || null, opts.description,
+    opts.unit || null, opts.quantity || 0,
+    opts.contractUnitPrice != null ? opts.contractUnitPrice : null,
+    opts.contractTotal || 0, opts.itemCost || 0, opts.totalCost || 0,
+    opts.manufacturer || null, opts.model || null, opts.sku || null,
+    opts.notes || null, id
+  ),
+  deleteBudgetItem:           (id)        => stmts.deleteBudgetItem.run(id),
+  deleteBudgetItemsByProject: (projectId) => stmts.deleteBudgetItemsByProject.run(projectId),
+  countBudgetItems:           (projectId) => stmts.countBudgetItems.get(projectId).n,
+
+  // Orders
+  listOrderCities:    ()       => stmts.listOrderCities.all(),
+  getOrderCity:       (id)     => stmts.getOrderCity.get(id),
+  createOrderCity:    (name, notes) => stmts.createOrderCity.run(name, notes || null),
+  deleteOrderCity:    (id)     => stmts.deleteOrderCity.run(id),
+
+  listOrderProjects:  (cityId) => stmts.listOrderProjects.all(cityId),
+  getOrderProject:    (id)     => stmts.getOrderProject.get(id),
+  createOrderProject: ({ cityId, name, client, contractNumber, notes, createdBy }) =>
+    stmts.createOrderProject.run(cityId, name, client||null, contractNumber||null, notes||null, createdBy||null),
+  updateOrderProject: (id, { name, client, contractNumber, notes }) =>
+    stmts.updateOrderProject.run(name, client||null, contractNumber||null, notes||null, id),
+  deleteOrderProject: (id) => stmts.deleteOrderProject.run(id),
+
+  listOrders:   (projectId) => stmts.listOrders.all(projectId),
+  getOrder:     (id)        => stmts.getOrder.get(id),
+  createOrder:  ({ projectId, orderNumber, orderDate, orderingEntity, description,
+                   amountPreVat, currency, pdfPath, pdfOriginalName, notes, rawExtracted, itemsJson }) =>
+    stmts.createOrder.run(projectId, orderNumber||null, orderDate||null, orderingEntity||null,
+      description||null, amountPreVat!=null?amountPreVat:null, currency||'ILS',
+      pdfPath||null, pdfOriginalName||null, notes||null, rawExtracted||null, itemsJson||'[]'),
+  updateOrder:  (id, { orderNumber, orderDate, orderingEntity, description,
+                       amountPreVat, isInvoiced, invoiceDate, invoiceNumber, notes }) =>
+    stmts.updateOrder.run(orderNumber||null, orderDate||null, orderingEntity||null,
+      description||null, amountPreVat!=null?amountPreVat:null, isInvoiced?1:0,
+      invoiceDate||null, invoiceNumber||null, notes||null, id),
+  updateOrderInvoice: (id, { invoiceFilePath, invoiceOriginalName, invoiceDate, invoiceNumber }) =>
+    stmts.updateOrderInvoice.run(invoiceFilePath||null, invoiceOriginalName||null,
+      invoiceDate||null, invoiceNumber||null, id),
+  deleteOrder:  (id) => stmts.deleteOrder.run(id),
 };

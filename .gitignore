@@ -34,9 +34,28 @@ server-debug.log
 server-err.log
 server-out.log
 server-*.log
+server.log
+server.err
+server2.log
 login-test.json
 lt.json
 .claude/
+
+# Temp fix/debug scripts generated during development sessions
+fix_*.js
+new_extract.js
+parseOrderItems_*.js
+skills-lock.json
+cookie.txt
+
+# Test/debug images and screenshots
+_check_img_*.png
+_test_img_*.png
+variant-a*.png
+
+# Tool runtime dirs
+.agents/
+.playwright-mcp/
 
 # Runtime-uploaded catalog datasheets (local DS_PATH fallback)
 ds/catalog/
