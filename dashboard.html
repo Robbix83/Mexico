@@ -70,7 +70,6 @@ body{font-family:'Plus Jakarta Sans','Rubik','Segoe UI',Arial,sans-serif;backgro
 #snav-docpack .snav-icon{background:var(--m-violet-s);color:var(--m-violet)}
 #snav-pricelist .snav-icon{background:var(--m-cyan-s);color:var(--m-cyan)}
 #snav-boq    .snav-icon{background:#fef3c7;color:#d97706}
-#snav-budget .snav-icon{background:#f0fdf4;color:#15803d}
 #snav-orders .snav-icon{background:#fff0f0;color:#CC1A1A}
 .sidebar-footer{
   padding:10px 14px;border-top:1px solid var(--border);
@@ -1393,7 +1392,6 @@ tr:hover .pl-row-ds-btn{opacity:.6}
     <button class="snav-item"        id="snav-docpack"   onclick="setView('docpack')">   <span class="snav-icon"><svg viewBox="0 0 24 24"><path d="M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z"/></svg></span> תיק תיעוד</button>
     <button class="snav-item"        id="snav-pricelist" onclick="setView('pricelist')"> <span class="snav-icon"><svg viewBox="0 0 24 24"><path d="M3 5a2 2 0 0 1 2-2h6.2a2 2 0 0 1 1.4.6l8 8a2 2 0 0 1 0 2.8l-6.2 6.2a2 2 0 0 1-2.8 0l-8-8A2 2 0 0 1 3 11.2Z"/><circle cx="7.5" cy="7.5" r="1.2"/></svg></span> מחירונים</button>
     <button class="snav-item"        id="snav-boq"       onclick="setView('boq')">      <span class="snav-icon"><svg viewBox="0 0 24 24"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/><path d="M9 12h6M9 16h4"/></svg></span> כתב כמויות</button>
-    <button class="snav-item"        id="snav-budget"    onclick="setView('budget')">   <span class="snav-icon"><svg viewBox="0 0 24 24"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></span> בקרה תקציבית</button>
     <button class="snav-item"        id="snav-orders"    onclick="setView('orders')">   <span class="snav-icon"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg></span> הזמנות נכנסות</button>
   </nav>
   <div class="sidebar-footer">
@@ -2581,107 +2579,12 @@ tr:hover .pl-row-ds-btn{opacity:.6}
 
   </section>
 
-  <!-- ══ BUDGET CONTROL (בקרה תקציבית) VIEW ══ -->
-  <section id="budget-view" style="display:none;padding:0 4px">
+  <!-- budget-view removed -->
 
-    <!-- Project list panel -->
-    <div id="budget-list-panel">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:8px">
-        <div style="display:flex;align-items:center;gap:10px">
-          <h2 style="margin:0;font-size:1.05rem;font-weight:700;color:#1e3a5f">בקרה תקציבית</h2>
-          <span id="budget-count-badge" style="font-size:.72rem;font-weight:500;background:#dcfce7;color:#15803d;border-radius:10px;padding:1px 8px;margin-right:6px">0</span>
-        </div>
-        <button class="btn-add" onclick="budgetOpenNew()">+ פרויקט חדש</button>
-      </div>
-      <div id="budget-projects-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:12px"></div>
-    </div>
-
-    <!-- Project editor panel -->
-    <div id="budget-editor-panel" style="display:none">
-      <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:12px">
-        <div style="display:flex;align-items:center;gap:12px">
-          <button onclick="budgetBackToList()" style="background:none;border:none;cursor:pointer;font-size:.9rem;color:#3b82f6;padding:0">← חזור</button>
-          <h2 id="budget-editor-title" style="margin:0;font-size:1.05rem;font-weight:700;color:#1e3a5f"></h2>
-        </div>
-        <div style="display:flex;gap:6px;flex-wrap:wrap">
-          <button class="btn-cat" onclick="budgetOpenImport()" style="background:#f0fdf4;color:#15803d;border-color:#bbf7d0">📥 ייבוא Excel</button>
-          <button class="btn-cat" onclick="budgetClearItems()" style="background:#fff5f5;color:#c53030;border-color:#fed7d7">🗑 נקה שורות</button>
-          <button class="btn-cat" onclick="budgetExportXlsx()" style="background:#eef4ff;color:#3b82f6;border-color:#c3cdff">⬇ Excel</button>
-        </div>
-      </div>
-
-      <!-- Summary bar -->
-      <div id="budget-summary-bar" style="display:flex;gap:20px;flex-wrap:wrap;padding:10px 16px;background:#fff;border:1px solid #e2e8f0;border-radius:10px;margin-bottom:12px;font-size:.84rem;align-items:center">
-        <span>חוזה: <strong id="bud-total-contract" style="color:#1e3a5f">—</strong></span>
-        <span style="color:#e2e8f0">|</span>
-        <span>עלות: <strong id="bud-total-cost" style="color:#1e3a5f">—</strong></span>
-        <span style="color:#e2e8f0">|</span>
-        <span>רווח: <strong id="bud-total-margin" style="color:#15803d">—</strong></span>
-        <span style="color:#e2e8f0">|</span>
-        <span>רווח %: <strong id="bud-total-pct" style="color:#15803d">—</strong></span>
-        <span id="bud-item-count" style="margin-right:auto;color:#a0aec0;font-size:.75rem"></span>
-      </div>
-
-      <!-- Items table -->
-      <div style="overflow-x:auto;border:1px solid #e2e8f0;border-radius:10px;background:#fff">
-        <table style="width:100%;border-collapse:collapse;min-width:1100px;font-size:.8rem">
-          <thead>
-            <tr style="background:#f8fafc;border-bottom:2px solid #e2e8f0">
-              <th style="padding:8px 10px;text-align:right;white-space:nowrap;color:#64748b;font-weight:600;width:60px">מס'</th>
-              <th style="padding:8px 10px;text-align:right;color:#64748b;font-weight:600">תיאור</th>
-              <th style="padding:8px 6px;text-align:center;white-space:nowrap;color:#64748b;font-weight:600;width:55px">יח'</th>
-              <th style="padding:8px 6px;text-align:center;white-space:nowrap;color:#64748b;font-weight:600;width:65px">כמות</th>
-              <th style="padding:8px 8px;text-align:left;white-space:nowrap;color:#64748b;font-weight:600;width:110px">מ"ח חוזה</th>
-              <th style="padding:8px 8px;text-align:left;white-space:nowrap;color:#15803d;font-weight:600;width:115px">סה"כ חוזה</th>
-              <th style="padding:8px 8px;text-align:left;white-space:nowrap;color:#64748b;font-weight:600;width:105px">עלות פריט</th>
-              <th style="padding:8px 8px;text-align:left;white-space:nowrap;color:#c53030;font-weight:600;width:115px">סה"כ עלות</th>
-              <th style="padding:8px 8px;text-align:left;white-space:nowrap;color:#1d4ed8;font-weight:600;width:110px">רווח ₪</th>
-              <th style="padding:8px 6px;text-align:center;white-space:nowrap;color:#1d4ed8;font-weight:600;width:70px">רווח %</th>
-              <th style="padding:8px 8px;text-align:right;color:#64748b;font-weight:600;width:130px">יצרן</th>
-              <th style="padding:8px 8px;text-align:right;color:#64748b;font-weight:600;width:130px">דגם</th>
-              <th style="padding:8px 8px;text-align:right;color:#64748b;font-weight:600;width:100px">מק"ט</th>
-            </tr>
-          </thead>
-          <tbody id="budget-items-tbody"></tbody>
-        </table>
-      </div>
-    </div>
-  </section>
 
   <!-- Budget: new project modal -->
-  <div id="budget-new-overlay" class="pl-import-overlay" onclick="if(event.target===this)budgetCloseNew()" style="display:none">
-    <div class="pl-import-modal" style="max-width:440px">
-      <h3>💰 פרויקט בקרה תקציבית חדש</h3>
-      <div style="display:flex;flex-direction:column;gap:10px;margin-top:12px">
-        <div><label style="font-size:.8rem;font-weight:600;color:#4a5568;display:block;margin-bottom:3px">שם הפרויקט *</label>
-          <input type="text" id="budget-new-name" placeholder='לדוגמה: נתניה מכרז 129/29'
-            style="width:100%;padding:8px 10px;border:1.5px solid #e2e8f0;border-radius:7px;font-size:.88rem;box-sizing:border-box"></div>
-        <div><label style="font-size:.8rem;font-weight:600;color:#4a5568;display:block;margin-bottom:3px">אתר / לקוח</label>
-          <input type="text" id="budget-new-site" placeholder='לדוגמה: עיריית נתניה'
-            style="width:100%;padding:8px 10px;border:1.5px solid #e2e8f0;border-radius:7px;font-size:.88rem;box-sizing:border-box"></div>
-      </div>
-      <div id="budget-new-err" style="color:#c53030;font-size:.8rem;margin-top:8px;min-height:16px"></div>
-      <div class="pl-step-actions">
-        <button class="pl-step-cancel" onclick="budgetCloseNew()">ביטול</button>
-        <button class="pl-step-next" onclick="budgetSubmitNew()">צור פרויקט</button>
-      </div>
-    </div>
-  </div>
 
   <!-- Budget: import xlsx modal -->
-  <div id="budget-import-overlay" class="pl-import-overlay" onclick="if(event.target===this)budgetCloseImport()" style="display:none">
-    <div class="pl-import-modal" style="max-width:460px">
-      <h3>📥 ייבוא קובץ בקרה תקציבית</h3>
-      <p style="font-size:.82rem;color:#718096;margin:6px 0 12px">קובץ Excel עם עמודות: פריט נדרש, מחיר יח', סה"כ מחיר, <strong>עלות פריט</strong>, סה"כ</p>
-      <input type="file" id="budget-import-file" accept=".xlsx"
-        style="width:100%;padding:8px;border:1.5px dashed #cbd5e0;border-radius:7px;font-size:.85rem;box-sizing:border-box;background:#f8fafc">
-      <div id="budget-import-err" style="color:#c53030;font-size:.8rem;margin-top:8px;min-height:16px"></div>
-      <div class="pl-step-actions">
-        <button class="pl-step-cancel" onclick="budgetCloseImport()">ביטול</button>
-        <button class="pl-step-next" id="budget-import-btn" onclick="budgetDoImport()">📥 ייבא</button>
-      </div>
-    </div>
-  </div>
 
   <section id="sec-done"
     ondragover="doneSectionDragOver(event)"
@@ -3746,7 +3649,7 @@ function setView(v){
   document.getElementById('vt-pricelist').classList.toggle('active',v==='pricelist');
   document.getElementById('vt-requisition').classList.toggle('active',v==='requisition');
   // Sync sidebar nav active state (kanban + sites treated as part of list/projects section)
-  ['list','catalog','warehouse','docpack','pricelist','requisition','boq','budget'].forEach(k=>{
+  ['list','catalog','warehouse','docpack','pricelist','requisition','boq'].forEach(k=>{
     const sb=document.getElementById('snav-'+k);
     if(sb) sb.classList.toggle('active', k===v || (k==='list' && (v==='kanban'||v==='sites')));
   });
@@ -3759,7 +3662,7 @@ function setView(v){
     if(svtK) svtK.classList.toggle('active',v==='kanban');
   }
   // Update page title in header
-  const titles={list:'פרויקטים — ניהול משימות',kanban:'קנבן',sites:'תצוגת אתרים',catalog:'מקטים בשימוש לאחרונה',warehouse:'מלאי מחסנים',docpack:'תיק תיעוד',pricelist:'מחירונים',requisition:'דרישת רכש',boq:'כתב כמויות',budget:'בקרה תקציבית'};
+  const titles={list:'פרויקטים — ניהול משימות',kanban:'קנבן',sites:'תצוגת אתרים',catalog:'מקטים בשימוש לאחרונה',warehouse:'מלאי מחסנים',docpack:'תיק תיעוד',pricelist:'מחירונים',requisition:'דרישת רכש',boq:'כתב כמויות'};
   const pt=document.getElementById('hdr-page-title');
   if(pt && titles[v]) pt.textContent=titles[v];
   document.getElementById('list-view').style.display        =v==='list'?'':'none';
@@ -3771,10 +3674,9 @@ function setView(v){
   document.getElementById('pricelist-view').style.display   =v==='pricelist'?'':'none';
   document.getElementById('requisition-view').style.display =v==='requisition'?'':'none';
   document.getElementById('boq-view').style.display         =v==='boq'?'':'none';
-  document.getElementById('budget-view').style.display      =v==='budget'?'':'none';
   document.getElementById('orders-view').style.display      =v==='orders'?'':'none';
   if(v==='orders') ordLoad();
-  const _hideExtra=v==='catalog'||v==='pricelist'||v==='warehouse'||v==='docpack'||v==='requisition'||v==='boq'||v==='budget'||v==='orders'||v==='sites';
+  const _hideExtra=v==='catalog'||v==='pricelist'||v==='warehouse'||v==='docpack'||v==='requisition'||v==='boq'||v==='orders'||v==='sites';
   document.getElementById('sec-charts').style.display      =v==='list'?'':'none';
   document.getElementById('sec-stats').style.display       =_hideExtra?'none':'';
   document.getElementById('sec-done').style.display        =_hideExtra?'none':'';
@@ -3803,10 +3705,6 @@ function setView(v){
   else if(v==='boq'){
     _updatePlCartBar();
     boqRender();
-  }
-  else if(v==='budget'){
-    _updatePlCartBar();
-    budgetRender();
   }
   else {
     renderList(); _updatePlCartBar();
@@ -12114,245 +12012,6 @@ document.addEventListener('change', e=>{
     document.getElementById('boq-item-rfq-price-row').style.display=e.target.checked?'':'none';
   }
 });
-
-// ══════════════════════════════════════════════════════════════════════════════
-// BUDGET CONTROL (בקרה תקציבית)
-// ══════════════════════════════════════════════════════════════════════════════
-
-let _budgetProjects        = [];
-let _budgetCurrentId       = null;
-let _budgetItems           = [];
-let _budgetRollup          = null;
-
-function _budFmt(n){
-  if(n==null||n===0) return '—';
-  return '₪' + Math.round(n).toLocaleString('he-IL');
-}
-function _budPct(n){
-  if(n==null) return '—';
-  const v = Math.round(n*10)/10;
-  return v+'%';
-}
-function _budMarginColor(pct){
-  if(pct>=20) return '#15803d';
-  if(pct>=10) return '#92400e';
-  if(pct<0)   return '#c53030';
-  return '#1e3a5f';
-}
-
-// ── Load & list ──────────────────────────────────────────────────────────────
-
-async function budgetRender(){
-  try {
-    const r = await fetch('/api/budget/projects');
-    _budgetProjects = r.ok ? await r.json() : [];
-  } catch(e){ console.error('[budget]',e); }
-  document.getElementById('budget-count-badge').textContent = _budgetProjects.length;
-  _budgetRenderList();
-}
-
-function _budgetRenderList(){
-  const grid = document.getElementById('budget-projects-grid');
-  if(!_budgetProjects.length){
-    grid.innerHTML='<div style="color:#a0aec0;text-align:center;padding:40px;grid-column:1/-1">אין פרויקטים — לחץ "+ פרויקט חדש" כדי להתחיל</div>';
-    return;
-  }
-  grid.innerHTML = _budgetProjects.map(p=>{
-    const ro = p.rollup || {};
-    const pct = ro.marginPct != null ? Math.round(ro.marginPct*10)/10 : null;
-    const col = pct!=null ? _budMarginColor(pct) : '#a0aec0';
-    return `<div style="background:#fff;border:1.5px solid #e2e8f0;border-radius:12px;padding:16px;cursor:pointer;transition:box-shadow .15s"
-      onmouseover="this.style.boxShadow='0 4px 16px rgba(0,0,0,.08)'" onmouseout="this.style.boxShadow=''"
-      onclick="budgetOpenProject(${p.id})">
-      <div style="font-weight:700;font-size:.95rem;color:#1e3a5f;margin-bottom:4px">${p.name}</div>
-      ${p.site?`<div style="font-size:.78rem;color:#718096;margin-bottom:6px">📍 ${p.site}</div>`:''}
-      <div style="display:flex;gap:12px;flex-wrap:wrap;margin-top:8px;font-size:.78rem">
-        <span>חוזה: <strong style="color:#1e3a5f">${ro.totalContract?'₪'+Math.round(ro.totalContract).toLocaleString('he-IL'):'—'}</strong></span>
-        <span>רווח: <strong style="color:${col}">${pct!=null?pct+'%':'—'}</strong></span>
-      </div>
-      <div style="font-size:.7rem;color:#a0aec0;margin-top:6px">${p.item_count||p.itemCount||0} פריטים · ${new Date(p.updated_at).toLocaleDateString('he-IL')}</div>
-    </div>`;
-  }).join('');
-}
-
-async function budgetOpenProject(id){
-  try {
-    const r = await fetch('/api/budget/projects/'+id);
-    if(!r.ok) throw new Error(await r.text());
-    const data = await r.json();
-    _budgetCurrentId = id;
-    _budgetItems     = data.items || [];
-    _budgetRollup    = data.rollup || {};
-  } catch(e){ _toast('שגיאה בטעינה','error'); return; }
-
-  document.getElementById('budget-list-panel').style.display   = 'none';
-  document.getElementById('budget-editor-panel').style.display = '';
-  const proj = _budgetProjects.find(p=>p.id===id) || {};
-  document.getElementById('budget-editor-title').textContent = proj.name + (proj.site?' — '+proj.site:'');
-  _budgetRenderItems();
-  _budgetRenderSummary();
-}
-
-function budgetBackToList(){
-  _budgetCurrentId = null;
-  document.getElementById('budget-editor-panel').style.display = 'none';
-  document.getElementById('budget-list-panel').style.display   = '';
-  budgetRender();
-}
-
-// ── Render items table ───────────────────────────────────────────────────────
-
-function _budgetRenderItems(){
-  const tbody = document.getElementById('budget-items-tbody');
-  if(!_budgetItems.length){
-    tbody.innerHTML=`<tr><td colspan="13" style="padding:32px;text-align:center;color:#a0aec0">
-      אין פריטים — ייבא קובץ Excel של בקרה תקציבית
-    </td></tr>`;
-    document.getElementById('bud-item-count').textContent='';
-    return;
-  }
-
-  let nonSection = 0;
-  tbody.innerHTML = _budgetItems.map(item=>{
-    if(item.is_section){
-      return `<tr style="background:#e8f0fe">
-        <td colspan="13" style="padding:7px 12px;font-weight:700;font-size:.82rem;color:#1e3a5f">${item.item_number?item.item_number+' — ':''}${item.description}</td>
-      </tr>`;
-    }
-    nonSection++;
-    const ct  = item.contract_total || 0;
-    const tc  = item.total_cost     || 0;
-    const mg  = ct - tc;
-    const pct = ct > 0 ? mg / ct * 100 : null;
-    const mgColor = pct!=null ? _budMarginColor(pct) : '#a0aec0';
-    let rowBg = '';
-    if(ct>0){
-      if(pct>=20)      rowBg='background:#f0fdf4';
-      else if(pct<0)   rowBg='background:#fff5f5';
-    }
-    return `<tr style="${rowBg};border-bottom:1px solid #f1f5f9" onmouseover="this.style.background='#f8fafc'" onmouseout="this.style.background='${rowBg||''}'">
-      <td style="padding:5px 10px;color:#718096;font-size:.76rem;white-space:nowrap">${item.item_number||''}</td>
-      <td style="padding:5px 10px;color:#1c1c1e;font-size:.8rem">${item.description}</td>
-      <td style="padding:5px 6px;text-align:center;color:#718096;font-size:.76rem">${item.unit||''}</td>
-      <td style="padding:5px 6px;text-align:center;font-size:.78rem">${item.quantity||''}</td>
-      <td style="padding:5px 8px;text-align:left;font-size:.78rem;color:#718096">${item.contract_unit_price!=null?'₪'+item.contract_unit_price:''}</td>
-      <td style="padding:5px 8px;text-align:left;font-weight:600;font-size:.8rem;color:#15803d">${ct?'₪'+Math.round(ct).toLocaleString('he-IL'):''}</td>
-      <td style="padding:5px 8px;text-align:left;font-size:.78rem;color:#718096">${item.item_cost||''}</td>
-      <td style="padding:5px 8px;text-align:left;font-weight:600;font-size:.8rem;color:#c53030">${tc?'₪'+Math.round(tc).toLocaleString('he-IL'):''}</td>
-      <td style="padding:5px 8px;text-align:left;font-weight:700;font-size:.8rem;color:${mgColor}">${ct?'₪'+Math.round(mg).toLocaleString('he-IL'):''}</td>
-      <td style="padding:5px 6px;text-align:center;font-weight:700;font-size:.8rem;color:${mgColor}">${pct!=null?Math.round(pct*10)/10+'%':''}</td>
-      <td style="padding:5px 8px;font-size:.75rem;color:#718096;max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${item.manufacturer||''}">${item.manufacturer||''}</td>
-      <td style="padding:5px 8px;font-size:.75rem;color:#718096;max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${item.model||''}">${item.model||''}</td>
-      <td style="padding:5px 8px;font-size:.75rem;color:#a0aec0">${item.sku||''}</td>
-    </tr>`;
-  }).join('');
-  document.getElementById('bud-item-count').textContent = nonSection+' פריטים';
-}
-
-function _budgetRenderSummary(){
-  const ro = _budgetRollup || {};
-  const mgColor = ro.marginPct!=null ? _budMarginColor(ro.marginPct) : '#15803d';
-  document.getElementById('bud-total-contract').textContent = _budFmt(ro.totalContract);
-  document.getElementById('bud-total-cost').textContent     = _budFmt(ro.totalCost);
-  document.getElementById('bud-total-margin').style.color   = mgColor;
-  document.getElementById('bud-total-margin').textContent   = _budFmt(ro.margin);
-  document.getElementById('bud-total-pct').style.color      = mgColor;
-  document.getElementById('bud-total-pct').textContent      = ro.marginPct!=null ? _budPct(ro.marginPct) : '—';
-}
-
-async function _budgetReload(){
-  if(!_budgetCurrentId) return;
-  try {
-    const r = await fetch('/api/budget/projects/'+_budgetCurrentId);
-    if(!r.ok) return;
-    const data = await r.json();
-    _budgetItems  = data.items  || [];
-    _budgetRollup = data.rollup || {};
-  } catch{}
-  _budgetRenderItems();
-  _budgetRenderSummary();
-}
-
-// ── New project ──────────────────────────────────────────────────────────────
-
-function budgetOpenNew(){
-  document.getElementById('budget-new-name').value = '';
-  document.getElementById('budget-new-site').value = '';
-  document.getElementById('budget-new-err').textContent = '';
-  document.getElementById('budget-new-overlay').style.display = 'flex';
-  setTimeout(()=>document.getElementById('budget-new-name').focus(), 50);
-}
-function budgetCloseNew(){ document.getElementById('budget-new-overlay').style.display='none'; }
-
-async function budgetSubmitNew(){
-  const name = document.getElementById('budget-new-name').value.trim();
-  const site = document.getElementById('budget-new-site').value.trim();
-  if(!name){ document.getElementById('budget-new-err').textContent='נדרש שם'; return; }
-  try {
-    const r = await fetch('/api/budget/projects',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name,site})});
-    const j = await r.json();
-    if(!r.ok) throw new Error(j.error);
-    budgetCloseNew();
-    await budgetRender();
-    budgetOpenProject(j.id);
-  } catch(e){ document.getElementById('budget-new-err').textContent=e.message; }
-}
-
-// ── Import ───────────────────────────────────────────────────────────────────
-
-function budgetOpenImport(){
-  document.getElementById('budget-import-file').value = '';
-  document.getElementById('budget-import-err').textContent = '';
-  document.getElementById('budget-import-btn').disabled = false;
-  document.getElementById('budget-import-btn').textContent = '📥 ייבא';
-  document.getElementById('budget-import-overlay').style.display = 'flex';
-}
-function budgetCloseImport(){ document.getElementById('budget-import-overlay').style.display='none'; }
-
-async function budgetDoImport(){
-  const file = document.getElementById('budget-import-file').files[0];
-  if(!file){ document.getElementById('budget-import-err').textContent='בחר קובץ'; return; }
-  const btn = document.getElementById('budget-import-btn');
-  btn.disabled = true; btn.textContent = 'מייבא...';
-  try {
-    const fd = new FormData(); fd.append('file', file);
-    const r = await fetch('/api/budget/projects/'+_budgetCurrentId+'/import/xlsx',{method:'POST',body:fd});
-    const j = await r.json();
-    if(!r.ok) throw new Error(j.error);
-    budgetCloseImport();
-    const warn = j.warnings?.length ? ' ('+j.warnings.join('; ')+')' : '';
-    _toast('יובאו '+j.insertedCount+' פריטים'+warn,'success',4000);
-    await _budgetReload();
-  } catch(e){ document.getElementById('budget-import-err').textContent=e.message; }
-  finally { btn.disabled=false; btn.textContent='📥 ייבא'; }
-}
-
-async function budgetClearItems(){
-  if(!_budgetCurrentId) return;
-  if(!await _confirm('למחוק את כל הפריטים בפרויקט?',{title:'ניקוי פרויקט',ok:'מחק הכל',type:'delete'})) return;
-  try {
-    await fetch('/api/budget/projects/'+_budgetCurrentId+'/items',{method:'DELETE'});
-    await _budgetReload();
-    _toast('כל הפריטים נמחקו','success');
-  } catch(e){ _toast('שגיאה','error'); }
-}
-
-// ── Export ───────────────────────────────────────────────────────────────────
-
-async function budgetExportXlsx(){
-  if(!_budgetCurrentId) return;
-  try {
-    const r = await fetch('/api/budget/projects/'+_budgetCurrentId+'/export/xlsx');
-    if(!r.ok) throw new Error(await r.text());
-    const blob = await r.blob();
-    const url  = URL.createObjectURL(blob);
-    const a    = document.createElement('a'); a.href=url;
-    const proj = _budgetProjects.find(p=>p.id===_budgetCurrentId);
-    a.download = (proj?.name||'Budget')+'.xlsx';
-    a.click(); URL.revokeObjectURL(url);
-  } catch(e){ _toast('שגיאה בייצוא: '+e.message,'error'); }
-}
-
 
 // ══════════════════════════════════════════════════════════════════════════════
 // ── ORDERS MODULE (הזמנות נכנסות) ────────────────────────────────────────────
