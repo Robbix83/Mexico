@@ -381,6 +381,30 @@ try {
 
 // Migration: add contract_unit_price to boq_items
 try { db.exec("ALTER TABLE boq_items ADD COLUMN contract_unit_price REAL"); } catch(e) {}
+// Migration: add city to boq_component_templates (city-specific template filtering)
+try { db.exec("ALTER TABLE boq_component_templates ADD COLUMN city TEXT"); } catch(e) {}
+// Migration: add manufacturer + model to boq_items (Netanya / extended format)
+try { db.exec("ALTER TABLE boq_items ADD COLUMN manufacturer TEXT"); } catch(e) {}
+try { db.exec("ALTER TABLE boq_items ADD COLUMN model        TEXT"); } catch(e) {}
+
+// Migration: order_invoices — multiple invoices per order
+try {
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS order_invoices (
+      id               INTEGER PRIMARY KEY AUTOINCREMENT,
+      order_id         INTEGER NOT NULL REFERENCES orders(id) ON DELETE CASCADE,
+      invoice_number   TEXT,
+      invoice_date     TEXT,
+      description      TEXT,
+      amount_pre_vat   REAL,
+      amount_with_vat  REAL,
+      file_path        TEXT,
+      original_name    TEXT,
+      created_at       TEXT NOT NULL DEFAULT (datetime('now'))
+    );
+    CREATE INDEX IF NOT EXISTS idx_order_invoices_order ON order_invoices(order_id);
+  `);
+} catch(e) {}
 
 // Seed admin user from env vars if no users exist
 const userCount = db.prepare('SELECT COUNT(*) as n FROM users').get().n;
@@ -601,9 +625,10 @@ const stmts = {
 
   // BOQ: Component templates
   listBoqTemplates:   db.prepare('SELECT * FROM boq_component_templates ORDER BY is_system DESC, name ASC'),
-  getBoqTemplate:     db.prepare('SELECT * FROM boq_component_templates WHERE id = ?'),
-  createBoqTemplate:  db.prepare('INSERT INTO boq_component_templates (name, keywords_json, components_json, is_system) VALUES (?,?,?,?)'),
-  updateBoqTemplate:  db.prepare("UPDATE boq_component_templates SET name=?, keywords_json=?, components_json=?, updated_at=datetime('now') WHERE id=?"),
+  getBoqTemplate:       db.prepare('SELECT * FROM boq_component_templates WHERE id = ?'),
+  getBoqTemplateByName: db.prepare('SELECT * FROM boq_component_templates WHERE name = ?'),
+  createBoqTemplate:    db.prepare('INSERT INTO boq_component_templates (name, keywords_json, components_json, is_system, city) VALUES (?,?,?,?,?)'),
+  updateBoqTemplate:    db.prepare("UPDATE boq_component_templates SET name=?, keywords_json=?, components_json=?, city=?, updated_at=datetime('now') WHERE id=?"),
   deleteBoqTemplate:  db.prepare('DELETE FROM boq_component_templates WHERE id = ? AND is_system = 0'),
   countBoqTemplates:  db.prepare('SELECT COUNT(*) AS n FROM boq_component_templates'),
 
@@ -618,11 +643,12 @@ const stmts = {
   listBoqItems:       db.prepare('SELECT * FROM boq_items WHERE project_id = ? ORDER BY sort_order ASC, id ASC'),
   getBoqItem:         db.prepare('SELECT * FROM boq_items WHERE id = ?'),
   createBoqItem:      db.prepare(`INSERT INTO boq_items
-    (project_id,item_number,parent_number,description,unit,quantity,is_rfq,rfq_vendor,rfq_notes,sort_order,is_section,template_id,notes,contract_unit_price)
-    VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)`),
+    (project_id,item_number,parent_number,description,unit,quantity,is_rfq,rfq_vendor,rfq_notes,sort_order,is_section,template_id,notes,contract_unit_price,manufacturer,model)
+    VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`),
   updateBoqItem:      db.prepare(`UPDATE boq_items SET
     item_number=?,parent_number=?,description=?,unit=?,quantity=?,
     is_rfq=?,rfq_vendor=?,rfq_notes=?,rfq_price_ils=?,is_section=?,notes=?,contract_unit_price=?,
+    manufacturer=?,model=?,
     updated_at=datetime('now') WHERE id=?`),
   updateBoqItemContractPrice: db.prepare("UPDATE boq_items SET contract_unit_price=?,updated_at=datetime('now') WHERE id=?"),
   updateBoqItemRfqPrice: db.prepare("UPDATE boq_items SET rfq_price_ils=?,updated_at=datetime('now') WHERE id=?"),
@@ -695,6 +721,14 @@ const stmts = {
     invoice_file_path=?, invoice_original_name=?, invoice_date=?, invoice_number=?,
     is_invoiced=1, updated_at=datetime('now') WHERE id=?`),
   deleteOrder:          db.prepare('DELETE FROM orders WHERE id = ?'),
+
+  // order_invoices (multi-invoice per order)
+  listOrderInvoices:   db.prepare('SELECT * FROM order_invoices WHERE order_id = ? ORDER BY created_at ASC'),
+  getOrderInvoice:     db.prepare('SELECT * FROM order_invoices WHERE id = ?'),
+  createOrderInvoice:  db.prepare(`INSERT INTO order_invoices
+    (order_id, invoice_number, invoice_date, description, amount_pre_vat, amount_with_vat, file_path, original_name)
+    VALUES (?,?,?,?,?,?,?,?)`),
+  deleteOrderInvoice:  db.prepare('DELETE FROM order_invoices WHERE id = ?'),
 };
 
 module.exports = {
@@ -860,11 +894,12 @@ module.exports = {
 
   // BOQ: Component templates
   listBoqTemplates:  () => stmts.listBoqTemplates.all(),
-  getBoqTemplate:    (id) => stmts.getBoqTemplate.get(id),
-  createBoqTemplate: ({ name, keywordsJson, componentsJson, isSystem }) =>
-    stmts.createBoqTemplate.run(name, keywordsJson || '[]', componentsJson || '[]', isSystem ? 1 : 0),
-  updateBoqTemplate: (id, { name, keywordsJson, componentsJson }) =>
-    stmts.updateBoqTemplate.run(name, keywordsJson || '[]', componentsJson || '[]', id),
+  getBoqTemplate:       (id)   => stmts.getBoqTemplate.get(id),
+  getBoqTemplateByName: (name) => stmts.getBoqTemplateByName.get(name),
+  createBoqTemplate: ({ name, keywordsJson, componentsJson, isSystem, city }) =>
+    stmts.createBoqTemplate.run(name, keywordsJson || '[]', componentsJson || '[]', isSystem ? 1 : 0, city || null),
+  updateBoqTemplate: (id, { name, keywordsJson, componentsJson, city }) =>
+    stmts.updateBoqTemplate.run(name, keywordsJson || '[]', componentsJson || '[]', city || null, id),
   deleteBoqTemplate: (id) => stmts.deleteBoqTemplate.run(id),
   countBoqTemplates: () => stmts.countBoqTemplates.get().n,
 
@@ -885,7 +920,8 @@ module.exports = {
     opts.description, opts.unit || null, opts.quantity || 0,
     opts.isRfq ? 1 : 0, opts.rfqVendor || null, opts.rfqNotes || null,
     opts.sortOrder || 0, opts.isSection ? 1 : 0, opts.templateId || null, opts.notes || null,
-    opts.contractUnitPrice != null ? opts.contractUnitPrice : null
+    opts.contractUnitPrice != null ? opts.contractUnitPrice : null,
+    opts.manufacturer || null, opts.model || null
   ),
   updateBoqItem:  (id, opts) => stmts.updateBoqItem.run(
     opts.itemNumber || null, opts.parentNumber || null, opts.description,
@@ -894,6 +930,7 @@ module.exports = {
     opts.rfqPriceIls != null ? opts.rfqPriceIls : null,
     opts.isSection ? 1 : 0, opts.notes || null,
     opts.contractUnitPrice != null ? opts.contractUnitPrice : null,
+    opts.manufacturer || null, opts.model || null,
     id
   ),
   updateBoqItemContractPrice: (id, price) => stmts.updateBoqItemContractPrice.run(price != null ? price : null, id),
@@ -985,4 +1022,13 @@ module.exports = {
     stmts.updateOrderInvoice.run(invoiceFilePath||null, invoiceOriginalName||null,
       invoiceDate||null, invoiceNumber||null, id),
   deleteOrder:  (id) => stmts.deleteOrder.run(id),
+
+  // order_invoices
+  listOrderInvoices:  (orderId) => stmts.listOrderInvoices.all(orderId),
+  getOrderInvoice:    (id)      => stmts.getOrderInvoice.get(id),
+  createOrderInvoice: ({ orderId, invoiceNumber, invoiceDate, description, amountPreVat, amountWithVat, filePath, originalName }) =>
+    stmts.createOrderInvoice.run(orderId, invoiceNumber||null, invoiceDate||null, description||null,
+      amountPreVat!=null?amountPreVat:null, amountWithVat!=null?amountWithVat:null,
+      filePath||null, originalName||null),
+  deleteOrderInvoice: (id) => stmts.deleteOrderInvoice.run(id),
 };

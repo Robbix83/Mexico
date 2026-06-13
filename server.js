@@ -2901,6 +2901,57 @@ const EXTRACT_PROMPT = `אתה מנתח הזמנות רכש ישראליות. ח
 // ── Helper: parse line items from the work items section ─────────────────────
 
 
+function parseNetanyaOrderItems(rawText) {
+  const text = rawText.replace(/[-]/g, '');
+  const items = [];
+  const ROW_HDR = '\u05E9\u05D5\u05E8\u05D4\n';
+  const secStart = text.indexOf(ROW_HDR);
+  if (secStart === -1) return items;
+  const section = text.slice(secStart + ROW_HDR.length);
+  const lines = section.split('\n').map(l => l.trim()).filter(Boolean);
+
+  // Format A: desc + numbers on one line \u2014 "\u05E4\u05E8\u05D5\u05D9\u05D9\u05E7\u05D8 \u05D4\u05EA\u05E7\u05E0\u05EA \u05DE\u05E6\u05DC\u05DE\u05D5\u05EA50,198.0050,198.001"
+  const oneLinePat = /^(.+?)([\d,]+\.\d{2})([\d,]+\.\d{2})(\d+)$/;
+  // Format B: numbers-only line, desc on preceding lines \u2014 "42,400.0042,400.001"
+  const numLinePat = /^([\d,]+\.\d{2})([\d,]+\.\d{2})(\d+)$/;
+
+  let descLines = [];
+  for (const line of lines) {
+    if (/\u05D9\u05D7\u05D9\u05D3\u05D4 \u05DE\u05E7\u05D1\u05DC\u05EA\s*:/.test(line)) break;
+    if (/\u05E1\u05D4.{0,3}\u05DB/.test(line)) break;
+
+    // numLinePat first \u2014 pure-number lines must not fall through to oneLinePat
+    const mB = line.match(numLinePat);
+    if (mB) {
+      const total = parseFloat(mB[1].replace(/,/g, ''));
+      const unit_price = parseFloat(mB[2].replace(/,/g, ''));
+      const desc = descLines.join(' ').trim().slice(0, 300);
+      if (desc && total > 0) {
+        items.push({ description: desc, qty: 1, unit: null, total,
+                     unit_price: unit_price !== total ? unit_price : null });
+      }
+      descLines = [];
+      continue;
+    }
+
+    const mA = line.match(oneLinePat);
+    if (mA) {
+      const desc = mA[1].trim();
+      const total = parseFloat(mA[2].replace(/,/g, ''));
+      const unit_price = parseFloat(mA[3].replace(/,/g, ''));
+      if (desc && total > 0) {
+        items.push({ description: desc, qty: 1, unit: null, total,
+                     unit_price: unit_price !== total ? unit_price : null });
+      }
+      descLines = [];
+      continue;
+    }
+
+    descLines.push(line);
+  }
+  return items;
+}
+
 function parseOrderItems(rawText) {
   // Remove PUA chars, normalise inline whitespace (keep newlines for line splitting)
   const text = rawText.replace(/[-]/g, '').replace(/[ \t]+/g, ' ');
@@ -3027,6 +3078,7 @@ async function extractOrderFromPdf(buffer) {
   // ── Order number ──────────────────────────────────────────────────────
   let order_number = null;
   const onMatch =
+    flat.match(/\u05D4\u05D6\u05DE\u05E0\u05EA \u05E2\u05D1\u05D5\u05D3\u05D4 \/ \u05E7\u05D1\u05DC\u05E0\u05D9\u05EA\s*:\s*(\d+)/) ||
     flat.match(/\u05D4\u05D6\u05DE\u05E0\u05EA \u05E2\u05D1\u05D5\u05D3\u05D4 \u05DE\u05E1'? ?(\d+)/) ||
     flat.match(/\u05DE\u05E1' \u05D4\u05D6\u05DE\u05E0\u05D4 (\d+)/i) ||
     flat.match(/purchase order #? ?([\d\-\/]+)/i) ||
@@ -3051,13 +3103,18 @@ async function extractOrderFromPdf(buffer) {
 
   // ── Ordering entity ───────────────────────────────────────────────────
   let ordering_entity = null;
+  // Netanya: city name appears as standalone line before שנת תקציב
+  const cityLineMatch = cleanText.match(/\n([\u05D0-\u05EA]{2,20})\n\d{4}\u05E9\u05E0\u05EA\s*\u05EA\u05E7\u05E6\u05D9\u05D1/);
   const entityMatch =
-    flat.match(/(\u05E2\u05D9\u05E8\u05D9\u05D9\u05EA [^\d,]{3,35})/) ||
+    flat.match(/(\u05E2\u05D9\u05E8\u05D9\u05D9\u05EA [\u05D0-\u05EA ]{2,20})/) ||
     flat.match(/(\u05DE\u05D5\u05E2\u05E6\u05D4 [^\d,]{3,35})/) ||
     flat.match(/(?:\u05DC\u05DB\u05D1\u05D5\u05D3 )([^\n\r,]{3,50})/);
-  if (entityMatch) {
+  if (cityLineMatch) {
+    ordering_entity = '\u05E2\u05D9\u05E8\u05D9\u05D9\u05EA ' + cityLineMatch[1].trim();
+  } else if (entityMatch) {
     ordering_entity = entityMatch[1].trim()
       .replace(/\s+(?:\u05D8\u05DC\u05E4\u05D5\u05DF|\u05E4\u05E7\u05E1|\u05DE\u05E1'|\u05DB\u05EA\u05D5\u05D1\u05EA).*$/i, '')
+      .replace(/\s+https?:\/\/\S+|\s+www\.\S+/gi, '')
       .replace(/\s+/g, ' ').trim().slice(0, 60);
   } else {
     const ls = flat.split(' ');
@@ -3070,9 +3127,10 @@ async function extractOrderFromPdf(buffer) {
   // Match "סה"כ לפני מע"מ 160,402.20" in various quote styles
   const amtMatch =
     flat.match(/\u05E1\u05D4.{0,5}\u05DB.{0,15}\u05DE\u05E2.{0,5}\u05DE\s*([\d,]+\.\d{2})/) ||
+    flat.match(/([\d,]+\.\d{2})\s*\u05E1\u05D4.{0,5}\u05DB\s*\u05DC\u05E4\u05E0\u05D9\s*\u05DE\u05E2/) ||
     flat.match(/(?:subtotal|net amount)\s*([\d,]+\.\d{2})/i);
   if (amtMatch) {
-    const num = parseFloat(amtMatch[1].replace(/,/g, ''));
+    const num = parseFloat((amtMatch[1] || amtMatch[2] || '').replace(/,/g, ''));
     if (!isNaN(num) && num > 0) amount_pre_vat = num;
   }
 
@@ -3080,19 +3138,26 @@ async function extractOrderFromPdf(buffer) {
   // In RTL-extracted PDFs the label can appear reversed as "ור:" — match both.
   let description = null;
   {
-    // cleanText preserves newlines so [^\n] correctly stops at line boundary
-    const vorPat = new RegExp("\u05D5\u05E8:\\s*([^\n\r]{3,180})");
-    const taorPat = new RegExp("\u05EA\u05D0\u05D5\u05E8\\s*:\\s*([^\n\r]{3,180})");
+    // Netanya: description between \u05E4\u05E8\u05D8\u05D9 \u05D9\u05D7\u05D9\u05D3\u05D4 \u05DE\u05D6\u05DE\u05D9\u05E0\u05D4 and \u05D4\u05E2\u05E8\u05D5\u05EA
+    const netDescMatch = cleanText.match(/\u05E4\u05E8\u05D8\u05D9 \u05D9\u05D7\u05D9\u05D3\u05D4 \u05DE\u05D6\u05DE\u05D9\u05E0\u05D4\n([\s\S]+?)\n\u05D4\u05E2\u05E8\u05D5\u05EA/);
+    // Bat Yam / standard: \u05EA\u05D0\u05D5\u05E8: label, possibly reversed to \u05D5\u05E8:
+    const vorPat  = new RegExp("\u05D5\u05E8:\s*([^\n\r]{3,180})");
+    const taorPat = new RegExp("\u05EA\u05D0\u05D5\u05E8\s*:\s*([^\n\r]{3,180})");
     const descMatch = cleanText.match(vorPat) || cleanText.match(taorPat);
-    if (descMatch) {
+    if (netDescMatch) {
+      description = netDescMatch[1].replace(/\n/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 300);
+    } else if (descMatch) {
       description = descMatch[1]
-        .replace(new RegExp("\u05EA\u05D0\\s*$"), "")   // strip stray תא artifact
+        .replace(new RegExp("\u05EA\u05D0\s*$"), "")   // strip stray תא artifact
         .replace(/\s+/g, " ").trim().slice(0, 180);
     }
   }
 
+
     // ── Line items ─────────────────────────────────────────────────────────
-  const items = parseOrderItems(rawText);
+  // Detect format: Netanya uses '/ קבלנית' pattern, Bat Yam uses 'רשימת פריטי העבודה'
+  const items = /הזמנת עבודה \/ קבלנית/.test(flat)
+    ? parseNetanyaOrderItems(rawText) : parseOrderItems(rawText);
 
   return { order_number, order_date, ordering_entity, description, amount_pre_vat, currency: 'ILS', items };
 }
@@ -3149,7 +3214,10 @@ app.delete('/api/orders/projects/:id', requireSection('orders'), (req, res) => {
 app.get('/api/orders/projects/:id', requireSection('orders'), (req, res) => {
   const project = db.getOrderProject(parseInt(req.params.id));
   if (!project) return res.status(404).json({ error: 'Not found' });
-  const orders = db.listOrders(project.id);
+  const orders = db.listOrders(project.id).map(o => ({
+    ...o,
+    invoices: db.listOrderInvoices(o.id)
+  }));
   res.json({ project, orders });
 });
 
@@ -3235,7 +3303,148 @@ app.delete('/api/orders/:id', requireSection('orders'), (req, res) => {
   res.json({ ok: true });
 });
 
-// Attach invoice to order
+// ── Invoice PDF extraction ────────────────────────────────────────────────────
+async function extractInvoiceFromPdf(buffer) {
+  try {
+    const data = await pdfParse(buffer);
+    const raw  = data.text;
+    const flat = raw.replace(/\r?\n/g, ' ');
+
+    // Invoice number — e.g. "SI432500241"
+    let invoice_number = null;
+    const invM = flat.match(/\b([A-Z]{1,3}\d{5,})\b/);
+    if (invM) invoice_number = invM[1];
+
+    // Invoice date — appears before label in RTL: "18/05/25תאריך חשבונית"
+    let invoice_date = null;
+    const dateM = flat.match(/(\d{2}\/\d{2}\/\d{2,4})\s*תאריך חשבונית/) ||
+                  flat.match(/תאריך חשבונית[:\s]+(\d{2}\/\d{2}\/\d{2,4})/);
+    if (dateM) {
+      const p = dateM[1].split('/');
+      const y = p[2].length === 2 ? '20' + p[2] : p[2];
+      invoice_date = `${y}-${p[1].padStart(2,'0')}-${p[0].padStart(2,'0')}`;
+    }
+
+    // Description — item line after "תאור מוצר" header
+    let description = null;
+    const hdrIdx = raw.indexOf('תאור מוצר');
+    if (hdrIdx >= 0) {
+      const afterHdr = raw.slice(hdrIdx + 'תאור מוצר'.length + 1);
+      const itemLine = afterHdr.split('\n').find(l => /[\d,]+\.\d{2}/.test(l) && /[א-ת]/.test(l)) || '';
+      const descM = itemLine.match(/[\d,]+\.\d{2}\s*ש.{0,2}ח[\d,]+\.\d{2}\s*שח[\d.]+(.+?)\d*\s*$/);
+      if (descM) description = descM[1].trim();
+      else {
+        const heM = itemLine.match(/[א-ת][א-ת\s,"'"-]+/);
+        if (heM) description = heM[0].trim().slice(0, 200);
+      }
+    }
+
+    // Amount pre-VAT — "91,180.30מחיר כולל" (number before label in RTL)
+    let amount_pre_vat = null;
+    const preM = flat.match(/([\d,]+\.\d{2})\s*מחיר כולל/) ||
+                 flat.match(/מחיר כולל\s*([\d,]+\.\d{2})/);
+    if (preM) amount_pre_vat = parseFloat(preM[1].replace(/,/g, ''));
+
+    // Amount with VAT — "ש\"ח107,592.75סה\"כ מחיר"
+    let amount_with_vat = null;
+    const totM = flat.match(/ש.{0,2}ח\s*([\d,]+\.\d{2})\s*סה.{0,2}כ מחיר/) ||
+                 flat.match(/סה.{0,2}כ מחיר\s*ש.{0,2}ח\s*([\d,]+\.\d{2})/);
+    if (totM) amount_with_vat = parseFloat(totM[1].replace(/,/g, ''));
+
+    return { invoice_number, invoice_date, description, amount_pre_vat, amount_with_vat };
+  } catch (e) {
+    return { invoice_number: null, invoice_date: null, description: null, amount_pre_vat: null, amount_with_vat: null };
+  }
+}
+
+// ── Multi-invoice endpoints ───────────────────────────────────────────────────
+
+// Extract only (no save) — called when user picks a file before confirming
+app.post('/api/orders/:id/invoices/extract', requireSection('orders'),
+  invoiceUpload.single('file'),
+  async (req, res) => {
+    if (!req.file) return res.status(400).json({ error: 'קובץ נדרש' });
+    try {
+      let extracted = { invoice_number: null, invoice_date: null, description: null, amount_pre_vat: null, amount_with_vat: null };
+      if (/\.pdf$/i.test(req.file.originalname)) {
+        const buf = fs.readFileSync(req.file.path);
+        extracted = await extractInvoiceFromPdf(buf);
+      }
+      // Keep file in staging — client will POST /invoices with stagingPath to finalize
+      res.json({ ...extracted, stagingPath: req.file.path, originalName: Buffer.from(req.file.originalname,'latin1').toString('utf8') });
+    } catch (e) {
+      try { fs.unlinkSync(req.file.path); } catch (_) {}
+      res.status(500).json({ error: e.message });
+    }
+  }
+);
+
+// Save invoice (with already-staged file or no file)
+app.post('/api/orders/:id/invoices', requireSection('orders'), express.json(), async (req, res) => {
+  const order = db.getOrder(parseInt(req.params.id));
+  if (!order) return res.status(404).json({ error: 'Not found' });
+  const { invoiceNumber, invoiceDate, description, amountPreVat, amountWithVat, stagingPath, originalName } = req.body;
+
+  let filePath = null, origName = null;
+  if (stagingPath && fs.existsSync(stagingPath)) {
+    const ext = path.extname(originalName || stagingPath).toLowerCase();
+    const stored = uuidv4() + ext;
+    const dest = path.join(INVOICE_STORAGE_DIR, stored);
+    fs.renameSync(stagingPath, dest);
+    filePath = dest;
+    origName = originalName || path.basename(stagingPath);
+  }
+
+  const inv = db.createOrderInvoice({
+    orderId: order.id,
+    invoiceNumber: invoiceNumber || null,
+    invoiceDate: invoiceDate || null,
+    description: description || null,
+    amountPreVat: amountPreVat != null ? parseFloat(amountPreVat) : null,
+    amountWithVat: amountWithVat != null ? parseFloat(amountWithVat) : null,
+    filePath,
+    originalName: origName
+  });
+  // Mark order as invoiced — targeted update only, don't touch other fields
+  db.db.prepare("UPDATE orders SET is_invoiced=1, updated_at=datetime('now') WHERE id=?").run(order.id);
+  res.json({ ok: true, id: inv.lastInsertRowid });
+});
+
+// List invoices for order
+app.get('/api/orders/:id/invoices', requireSection('orders'), (req, res) => {
+  const order = db.getOrder(parseInt(req.params.id));
+  if (!order) return res.status(404).json({ error: 'Not found' });
+  res.json(db.listOrderInvoices(order.id));
+});
+
+// Download invoice file
+app.get('/api/orders/:id/invoices/:invId/file', requireSection('orders'), (req, res) => {
+  const inv = db.getOrderInvoice(parseInt(req.params.invId));
+  if (!inv || parseInt(inv.order_id) !== parseInt(req.params.id)) return res.status(404).send('Not found');
+  if (!inv.file_path || !fs.existsSync(inv.file_path)) return res.status(404).send('File not found');
+  const ext = path.extname(inv.original_name || inv.file_path).toLowerCase();
+  const mime = ext === '.pdf' ? 'application/pdf' : ext === '.png' ? 'image/png' : 'image/jpeg';
+  res.setHeader('Content-Type', mime);
+  res.setHeader('Content-Disposition', `inline; filename="${encodeURIComponent(inv.original_name || 'invoice')}"`);
+  fs.createReadStream(inv.file_path).pipe(res);
+});
+
+// Delete invoice
+app.delete('/api/orders/:id/invoices/:invId', requireSection('orders'), (req, res) => {
+  const inv = db.getOrderInvoice(parseInt(req.params.invId));
+  if (!inv || parseInt(inv.order_id) !== parseInt(req.params.id)) return res.status(404).json({ error: 'Not found' });
+  if (inv.file_path) try { fs.unlinkSync(inv.file_path); } catch (_) {}
+  db.deleteOrderInvoice(inv.id);
+  // If no more invoices, unmark is_invoiced
+  const remaining = db.listOrderInvoices(parseInt(req.params.id));
+  if (remaining.length === 0) {
+    const order = db.getOrder(parseInt(req.params.id));
+    if (order) db.updateOrder(order.id, { ...order, isInvoiced: false });
+  }
+  res.json({ ok: true });
+});
+
+// Attach invoice to order (legacy single-invoice — kept for compat)
 app.post('/api/orders/:id/invoice', requireSection('orders'),
   invoiceUpload.single('file'),
   (req, res) => {

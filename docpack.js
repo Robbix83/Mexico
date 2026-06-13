@@ -267,8 +267,8 @@ function searchDatasheets(query, limit = 10, categoryHint = null) {
   }));
 }
 
-// Re-index every 5 min so PDFs added later are discovered without a restart
-setInterval(() => { try { buildDatasheetIndex(); } catch (e) { /* swallow */ } }, 5 * 60 * 1000).unref?.();
+// Index is built on first use (lazily via ensureDsIndex) and can be force-refreshed
+// via POST /api/datasheets/reindex — no automatic background polling.
 
 /**
  * imageModuleOpts() — returns options object for docxtemplater-image-module-free.

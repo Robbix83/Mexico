@@ -12,7 +12,7 @@ const SYSTEM_TEMPLATES = [
     components: [
       { key: 'unit_supply',   label: 'אספקת מצלמה',       unitPrice: 0, currency: 'USD', quantity: 1,  formula: null,          sort: 0 },
       { key: 'labor_install', label: 'התקנה וחיווט',       unitPrice: 0, currency: 'ILS', quantity: 1,  formula: null,          sort: 1 },
-      { key: 'cable_cat6',    label: 'כבל CAT6 (למ"א)',    unitPrice: 0, currency: 'ILS', quantity: 15, formula: 'item_qty*15', sort: 2 },
+      { key: 'cable_cat6',    label: 'כבל CAT6 (למ"א)',    unitPrice: 0, currency: 'ILS', quantity: 65, formula: 'item_qty*65', sort: 2 },
       { key: 'final_connect', label: 'חיבור סופי ובדיקה', unitPrice: 0, currency: 'ILS', quantity: 1,  formula: null,          sort: 3 },
     ],
   },
@@ -62,21 +62,39 @@ const SYSTEM_TEMPLATES = [
 ];
 
 function seedSystemTemplates() {
-  const count = db.countBoqTemplates();
-  if (count > 0) return;
+  let created = 0, updated = 0;
   for (const t of SYSTEM_TEMPLATES) {
     const comps = t.components.map(c => ({
       key: c.key, label: c.label, unitPrice: c.unitPrice,
       currency: c.currency, quantity: c.quantity, formula: c.formula, sort: c.sort,
     }));
-    db.createBoqTemplate({
-      name: t.name,
-      keywordsJson: JSON.stringify(t.keywords),
-      componentsJson: JSON.stringify(comps),
-      isSystem: true,
-    });
+    const existing = db.getBoqTemplateByName(t.name);
+    if (existing) {
+      // Refresh system-template components from code (keeps user edits to keywords)
+      db.updateBoqTemplate(existing.id, {
+        name: t.name,
+        keywordsJson: JSON.stringify(t.keywords),
+        componentsJson: JSON.stringify(comps),
+      });
+      updated++;
+    } else {
+      db.createBoqTemplate({
+        name: t.name,
+        keywordsJson: JSON.stringify(t.keywords),
+        componentsJson: JSON.stringify(comps),
+        isSystem: true,
+      });
+      created++;
+    }
   }
-  console.log('[boq] seeded', SYSTEM_TEMPLATES.length, 'system templates');
+  // One-time patch: update any boq_components rows that still reference the old cable formula
+  try {
+    db.db.prepare(
+      `UPDATE boq_components SET quantity_formula = 'item_qty*65'
+       WHERE component_key = 'cable_cat6' AND (quantity_formula = 'item_qty*15' OR quantity_formula IS NULL)`
+    ).run();
+  } catch { /* ignore if column missing */ }
+  if (created || updated) console.log(`[boq] system templates — created: ${created}, updated: ${updated}`);
 }
 
 // ── Template matching ──────────────────────────────────────────────────────────
@@ -119,17 +137,21 @@ function matchTemplate(description) {
 // ── Excel / CSV parsing ────────────────────────────────────────────────────────
 
 const HEADER_KEYWORDS = {
-  itemNumber:  { words: ['סעיף', 'מס', 'item', 'no', '#', 'מספר', 'number', 'מסד'],                   score: 3 },
-  description: { words: ['תיאור', 'תאור', 'פריט נדרש', 'פריט', 'description', 'item name', 'עבודה', 'מרכיבי משנה', 'מרכיב'], score: 3 },
-  unit:        { words: ['יחידה', 'יח', 'unit', 'מידה'],                                               score: 2 },
-  quantity:    { words: ['כמות', 'qty', 'quantity', 'כמ'],                                             score: 2 },
+  itemNumber:   { words: ['סעיף', 'מס', 'item', 'no', '#', 'מספר', 'number', 'מסד'],                    score: 3 },
+  description:  { words: ['תיאור', 'תאור', 'פריט נדרש', 'פריט', 'פרט', 'description', 'item name', 'עבודה', 'מרכיבי משנה', 'מרכיב'], score: 3 },
+  unit:         { words: ['יחידה', 'יח', 'unit', 'מידה'],                                                score: 2 },
+  quantity:     { words: ['כמות', 'qty', 'quantity', 'כמ'],                                              score: 2 },
   // NOTE: "עלות" intentionally removed — too broad, collides with "עלות פריט" (budget cost column).
-  // Use specific Hebrew price keywords only.
-  unitPrice:   { words: ['מחיר יחידה', 'מחיר יח', 'מחיר', 'price', 'cost', 'תעריף'],                 score: 2 },
-  // Budget-control columns ("עלות פריט", "סה"כ עלות" etc.) — longer keywords win over "עלות" in unitPrice,
-  // so they map here (total) and are ignored during BOQ import.
-  total:       { words: ['עלות פריט', 'עלות כוללת', 'סהכ עלות', 'סה"כ עלות', 'סהכ עלויות',
-                          'סה"כ', 'סהכ', 'total', 'סכום', 'amount', 'סך מחיר'],                       score: 1 },
+  // 'לאחר הנחה' added for Netanya format ("מחיר ללקוח לאחר הנחה לפני מעמ").
+  unitPrice:    { words: ['מחיר יחידה', 'מחיר יח', 'מחיר ליח', 'לאחר הנחה', 'מחיר', 'price', 'cost', 'תעריף'], score: 2 },
+  // 'סהכ מחיר' / 'סה"כ מחיר' added BEFORE 'מחיר' so the longer keyword wins (prevents
+  // the total-price column from being mis-claimed by the unitPrice 'מחיר' keyword).
+  total:        { words: ['עלות פריט', 'עלות כוללת', 'סהכ עלות', 'סה"כ עלות', 'סהכ עלויות',
+                           'סה"כ מחיר', 'סהכ מחיר', 'סה"כ', 'סהכ', 'total', 'סכום', 'amount', 'סך מחיר'], score: 1 },
+  // Extended fields — Netanya + similar formats
+  manufacturer: { words: ['יצרן', 'קבלן משנה', 'manufacturer', 'ספק', 'vendor'],                        score: 1 },
+  model:        { words: ['תיאור עבודה', 'דגם', 'model', 'mpn', 'part number'],                         score: 1 },
+  notes:        { words: ['הערות', 'notes', 'remarks', 'comment'],                                       score: 1 },
 };
 
 function _cellText(cell) {
@@ -206,6 +228,39 @@ function detectHeaderRow(rows) {
     }
   }
   return null;
+}
+
+// ── Format detection ──────────────────────────────────────────────────────────
+// Identifies the municipality / template by scanning title rows for known names,
+// falling back to column-structure fingerprint.
+
+const FORMAT_SIGNATURES = [
+  { name: 'netanya',  label: 'עיריית נתניה',  titleTokens: ['נתניה'] },
+  { name: 'bat-yam',  label: 'עיריית בת ים',  titleTokens: ['בת ים', 'בת-ים', 'בתים'] },
+  { name: 'holon',    label: 'עיריית חולון',  titleTokens: ['חולון'] },
+  { name: 'raanana',  label: "עיריית רעננה",  titleTokens: ['רעננה'] },
+  { name: 'petah-tikva', label: 'עיריית פתח תקווה', titleTokens: ['פתח תקווה', 'פ"ת'] },
+];
+
+function detectFormat(rawRows, headerRowIndex, colMap) {
+  // 1. Scan title rows (above the header) for municipality names
+  const titleText = rawRows
+    .slice(0, Math.min(headerRowIndex, 6))
+    .map(r => r.map(c => _cellText(c)).join(' '))
+    .join(' ');
+  for (const sig of FORMAT_SIGNATURES) {
+    if (sig.titleTokens.some(t => titleText.includes(t))) {
+      return { name: sig.name, label: sig.label };
+    }
+  }
+  // 2. Fallback: detect by column fingerprint
+  if (colMap.notes != null && colMap.manufacturer != null && colMap.model != null) {
+    return { name: 'extended', label: 'פורמט מורחב (יצרן + דגם + הערות)' };
+  }
+  if (colMap.manufacturer != null || colMap.model != null) {
+    return { name: 'extended-partial', label: 'פורמט מורחב חלקי' };
+  }
+  return { name: 'generic', label: 'פורמט סטנדרטי' };
 }
 
 const ITEM_NUMBER_PATTERNS = [
@@ -339,7 +394,10 @@ async function parseXlsx(buffer) {
 
     const qty = colMap.quantity != null ? _cellNumber(row[colMap.quantity]) : null;
     const unitPrice = colMap.unitPrice != null ? _cellNumber(row[colMap.unitPrice]) : null;
-    const unit = colMap.unit != null ? _cellText(row[colMap.unit]).trim() : '';
+    const unit      = colMap.unit         != null ? _cellText(row[colMap.unit]).trim()    : '';
+    const mfr       = colMap.manufacturer != null ? _cellText(row[colMap.manufacturer]).trim() : null;
+    const mdl       = colMap.model        != null ? _cellText(row[colMap.model]).trim()   : null;
+    const rowNotes  = colMap.notes        != null ? _cellText(row[colMap.notes]).trim()   : null;
 
     const hasQty = qty != null && qty >= 1;
 
@@ -349,14 +407,16 @@ async function parseXlsx(buffer) {
     const isBold = descCell && descCell.font && descCell.font.bold;
     const isSection = !hasItemSlot && (isBold || !hasQty || /^פרק[\s ]/i.test(desc));
 
-    // Skip rows hidden by Excel's filter — but KEEP section headers even if hidden,
-    // because Excel's filter hides them too (they have no qty in the qty column).
+    // Skip rows hidden by Excel's AutoFilter — but KEEP section headers even if hidden,
+    // because section rows have no qty and Excel's filter hides them too.
+    // In multi-company BOQs (e.g. עיריית נתניה), the AutoFilter intentionally shows only
+    // rows where this company's quantity column ≥ 1 — respecting that filter is correct.
     if (row._hidden && !isSection) {
       skippedCount++;
       continue;
     }
 
-    // Skip non-section items that have no quantity
+    // Skip non-section items that have no quantity.
     if (!isSection && !hasQty) {
       skippedCount++;
       continue;
@@ -371,10 +431,37 @@ async function parseXlsx(buffer) {
       isSection,
       isRfq:             !isSection && unitPrice == null,
       contractUnitPrice: unitPrice,
+      manufacturer:      mfr      || null,
+      model:             mdl      || null,
+      notes:             rowNotes || null,
     });
   }
 
   if (skippedCount > 0) warnings.push(`${skippedCount} שורות דולגו (ללא כמות)`);
+
+  // Post-process: remove section headers that have no data items before the next section.
+  // This cleans up empty chapters that appear when AutoFilter hides all items in a chapter
+  // (e.g. Netanya multi-company BOQ — chapters with no יוספטל-qty items are stripped).
+  // Logic: a section is kept only if the immediately next item(s) include at least one
+  // non-section row before the next section header starts.
+  {
+    const filtered = [];
+    for (let i = 0; i < items.length; i++) {
+      if (items[i].isSection) {
+        // Scan forward until we find a data item or the next section
+        let hasChildren = false;
+        for (let j = i + 1; j < items.length; j++) {
+          if (!items[j].isSection) { hasChildren = true; break; }
+          break; // next item is also a section → this chapter is empty
+        }
+        if (!hasChildren) { skippedCount++; continue; }
+      }
+      filtered.push(items[i]);
+    }
+    // Replace items with filtered list
+    items.length = 0;
+    items.push(...filtered);
+  }
 
   // Build human-readable column map for debugging (header row text per field)
   const headerRow = rawRows[detection ? detection.headerRowIndex : 0] || [];
@@ -383,7 +470,13 @@ async function parseXlsx(buffer) {
     colMapDebug[field] = { colIndex: ci, header: _cellText(headerRow[ci]) || '(ריק)' };
   }
 
-  return { items, warnings, skippedCount, colMapDebug };
+  // Format detection (municipality / schema fingerprint)
+  const format = detectFormat(rawRows, detection ? detection.headerRowIndex : 0, colMap);
+  if (format.name === 'netanya' && colMap.notes == null) {
+    warnings.push('זוהה פורמט נתניה אך עמודת "הערות" לא נמצאה');
+  }
+
+  return { items, warnings, skippedCount, colMapDebug, format };
 }
 
 function parseCsv(text) {

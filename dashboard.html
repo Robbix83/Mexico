@@ -31,16 +31,17 @@ body{font-family:'Plus Jakarta Sans','Rubik','Segoe UI',Arial,sans-serif;backgro
   overflow:hidden;flex-shrink:0
 }
 .sidebar-logo{
-  padding:18px 14px 16px;
+  padding:14px 14px 12px;
   background:#fff;
-  display:flex;flex-direction:column;align-items:center;gap:9px;flex-shrink:0;text-align:center;
+  display:flex;flex-direction:row;align-items:center;gap:10px;flex-shrink:0;
   border-bottom:1px solid var(--border)
 }
 .sidebar-logo img{
-  height:60px;width:auto;object-fit:contain;flex-shrink:0;
+  height:48px;width:48px;object-fit:contain;flex-shrink:0;border-radius:6px;
 }
-.sidebar-logo-text strong{display:block;font-size:.82rem;font-weight:800;color:var(--text);line-height:1.3;letter-spacing:-.01em}
-.sidebar-logo-text span{display:block;font-size:.68rem;color:var(--muted);letter-spacing:.03em;margin-top:2px;font-weight:500}
+.sidebar-logo-text{display:flex;flex-direction:column;gap:1px;min-width:0}
+.sidebar-logo-text strong{display:block;font-size:.88rem;font-weight:800;color:#0a5c68;line-height:1.2;letter-spacing:.06em;font-family:'Segoe UI',system-ui,sans-serif}
+.sidebar-logo-text span{display:block;font-size:.6rem;color:#5a9aa4;letter-spacing:.18em;font-weight:600;text-transform:uppercase}
 .sidebar-nav{flex:1;padding:10px 8px;overflow-y:auto;overflow-x:hidden;background:#fff}
 .snav-item{
   display:flex;align-items:center;gap:11px;width:100%;
@@ -1371,10 +1372,10 @@ tr:hover .pl-row-ds-btn{opacity:.6}
 <!-- ═══ SIDEBAR ═══ -->
 <aside class="sidebar">
   <div class="sidebar-logo">
-    <img src="logo.png" alt="" style="display:none"/>
+    <img src="/logos/robx-mark.png" alt="ROBX"/>
     <div class="sidebar-logo-text">
-      <strong></strong>
-      <span>ניהול פרויקטים</span>
+      <strong>ROBX</strong>
+      <span>SYSTEMS</span>
     </div>
   </div>
   <nav class="sidebar-nav">
@@ -1985,7 +1986,7 @@ tr:hover .pl-row-ds-btn{opacity:.6}
     </div>
 
     <!-- Editor panel (shown when project selected) -->
-    <div id="boq-editor-panel" style="display:none">
+    <div id="boq-editor-panel" style="display:none;overflow-x:auto">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:8px">
         <div style="display:flex;align-items:center;gap:10px">
           <button onclick="boqBackToList()" style="background:none;border:none;cursor:pointer;font-size:.9rem;color:#3b82f6;padding:0">← חזור</button>
@@ -2007,19 +2008,20 @@ tr:hover .pl-row-ds-btn{opacity:.6}
 
         <!-- Item table -->
         <div style="flex:2;min-width:0;overflow-x:auto">
-          <table style="width:100%;border-collapse:collapse;font-size:.82rem">
+          <table style="width:100%;min-width:700px;border-collapse:collapse;font-size:.82rem">
             <thead>
               <tr style="background:#1e3a5f;color:#fff;text-align:right">
-                <th style="padding:7px 8px;width:58px">מס׳</th>
+                <th style="padding:7px 6px;width:42px">מס׳</th>
                 <th style="padding:7px 8px">תיאור</th>
-                <th style="padding:7px 8px;width:65px;text-align:center">כמות</th>
-                <th style="padding:7px 8px;width:110px;text-align:right">מחיר יחידה</th>
-                <th style="padding:7px 8px;width:110px;text-align:right">סה"כ חוזה</th>
-                <th style="padding:7px 8px;width:110px;text-align:right">סה"כ עלויות</th>
-                <th style="padding:7px 8px;width:110px;text-align:right">רווח</th>
-                <th style="padding:7px 4px;width:44px;text-align:center" title="RFQ / תבנית"></th>
-                <th style="padding:7px 8px;width:80px;text-align:center">עלויות</th>
-                <th style="padding:7px 4px;width:52px"></th>
+                <th style="padding:7px 6px;width:110px;text-align:right">יצרן / דגם</th>
+                <th style="padding:7px 4px;width:54px;text-align:center">כמות</th>
+                <th style="padding:7px 6px;width:88px;text-align:right">מחיר יחידה</th>
+                <th style="padding:7px 6px;width:88px;text-align:right">סה"כ חוזה</th>
+                <th style="padding:7px 6px;width:88px;text-align:right">סה"כ עלויות</th>
+                <th style="padding:7px 6px;width:82px;text-align:right">רווח</th>
+                <th style="padding:7px 4px;width:34px;text-align:center" title="RFQ / תבנית"></th>
+                <th style="padding:7px 6px;width:64px;text-align:center">עלויות</th>
+                <th style="padding:7px 4px;width:42px"></th>
               </tr>
             </thead>
             <tbody id="boq-items-tbody"></tbody>
@@ -2170,6 +2172,18 @@ tr:hover .pl-row-ds-btn{opacity:.6}
           <input type="text" id="boq-item-notes" placeholder="הערות אופציונליות"
             style="width:100%;padding:7px 10px;border:1.5px solid #e2e8f0;border-radius:7px;font-size:.88rem;box-sizing:border-box"/>
         </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+          <div>
+            <label style="font-size:.78rem;font-weight:600;color:#4a5568;display:block;margin-bottom:3px">יצרן</label>
+            <input type="text" id="boq-item-manufacturer" placeholder="שם יצרן"
+              style="width:100%;padding:7px 10px;border:1.5px solid #e2e8f0;border-radius:7px;font-size:.88rem;box-sizing:border-box"/>
+          </div>
+          <div>
+            <label style="font-size:.78rem;font-weight:600;color:#4a5568;display:block;margin-bottom:3px">דגם <span style="color:#e53e3e">*</span></label>
+            <input type="text" id="boq-item-model" placeholder="מספר דגם / קטלוג"
+              style="width:100%;padding:7px 10px;border:1.5px solid #e2e8f0;border-radius:7px;font-size:.88rem;box-sizing:border-box"/>
+          </div>
+        </div>
       </div>
       <input type="hidden" id="boq-item-editing-id"/>
       <div id="boq-item-err" style="color:#c53030;font-size:.8rem;margin-top:6px;min-height:16px"></div>
@@ -2243,6 +2257,7 @@ tr:hover .pl-row-ds-btn{opacity:.6}
             ✚ שמור כתבנית
           </button>
         </div>
+        <div id="boq-cost-city-filter" style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:5px"></div>
         <div id="boq-cost-tmpl-btns" style="display:flex;flex-wrap:wrap;gap:4px"></div>
       </div>
       <!-- Component rows — scrollable -->
@@ -2330,10 +2345,17 @@ tr:hover .pl-row-ds-btn{opacity:.6}
         </div>
         <button onclick="boqCloseTmplEditor()" style="border:none;background:none;cursor:pointer;color:#a0aec0;font-size:1.1rem;flex-shrink:0">✕</button>
       </div>
-      <div style="margin-bottom:12px">
-        <label style="font-size:.78rem;font-weight:600;color:#4a5568;display:block;margin-bottom:3px">שם תבנית *</label>
-        <input id="boq-tmpl-editor-name" type="text" placeholder="שם התבנית"
-          style="width:100%;padding:7px 10px;border:1.5px solid #e2e8f0;border-radius:7px;font-size:.88rem;box-sizing:border-box"/>
+      <div style="margin-bottom:10px;display:flex;gap:10px">
+        <div style="flex:1">
+          <label style="font-size:.78rem;font-weight:600;color:#4a5568;display:block;margin-bottom:3px">שם תבנית *</label>
+          <input id="boq-tmpl-editor-name" type="text" placeholder="שם התבנית"
+            style="width:100%;padding:7px 10px;border:1.5px solid #e2e8f0;border-radius:7px;font-size:.88rem;box-sizing:border-box"/>
+        </div>
+        <div style="flex:0 0 130px">
+          <label style="font-size:.78rem;font-weight:600;color:#4a5568;display:block;margin-bottom:3px">עיר (אופציונלי)</label>
+          <input id="boq-tmpl-editor-city" type="text" placeholder="לדוג׳: נתניה"
+            style="width:100%;padding:7px 10px;border:1.5px solid #e2e8f0;border-radius:7px;font-size:.88rem;box-sizing:border-box"/>
+        </div>
       </div>
       <div style="margin-bottom:10px">
         <div style="font-size:.78rem;font-weight:600;color:#4a5568;margin-bottom:6px">רכיבים</div>
@@ -2358,6 +2380,9 @@ tr:hover .pl-row-ds-btn{opacity:.6}
             <input id="boq-tmpl-ce-qty" type="number" placeholder="כמות" min="0" step="any"
               style="flex:0 0 70px;padding:6px 9px;border:1.5px solid #e2e8f0;border-radius:6px;font-size:.84rem"/>
           </div>
+          <input id="boq-tmpl-ce-formula" type="text" placeholder="נוסחת כמות (אופציונלי): item_qty*65"
+            style="width:100%;padding:6px 9px;border:1.5px solid #e2e8f0;border-radius:6px;font-size:.82rem;box-sizing:border-box;color:#6d28d9;font-family:monospace"
+            title="נוסחה לחישוב כמות לפי כמות הסעיף. דוגמה: item_qty*65 (כבל 65מ׳ לכל יחידה)"/>
           <div id="boq-tmpl-ce-err" style="color:#c53030;font-size:.76rem;min-height:14px"></div>
           <div style="display:flex;gap:6px;justify-content:flex-end">
             <button onclick="boqTmplCancelComp()" class="pl-step-cancel" style="padding:5px 14px;font-size:.8rem">ביטול</button>
@@ -2547,28 +2572,50 @@ tr:hover .pl-row-ds-btn{opacity:.6}
 
     <!-- ── Invoice modal ──────────────────────────────────────────────────── -->
     <div id="ord-invoice-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:3100;align-items:center;justify-content:center;direction:rtl">
-      <div style="background:#fff;border-radius:14px;width:min(92vw,440px);padding:24px 22px 20px;box-shadow:0 10px 40px rgba(0,0,0,.25)">
+      <div style="background:#fff;border-radius:14px;width:min(92vw,480px);padding:24px 22px 20px;box-shadow:0 10px 40px rgba(0,0,0,.25)">
         <div style="font-size:.95rem;font-weight:700;color:#1e3a5f;margin-bottom:14px">🧾 צירוף חשבונית</div>
         <input type="hidden" id="ord-inv-order-id"/>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+        <input type="hidden" id="ord-inv-staging-path"/>
+        <input type="hidden" id="ord-inv-original-name"/>
+
+        <!-- File picker — shown first -->
+        <div id="ord-inv-file-area">
+          <label style="font-size:.72rem;font-weight:600;color:#4a5568;display:block;margin-bottom:6px">קובץ חשבונית (PDF / תמונה)</label>
+          <div onclick="document.getElementById('ord-inv-file').click()"
+            style="border:2px dashed #cbd5e0;border-radius:8px;padding:18px;text-align:center;cursor:pointer;transition:border-color .2s"
+            onmouseenter="this.style.borderColor='#CC1A1A'" onmouseleave="this.style.borderColor='#cbd5e0'">
+            <div id="ord-inv-filename" style="font-size:.82rem;color:#718096">לחץ לבחירת קובץ</div>
+          </div>
+          <input type="file" id="ord-inv-file" accept=".pdf,.jpg,.jpeg,.png" style="display:none" onchange="ordInvFileChosen(this)"/>
+          <div id="ord-inv-extract-status" style="font-size:.72rem;color:#3b82f6;margin-top:6px;min-height:1rem"></div>
+        </div>
+
+        <!-- Fields — pre-filled from PDF extraction -->
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px">
           <div>
             <label style="font-size:.72rem;font-weight:600;color:#4a5568;display:block;margin-bottom:3px">מס׳ חשבונית</label>
-            <input id="ord-inv-number" type="text" style="width:100%;border:1px solid #e2e8f0;border-radius:7px;padding:7px 9px;font-size:.85rem"/>
+            <input id="ord-inv-number" type="text" style="width:100%;border:1px solid #e2e8f0;border-radius:7px;padding:7px 9px;font-size:.85rem;box-sizing:border-box"/>
           </div>
           <div>
             <label style="font-size:.72rem;font-weight:600;color:#4a5568;display:block;margin-bottom:3px">תאריך חשבונית</label>
-            <input id="ord-inv-date" type="text" placeholder="YYYY-MM-DD" style="width:100%;border:1px solid #e2e8f0;border-radius:7px;padding:7px 9px;font-size:.85rem;direction:ltr"/>
+            <input id="ord-inv-date" type="text" placeholder="YYYY-MM-DD" style="width:100%;border:1px solid #e2e8f0;border-radius:7px;padding:7px 9px;font-size:.85rem;direction:ltr;box-sizing:border-box"/>
           </div>
         </div>
-        <div style="margin-top:12px">
-          <label style="font-size:.72rem;font-weight:600;color:#4a5568;display:block;margin-bottom:6px">קובץ חשבונית (PDF / תמונה)</label>
-          <div onclick="document.getElementById('ord-inv-file').click()"
-            style="border:2px dashed #e2e8f0;border-radius:8px;padding:16px;text-align:center;cursor:pointer">
-            <div id="ord-inv-filename" style="font-size:.78rem;color:#718096">לחץ לבחירת קובץ (אופציונלי)</div>
-          </div>
-          <input type="file" id="ord-inv-file" accept=".pdf,.jpg,.jpeg,.png" style="display:none"
-            onchange="document.getElementById('ord-inv-filename').textContent=this.files[0]?.name||'לחץ לבחירת קובץ'"/>
+        <div style="margin-top:10px">
+          <label style="font-size:.72rem;font-weight:600;color:#4a5568;display:block;margin-bottom:3px">תיאור</label>
+          <input id="ord-inv-desc" type="text" style="width:100%;border:1px solid #e2e8f0;border-radius:7px;padding:7px 9px;font-size:.82rem;box-sizing:border-box"/>
         </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px">
+          <div>
+            <label style="font-size:.72rem;font-weight:600;color:#4a5568;display:block;margin-bottom:3px">סכום לפני מע"מ</label>
+            <input id="ord-inv-amt" type="number" step="0.01" style="width:100%;border:1px solid #e2e8f0;border-radius:7px;padding:7px 9px;font-size:.85rem;direction:ltr;box-sizing:border-box"/>
+          </div>
+          <div>
+            <label style="font-size:.72rem;font-weight:600;color:#4a5568;display:block;margin-bottom:3px">סכום כולל מע"מ</label>
+            <input id="ord-inv-amt-vat" type="number" step="0.01" style="width:100%;border:1px solid #e2e8f0;border-radius:7px;padding:7px 9px;font-size:.85rem;direction:ltr;box-sizing:border-box"/>
+          </div>
+        </div>
+
         <div id="ord-inv-err" style="color:#c53030;font-size:.75rem;margin-top:8px;min-height:1em"></div>
         <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:14px">
           <button onclick="ordCloseInvoiceModal()" style="border:1px solid #e2e8f0;background:#f8fafc;color:#4a5568;border-radius:8px;padding:7px 16px;font-size:.82rem;cursor:pointer">ביטול</button>
@@ -10798,7 +10845,7 @@ function _boqCalcItemTotal(item, comps){
   if(item.is_rfq) return null;
   if(!(comps||[]).length) return null; // no components → unknown cost, not zero
   return comps.reduce((s,c)=>{
-    const effQty = c.quantity_formula ? item.quantity*(parseFloat(c.quantity_formula)||1) : (c.quantity||1);
+    const effQty = _evalBoqCompQty(c.quantity_formula, item.quantity, c.quantity||1);
     return s+(c.unit_price||0)*effQty*_boqRate(c.currency);
   },0);
 }
@@ -10890,7 +10937,7 @@ function boqBackToList(){
 function renderBoqItems(){
   const tbody = document.getElementById('boq-items-tbody');
   if(!_boqItems.length){
-    tbody.innerHTML=`<tr><td colspan="9" style="padding:24px;text-align:center;color:#a0aec0">
+    tbody.innerHTML=`<tr><td colspan="11" style="padding:24px;text-align:center;color:#a0aec0">
       אין סעיפים — ייבא Excel, הדבק CSV, או הוסף שורה ידנית
     </td></tr>`;
     return;
@@ -10925,9 +10972,17 @@ function renderBoqItems(){
     const qtyCell = item.is_section ? '' :
       `<span style="font-size:.82rem">${item.quantity}</span>${item.unit?` <span style="font-size:.7rem;color:#a0aec0">${item.unit}</span>`:''}`;
     const indicators = [rfqBadge, tmplBadge].filter(Boolean).join(' ');
+    const mfrCell = item.is_section ? '' : (() => {
+      const mfr = item.manufacturer || '';
+      const mdl = item.model || '';
+      if (!mfr && !mdl) return '<span style="color:#d1d5db">—</span>';
+      return (mfr ? `<span style="font-size:.72rem;font-weight:600;color:#374151">${mfr}</span>` : '')
+           + (mdl ? `<div style="font-size:.7rem;color:#6b7280;font-family:monospace;margin-top:1px">${mdl}</div>` : '');
+    })();
     return `<tr class="${rowClass}" style="${bg};cursor:pointer" onclick="boqSelectItem(${item.id})">
       <td style="padding:6px 8px;color:#718096;font-size:.78rem;white-space:nowrap">${item.item_number||''}</td>
-      <td style="padding:6px 8px;font-weight:${item.is_section?700:400};color:${item.is_section?'#9b1515':'#1c1c1e'}">${item.description}</td>
+      <td style="padding:6px 8px;font-weight:${item.is_section?700:400};color:${item.is_section?'#9b1515':'#1c1c1e'}">${item.description}${item.notes&&!item.is_section?`<div style="font-size:.7rem;color:#64748b;margin-top:2px;font-style:italic">${item.notes}</div>`:''}</td>
+      <td style="padding:6px 8px;text-align:right;line-height:1.3">${mfrCell}</td>
       <td style="padding:6px 8px;text-align:right;white-space:nowrap">${qtyCell}</td>
       <td style="padding:3px 8px;text-align:right;font-size:.82rem;color:#1e3a5f" ondblclick="event.stopPropagation();boqInlineEditPrice(${item.id},this,${unitPriceRaw||0})">${unitPriceStr}</td>
       <td style="padding:6px 8px;text-align:right;font-size:.82rem;color:#1e3a5f">${contractStr}</td>
@@ -11104,6 +11159,8 @@ function boqAddItemManual(){
   document.getElementById('boq-item-rfq').checked=false;
   document.getElementById('boq-item-section').checked=false;
   document.getElementById('boq-item-notes').value='';
+  document.getElementById('boq-item-manufacturer').value='';
+  document.getElementById('boq-item-model').value='';
   document.getElementById('boq-item-rfq-price').value='';
   document.getElementById('boq-item-rfq-price-row').style.display='none';
   document.getElementById('boq-item-err').textContent='';
@@ -11123,6 +11180,8 @@ function boqEditItem(id){
   document.getElementById('boq-item-rfq').checked=!!item.is_rfq;
   document.getElementById('boq-item-section').checked=!!item.is_section;
   document.getElementById('boq-item-notes').value=item.notes||'';
+  document.getElementById('boq-item-manufacturer').value=item.manufacturer||'';
+  document.getElementById('boq-item-model').value=item.model||'';
   document.getElementById('boq-item-rfq-price').value=item.rfq_price_ils!=null?item.rfq_price_ils:'';
   document.getElementById('boq-item-rfq-price-row').style.display=item.is_rfq?'':'none';
   document.getElementById('boq-item-err').textContent='';
@@ -11143,6 +11202,8 @@ async function boqSaveItemModal(){
     isRfq:             document.getElementById('boq-item-rfq').checked,
     isSection:         document.getElementById('boq-item-section').checked,
     notes:             document.getElementById('boq-item-notes').value.trim()||null,
+    manufacturer:      document.getElementById('boq-item-manufacturer').value.trim()||null,
+    model:             document.getElementById('boq-item-model').value.trim()||null,
     rfqPriceIls:       document.getElementById('boq-item-rfq-price').value ? parseFloat(document.getElementById('boq-item-rfq-price').value) : null,
     contractUnitPrice: document.getElementById('boq-item-contract-price').value !== '' ? parseFloat(document.getElementById('boq-item-contract-price').value) : null,
   };
@@ -11266,12 +11327,42 @@ function boqOpenCostModal(itemId){
 
 function _boqRenderCostTmplBtns(){
   const btns = document.getElementById('boq-cost-tmpl-btns');
+  const cityEl = document.getElementById('boq-cost-city-filter');
   if(!btns) return;
-  if(!_boqTemplates.length){
-    btns.innerHTML='<span style="font-size:.72rem;color:#a0aec0">אין תבניות — צור תבנית ראשונה ↑</span>';
+
+  // Collect distinct cities from templates that have one
+  const cities = [...new Set(_boqTemplates.map(t=>t.city).filter(Boolean))].sort();
+
+  // Render city filter chips
+  if(cityEl){
+    if(cities.length){
+      const allActive = !_boqTmplCityFilter;
+      cityEl.style.display = '';
+      cityEl.innerHTML =
+        `<button onclick="_boqSetCityFilter(null)"
+          style="padding:3px 10px;border:1.5px solid ${allActive?'#2563eb':'#e2e8f0'};background:${allActive?'#2563eb':'#f8fafc'};color:${allActive?'#fff':'#4a5568'};border-radius:12px;font-size:.7rem;cursor:pointer;font-weight:${allActive?700:400}">הכל</button>`+
+        cities.map(c=>{
+          const active = _boqTmplCityFilter===c;
+          return `<button onclick="_boqSetCityFilter('${c.replace(/'/g,"\\'")}')"
+            style="padding:3px 10px;border:1.5px solid ${active?'#2563eb':'#e2e8f0'};background:${active?'#2563eb':'#f8fafc'};color:${active?'#fff':'#4a5568'};border-radius:12px;font-size:.7rem;cursor:pointer;font-weight:${active?700:400}">${c}</button>`;
+        }).join('');
+    } else {
+      cityEl.style.display = 'none';
+    }
+  }
+
+  // Filter templates by selected city
+  const visible = _boqTmplCityFilter
+    ? _boqTemplates.filter(t => t.city === _boqTmplCityFilter)
+    : _boqTemplates;
+
+  if(!visible.length){
+    btns.innerHTML='<span style="font-size:.72rem;color:#a0aec0">'+(
+      _boqTmplCityFilter ? 'אין תבניות לעיר זו' : 'אין תבניות — צור תבנית ראשונה ↑'
+    )+'</span>';
     return;
   }
-  btns.innerHTML = _boqTemplates.map(t=>
+  btns.innerHTML = visible.map(t=>
     `<span style="display:inline-flex;align-items:center;border:1px solid var(--border);background:#fff;border-radius:16px;overflow:hidden;font-size:.72rem">
       <button onclick="boqCostApplyTemplate(${t.id})"
         style="padding:4px 10px;border:none;background:transparent;cursor:pointer;color:var(--text)"
@@ -11283,6 +11374,11 @@ function _boqRenderCostTmplBtns(){
         onmouseover="this.style.color='#e53e3e'" onmouseout="this.style.color='#ccc'">✕</button>
     </span>`
   ).join('');
+}
+
+function _boqSetCityFilter(city){
+  _boqTmplCityFilter = city;
+  _boqRenderCostTmplBtns();
 }
 
 async function boqCostDeleteTemplate(tmplId, tmplName){
@@ -11457,18 +11553,37 @@ function boqCloseCostSummary(){
   document.getElementById('boq-summary-overlay').style.display='none';
 }
 
+// Evaluate a component quantity client-side.
+// - No formula  → return item_qty (1 unit per item unit, scales with item)
+// - Has formula  → evaluate with item_qty (e.g. "item_qty*65" for cable)
+function _evalBoqCompQty(formula, itemQty, defaultQty){
+  const iqty = Math.max(1, parseFloat(itemQty)||1);
+  if(!formula) return Math.round(iqty); // no formula → quantity = item_qty
+  try {
+    const expr = formula.replace(/item_qty/gi, String(iqty));
+    if(!/^[\d\s+\-*/().]+$/.test(expr)) return Math.round(iqty);
+    // eslint-disable-next-line no-new-func
+    return Math.max(1, Math.round(Function('"use strict";return('+expr+')')()));
+  } catch { return Math.round(iqty); }
+}
+
 function boqCostApplyTemplate(tmplId){
   const tmpl = _boqTemplates.find(t=>t.id===tmplId);
   if(!tmpl) return;
+  // Scale component quantities by the item's own quantity
+  const item    = _boqItems.find(i=>i.id===(_boqCostDraft?.itemId));
+  const itemQty = item?.quantity || 1;
   _boqCostDraft.rows = (tmpl.components||[]).map(c=>({
     label:c.label, price:c.unitPrice||0, currency:c.currency||'ILS',
-    qty: c.quantity||1
+    qty: _evalBoqCompQty(c.formula, itemQty, c.quantity)
   }));
   _boqRenderCostRows();
 }
 
 function boqCostAddRow(){
-  _boqCostDraft.rows.push({label:'',price:0,currency:'ILS',qty:1});
+  const item = _boqItems.find(i=>i.id===(_boqCostDraft?.itemId));
+  const defaultQty = Math.round(item?.quantity||1);
+  _boqCostDraft.rows.push({label:'',price:0,currency:'ILS',qty:defaultQty});
   _boqRenderCostRows();
   // Focus the new label input
   const inputs = document.querySelectorAll('#boq-cost-rows tr:last-child input');
@@ -11603,18 +11718,22 @@ function boqEditComp(compId){
 function boqCloseCompModal(){ document.getElementById('boq-comp-overlay').style.display='none'; }
 
 
+// ── Template city filter ─────────────────────────────────────────────────────
+let _boqTmplCityFilter = null; // null = הכל, string = עיר ספציפית
+
 // ── Template Editor Modal ────────────────────────────────────────────────────
-let _boqTmplEditing = null;   // { id, name, components:[{key,label,unitPrice,currency,quantity,formula}] }
+let _boqTmplEditing = null;   // { id, name, city, components:[{key,label,unitPrice,currency,quantity,formula}] }
 let _boqTmplCompEditIdx = null; // number = editing index, -1 = new
 
 function boqOpenTmplEditor(tmplId, itemId){
   if(!tmplId){ _toast('בחר תבנית תחילה','info'); return; }
   const tmpl = _boqTemplates.find(t=>String(t.id)===String(tmplId));
   if(!tmpl){ _toast('תבנית לא נמצאה','error'); return; }
-  _boqTmplEditing = { id: tmpl.id, name: tmpl.name, components: JSON.parse(JSON.stringify(tmpl.components||[])) };
+  _boqTmplEditing = { id: tmpl.id, name: tmpl.name, city: tmpl.city||null, components: JSON.parse(JSON.stringify(tmpl.components||[])) };
   _boqTmplCompEditIdx = null;
   document.getElementById('boq-tmpl-editor-id').value = tmpl.id;
   document.getElementById('boq-tmpl-editor-name').value = tmpl.name;
+  document.getElementById('boq-tmpl-editor-city').value = tmpl.city||'';
   document.getElementById('boq-tmpl-editor-err').textContent = '';
   document.getElementById('boq-tmpl-editor-comp-form').style.display = 'none';
   // Show which item this is being edited for
@@ -11664,6 +11783,7 @@ function boqTmplAddComp(){
   document.getElementById('boq-tmpl-ce-price').value = '0';
   document.getElementById('boq-tmpl-ce-currency').value = 'ILS';
   document.getElementById('boq-tmpl-ce-qty').value = '1';
+  document.getElementById('boq-tmpl-ce-formula').value = '';
   document.getElementById('boq-tmpl-ce-err').textContent = '';
   document.getElementById('boq-tmpl-editor-comp-form').style.display = '';
   setTimeout(()=>document.getElementById('boq-tmpl-ce-label').focus(),50);
@@ -11678,6 +11798,7 @@ function boqTmplEditComp(idx){
   document.getElementById('boq-tmpl-ce-price').value = c.unitPrice||0;
   document.getElementById('boq-tmpl-ce-currency').value = c.currency||'ILS';
   document.getElementById('boq-tmpl-ce-qty').value = c.quantity||1;
+  document.getElementById('boq-tmpl-ce-formula').value = c.formula||'';
   document.getElementById('boq-tmpl-ce-err').textContent = '';
   document.getElementById('boq-tmpl-editor-comp-form').style.display = '';
   setTimeout(()=>document.getElementById('boq-tmpl-ce-label').focus(),50);
@@ -11692,13 +11813,14 @@ function boqTmplDeleteComp(idx){
 function boqTmplSaveComp(){
   const label = document.getElementById('boq-tmpl-ce-label').value.trim();
   if(!label){ document.getElementById('boq-tmpl-ce-err').textContent='נדרש תיאור'; return; }
+  const formulaRaw = document.getElementById('boq-tmpl-ce-formula').value.trim();
   const comp = {
     key: 'custom',
     label,
     unitPrice: parseFloat(document.getElementById('boq-tmpl-ce-price').value)||0,
     currency:  document.getElementById('boq-tmpl-ce-currency').value,
     quantity:  parseFloat(document.getElementById('boq-tmpl-ce-qty').value)||1,
-    formula:   null,
+    formula:   formulaRaw || null,
   };
   if(_boqTmplCompEditIdx===-1){
     _boqTmplEditing.components.push(comp);
@@ -11720,9 +11842,10 @@ async function boqSaveTmplEditor(){
   if(!name){ document.getElementById('boq-tmpl-editor-err').textContent='נדרש שם לתבנית'; return; }
   const id = _boqTmplEditing?.id;
   if(!id) return;
+  const city = document.getElementById('boq-tmpl-editor-city').value.trim() || null;
   try {
     const r = await fetch('/api/boq/templates/'+id,{method:'PUT',headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({name, components:_boqTmplEditing.components})});
+      body:JSON.stringify({name, city, components:_boqTmplEditing.components})});
     const j = await r.json();
     if(!r.ok) throw new Error(j.error);
     _toast('תבנית "'+name+'" עודכנה ✓','success');
@@ -11934,6 +12057,11 @@ async function boqDoImport(){
       // Warn if description column appears to be empty/numeric
       const dc = map.description;
       if(dc) console.info('[BOQ import] description column header:', dc.header);
+    }
+    // Show format detection badge
+    const fmt = j.format;
+    if(fmt && fmt.name !== 'generic') {
+      _toast('🏷 זוהה פורמט: '+fmt.label, 'info', 3500);
     }
     _toast('✓ יובאו '+j.insertedCount+' סעיפים'+warnings, warnings?'info':'success', 5000);
     await _boqReloadProject();
@@ -12166,10 +12294,20 @@ function ordRenderOrders(project) {
                     <input type="checkbox" ${o.is_invoiced?'checked':''} onchange="ordToggleInvoiced(${o.id},this.checked)"
                       style="width:15px;height:15px;cursor:pointer;accent-color:#15803d"/>
                   </td>
-                  <td style="padding:7px 8px">
-                    ${o.is_invoiced&&o.invoice_number
-                      ? `<span style="font-size:.72rem;color:#15803d;font-weight:600">${o.invoice_number}</span>${o.invoice_date?`<span style="font-size:.65rem;color:#a0aec0;display:block">${o.invoice_date}</span>`:''}`
-                      : `<button onclick="ordOpenInvoiceModal(${o.id})" style="border:1px solid #e2e8f0;background:#f8fafc;color:#64748b;border-radius:5px;padding:2px 7px;font-size:.68rem;cursor:pointer">+ חשבונית</button>`}
+                  <td style="padding:5px 8px;min-width:140px">
+                    <div style="display:flex;flex-direction:column;gap:3px">
+                      ${(o.invoices||[]).map(inv => `
+                        <div style="display:flex;align-items:center;gap:4px;background:#f0fdf4;border:1px solid #bbf7d0;border-radius:5px;padding:2px 5px">
+                          <span style="font-size:.7rem;font-weight:700;color:#15803d;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${inv.invoice_number||''}">
+                            ${inv.invoice_number||'—'}
+                          </span>
+                          ${inv.invoice_date?`<span style="font-size:.62rem;color:#6b7280;white-space:nowrap">${inv.invoice_date.split('-').reverse().join('/')}</span>`:''}
+                          ${inv.file_path?`<a href="/api/orders/${o.id}/invoices/${inv.id}/file" target="_blank" title="פתח חשבונית" style="color:#1d4ed8;text-decoration:none;font-size:.72rem;flex-shrink:0">⬇️</a>`:''}
+                          <button onclick="ordDeleteInvoice(${o.id},${inv.id})" title="מחק חשבונית" style="border:none;background:none;color:#fca5a5;cursor:pointer;font-size:.65rem;padding:0 1px;line-height:1;flex-shrink:0">✕</button>
+                        </div>
+                      `).join('')}
+                      <button onclick="ordOpenInvoiceModal(${o.id})" style="border:1px solid #e2e8f0;background:#f8fafc;color:#64748b;border-radius:5px;padding:2px 7px;font-size:.65rem;cursor:pointer;align-self:flex-start">+ חשבונית</button>
+                    </div>
                   </td>
                   <td style="padding:4px 4px;text-align:center;white-space:nowrap">
                     <button onclick="ordDeleteOrder(${o.id})" title="מחק" style="border:none;background:none;color:#fca5a5;cursor:pointer;font-size:.75rem;padding:2px 4px">🗑</button>
@@ -12372,11 +12510,50 @@ function ordOpenInvoiceModal(orderId) {
   document.getElementById('ord-inv-file').value = '';
   document.getElementById('ord-inv-filename').textContent = 'לחץ לבחירת קובץ (אופציונלי)';
   document.getElementById('ord-inv-err').textContent = '';
+  document.getElementById('ord-inv-extract-status').textContent = '';
   document.getElementById('ord-inv-save-btn').disabled = false;
   document.getElementById('ord-inv-save-btn').textContent = '💾 שמור';
+  document.getElementById('ord-inv-staging-path').value = '';
+  document.getElementById('ord-inv-original-name').value = '';
+  document.getElementById('ord-inv-filename').textContent = 'לחץ לבחירת קובץ';
+  document.getElementById('ord-inv-number').value = '';
+  document.getElementById('ord-inv-date').value = '';
+  document.getElementById('ord-inv-desc').value = '';
+  document.getElementById('ord-inv-amt').value = '';
+  document.getElementById('ord-inv-amt-vat').value = '';
+  const fi = document.getElementById('ord-inv-file'); fi.value = '';
   document.getElementById('ord-invoice-overlay').style.display = 'flex';
 }
 function ordCloseInvoiceModal() { document.getElementById('ord-invoice-overlay').style.display = 'none'; }
+
+async function ordInvFileChosen(input) {
+  const file = input.files[0];
+  if (!file) return;
+  document.getElementById('ord-inv-filename').textContent = file.name;
+  document.getElementById('ord-inv-extract-status').textContent = '⏳ מחלץ נתונים מה-PDF...';
+  document.getElementById('ord-inv-save-btn').disabled = true;
+  const orderId = document.getElementById('ord-inv-order-id').value;
+  try {
+    const fd = new FormData();
+    fd.append('file', file);
+    const r = await fetch('/api/orders/' + orderId + '/invoices/extract', { method: 'POST', body: fd });
+    if (!r.ok) throw new Error((await r.json()).error || 'שגיאה');
+    const d = await r.json();
+    document.getElementById('ord-inv-staging-path').value = d.stagingPath || '';
+    document.getElementById('ord-inv-original-name').value = d.originalName || file.name;
+    if (d.invoice_number) document.getElementById('ord-inv-number').value = d.invoice_number;
+    if (d.invoice_date)   document.getElementById('ord-inv-date').value   = d.invoice_date;
+    if (d.description)    document.getElementById('ord-inv-desc').value   = d.description;
+    if (d.amount_pre_vat != null) document.getElementById('ord-inv-amt').value     = d.amount_pre_vat;
+    if (d.amount_with_vat != null) document.getElementById('ord-inv-amt-vat').value = d.amount_with_vat;
+    document.getElementById('ord-inv-extract-status').textContent = '✓ נמצא: ' + (d.invoice_number || '?');
+    document.getElementById('ord-inv-extract-status').style.color = '#15803d';
+  } catch (e) {
+    document.getElementById('ord-inv-extract-status').textContent = 'לא נמצאו נתונים — מלא ידנית';
+    document.getElementById('ord-inv-extract-status').style.color = '#9ca3af';
+  }
+  document.getElementById('ord-inv-save-btn').disabled = false;
+}
 
 async function ordSaveInvoice() {
   const orderId = document.getElementById('ord-inv-order-id').value;
@@ -12384,27 +12561,19 @@ async function ordSaveInvoice() {
   btn.disabled = true; btn.textContent = '⏳ שומר...';
   document.getElementById('ord-inv-err').textContent = '';
   try {
-    const file = document.getElementById('ord-inv-file').files[0];
-    if (file) {
-      const fd = new FormData();
-      fd.append('file', file);
-      fd.append('invoiceNumber', document.getElementById('ord-inv-number').value.trim());
-      fd.append('invoiceDate',   document.getElementById('ord-inv-date').value.trim());
-      const r = await fetch('/api/orders/' + orderId + '/invoice', { method: 'POST', body: fd });
-      if (!r.ok) throw new Error((await r.json()).error || 'שגיאה');
-    } else {
-      // Just update invoice number/date without file
-      const o = _ordOrders.find(x => x.id === parseInt(orderId));
-      await fetch('/api/orders/' + orderId, {
-        method: 'PUT', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          ...o,
-          isInvoiced: true,
-          invoiceNumber: document.getElementById('ord-inv-number').value.trim() || null,
-          invoiceDate:   document.getElementById('ord-inv-date').value.trim()   || null,
-        })
-      });
-    }
+    const body = {
+      invoiceNumber: document.getElementById('ord-inv-number').value.trim() || null,
+      invoiceDate:   document.getElementById('ord-inv-date').value.trim()   || null,
+      description:   document.getElementById('ord-inv-desc').value.trim()   || null,
+      amountPreVat:  document.getElementById('ord-inv-amt').value     ? parseFloat(document.getElementById('ord-inv-amt').value)     : null,
+      amountWithVat: document.getElementById('ord-inv-amt-vat').value ? parseFloat(document.getElementById('ord-inv-amt-vat').value) : null,
+      stagingPath:   document.getElementById('ord-inv-staging-path').value || null,
+      originalName:  document.getElementById('ord-inv-original-name').value || null,
+    };
+    const r = await fetch('/api/orders/' + orderId + '/invoices', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body)
+    });
+    if (!r.ok) throw new Error((await r.json()).error || 'שגיאה');
     ordCloseInvoiceModal();
     _toast('חשבונית נשמרה ✓', 'success');
     await ordSelectProject(_ordCurrentProjId);
@@ -12412,6 +12581,16 @@ async function ordSaveInvoice() {
     document.getElementById('ord-inv-err').textContent = e.message;
     btn.disabled = false; btn.textContent = '💾 שמור';
   }
+}
+
+async function ordDeleteInvoice(orderId, invId) {
+  if (!confirm('למחוק חשבונית זו?')) return;
+  try {
+    const r = await fetch('/api/orders/' + orderId + '/invoices/' + invId, { method: 'DELETE' });
+    if (!r.ok) throw new Error((await r.json()).error || 'שגיאה');
+    _toast('חשבונית נמחקה', 'info');
+    await ordSelectProject(_ordCurrentProjId);
+  } catch (e) { _toast(e.message, 'error'); }
 }
 
 // ── Export Excel ──────────────────────────────────────────────────────────────

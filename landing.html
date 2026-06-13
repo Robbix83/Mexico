@@ -82,7 +82,7 @@ body { font-family:'Rubik','Heebo',sans-serif; background:#0c0a09; overflow:hidd
 .dots span { display:block; width:4px; height:4px; border-radius:50%; background:#fff; }
 .rc { position:relative; z-index:2; height:100%; display:flex; flex-direction:column; justify-content:space-between; }
 .logo-b { display:inline-flex; align-self:flex-start; }
-.logo-b img { height:120px; display:block; filter:brightness(0) invert(1); }
+.logo-b img { display:block; filter:none; }
 .mid { flex:1; display:flex; flex-direction:column; justify-content:center; padding:28px 0; }
 
 /* Typewriter */
@@ -215,9 +215,14 @@ body { font-family:'Rubik','Heebo',sans-serif; background:#0c0a09; overflow:hidd
       <span></span><span></span><span></span><span></span><span></span>
     </div>
     <div class="rc">
-      <div class="logo-b">
-        <img src="/logo.png" alt=""
-             onerror="this.style.display='none'">
+      <div class="logo-b" style="display:inline-flex;align-items:center;gap:15px;">
+        <div style="width:80px;height:80px;flex-shrink:0;border-radius:14px;
+          background:url('/robx-mark.png') top center/155% no-repeat,#CC1A1A;
+          background-blend-mode:multiply;"></div>
+        <div style="line-height:1.2">
+          <div style="font-weight:900;font-size:1.45rem;letter-spacing:.1em;color:#fff;font-family:'Segoe UI',system-ui,sans-serif;">ROBX</div>
+          <div style="font-size:.7rem;letter-spacing:.28em;color:rgba(255,255,255,.65);font-weight:700;text-transform:uppercase;margin-top:4px;">SYSTEMS</div>
+        </div>
       </div>
       <div class="mid">
         <div class="h1"><span id="twText"></span><span class="tw-cur"></span></div>
