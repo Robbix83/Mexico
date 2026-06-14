@@ -5747,6 +5747,7 @@ let _importData=[], _importHeaders=[];
 function openImportModal(){
   _importData=[]; _importHeaders=[];
   document.getElementById('import-file-inp').value='';
+  document.getElementById('import-do-btn').disabled=false;
   showImportStep(1);
   document.getElementById('import-modal').classList.add('open');
 }
@@ -5776,14 +5777,17 @@ function _findHeaderRow(raw){
   const nameKws =['תיאור מוצר','product name','item name','description','מוצר'];
   const skuKwsWeak =['מספר','part','item','catalog'];
   const nameKwsWeak=['תיאור','שם','name','desc'];
+  // pre-lowercase so we don't repeat inside the per-row loop
+  const s5=skuKws.map(k=>k.toLowerCase()),  s4=nameKws.map(k=>k.toLowerCase()),
+        s2=skuKwsWeak.map(k=>k.toLowerCase()),s1=nameKwsWeak.map(k=>k.toLowerCase());
   let bestScore=0, bestRow=0;
   for(let i=0;i<Math.min(6,raw.length);i++){
     const row=raw[i].map(c=>String(c||'').toLowerCase());
     let score=0;
-    for(const kw of skuKws)      if(row.some(h=>h.includes(kw.toLowerCase()))) score+=5;
-    for(const kw of nameKws)     if(row.some(h=>h.includes(kw.toLowerCase()))) score+=4;
-    for(const kw of skuKwsWeak)  if(row.some(h=>h.includes(kw.toLowerCase()))) score+=2;
-    for(const kw of nameKwsWeak) if(row.some(h=>h.includes(kw.toLowerCase()))) score+=1;
+    for(const kw of s5) if(row.some(h=>h.includes(kw))) score+=5;
+    for(const kw of s4) if(row.some(h=>h.includes(kw))) score+=4;
+    for(const kw of s2) if(row.some(h=>h.includes(kw))) score+=2;
+    for(const kw of s1) if(row.some(h=>h.includes(kw))) score+=1;
     if(score>bestScore){bestScore=score;bestRow=i;}
   }
   return bestRow;
@@ -5866,7 +5870,7 @@ function renderImportPreview(){
   const fresh =rows.filter(r=>!existingSkus.has(r.sku));
   let html='';
   if(fresh.length) html+=`<div class="import-summary-box">✅ ${fresh.length} מקטים חדשים יתווספו לקטלוג</div>`;
-  if(dupes.length) html+=`<div class="import-warn-box">⚠️ ${dupes.length} מקטים קיימים כבר וייעברו (לפי מספר מקט)</div>`;
+  if(dupes.length) html+=`<div class="import-warn-box">⚠️ ${dupes.length} מקטים קיימים כבר בקטלוג וידולגו</div>`;
   if(!rows.length) html+=`<div class="import-warn-box">⚠️ לא נמצאו שורות עם מספר מקט בעמודה שנבחרה</div>`;
   const preview=rows.slice(0,15);
   if(preview.length){
@@ -5874,9 +5878,9 @@ function renderImportPreview(){
     html+=`<div class="import-preview-wrap"><table class="import-preview-table">
       <thead><tr><th>מקט</th><th>שם / תיאור</th><th>קטגוריה</th>${showCost?'<th>עלות ₪</th>':''}</tr></thead>
       <tbody>${preview.map(r=>`<tr>
-        <td style="font-family:monospace;font-weight:700">${r.sku}</td>
-        <td>${r.name||'—'}</td>
-        <td style="${r.cat?'color:#0369a1;font-weight:600':'color:#94a3b8'}">${r.cat||'—'}</td>
+        <td style="font-family:monospace;font-weight:700">${_esc(r.sku)}</td>
+        <td>${_esc(r.name)||'—'}</td>
+        <td style="${r.cat?'color:#0369a1;font-weight:600':'color:#94a3b8'}">${_esc(r.cat)||'—'}</td>
         ${showCost?`<td style="text-align:center;color:#166534;font-weight:600">${r.cost!=null?r.cost.toLocaleString('he-IL'):'—'}</td>`:''}
       </tr>`).join('')}</tbody>
     </table></div>`;
@@ -11487,7 +11491,7 @@ function _promptTemplateName(){
     cityInput.value = '';
     // Populate datalist from existing template cities
     const existingCities = [...new Set((_boqTemplates||[]).map(t=>t.city).filter(Boolean))].sort();
-    datalist.innerHTML = existingCities.map(c=>`<option value="${c}">`).join('');
+    datalist.innerHTML = existingCities.map(c=>`<option value="${_esc(c)}">`).join('');
     overlay.style.display = 'flex';
     setTimeout(()=>input.focus(), 50);
     function done(val){
