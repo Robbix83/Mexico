@@ -3150,6 +3150,11 @@ function loadState(){
     if(s.catalogItems)   catalogItems=s.catalogItems;
     if(s.nextCatalogId)  nextCatalogId=s.nextCatalogId;
     if(s.catalogCats)    catalogCats=s.catalogCats;
+    // dedup by SKU (keep first occurrence)
+    const skuSeen=new Set();
+    const before=catalogItems.length;
+    catalogItems=catalogItems.filter(ci=>skuSeen.has(ci.sku)?false:skuSeen.add(ci.sku));
+    if(catalogItems.length<before) saveState();
   }catch(e){}
 }
 
