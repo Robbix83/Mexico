@@ -2296,10 +2296,15 @@ tr:hover .pl-row-ds-btn{opacity:.6}
   <div id="boq-tmpl-name-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:9200;align-items:center;justify-content:center;direction:rtl">
     <div style="background:#fff;border-radius:14px;width:min(92vw,380px);padding:24px 22px 20px;box-shadow:0 10px 42px rgba(0,0,0,.28)">
       <div style="font-size:.95rem;font-weight:700;margin-bottom:4px;color:#1e3a5f">שמירת תבנית</div>
-      <div style="font-size:.75rem;color:#718096;margin-bottom:14px">הזן שם קצר לתבנית (לדוגמה: "חדר שרתים")</div>
+      <div style="font-size:.75rem;color:#718096;margin-bottom:10px">הזן שם קצר לתבנית (לדוגמה: "חדר שרתים")</div>
       <input id="boq-tmpl-name-input" type="text" placeholder="שם התבנית..." maxlength="60"
-        style="width:100%;padding:9px 12px;border:1.5px solid #cbd5e0;border-radius:8px;font-size:.9rem;box-sizing:border-box;direction:rtl;outline:none;transition:border-color .15s"
+        style="width:100%;padding:9px 12px;border:1.5px solid #cbd5e0;border-radius:8px;font-size:.9rem;box-sizing:border-box;direction:rtl;outline:none;transition:border-color .15s;margin-bottom:8px"
         onfocus="this.style.borderColor='#2563eb'" onblur="this.style.borderColor='#cbd5e0'"/>
+      <label style="font-size:.74rem;font-weight:600;color:#4a5568;display:block;margin-bottom:3px">עיר (אופציונלי)</label>
+      <input id="boq-tmpl-name-city" type="text" list="boq-tmpl-city-list" placeholder="לדוג׳: נתניה" maxlength="40"
+        style="width:100%;padding:8px 12px;border:1.5px solid #cbd5e0;border-radius:8px;font-size:.86rem;box-sizing:border-box;direction:rtl;outline:none;transition:border-color .15s"
+        onfocus="this.style.borderColor='#2563eb'" onblur="this.style.borderColor='#cbd5e0'"/>
+      <datalist id="boq-tmpl-city-list"></datalist>
       <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:14px">
         <button id="boq-tmpl-name-cancel"
           style="padding:8px 18px;border:1px solid #e2e8f0;background:#f7f7f8;border-radius:8px;cursor:pointer;font-size:.85rem;color:#4a5568">ביטול</button>
@@ -2880,6 +2885,10 @@ tr:hover .pl-row-ds-btn{opacity:.6}
         <div>
           <label>🏷️ קטגוריה</label>
           <select id="import-map-cat" onchange="renderImportPreview()"></select>
+        </div>
+        <div>
+          <label>💰 עלות ₪</label>
+          <select id="import-map-cost" onchange="renderImportPreview()"></select>
         </div>
       </div>
       <div id="import-preview-area"></div>
@@ -5748,6 +5757,23 @@ function handleImportFileDrop(e){
 function handleImportFileInput(inp){
   if(inp.files[0]) handleImportFile(inp.files[0]);
 }
+function _findHeaderRow(raw){
+  const skuKws  =['מקט','מק"ט','sku','code','part number','item number','catalog number'];
+  const nameKws =['תיאור מוצר','product name','item name','description','מוצר'];
+  const skuKwsWeak =['מספר','part','item','catalog'];
+  const nameKwsWeak=['תיאור','שם','name','desc'];
+  let bestScore=0, bestRow=0;
+  for(let i=0;i<Math.min(6,raw.length);i++){
+    const row=raw[i].map(c=>String(c||'').toLowerCase());
+    let score=0;
+    for(const kw of skuKws)      if(row.some(h=>h.includes(kw.toLowerCase()))) score+=5;
+    for(const kw of nameKws)     if(row.some(h=>h.includes(kw.toLowerCase()))) score+=4;
+    for(const kw of skuKwsWeak)  if(row.some(h=>h.includes(kw.toLowerCase()))) score+=2;
+    for(const kw of nameKwsWeak) if(row.some(h=>h.includes(kw.toLowerCase()))) score+=1;
+    if(score>bestScore){bestScore=score;bestRow=i;}
+  }
+  return bestRow;
+}
 function handleImportFile(file){
   const reader=new FileReader();
   reader.onload=async ev=>{
@@ -5757,8 +5783,9 @@ function handleImportFile(file){
       const ws=wb.Sheets[wb.SheetNames[0]];
       const raw=XLSX.utils.sheet_to_json(ws,{header:1,defval:''});
       if(!raw.length){_toast('הקובץ ריק','warn');return;}
-      _importHeaders=raw[0].map(String);
-      _importData=raw.slice(1).filter(r=>r.some(c=>String(c).trim()));
+      const hRow=_findHeaderRow(raw);
+      _importHeaders=raw[hRow].map(String);
+      _importData=raw.slice(hRow+1).filter(r=>r.some(c=>String(c).trim()));
       buildImportColMap();
       showImportStep(2);
     }catch(err){_toast('שגיאה בקריאת הקובץ: '+err.message,'error');}
@@ -5766,8 +5793,11 @@ function handleImportFile(file){
   reader.readAsBinaryString(file);
 }
 function _guessCol(headers,kws){
+  // strip gershayim / apostrophes / quotes so "מק"ט" matches "מקט"
+  const norm=s=>s.toLowerCase().replace(/['"״"׳`]/g,'');
   for(const kw of kws){
-    const i=headers.findIndex(h=>h.toLowerCase().includes(kw.toLowerCase()));
+    const nkw=norm(kw);
+    const i=headers.findIndex(h=>norm(h).includes(nkw));
     if(i>=0) return i;
   }
   return -1;
@@ -5776,40 +5806,47 @@ function buildImportColMap(){
   const h=_importHeaders;
   const colOpts=h.map((name,i)=>`<option value="${i}">${name||'עמודה '+(i+1)}</option>`).join('');
   const none='<option value="-1">— לא רלוונטי —</option>';
-  const skuI  =_guessCol(h,['מקט','sku','קוד','code','מספר','part','item','catalog']);
-  const nameI =_guessCol(h,['תיאור','שם','name','desc','description','פריט','מוצר','product']);
+  const skuI  =_guessCol(h,['מקט','מק"ט','sku','part number','item number','code','מספר','part','item','catalog']);
+  const nameI =_guessCol(h,['תאור מוצר','תיאור מוצר','שם מוצר','product name','item name','מוצר','תאור','תיאור','name','desc','description','פריט','שם','product']);
   const catI  =_guessCol(h,['קטגוריה','category','סוג','type','קבוצה','group']);
-  document.getElementById('import-map-sku').innerHTML =colOpts;
-  document.getElementById('import-map-name').innerHTML=none+colOpts;
-  document.getElementById('import-map-cat').innerHTML =none+colOpts;
-  if(skuI >=0) document.getElementById('import-map-sku').value =skuI;
-  if(nameI>=0) document.getElementById('import-map-name').value=nameI;
-  if(catI >=0) document.getElementById('import-map-cat').value =catI;
+  const costI =_guessCol(h,['עלות ש"ח','עלות שח','עלות','מחיר','cost','price','unit price','unit_price']);
+  document.getElementById('import-map-sku').innerHTML  =colOpts;
+  document.getElementById('import-map-name').innerHTML =none+colOpts;
+  document.getElementById('import-map-cat').innerHTML  =none+colOpts;
+  document.getElementById('import-map-cost').innerHTML =none+colOpts;
+  if(skuI >=0) document.getElementById('import-map-sku').value  =skuI;
+  if(nameI>=0) document.getElementById('import-map-name').value =nameI;
+  if(catI >=0) document.getElementById('import-map-cat').value  =catI;
+  if(costI>=0) document.getElementById('import-map-cost').value =costI;
   renderImportPreview();
 }
 function renderImportPreview(){
-  const skuC =parseInt(document.getElementById('import-map-sku').value);
-  const nameC=parseInt(document.getElementById('import-map-name').value);
-  const catC =parseInt(document.getElementById('import-map-cat').value);
+  const skuC  =parseInt(document.getElementById('import-map-sku').value);
+  const nameC =parseInt(document.getElementById('import-map-name').value);
+  const catC  =parseInt(document.getElementById('import-map-cat').value);
+  const costC =parseInt(document.getElementById('import-map-cost').value);
   const rows=_importData.map(r=>({
-    sku: String(r[skuC]||'').trim(),
-    name:nameC>=0?String(r[nameC]||'').trim():'',
-    cat: catC >=0?String(r[catC] ||'').trim():''
+    sku:  String(r[skuC]||'').trim(),
+    name: nameC>=0?String(r[nameC]||'').trim():'',
+    cat:  catC >=0?String(r[catC] ||'').trim():'',
+    cost: costC>=0?parseFloat(String(r[costC]||'').replace(/,/g,''))||null:null
   })).filter(r=>r.sku);
   const dupes =rows.filter(r=>catalogItems.some(ci=>ci.sku===r.sku));
   const fresh =rows.filter(r=>!catalogItems.some(ci=>ci.sku===r.sku));
   let html='';
-  if(fresh.length)  html+=`<div class="import-summary-box">✅ ${fresh.length} מקטים חדשים יתווספו לקטלוג</div>`;
-  if(dupes.length)  html+=`<div class="import-warn-box">⚠️ ${dupes.length} מקטים קיימים כבר וייעברו (לפי מספר מקט)</div>`;
-  if(!rows.length)  html+=`<div class="import-warn-box">⚠️ לא נמצאו שורות עם מספר מקט בעמודה שנבחרה</div>`;
+  if(fresh.length) html+=`<div class="import-summary-box">✅ ${fresh.length} מקטים חדשים יתווספו לקטלוג</div>`;
+  if(dupes.length) html+=`<div class="import-warn-box">⚠️ ${dupes.length} מקטים קיימים כבר וייעברו (לפי מספר מקט)</div>`;
+  if(!rows.length) html+=`<div class="import-warn-box">⚠️ לא נמצאו שורות עם מספר מקט בעמודה שנבחרה</div>`;
   const preview=rows.slice(0,15);
   if(preview.length){
+    const showCost=costC>=0;
     html+=`<div class="import-preview-wrap"><table class="import-preview-table">
-      <thead><tr><th>מקט</th><th>שם / תיאור</th><th>קטגוריה</th></tr></thead>
+      <thead><tr><th>מקט</th><th>שם / תיאור</th><th>קטגוריה</th>${showCost?'<th>עלות ₪</th>':''}</tr></thead>
       <tbody>${preview.map(r=>`<tr>
         <td style="font-family:monospace;font-weight:700">${r.sku}</td>
         <td>${r.name||'—'}</td>
         <td>${r.cat||'—'}</td>
+        ${showCost?`<td style="text-align:center;color:#166534;font-weight:600">${r.cost!=null?r.cost.toLocaleString('he-IL'):'—'}</td>`:''}
       </tr>`).join('')}</tbody>
     </table></div>`;
     if(rows.length>15) html+=`<p style="font-size:.74rem;color:#94a3b8;margin-top:5px">מוצגות 15 שורות מתוך ${rows.length}</p>`;
@@ -5820,18 +5857,20 @@ function renderImportPreview(){
   btn.textContent=fresh.length?`📥 ייבא ${fresh.length} מקטים`:'אין מקטים חדשים לייבא';
 }
 function doImport(){
-  const skuC =parseInt(document.getElementById('import-map-sku').value);
-  const nameC=parseInt(document.getElementById('import-map-name').value);
-  const catC =parseInt(document.getElementById('import-map-cat').value);
+  const skuC  =parseInt(document.getElementById('import-map-sku').value);
+  const nameC =parseInt(document.getElementById('import-map-name').value);
+  const catC  =parseInt(document.getElementById('import-map-cat').value);
+  const costC =parseInt(document.getElementById('import-map-cost').value);
   const rows=_importData.map(r=>({
-    sku: String(r[skuC]||'').trim(),
-    name:nameC>=0?String(r[nameC]||'').trim():'',
-    cat: catC >=0?String(r[catC] ||'').trim():''
+    sku:  String(r[skuC]||'').trim(),
+    name: nameC>=0?String(r[nameC]||'').trim():'',
+    cat:  catC >=0?String(r[catC] ||'').trim():'',
+    cost: costC>=0?parseFloat(String(r[costC]||'').replace(/,/g,''))||null:null
   })).filter(r=>r.sku&&!catalogItems.some(ci=>ci.sku===r.sku));
   // add new categories automatically
   rows.forEach(r=>{if(r.cat&&!catalogCats.includes(r.cat)) catalogCats.push(r.cat);});
   rows.forEach(r=>{
-    catalogItems.push({id:nextCatalogId++,sku:r.sku,name:r.name,cat:r.cat,desc:'',files:[],relations:[]});
+    catalogItems.push({id:nextCatalogId++,sku:r.sku,name:r.name,cat:r.cat,cost:r.cost,desc:'',files:[],relations:[]});
   });
   saveState();
   closeImportModal();
@@ -11394,34 +11433,43 @@ async function boqCostDeleteTemplate(tmplId, tmplName){
 
 function _promptTemplateName(){
   return new Promise(resolve=>{
-    const overlay = document.getElementById('boq-tmpl-name-overlay');
-    const input   = document.getElementById('boq-tmpl-name-input');
-    const okBtn   = document.getElementById('boq-tmpl-name-ok');
+    const overlay   = document.getElementById('boq-tmpl-name-overlay');
+    const input     = document.getElementById('boq-tmpl-name-input');
+    const cityInput = document.getElementById('boq-tmpl-name-city');
+    const datalist  = document.getElementById('boq-tmpl-city-list');
+    const okBtn     = document.getElementById('boq-tmpl-name-ok');
     const cancelBtn = document.getElementById('boq-tmpl-name-cancel');
     input.value = '';
+    cityInput.value = '';
+    // Populate datalist from existing template cities
+    const existingCities = [...new Set((_boqTemplates||[]).map(t=>t.city).filter(Boolean))].sort();
+    datalist.innerHTML = existingCities.map(c=>`<option value="${c}">`).join('');
     overlay.style.display = 'flex';
     setTimeout(()=>input.focus(), 50);
     function done(val){
       overlay.style.display = 'none';
-      resolve(val || null);
+      if(!val) return resolve(null);
+      resolve({ name: val, city: cityInput.value.trim() || null });
     }
     okBtn.onclick    = ()=>{ const v=input.value.trim(); if(!v) return input.focus(); done(v); };
     cancelBtn.onclick = ()=>done(null);
     input.onkeydown  = e=>{ if(e.key==='Enter'){ const v=input.value.trim(); if(!v) return; done(v); } if(e.key==='Escape') done(null); };
+    cityInput.onkeydown = e=>{ if(e.key==='Enter') done(input.value.trim()||null); if(e.key==='Escape') done(null); };
   });
 }
 
 async function boqCostSaveAsTemplate(){
   if(!_boqCostDraft?.rows?.length){ _toast('הוסף שורות לפני שמירה כתבנית','info'); return; }
-  const name = await _promptTemplateName();
-  if(!name) return;
+  const result = await _promptTemplateName();
+  if(!result) return;
+  const { name, city } = result;
   const components = _boqCostDraft.rows
     .filter(r=>r.label.trim())
     .map((r,i)=>({key:'custom_'+i, label:r.label, unitPrice:r.price||0, currency:r.currency||'ILS', quantity:r.qty||1, formula:null, sort:i}));
   try {
     const res = await fetch('/api/boq/templates',{
       method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({name:name.trim(), keywords:[], components})
+      body: JSON.stringify({name:name.trim(), city: city||null, keywords:[], components})
     });
     if(!res.ok) throw new Error((await res.json()).error);
     const newTmpl = await res.json();

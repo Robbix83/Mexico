@@ -2338,10 +2338,11 @@ app.get('/api/boq/templates', requireSection('boq'), (_req, res) => {
 });
 
 app.post('/api/boq/templates', requireSection('boq'), (req, res) => {
-  const { name, keywords, components } = req.body;
+  const { name, city, keywords, components } = req.body;
   if (!name) return res.status(400).json({ error: 'name required' });
   const r = db.createBoqTemplate({
     name,
+    city: city || null,
     keywordsJson:   JSON.stringify(keywords   || []),
     componentsJson: JSON.stringify(components || []),
     isSystem: false,
@@ -2350,10 +2351,11 @@ app.post('/api/boq/templates', requireSection('boq'), (req, res) => {
 });
 
 app.put('/api/boq/templates/:id', requireSection('boq'), (req, res) => {
-  const { name, keywords, components } = req.body;
+  const { name, city, keywords, components } = req.body;
   if (!name) return res.status(400).json({ error: 'name required' });
   db.updateBoqTemplate(parseInt(req.params.id), {
     name,
+    city: city || null,
     keywordsJson:   JSON.stringify(keywords   || []),
     componentsJson: JSON.stringify(components || []),
   });
