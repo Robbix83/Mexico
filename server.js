@@ -1666,8 +1666,8 @@ app.post('/api/admin/ds-finder/resume', requireAdmin, (req, res) => {
   res.json({ ok: true, paused: false });
 });
 
-// Manual URL download: admin provides model + manufacturer + PDF URL, download happens immediately
-app.post('/api/admin/ds-finder/manual', requireAdmin, async (req, res) => {
+// Manual URL download: any authenticated user can download a datasheet PDF
+app.post('/api/admin/ds-finder/manual', requireAuth, async (req, res) => {
   const { model, manufacturer, url } = req.body || {};
   if (!model || !manufacturer || !url) {
     return res.status(400).json({ error: 'model, manufacturer and url are required' });
