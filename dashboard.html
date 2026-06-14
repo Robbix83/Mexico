@@ -3937,9 +3937,9 @@ function renderList(){
         <button class="expand-btn${exp?' open':''}" onclick="toggleExp(${t.id})" title="${exp?'סגור':'פתח'} תת-משימות">▶</button>
       </td>
       <td class="task-name-cell" onmouseenter="showNoteTT(event,${t.id})" onmouseleave="schedHideNoteTT()">
-        <div class="name">${t.name}</div>
+        <div class="name">${_esc(t.name)}</div>
         ${(dueBadge||progBar)?`<div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-top:2px">${dueBadge}${progBar}</div>`:''}
-        ${t.note?`<div class="note">📝 ${t.note}</div>`:''}
+        ${t.note?`<div class="note">📝 ${_esc(t.note)}</div>`:''}
         ${openKids.length?`<div class="sub-hint">📎 ${openKids.length} תת-משימות</div>`:''}
         ${t.createdAt?`<div class="note" style="color:#b0bec5">🗓️ נפתח: ${fmtDate(t.createdAt)}</div>`:''}
       </td>
@@ -3969,7 +3969,7 @@ function renderList(){
       detailRow.className='detail-row';
       const fChips=(t.files||[]).map((f,i)=>`<span class="detail-file-chip" style="gap:6px"><span class="file-chip-click" title="${f.name} — לחץ להצגה | כפול להורדה" onclick="toggleFilePreview(event,${t.id},${i})" ondblclick="downloadFile(${t.id},${i})" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:150px;cursor:default">${fileIcon(f.type)} ${f.name}</span><button onclick="removeTaskFile(event,${t.id},${i})" title="הסר קובץ" style="background:none;border:none;color:#e53e3e;cursor:pointer;font-size:.75rem;line-height:1;padding:0;flex-shrink:0">✕</button></span>`).join('');
       detailRow.innerHTML=`<td colspan="8" style="padding:0"><div class="task-detail-panel">
-        ${t.note?`<div class="detail-note">📝 ${t.note}</div>`:''}
+        ${t.note?`<div class="detail-note">📝 ${_esc(t.note)}</div>`:''}
         <div class="detail-files-bar">
           <span class="detail-files-label">📎 קבצים:</span>
           ${fChips||'<span style="font-size:.74rem;color:#94a3b8">אין קבצים</span>'}
@@ -4431,7 +4431,7 @@ function renderDone(){
   }
   doneList.forEach(d=>{
     const li=document.createElement('li');
-    li.innerHTML=`<span>✅</span><span class="dn">${d.name}</span>${catBadge(d.cat)}
+    li.innerHTML=`<span>✅</span><span class="dn">${_esc(d.name)}</span>${catBadge(d.cat)}
 
       <button class="hist-btn" onmouseenter="showHist(event,'${d.id}')" onmouseleave="hideHist()" title="היסטוריית סטטוסים">🕐</button>
       <button class="restore-btn" onclick="restoreTask('${d.id}')">↩ שחזר</button>`;
@@ -5167,7 +5167,7 @@ function renderCatalog(){
       let xbadge='';
       if(wh&&(+wh.qty||0)>0) xbadge+=`<span title="יש במחסן" style="display:block;font-size:.7rem;color:#0d9488">📦 ${wh.qty} ${wh.unit||"יח'"} במחסן</span>`;
       if(ep&&ep.price!=null) xbadge+=`<span title="מחיר מחירון" style="display:block;font-size:.7rem;color:#6366f1">🏷️ ${ep.price} ${ep.cur||''}</span>`;
-      const descHtml=item.desc?`<div style="font-size:.74rem;color:#94a3b8;font-weight:400;margin-top:2px;white-space:normal;line-height:1.4">${item.desc}</div>`:'';
+      const descHtml=item.desc?`<div style="font-size:.74rem;color:#94a3b8;font-weight:400;margin-top:2px;white-space:normal;line-height:1.4">${_esc(item.desc)}</div>`:'';
       // Expand toggle (only on parents that own children)
       const childCount=(item.relations||[]).filter(r=>r.type==='child'&&getCatalogItem(r.id)).length;
       const expanded=catalogChildExpanded.has(item.id);
@@ -5186,7 +5186,7 @@ function renderCatalog(){
       return `<tr id="ci-card-${item.id}" class="${isChild?'ci-child-row':''}">
         <td class="td-sku">${skuCell}</td>
         <td>${catBadge}</td>
-        <td class="td-name">${item.name}${descHtml}</td>
+        <td class="td-name">${_esc(item.name)}${descHtml}</td>
         <td class="td-cost">${cost}${xbadge}</td>
         <td style="text-align:center">${ds}</td>
         <td class="td-actions">
@@ -5249,7 +5249,7 @@ function renderCatalog(){
           const skuSafe=(ch.sku||'').replace(/'/g,"\\'");
           return `<div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:7px 10px;margin-bottom:4px;cursor:pointer;display:flex;align-items:center;gap:8px" onclick="toggleCatalogExpand(${ch.id})">
             <span class="sku-badge" onclick="event.stopPropagation();copySkuNum('${skuSafe}',this)">${ch.sku}</span>
-            <span style="font-size:.82rem;color:#1e293b;flex:1">${ch.name}</span>
+            <span style="font-size:.82rem;color:#1e293b;flex:1">${_esc(ch.name)}</span>
             ${costBadge}
           </div>`;
         }).join('');
@@ -5285,8 +5285,8 @@ function renderCatalog(){
         ${item.datasheetUrl?`<a class="ci-datasheet" href="${item.datasheetUrl}" target="_blank" rel="noopener">📄 Datasheet</a>`:''}
         ${(item.files||[]).map((_f,_i)=>`<a class="ci-datasheet" href="#" onclick="event.preventDefault();openCatalogFile(${item.id},${_i})">📄</a>`).join('')}
       </div>
-      <div class="ci-name" onclick="toggleCatalogExpand(${item.id})">${item.name}</div>
-      <div class="ci-desc${exp?' full':''}" onclick="toggleCatalogExpand(${item.id})" style="cursor:pointer">${item.desc?item.desc.replace(/\n/g,'<br>'):'<span style="color:#b0bec5;font-style:italic">לחץ להרחבה</span>'}</div>
+      <div class="ci-name" onclick="toggleCatalogExpand(${item.id})">${_esc(item.name)}</div>
+      <div class="ci-desc${exp?' full':''}" onclick="toggleCatalogExpand(${item.id})" style="cursor:pointer">${item.desc?_esc(item.desc).replace(/\n/g,'<br>'):'<span style="color:#b0bec5;font-style:italic">לחץ להרחבה</span>'}</div>
       ${childrenHtml}
       <div class="ci-footer">
         ${relChips}
@@ -5390,7 +5390,7 @@ function askDeleteCatalog(id){
   const item=getCatalogItem(id);
   if(!item) return;
   _catalogDelId=id;
-  document.getElementById('confirm-msg').innerHTML=`למחוק את המקט <b>${item.sku}</b> — ${item.name}?`;
+  document.getElementById('confirm-msg').innerHTML=`למחוק את המקט <b>${_esc(item.sku)}</b> — ${_esc(item.name)}?`;
   document.getElementById('confirm').classList.add('open');
 }
 function _buildCmCatSelect(currentCat){
@@ -5400,7 +5400,7 @@ function _buildCmCatSelect(currentCat){
   // if item has a cat not in list, add it
   if(currentCat&&!cats.includes(currentCat)) cats.unshift(currentCat);
   sel.innerHTML=`<option value="">— ללא קטגוריה —</option>`
-    +cats.map(c=>`<option value="${c}">${c}</option>`).join('')
+    +cats.map(c=>`<option value="${_esc(c)}">${_esc(c)}</option>`).join('')
     +`<option value="__new__">➕ קטגוריה חדשה...</option>`;
   sel.value=currentCat||'';
   custom.style.display='none';
@@ -5810,18 +5810,21 @@ function handleImportFile(file){
   };
   reader.readAsBinaryString(file);
 }
+const _CAT_RE=[
+  [/מצלמ|camera|cam\b|ptz|dome|בולט|bullet|fisheye|panoram|hikvision|dahua|bosch.*cam|avigilon/,'מצלמות'],
+  [/ארון|cabinet|rack|תחתית.*ארון|בסיס.*ארון|סוקל|פנל .*ארון|panel.*rack/,'ארונות'],
+  [/כבל|cable|\bcat\d|fiber|סיב|utp|stp|ftp|conduit|צינור.*חשמל|wire/,'כבילה'],
+  [/\bswitch\b|מתג|router|ראוטר|\bpoe\b|access.?point|\bap\b/,'מתגים ורשת'],
+  [/nvr|dvr|אינטרקום|בקר.?כניסה|קורא.?כרטיס|card.?reader|controller|גלאי|detector/,'מערכות אבטחה'],
+  [/מצבר|battery|ups|\bupg\b|ספק.?כח|power.?supply|שנאי|transformer|charger|טעינה/,'ספקי כח ומצברים'],
+  [/\bmonitor\b|מסך|תצוגה|\bdisplay\b|\bpc\b|\bserver\b|מחשב/,'מחשבים ותצוגה'],
+  [/speaker|רמקול|microphone|מיקרופון|amplifier|מגבר|כריזה|שידור|pa.?system/,'שמע וכריזה'],
+  [/תושבת|תליה|bracket|בנד|סוגר|מדף|mount|clamp|holder|מתקן|קדחת/,'ציוד יבש'],
+];
 function _autoCategorize(name, sku){
-  const t = ((name||'')+(sku||'')).toLowerCase();
-  if(/מצלמ|camera|cam\b|ptz|dome|בולט|bullet|fisheye|panoram|hikvision|dahua|bosch.*cam|avigilon/.test(t)) return 'מצלמות';
-  if(/ארון|cabinet|rack|תחתית.*ארון|בסיס.*ארון|סוקל|פנל .*ארון|panel.*rack/.test(t)) return 'ארונות';
-  if(/כבל|cable|\bcat\d|fiber|סיב|utp|stp|ftp|conduit|צינור.*חשמל|wire/.test(t)) return 'כבילה';
-  if(/\bswitch\b|מתג|router|ראוטר|\bpoe\b|access.?point|\bap\b/.test(t)) return 'מתגים ורשת';
-  if(/nvr|dvr|אינטרקום|בקר.?כניסה|קורא.?כרטיס|card.?reader|controller|גלאי|detector/.test(t)) return 'מערכות אבטחה';
-  if(/מצבר|battery|ups|\bupg\b|ספק.?כח|power.?supply|שנאי|transformer|charger|טעינה/.test(t)) return 'ספקי כח ומצברים';
-  if(/\bmonitor\b|מסך|תצוגה|\bdisplay\b|\bpc\b|\bserver\b|מחשב/.test(t)) return 'מחשבים ותצוגה';
-  if(/speaker|רמקול|microphone|מיקרופון|amplifier|מגבר|כריזה|שידור|pa.?system/.test(t)) return 'שמע וכריזה';
-  if(/תושבת|תליה|bracket|בנד|סוגר|מדף|mount|clamp|holder|מתקן|קדחת/.test(t)) return 'ציוד יבש';
-  return '';
+  const t=((name||'')+(sku||'')).toLowerCase();
+  const m=_CAT_RE.find(([re])=>re.test(t));
+  return m?m[1]:'';
 }
 function _esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
 function _guessCol(headers,kws){
