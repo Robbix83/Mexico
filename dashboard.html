@@ -3153,8 +3153,10 @@ function loadState(){
     // dedup by SKU (keep first occurrence)
     const skuSeen=new Set();
     const before=catalogItems.length;
-    catalogItems=catalogItems.filter(ci=>skuSeen.has(ci.sku)?false:skuSeen.add(ci.sku));
-    if(catalogItems.length<before) saveState();
+    catalogItems=catalogItems.filter(ci=>ci.sku&&!skuSeen.has(ci.sku)&&skuSeen.add(ci.sku));
+    if(catalogItems.length<before){
+      try{ saveState(); }catch(_){}
+    }
   }catch(e){}
 }
 
@@ -5815,7 +5817,6 @@ function _autoCategorize(name, sku){
   if(/\bmonitor\b|מסך|תצוגה|\bdisplay\b|\bpc\b|\bserver\b|מחשב/.test(t)) return 'מחשבים ותצוגה';
   if(/speaker|רמקול|microphone|מיקרופון|amplifier|מגבר|כריזה|שידור|pa.?system/.test(t)) return 'שמע וכריזה';
   if(/תושבת|תליה|bracket|בנד|סוגר|מדף|mount|clamp|holder|מתקן|קדחת/.test(t)) return 'ציוד יבש';
-  if(/ארון|cabinet|rack/.test(t)) return 'ארונות';
   return '';
 }
 function _guessCol(headers,kws){
@@ -5859,8 +5860,9 @@ function renderImportPreview(){
   const costC =parseInt(document.getElementById('import-map-cost').value);
   const defCat = document.getElementById('import-default-cat').value;
   const rows=_buildImportRows(skuC,nameC,catC,costC,defCat);
-  const dupes =rows.filter(r=>catalogItems.some(ci=>ci.sku===r.sku));
-  const fresh =rows.filter(r=>!catalogItems.some(ci=>ci.sku===r.sku));
+  const existingSkus=new Set(catalogItems.map(ci=>ci.sku));
+  const dupes =rows.filter(r=>existingSkus.has(r.sku));
+  const fresh =rows.filter(r=>!existingSkus.has(r.sku));
   let html='';
   if(fresh.length) html+=`<div class="import-summary-box">✅ ${fresh.length} מקטים חדשים יתווספו לקטלוג</div>`;
   if(dupes.length) html+=`<div class="import-warn-box">⚠️ ${dupes.length} מקטים קיימים כבר וייעברו (לפי מספר מקט)</div>`;
@@ -5900,10 +5902,11 @@ function doImport(){
   const catC  =parseInt(document.getElementById('import-map-cat').value);
   const costC =parseInt(document.getElementById('import-map-cost').value);
   const defCat= document.getElementById('import-default-cat').value;
+  const existingSkus=new Set(catalogItems.map(ci=>ci.sku));
   const seenSkus=new Set();
   const rows=_buildImportRows(skuC,nameC,catC,costC,defCat)
-    .filter(r=>!catalogItems.some(ci=>ci.sku===r.sku))
-    .filter(r=>seenSkus.has(r.sku)?false:seenSkus.add(r.sku));
+    .filter(r=>!seenSkus.has(r.sku)&&seenSkus.add(r.sku))
+    .filter(r=>!existingSkus.has(r.sku));
   // add new categories automatically
   rows.forEach(r=>{if(r.cat&&!catalogCats.includes(r.cat)) catalogCats.push(r.cat);});
   rows.forEach(r=>{

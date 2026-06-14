@@ -70,7 +70,10 @@ function _safeFilename(model) {
 
 // ── Save buffer to disk + trigger reindex ─────────────────────────────────────
 function _safeSave(manufacturer, model, buffer) {
-  const dir = path.join(DS_PATH, manufacturer);
+  const safeManufacturer = manufacturer.replace(/[/\\:*?"<>|\s]+/g, '_');
+  const dir = path.join(DS_PATH, safeManufacturer);
+  const resolved = path.resolve(dir);
+  if (!resolved.startsWith(path.resolve(DS_PATH))) throw new Error('Invalid manufacturer path');
   if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
   const filename = _safeFilename(model);
   const filePath = path.join(dir, filename);
