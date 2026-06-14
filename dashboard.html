@@ -5799,6 +5799,20 @@ function handleImportFile(file){
   };
   reader.readAsBinaryString(file);
 }
+function _autoCategorize(name, sku){
+  const t = ((name||'')+(sku||'')).toLowerCase();
+  if(/מצלמ|camera|cam\b|ptz|dome|בולט|bullet|fisheye|panoram|hikvision|dahua|bosch.*cam|avigilon/.test(t)) return 'מצלמות';
+  if(/ארון|cabinet|rack|תחתית.*ארון|בסיס.*ארון|סוקל|פנל .*ארון|panel.*rack/.test(t)) return 'ארונות';
+  if(/כבל|cable|\bcat\d|fiber|סיב|utp|stp|ftp|conduit|צינור.*חשמל|wire/.test(t)) return 'כבילה';
+  if(/\bswitch\b|מתג|router|ראוטר|\bpoe\b|access.?point|\bap\b/.test(t)) return 'מתגים ורשת';
+  if(/nvr|dvr|אינטרקום|בקר.?כניסה|קורא.?כרטיס|card.?reader|controller|גלאי|detector/.test(t)) return 'מערכות אבטחה';
+  if(/מצבר|battery|ups|\bupg\b|ספק.?כח|power.?supply|שנאי|transformer|charger|טעינה/.test(t)) return 'ספקי כח ומצברים';
+  if(/\bmonitor\b|מסך|תצוגה|\bdisplay\b|\bpc\b|\bserver\b|מחשב/.test(t)) return 'מחשבים ותצוגה';
+  if(/speaker|רמקול|microphone|מיקרופון|amplifier|מגבר|כריזה|שידור|pa.?system/.test(t)) return 'שמע וכריזה';
+  if(/תושבת|תליה|bracket|בנד|סוגר|מדף|mount|clamp|holder|מתקן|קדחת/.test(t)) return 'ציוד יבש';
+  if(/ארון|cabinet|rack/.test(t)) return 'ארונות';
+  return '';
+}
 function _guessCol(headers,kws){
   // strip gershayim / apostrophes / quotes so "מק"ט" matches "מקט"
   const norm=s=>s.toLowerCase().replace(/['"״"׳`]/g,'');
@@ -5839,12 +5853,7 @@ function renderImportPreview(){
   const catC  =parseInt(document.getElementById('import-map-cat').value);
   const costC =parseInt(document.getElementById('import-map-cost').value);
   const defCat = document.getElementById('import-default-cat').value;
-  const rows=_importData.map(r=>({
-    sku:  String(r[skuC]||'').trim(),
-    name: nameC>=0?String(r[nameC]||'').trim():'',
-    cat:  (catC>=0?String(r[catC]||'').trim():'')||defCat,
-    cost: costC>=0?parseFloat(String(r[costC]||'').replace(/,/g,''))||null:null
-  })).filter(r=>r.sku);
+  const rows=_buildImportRows(skuC,nameC,catC,costC,defCat);
   const dupes =rows.filter(r=>catalogItems.some(ci=>ci.sku===r.sku));
   const fresh =rows.filter(r=>!catalogItems.some(ci=>ci.sku===r.sku));
   let html='';
@@ -5870,18 +5879,24 @@ function renderImportPreview(){
   btn.disabled=!fresh.length;
   btn.textContent=fresh.length?`📥 ייבא ${fresh.length} מקטים`:'אין מקטים חדשים לייבא';
 }
+function _buildImportRows(skuC,nameC,catC,costC,defCat){
+  return _importData.map(r=>{
+    const sku  =String(r[skuC]||'').trim();
+    const name =nameC>=0?String(r[nameC]||'').trim():'';
+    const fromFile=catC>=0?String(r[catC]||'').trim():'';
+    const cat  =fromFile||_autoCategorize(name,sku)||defCat;
+    const cost =costC>=0?parseFloat(String(r[costC]||'').replace(/,/g,''))||null:null;
+    return{sku,name,cat,cost};
+  }).filter(r=>r.sku);
+}
 function doImport(){
   const skuC  =parseInt(document.getElementById('import-map-sku').value);
   const nameC =parseInt(document.getElementById('import-map-name').value);
   const catC  =parseInt(document.getElementById('import-map-cat').value);
   const costC =parseInt(document.getElementById('import-map-cost').value);
   const defCat= document.getElementById('import-default-cat').value;
-  const rows=_importData.map(r=>({
-    sku:  String(r[skuC]||'').trim(),
-    name: nameC>=0?String(r[nameC]||'').trim():'',
-    cat:  (catC>=0?String(r[catC]||'').trim():'')||defCat,
-    cost: costC>=0?parseFloat(String(r[costC]||'').replace(/,/g,''))||null:null
-  })).filter(r=>r.sku&&!catalogItems.some(ci=>ci.sku===r.sku));
+  const rows=_buildImportRows(skuC,nameC,catC,costC,defCat)
+    .filter(r=>!catalogItems.some(ci=>ci.sku===r.sku));
   // add new categories automatically
   rows.forEach(r=>{if(r.cat&&!catalogCats.includes(r.cat)) catalogCats.push(r.cat);});
   rows.forEach(r=>{
