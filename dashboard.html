@@ -5819,6 +5819,7 @@ function _autoCategorize(name, sku){
   if(/תושבת|תליה|bracket|בנד|סוגר|מדף|mount|clamp|holder|מתקן|קדחת/.test(t)) return 'ציוד יבש';
   return '';
 }
+function _esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
 function _guessCol(headers,kws){
   // strip gershayim / apostrophes / quotes so "מק"ט" matches "מקט"
   const norm=s=>s.toLowerCase().replace(/['"״"׳`]/g,'');
@@ -5831,7 +5832,7 @@ function _guessCol(headers,kws){
 }
 function buildImportColMap(){
   const h=_importHeaders;
-  const colOpts=h.map((name,i)=>`<option value="${i}">${name||'עמודה '+(i+1)}</option>`).join('');
+  const colOpts=h.map((name,i)=>`<option value="${i}">${_esc(name||'עמודה '+(i+1))}</option>`).join('');
   const none='<option value="-1">— לא רלוונטי —</option>';
   const skuI  =_guessCol(h,['מקט','מק"ט','sku','part number','item number','code','מספר','part','item','catalog']);
   const nameI =_guessCol(h,['תאור מוצר','תיאור מוצר','שם מוצר','product name','item name','מוצר','תאור','תיאור','name','desc','description','פריט','שם','product']);
@@ -5849,7 +5850,7 @@ function buildImportColMap(){
   const defCatSel = document.getElementById('import-default-cat');
   const prevDef = defCatSel.value;
   defCatSel.innerHTML = '<option value="">— ללא —</option>' +
-    catalogCats.map(c=>`<option value="${c}">${c}</option>`).join('');
+    catalogCats.map(c=>`<option value="${_esc(c)}">${_esc(c)}</option>`).join('');
   if(prevDef && catalogCats.includes(prevDef)) defCatSel.value = prevDef;
   renderImportPreview();
 }
@@ -5897,6 +5898,9 @@ function _buildImportRows(skuC,nameC,catC,costC,defCat){
   }).filter(r=>r.sku);
 }
 function doImport(){
+  const btn=document.getElementById('import-do-btn');
+  if(btn.disabled) return;
+  btn.disabled=true;
   const skuC  =parseInt(document.getElementById('import-map-sku').value);
   const nameC =parseInt(document.getElementById('import-map-name').value);
   const catC  =parseInt(document.getElementById('import-map-cat').value);

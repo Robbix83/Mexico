@@ -73,7 +73,7 @@ function _safeSave(manufacturer, model, buffer) {
   const safeManufacturer = manufacturer.replace(/[/\\:*?"<>|\s]+/g, '_');
   const dir = path.join(DS_PATH, safeManufacturer);
   const resolved = path.resolve(dir);
-  if (!resolved.startsWith(path.resolve(DS_PATH))) throw new Error('Invalid manufacturer path');
+  if (!resolved.startsWith(path.resolve(DS_PATH) + path.sep)) throw new Error('Invalid manufacturer path');
   if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
   const filename = _safeFilename(model);
   const filePath = path.join(dir, filename);
