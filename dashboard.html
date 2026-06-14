@@ -5895,8 +5895,10 @@ function doImport(){
   const catC  =parseInt(document.getElementById('import-map-cat').value);
   const costC =parseInt(document.getElementById('import-map-cost').value);
   const defCat= document.getElementById('import-default-cat').value;
+  const seenSkus=new Set();
   const rows=_buildImportRows(skuC,nameC,catC,costC,defCat)
-    .filter(r=>!catalogItems.some(ci=>ci.sku===r.sku));
+    .filter(r=>!catalogItems.some(ci=>ci.sku===r.sku))
+    .filter(r=>seenSkus.has(r.sku)?false:seenSkus.add(r.sku));
   // add new categories automatically
   rows.forEach(r=>{if(r.cat&&!catalogCats.includes(r.cat)) catalogCats.push(r.cat);});
   rows.forEach(r=>{
