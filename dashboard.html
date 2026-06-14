@@ -2883,13 +2883,20 @@ tr:hover .pl-row-ds-btn{opacity:.6}
           <select id="import-map-name" onchange="renderImportPreview()"></select>
         </div>
         <div>
-          <label>🏷️ קטגוריה</label>
+          <label>🏷️ קטגוריה (מהקובץ)</label>
           <select id="import-map-cat" onchange="renderImportPreview()"></select>
         </div>
         <div>
           <label>💰 עלות ₪</label>
           <select id="import-map-cost" onchange="renderImportPreview()"></select>
         </div>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px;margin:10px 0 4px;padding:8px 10px;background:#f0f9ff;border:1px solid #bae6fd;border-radius:8px;direction:rtl">
+        <label style="font-size:.78rem;font-weight:600;color:#0369a1;white-space:nowrap;flex-shrink:0">🗂️ קטגוריה ברירת מחדל<br><span style="font-weight:400;font-size:.72rem">(לפריטים ללא קטגוריה)</span></label>
+        <select id="import-default-cat" onchange="renderImportPreview()"
+          style="flex:1;padding:6px 10px;border:1.5px solid #bae6fd;border-radius:7px;font-size:.83rem;direction:rtl">
+          <option value="">— ללא —</option>
+        </select>
       </div>
       <div id="import-preview-area"></div>
       <div style="display:flex;gap:8px;margin-top:14px;justify-content:flex-end">
@@ -5818,6 +5825,12 @@ function buildImportColMap(){
   if(nameI>=0) document.getElementById('import-map-name').value =nameI;
   if(catI >=0) document.getElementById('import-map-cat').value  =catI;
   if(costI>=0) document.getElementById('import-map-cost').value =costI;
+  // populate default category dropdown from existing catalog categories
+  const defCatSel = document.getElementById('import-default-cat');
+  const prevDef = defCatSel.value;
+  defCatSel.innerHTML = '<option value="">— ללא —</option>' +
+    catalogCats.map(c=>`<option value="${c}">${c}</option>`).join('');
+  if(prevDef && catalogCats.includes(prevDef)) defCatSel.value = prevDef;
   renderImportPreview();
 }
 function renderImportPreview(){
@@ -5825,10 +5838,11 @@ function renderImportPreview(){
   const nameC =parseInt(document.getElementById('import-map-name').value);
   const catC  =parseInt(document.getElementById('import-map-cat').value);
   const costC =parseInt(document.getElementById('import-map-cost').value);
+  const defCat = document.getElementById('import-default-cat').value;
   const rows=_importData.map(r=>({
     sku:  String(r[skuC]||'').trim(),
     name: nameC>=0?String(r[nameC]||'').trim():'',
-    cat:  catC >=0?String(r[catC] ||'').trim():'',
+    cat:  (catC>=0?String(r[catC]||'').trim():'')||defCat,
     cost: costC>=0?parseFloat(String(r[costC]||'').replace(/,/g,''))||null:null
   })).filter(r=>r.sku);
   const dupes =rows.filter(r=>catalogItems.some(ci=>ci.sku===r.sku));
@@ -5845,7 +5859,7 @@ function renderImportPreview(){
       <tbody>${preview.map(r=>`<tr>
         <td style="font-family:monospace;font-weight:700">${r.sku}</td>
         <td>${r.name||'—'}</td>
-        <td>${r.cat||'—'}</td>
+        <td style="${r.cat?'color:#0369a1;font-weight:600':'color:#94a3b8'}">${r.cat||'—'}</td>
         ${showCost?`<td style="text-align:center;color:#166534;font-weight:600">${r.cost!=null?r.cost.toLocaleString('he-IL'):'—'}</td>`:''}
       </tr>`).join('')}</tbody>
     </table></div>`;
@@ -5861,10 +5875,11 @@ function doImport(){
   const nameC =parseInt(document.getElementById('import-map-name').value);
   const catC  =parseInt(document.getElementById('import-map-cat').value);
   const costC =parseInt(document.getElementById('import-map-cost').value);
+  const defCat= document.getElementById('import-default-cat').value;
   const rows=_importData.map(r=>({
     sku:  String(r[skuC]||'').trim(),
     name: nameC>=0?String(r[nameC]||'').trim():'',
-    cat:  catC >=0?String(r[catC] ||'').trim():'',
+    cat:  (catC>=0?String(r[catC]||'').trim():'')||defCat,
     cost: costC>=0?parseFloat(String(r[costC]||'').replace(/,/g,''))||null:null
   })).filter(r=>r.sku&&!catalogItems.some(ci=>ci.sku===r.sku));
   // add new categories automatically
