@@ -1590,7 +1590,7 @@ tr:hover .pl-row-ds-btn{opacity:.6}
       <div class="catalog-search-wrap">
         <span class="catalog-search-ico">🔍</span>
         <input class="catalog-search" id="catalog-search-inp" type="search"
-               placeholder="חיפוש לפי מקט, שם, תיאור..." oninput="renderCatalog()" autocomplete="off"/>
+               placeholder="חיפוש לפי מקט, שם, תיאור..." oninput="_debouncedRenderCatalog()" autocomplete="off"/>
       </div>
       <div id="catalog-cat-pills" style="display:flex;gap:6px;flex-wrap:wrap;align-items:center"></div>
       <button class="btn-cat" onclick="openCatalogCatManager()" title="ניהול קטגוריות קטלוג">🏷️ קטגוריות</button>
@@ -3123,7 +3123,14 @@ let projEditingId=-1;
 let histHideTimer=null;
 
 // ─── PERSISTENCE ───────────────────────────────────────────
+let _saveStateTimer=null;
 function saveState(){
+  clearTimeout(_saveStateTimer);
+  _saveStateTimer=setTimeout(_saveStateNow,300);
+}
+function _saveStateNow(){
+  clearTimeout(_saveStateTimer);
+  _saveStateTimer=null;
   try{
     localStorage.setItem('afkon_v1',JSON.stringify({
       tasks,taskOrder,doneList,deletedList,categories,projects,cities,
@@ -3132,6 +3139,7 @@ function saveState(){
     }));
   }catch(e){}
 }
+window.addEventListener('beforeunload',_saveStateNow);
 function loadState(){
   try{
     const raw=localStorage.getItem('afkon_v1');
@@ -3513,10 +3521,12 @@ function fmtDate(iso){
   const pad=n=>String(n).padStart(2,'0');
   return `${pad(d.getDate())}/${pad(d.getMonth()+1)}/${d.getFullYear()} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
 }
+let _renderCatalogTimer=null;
+function _debouncedRenderCatalog(){clearTimeout(_renderCatalogTimer);_renderCatalogTimer=setTimeout(renderCatalog,180);}
 function getCat(name){return categories.find(c=>c.name===name)||{name,bg:'#e2e8f0',tx:'#4a5568',dot:'#a0aec0'}}
-function catBadge(name){const c=getCat(name);return `<span class="cat-badge" style="background:${c.bg};color:${c.tx}">${name}</span>`}
-function catSelectOpts(cur){return categories.map(c=>`<option value="${c.name}"${c.name===cur?' selected':''} style="background:${c.bg};color:${c.tx}">${c.name}</option>`).join('')}
-function catCell(t){const c=getCat(t.cat);return `<td style="padding:4px 8px;text-align:center"><span style="display:inline-flex;align-items:center;justify-content:center;background:${c.bg};color:${c.tx};border-radius:20px;padding:0 10px;height:30px;box-sizing:border-box;font-size:.8rem;font-weight:700;white-space:nowrap;min-width:82px">${t.cat||'—'}</span></td>`;}
+function catBadge(name){const c=getCat(name);return `<span class="cat-badge" style="background:${c.bg};color:${c.tx}">${_esc(name)}</span>`}
+function catSelectOpts(cur){return categories.map(c=>`<option value="${_esc(c.name)}"${c.name===cur?' selected':''} style="background:${c.bg};color:${c.tx}">${_esc(c.name)}</option>`).join('')}
+function catCell(t){const c=getCat(t.cat);return `<td style="padding:4px 8px;text-align:center"><span style="display:inline-flex;align-items:center;justify-content:center;background:${c.bg};color:${c.tx};border-radius:20px;padding:0 10px;height:30px;box-sizing:border-box;font-size:.8rem;font-weight:700;white-space:nowrap;min-width:82px">${_esc(t.cat)||'—'}</span></td>`;}
 const ST_SELECTABLE=['notstarted','inprogress','blocked','done'];
 function stOpts(cur){return ST_SELECTABLE.map(k=>`<option value="${k}"${k===cur?' selected':''}>${ST_LBL[k]}</option>`).join('')}
 const PRI_STYLE={high:'background:#fed7d7;color:#c53030',medium:'background:#feebc8;color:#c05621',low:'background:#e2e8f0;color:#4a5568'};
@@ -3525,11 +3535,11 @@ function getProject(id){return projects.find(p=>p.id===id)||null}
 function getCity(id){return cities.find(c=>c.id===id)||null}
 function projSelectOpts(curId){
   return '<option value="" style="background:#fff;color:#3730a3;text-align:center">— ללא פרויקט —</option>'
-    +projects.map(p=>`<option value="${p.id}"${p.id===curId?' selected':''} style="background:#fff;color:#3730a3;text-align:center">${p.name}</option>`).join('');
+    +projects.map(p=>`<option value="${p.id}"${p.id===curId?' selected':''} style="background:#fff;color:#3730a3;text-align:center">${_esc(p.name)}</option>`).join('');
 }
 function citySelectOpts(curId){
   return '<option value="">— ללא עיר —</option>'
-    +cities.map(c=>`<option value="${c.id}"${c.id===curId?' selected':''}>${c.name}</option>`).join('');
+    +cities.map(c=>`<option value="${c.id}"${c.id===curId?' selected':''}>${_esc(c.name)}</option>`).join('');
 }
 function copyProjNum(num,el){
   navigator.clipboard.writeText(num).then(()=>{
@@ -3687,11 +3697,11 @@ function exportCSV(){
 
 function projCell(t){
   const p=t.projectId?getProject(t.projectId):null;
-  const tip=p?(p.num?`${p.name} · לחץ להעתקת מס׳ ${p.num}`:p.name):'';
+  const tip=p?(p.num?`${_esc(p.name)} · לחץ להעתקת מס׳ ${p.num}`:_esc(p.name)):'';
   return `<td style="padding:4px 8px;text-align:center">
     <div style="display:flex;flex-direction:column;align-items:center;gap:1px">
       <span class="sel-proj" style="display:inline-flex;align-items:center;justify-content:center;cursor:default;user-select:none"
-            id="proj-sel-${t.id}">${p?p.name:'—'}</span>
+            id="proj-sel-${t.id}">${p?_esc(p.name):'—'}</span>
       ${p&&p.num?`<span class="proj-num" title="${tip}" onclick="copyProjNum('${p.num}',this)" style="cursor:pointer">${p.num}</span>`:''}
     </div>
   </td>`;
@@ -3699,7 +3709,7 @@ function projCell(t){
 function cityCell(t){
   const p=t.projectId?getProject(t.projectId):null;
   const city=p?.cityId?getCity(p.cityId):null;
-  return `<td style="padding:4px 8px" id="city-cell-${t.id}"><span class="city-badge">${city?city.name:'—'}</span></td>`;
+  return `<td style="padding:4px 8px" id="city-cell-${t.id}"><span class="city-badge">${city?_esc(city.name):'—'}</span></td>`;
 }
 
 // ─── VIEW ──────────────────────────────────────────────────
@@ -3987,8 +3997,8 @@ function renderList(){
             <span class="drag-handle" draggable="true" style="font-size:.95rem" title="גרור לשינוי הורה" data-subid="${c.id}">⠿</span>
           </td>
           <td class="task-name-cell" onmouseenter="showNoteTT(event,${c.id})" onmouseleave="schedHideNoteTT()">
-            <div class="name" style="font-size:.79rem;color:#4a5568">↳ ${c.name}</div>
-            ${c.note?`<div class="note">📝 ${c.note}</div>`:''}
+            <div class="name" style="font-size:.79rem;color:#4a5568">↳ ${_esc(c.name)}</div>
+            ${c.note?`<div class="note">📝 ${_esc(c.note)}</div>`:''}
           </td>
           ${catCell(c)}
           ${projCell(c)}
@@ -5081,7 +5091,7 @@ function renderCatalogCatPills(){
   if(!el) return;
   const allCats=['all',...catalogCats];
   el.innerHTML=allCats.map(c=>`<button class="cat-filter-pill${catalogCatFilter===c?' active':''}"
-    onclick="setCatalogCatFilter('${c}')">${c==='all'?'הכל':c}</button>`).join('');
+    onclick="setCatalogCatFilter('${c}')">${c==='all'?'הכל':_esc(c)}</button>`).join('');
 }
 
 function setCatalogCatFilter(cat){
@@ -5107,7 +5117,7 @@ function setCatalogViewMode(mode){
 function _catalogCatBadge(item,catColors){
   const catIdx=catalogCats.indexOf(item.cat);
   const cc=catColors[catIdx>=0?catIdx%catColors.length:catColors.length-1]||{bg:'#e2e8f0',tx:'#4a5568'};
-  return item.cat?`<span style="background:${cc.bg};color:${cc.tx};border-radius:20px;padding:1px 9px;font-size:.72rem;font-weight:700;white-space:nowrap">${item.cat}</span>`:'';
+  return item.cat?`<span style="background:${cc.bg};color:${cc.tx};border-radius:20px;padding:1px 9px;font-size:.72rem;font-weight:700;white-space:nowrap">${_esc(item.cat)}</span>`:'';
 }
 
 function renderCatalog(){
@@ -5120,6 +5130,9 @@ function renderCatalog(){
     {bg:'#fee2e2',tx:'#991b1b'},{bg:'#cffafe',tx:'#0e7490'},
     {bg:'#fef9c3',tx:'#854d0e'},{bg:'#fce7f3',tx:'#9d174d'},
   ];
+  const _plSnap=getAllPlData();
+  const _whMap=new Map(whItems.map(w=>[w.sku,w]));
+  const _ciMap=new Map(catalogItems.map(ci=>[ci.id,ci]));
 
   if(!filtered.length){
     wrap.className='';
@@ -5150,7 +5163,7 @@ function renderCatalog(){
     const buildCatRow=(item,opts={})=>{
       const isChild=!!opts.isChild;
       const catBadge=isChild
-        ?(item.cat?`<span style="font-size:.7rem;color:#6366f1;background:#eef2ff;border-radius:10px;padding:1px 8px">${item.cat}</span>`:'')
+        ?(item.cat?`<span style="font-size:.7rem;color:#6366f1;background:#eef2ff;border-radius:10px;padding:1px 8px">${_esc(item.cat)}</span>`:'')
         :_catalogCatBadge(item,catColors);
       const cost=item.cost!=null&&item.cost>0
         ?`₪${item.cost.toLocaleString('he-IL',{minimumFractionDigits:2,maximumFractionDigits:2})}`:'—';
@@ -5161,15 +5174,15 @@ function renderCatalog(){
       ].join(' ');
       const skuSafe=String(item.sku||'').replace(/'/g,"\\'");
       // Cross-data badges under cost (warehouse / pricelist)
-      const wh=whItems.find(w=>w.sku===item.sku);
-      const plLinked=item.plKey?getAllPlData().find(p=>_plKey(p.mfr,p.model)===item.plKey):null;
+      const wh=_whMap.get(item.sku);
+      const plLinked=item.plKey?_plSnap.find(p=>_plKey(p.mfr,p.model)===item.plKey):null;
       const ep=plLinked?getPlEffective(plLinked):null;
       let xbadge='';
       if(wh&&(+wh.qty||0)>0) xbadge+=`<span title="יש במחסן" style="display:block;font-size:.7rem;color:#0d9488">📦 ${wh.qty} ${wh.unit||"יח'"} במחסן</span>`;
       if(ep&&ep.price!=null) xbadge+=`<span title="מחיר מחירון" style="display:block;font-size:.7rem;color:#6366f1">🏷️ ${ep.price} ${ep.cur||''}</span>`;
       const descHtml=item.desc?`<div style="font-size:.74rem;color:#94a3b8;font-weight:400;margin-top:2px;white-space:normal;line-height:1.4">${_esc(item.desc)}</div>`:'';
       // Expand toggle (only on parents that own children)
-      const childCount=(item.relations||[]).filter(r=>r.type==='child'&&getCatalogItem(r.id)).length;
+      const childCount=(item.relations||[]).filter(r=>r.type==='child'&&_ciMap.get(r.id)).length;
       const expanded=catalogChildExpanded.has(item.id);
       const toggle=(!isChild&&childCount>0)
         ?`<button class="ci-tree-toggle" onclick="event.stopPropagation();toggleCatChild(${item.id})" title="${expanded?'כווץ':'הצג מוצרי בן'}">${expanded?'▾':'▸'}</button>`
@@ -5178,10 +5191,10 @@ function renderCatalog(){
         ? `<div class="ci-child-sku">
              <span class="ci-tree-line">└</span>
              <span class="ci-child-tag">בן</span>
-             <span class="sku-badge" onclick="copySkuNum('${skuSafe}',this)" title="העתק מקט">${item.sku}</span>
+             <span class="sku-badge" onclick="copySkuNum('${skuSafe}',this)" title="העתק מקט">${_esc(item.sku)}</span>
            </div>`
         : `<div style="display:flex;align-items:center;gap:8px">
-             <span class="sku-badge" onclick="copySkuNum('${skuSafe}',this)" title="העתק מקט">${item.sku}</span>${toggle}</div>`;
+             <span class="sku-badge" onclick="copySkuNum('${skuSafe}',this)" title="העתק מקט">${_esc(item.sku)}</span>${toggle}</div>`;
       const delBtn=isChild?'':`<button class="act-btn" onclick="askDeleteCatalog(${item.id})" title="מחק">🗑️</button>`;
       return `<tr id="ci-card-${item.id}" class="${isChild?'ci-child-row':''}">
         <td class="td-sku">${skuCell}</td>
@@ -5223,11 +5236,11 @@ function renderCatalog(){
     // relations
     const rels=item.relations||[];
     const relChips=rels.map(r=>{
-      const rel=getCatalogItem(r.id);
+      const rel=_ciMap.get(r.id);
       if(!rel) return '';
       const icon=r.type==='child'?'🔽':'🔗';
       const lbl=r.type==='child'?'מוצר בן':'משלים';
-      return`<span class="ci-rel-chip ${r.type}" onclick="highlightCatalogItem(${r.id})" title="${rel.name} (${rel.sku})">${icon} ${rel.sku}</span>`;
+      return`<span class="ci-rel-chip ${r.type}" onclick="highlightCatalogItem(${r.id})" title="${_esc(rel.name)} (${_esc(rel.sku)})">${icon} ${_esc(rel.sku)}</span>`;
     }).join('');
 
     // files
@@ -5242,13 +5255,13 @@ function renderCatalog(){
     // Pre-compute children HTML (avoid deeply nested template literals)
     let childrenHtml='';
     if(exp){
-      const children=rels.filter(r=>r.type==='child').map(r=>getCatalogItem(r.id)).filter(Boolean);
+      const children=rels.filter(r=>r.type==='child').map(r=>_ciMap.get(r.id)).filter(Boolean);
       if(children.length){
         const rows=children.map(ch=>{
           const costBadge=ch.cost?`<span style="font-size:.78rem;color:#166534;font-weight:700">₪${Number(ch.cost).toLocaleString('he-IL')}</span>`:'';
           const skuSafe=(ch.sku||'').replace(/'/g,"\\'");
           return `<div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:7px 10px;margin-bottom:4px;cursor:pointer;display:flex;align-items:center;gap:8px" onclick="toggleCatalogExpand(${ch.id})">
-            <span class="sku-badge" onclick="event.stopPropagation();copySkuNum('${skuSafe}',this)">${ch.sku}</span>
+            <span class="sku-badge" onclick="event.stopPropagation();copySkuNum('${skuSafe}',this)">${_esc(ch.sku)}</span>
             <span style="font-size:.82rem;color:#1e293b;flex:1">${_esc(ch.name)}</span>
             ${costBadge}
           </div>`;
@@ -5257,10 +5270,11 @@ function renderCatalog(){
           <div style="font-size:.71rem;font-weight:700;color:#64748b;margin-bottom:5px">🔽 מוצרים בן</div>${rows}</div>`;
       }
     }
+    const skuSafeCard=(item.sku||'').replace(/'/g,"\\'");
     // Pre-compute badges
     const whBadge=(()=>{
-      const wh=whItems.find(w=>w.sku===item.sku);
-      const plLinked=item.plKey?getAllPlData().find(p=>_plKey(p.mfr,p.model)===item.plKey):null;
+      const wh=_whMap.get(item.sku);
+      const plLinked=item.plKey?_plSnap.find(p=>_plKey(p.mfr,p.model)===item.plKey):null;
       const ep=plLinked?getPlEffective(plLinked):null;
       let b='';
       if(wh&&(+wh.qty||0)>0) b+=`<span style="font-size:.72rem;background:#f0fdfa;color:#0f4c5c;border:1px solid #ccfbf1;border-radius:10px;padding:1px 7px">📦 ${wh.qty} ${wh.unit||"יח'"} במחסן</span>`;
@@ -5270,7 +5284,7 @@ function renderCatalog(){
 
     card.innerHTML=`
       <div class="ci-header">
-        <span class="sku-badge" onclick="copySkuNum('${item.sku}',this)" title="לחץ להעתקת מקט">${item.sku}</span>
+        <span class="sku-badge" onclick="copySkuNum('${skuSafeCard}',this)" title="לחץ להעתקת מקט">${_esc(item.sku)}</span>
         ${catBadge}
         <div style="margin-right:auto;display:flex;gap:4px">
           <button class="act-btn edit-btn" onclick="openCatalogModal(${item.id})" title="ערוך">✏️</button>
@@ -8170,11 +8184,11 @@ function renderWarehouse(){
     }
     const skuEsc=it.sku.replace(/'/g,"\\'");
     const mfr=showMfr?_whGetMfr(it.sku):null;
-    const mfrBadge=mfr?`<span class="wh-mfr-badge">${mfr}</span>`:'';
+    const mfrBadge=mfr?`<span class="wh-mfr-badge">${_esc(mfr)}</span>`:'';
     const whDs=_SKU_DATASHEETS[it.sku]?`<a class="ci-datasheet" href="${_SKU_DATASHEETS[it.sku]}" target="_blank" rel="noopener" title="Datasheet">📄</a> `:'';
     return `<tr>
-      <td>${mfrBadge}<span class="sku-badge" onclick="copySkuNum('${skuEsc}',this)">${it.sku||'—'}</span> ${whDs}</td>
-      <td>${it.desc}</td>
+      <td>${mfrBadge}<span class="sku-badge" onclick="copySkuNum('${skuEsc}',this)">${_esc(it.sku)||'—'}</span> ${whDs}</td>
+      <td>${_esc(it.desc)}</td>
       <td style="text-align:center;font-weight:700">${it.qty.toLocaleString('he-IL')}</td>
       <td style="text-align:center">${unitBadge}</td>
       <td style="text-align:right">${costCell}</td>
