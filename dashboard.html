@@ -11168,7 +11168,7 @@ function renderBoqBilling(){
         ${diffPct!=null&&diffPct!==100?`<span style="font-size:.7rem;color:${diffPct<100?'#d97706':'#16a34a'};margin-right:3px">${diffPct}%</span>`:''}
       </td>
       <td style="text-align:left;direction:ltr;white-space:nowrap">${unitPrice>0?'₪'+unitPrice.toLocaleString('he-IL',{minimumFractionDigits:2}):'—'}</td>
-      <td style="text-align:left;direction:ltr;font-weight:${billingTotal>0?'700':'400'};color:${billingTotal>0?'#1e3a5f':'#94a3b8'};white-space:nowrap">
+      <td id="btotal-${item.id}" style="text-align:left;direction:ltr;font-weight:${billingTotal>0?'700':'400'};color:${billingTotal>0?'#1e3a5f':'#94a3b8'};white-space:nowrap">
         ${billingTotal>0?'₪'+billingTotal.toLocaleString('he-IL',{minimumFractionDigits:2}):'—'}
       </td>
     </tr>`;
@@ -11224,19 +11224,19 @@ function renderBoqBilling(){
     <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:14px">
       <div style="background:#fff;border:1px solid #e2e8f0;border-radius:10px;padding:12px 14px;border-top:3px solid #1e3a5f">
         <div style="font-size:.6rem;color:#8492a6;font-weight:700;letter-spacing:.05em;text-align:right;margin-bottom:4px">סה"כ חוזה</div>
-        <div style="font-size:.95rem;font-weight:700;color:#1e3a5f;direction:ltr;text-align:left">₪${totalContract.toLocaleString('he-IL',{minimumFractionDigits:2})}</div>
+        <div id="bsum-contract" style="font-size:.95rem;font-weight:700;color:#1e3a5f;direction:ltr;text-align:left">₪${totalContract.toLocaleString('he-IL',{minimumFractionDigits:2})}</div>
       </div>
       <div style="background:#fff;border:1px solid #e2e8f0;border-radius:10px;padding:12px 14px;border-top:3px solid #2563eb">
         <div style="font-size:.6rem;color:#8492a6;font-weight:700;letter-spacing:.05em;text-align:right;margin-bottom:4px">סה"כ לתשלום</div>
-        <div style="font-size:.95rem;font-weight:700;color:#2563eb;direction:ltr;text-align:left">₪${totalBilling.toLocaleString('he-IL',{minimumFractionDigits:2})}</div>
+        <div id="bsum-billing" style="font-size:.95rem;font-weight:700;color:#2563eb;direction:ltr;text-align:left">₪${totalBilling.toLocaleString('he-IL',{minimumFractionDigits:2})}</div>
       </div>
       <div style="background:#fff;border:1px solid #e2e8f0;border-radius:10px;padding:12px 14px;border-top:3px solid ${totalBilling<=totalContract?'#15803d':'#dc2626'}">
         <div style="font-size:.6rem;color:#8492a6;font-weight:700;letter-spacing:.05em;text-align:right;margin-bottom:4px">הפרש</div>
-        <div style="font-size:.95rem;font-weight:700;color:${totalBilling<=totalContract?'#15803d':'#dc2626'};direction:ltr;text-align:left">₪${Math.abs(totalContract-totalBilling).toLocaleString('he-IL',{minimumFractionDigits:2})}</div>
+        <div id="bsum-diff" style="font-size:.95rem;font-weight:700;color:${totalBilling<=totalContract?'#15803d':'#dc2626'};direction:ltr;text-align:left">₪${Math.abs(totalContract-totalBilling).toLocaleString('he-IL',{minimumFractionDigits:2})}</div>
       </div>
       <div style="background:#fff;border:1px solid #e2e8f0;border-radius:10px;padding:12px 14px;border-top:3px solid #d97706">
         <div style="font-size:.6rem;color:#8492a6;font-weight:700;letter-spacing:.05em;text-align:right;margin-bottom:4px">% ביצוע</div>
-        <div style="font-size:.95rem;font-weight:700;color:#d97706;text-align:right">${pct}%</div>
+        <div id="bsum-pct" style="font-size:.95rem;font-weight:700;color:#d97706;text-align:right">${pct}%</div>
       </div>
     </div>
 
@@ -11252,6 +11252,39 @@ function boqBillingItemChange(itemId, val){
   const n = val===''||val===null ? null : parseFloat(val);
   if(!_boqBillingItems[itemId]) _boqBillingItems[itemId]={};
   _boqBillingItems[itemId].executed_qty = isNaN(n) ? null : n;
+
+  // Update row total cell
+  const item = _boqItems.find(i=>i.id===itemId);
+  if(item){
+    const execQty = (n==null||isNaN(n)) ? (item.quantity||0) : n;
+    const unitPrice = item.contract_unit_price||0;
+    const billingTotal = execQty * unitPrice;
+    const cell = document.getElementById('btotal-'+itemId);
+    if(cell){
+      cell.style.fontWeight = billingTotal>0?'700':'400';
+      cell.style.color = billingTotal>0?'#1e3a5f':'#94a3b8';
+      cell.textContent = billingTotal>0 ? '₪'+billingTotal.toLocaleString('he-IL',{minimumFractionDigits:2}) : '—';
+    }
+  }
+
+  // Recalculate summary from all current inputs
+  let totalContract=0, totalBilling=0;
+  const itemMap = new Map(_boqItems.map(i=>[i.id,i]));
+  document.querySelectorAll('#boq-subtab-billing .billing-exec-input').forEach(inp=>{
+    const iid = parseInt(inp.dataset.item);
+    const it = itemMap.get(iid);
+    if(!it) return;
+    const eq = inp.value==='' ? (it.quantity||0) : (parseFloat(inp.value)||0);
+    totalContract += (it.quantity||0) * (it.contract_unit_price||0);
+    totalBilling  += eq * (it.contract_unit_price||0);
+  });
+  const pct = totalContract>0 ? Math.round(totalBilling/totalContract*100) : 0;
+  const fmt = v => '₪'+v.toLocaleString('he-IL',{minimumFractionDigits:2});
+  const diff = Math.abs(totalContract-totalBilling);
+  const diffColor = totalBilling<=totalContract?'#15803d':'#dc2626';
+  const bs = document.getElementById('bsum-billing'); if(bs) bs.textContent=fmt(totalBilling);
+  const ds = document.getElementById('bsum-diff');    if(ds){ ds.textContent=fmt(diff); ds.style.color=diffColor; }
+  const ps = document.getElementById('bsum-pct');     if(ps) ps.textContent=pct+'%';
 }
 
 function boqBillingStatusChange(val){ _boqBillingStatus = val; }
