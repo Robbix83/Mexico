@@ -2725,6 +2725,105 @@ app.get('/api/boq/projects/:id/export/pdf', requireSection('boq'), async (req, r
   }
 });
 
+// ── BOQ Billing / Payment Certificate ─────────────────────────────────────────
+
+app.get('/api/orders/all', requireAuth, (_req, res) => {
+  res.json(db.getAllOrders());
+});
+
+app.patch('/api/boq/projects/:id/billing', requireSection('boq'), (req, res) => {
+  const id = parseInt(req.params.id);
+  const project = db.getBoqProject(id);
+  if (!project) return res.status(404).json({ error: 'Not found' });
+  const { order_id, billing_status, billing_date, billing_notes, items } = req.body || {};
+  db.updateBoqBilling(id, {
+    orderId: order_id || null,
+    billingStatus: billing_status || 'none',
+    billingDate: billing_date || null,
+    billingNotes: billing_notes || null,
+  });
+  if (Array.isArray(items)) {
+    for (const it of items) {
+      if (it.item_id) {
+        db.updateBoqItemBilling(it.item_id, {
+          executedQty: it.executed_qty != null ? it.executed_qty : null,
+          billingNotes: it.billing_notes || null,
+        });
+      }
+    }
+  }
+  res.json(db.getBoqProject(id));
+});
+
+app.get('/api/boq/projects/:id/billing/export/xlsx', requireSection('boq'), async (req, res) => {
+  const project = db.getBoqProject(parseInt(req.params.id));
+  if (!project) return res.status(404).json({ error: 'Not found' });
+  const items = db.listBoqItems(project.id);
+  const order = project.order_id ? db.getOrder(project.order_id) : null;
+  try {
+    const ExcelJS = require('exceljs');
+    const wb = new ExcelJS.Workbook();
+    const ws = wb.addWorksheet('חשבון לתשלום', { views: [{ rightToLeft: true }] });
+
+    let row = 1;
+    const setRow = (vals, style) => {
+      ws.getRow(row).values = ['', ...vals];
+      if (style) Object.assign(ws.getRow(row), style);
+      row++;
+    };
+
+    setRow([`כתב כמויות מאושר לתשלום — ${project.name}${project.site ? ' / ' + project.site : ''}`], { font: { bold: true, size: 13 } });
+    if (order) setRow([`הזמנה: ${order.order_number || ''}  |  ${order.ordering_entity || ''}  |  ₪${(order.amount_pre_vat || 0).toLocaleString('he-IL')}`]);
+    if (project.billing_date) setRow([`תאריך אישור: ${project.billing_date}`]);
+    row++; // blank
+
+    const hdrs = ['מס׳ סעיף', 'תיאור', 'יח׳ מידה', 'כמות חוזה', 'כמות ביצוע', 'מחיר יחידה ₪', 'סכום לתשלום ₪', 'הערות'];
+    ws.getRow(row).values = ['', ...hdrs];
+    ws.getRow(row).font = { bold: true, color: { argb: 'FFFFFFFF' } };
+    ws.getRow(row).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF1E3A5F' } };
+    ws.getRow(row).alignment = { horizontal: 'center' };
+    row++;
+
+    let totalContract = 0, totalBilling = 0;
+    for (const item of items) {
+      if (item.is_section) {
+        ws.getRow(row).values = ['', item.item_number || '', item.description, '', '', '', '', '', ''];
+        ws.getRow(row).font = { bold: true };
+        ws.getRow(row).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFE2E8F0' } };
+      } else {
+        const contractQty = item.quantity || 0;
+        const execQty = item.executed_qty != null ? item.executed_qty : contractQty;
+        const unitPrice = item.contract_unit_price || 0;
+        const contractTotal = contractQty * unitPrice;
+        const billingTotal = execQty * unitPrice;
+        totalContract += contractTotal;
+        totalBilling += billingTotal;
+        ws.getRow(row).values = ['', item.item_number || '', item.description || '', item.unit || '', contractQty, execQty, unitPrice, billingTotal, item.billing_item_notes || ''];
+      }
+      row++;
+    }
+
+    row++;
+    ws.getRow(row).values = ['', '', 'סה"כ חוזה', '', '', '', '', totalContract, ''];
+    ws.getRow(row).font = { bold: true };
+    row++;
+    ws.getRow(row).values = ['', '', 'סה"כ לתשלום', '', '', '', '', totalBilling, ''];
+    ws.getRow(row).font = { bold: true, color: { argb: 'FF1E3A5F' } };
+
+    ws.columns = [{ width: 2 }, { width: 10 }, { width: 38 }, { width: 9 }, { width: 11 }, { width: 11 }, { width: 13 }, { width: 14 }, { width: 22 }];
+    [7, 8].forEach(c => { ws.getColumn(c).numFmt = '#,##0.00'; });
+
+    const buf = await wb.xlsx.writeBuffer();
+    const filename = encodeURIComponent(`חשבון-לתשלום-${project.name}.xlsx`);
+    res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    res.setHeader('Content-Disposition', `attachment; filename*=UTF-8''${filename}`);
+    res.send(buf);
+  } catch (e) {
+    console.error('[boq] billing xlsx error:', e);
+    res.status(500).json({ error: e.message });
+  }
+});
+
 // ── Budget Control (בקרה תקציבית) ─────────────────────────────────────────────
 
 const budget = require('./budget');

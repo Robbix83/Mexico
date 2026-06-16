@@ -1164,6 +1164,20 @@ tr:hover .pl-row-ds-btn{opacity:.6}
 .boq-item-selected  { background:#dbeafe !important; border-right:3px solid #2563eb !important; }
 .boq-section-row    { background:#fff0f0 !important; border-right:3px solid #CC1A1A !important; }
 .boq-section-row:hover { background:#ffe4e4 !important; }
+/* ── BOQ sub-tabs ─────────────────────────────────────────── */
+.boq-stab{background:none;border:none;border-bottom:3px solid transparent;padding:7px 18px;font-size:.82rem;font-weight:600;color:#64748b;cursor:pointer;transition:.15s;margin-bottom:-2px}
+.boq-stab:hover{color:#1e3a5f}
+.boq-stab.active{color:#1e3a5f;border-bottom-color:#1e3a5f}
+/* ── Billing table ────────────────────────────────────────── */
+.billing-exec-input{width:72px;padding:3px 6px;border:1.5px solid #e2e8f0;border-radius:6px;font-size:.82rem;text-align:center;background:#f8fafc}
+.billing-exec-input:focus{border-color:#3b82f6;outline:none;background:#fff}
+.billing-section-row td{font-weight:700;background:#f1f5f9;padding:6px 8px;font-size:.8rem;color:#334155}
+.billing-item-row td{padding:5px 8px;font-size:.8rem;border-bottom:1px solid #f1f5f9}
+.billing-item-row:hover td{background:#fafbff}
+.billing-status-badge{display:inline-block;padding:2px 10px;border-radius:20px;font-size:.75rem;font-weight:700}
+.billing-status-none{background:#f1f5f9;color:#64748b}
+.billing-status-draft{background:#fef9c3;color:#854d0e}
+.billing-status-approved{background:#dcfce7;color:#166534}
 
 /* ── Requisition view ─────────────────────────────────────── */
 .rq-shell{display:grid;grid-template-columns:1fr;gap:14px}
@@ -2003,6 +2017,13 @@ tr:hover .pl-row-ds-btn{opacity:.6}
         </div>
       </div>
 
+      <!-- Sub-tab bar -->
+      <div id="boq-subtab-bar" style="display:flex;gap:0;border-bottom:2px solid #e2e8f0;margin-bottom:14px;margin-top:2px">
+        <button class="boq-stab active" id="boq-stab-items"   onclick="setBoqSubTab('items')">📋 פריטים</button>
+        <button class="boq-stab"        id="boq-stab-billing" onclick="setBoqSubTab('billing')">🧾 חשבון לתשלום</button>
+      </div>
+
+      <div id="boq-subtab-items">
       <!-- Two-column layout: item table + component panel -->
       <div style="display:flex;gap:14px;align-items:flex-start">
 
@@ -2049,6 +2070,12 @@ tr:hover .pl-row-ds-btn{opacity:.6}
           <div id="boq-total-rfq-count" style="font-size:1.05rem;font-weight:700;color:#d97706;text-align:right">—</div>
         </div>
       </div>
+      </div><!-- /boq-subtab-items -->
+
+      <div id="boq-subtab-billing" style="display:none">
+        <!-- rendered by renderBoqBilling() -->
+      </div>
+
     </div>
   </section>
 
@@ -2072,6 +2099,20 @@ tr:hover .pl-row-ds-btn{opacity:.6}
       <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:14px">
         <button class="pl-step-cancel" onclick="boqCloseNewModal()">ביטול</button>
         <button class="pl-step-next" onclick="boqSubmitNew()">צור פרויקט</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- BOQ: Order picker modal -->
+  <div id="boq-order-picker-overlay" class="pl-import-overlay" onclick="if(event.target===this)closeOrderPickerModal()" style="display:none">
+    <div class="pl-import-modal" style="max-width:540px">
+      <h3 style="margin:0 0 12px">🔗 קשר הזמנה לכתב כמויות</h3>
+      <input type="search" id="boq-order-picker-q" placeholder="חיפוש לפי מס׳ הזמנה / גורם מזמין..." autocomplete="off"
+        oninput="renderOrderPickerList()"
+        style="width:100%;padding:8px 12px;border:1.5px solid #e2e8f0;border-radius:8px;font-size:.88rem;box-sizing:border-box;margin-bottom:10px"/>
+      <div id="boq-order-picker-list" style="max-height:340px;overflow-y:auto;border:1px solid #e2e8f0;border-radius:8px"></div>
+      <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:12px">
+        <button class="pl-step-cancel" onclick="closeOrderPickerModal()">ביטול</button>
       </div>
     </div>
   </div>
@@ -10928,6 +10969,14 @@ let _boqComponentsByItemId = {};
 let _boqSelectedItemId = null;
 let _boqTemplates = [];
 let _boqRates = null;
+// Billing state
+let _boqBillingOrderId   = null;
+let _boqBillingStatus    = 'none';
+let _boqBillingDate      = '';
+let _boqBillingNotes     = '';
+let _boqBillingItems     = {};   // { item_id: { executed_qty, billing_notes } }
+let _allOrdersCache      = null; // flat order list for picker
+let _boqCurrentSubTab    = 'items';
 
 function _boqFmt(n){
   if(n==null) return '—';
@@ -11020,12 +11069,25 @@ async function boqOpenProject(id){
     _boqItems = data.items || [];
     _boqComponentsByItemId = data.componentsByItemId || {};
     _boqSelectedItemId = null;
+    // Load billing state from project
+    const p = data.project || {};
+    _boqBillingOrderId = p.order_id || null;
+    _boqBillingStatus  = p.billing_status || 'none';
+    _boqBillingDate    = p.billing_date || '';
+    _boqBillingNotes   = p.billing_notes || '';
+    _boqBillingItems   = {};
+    for (const it of _boqItems) {
+      if (it.executed_qty != null || it.billing_item_notes) {
+        _boqBillingItems[it.id] = { executed_qty: it.executed_qty, billing_notes: it.billing_item_notes || '' };
+      }
+    }
   } catch(e){ _toast('שגיאה בטעינת הפרויקט','error'); return; }
 
   document.getElementById('boq-list-panel').style.display='none';
   document.getElementById('boq-editor-panel').style.display='';
   const proj = _boqProjects.find(p=>p.id===id)||{name:''};
   document.getElementById('boq-editor-title').textContent = proj.name + (proj.site ? ' — '+proj.site : '');
+  setBoqSubTab('items');
   renderBoqItems();
   renderBoqSummary();
 }
@@ -11036,6 +11098,253 @@ function boqBackToList(){
   const _bcp1=document.getElementById('boq-comp-panel'); if(_bcp1) _bcp1.style.display='none';
   document.getElementById('boq-list-panel').style.display='';
   boqRender();
+}
+
+// ── BOQ Sub-tabs ──────────────────────────────────────────────
+function setBoqSubTab(tab){
+  _boqCurrentSubTab = tab;
+  document.getElementById('boq-subtab-items').style.display   = tab==='items'   ? '' : 'none';
+  document.getElementById('boq-subtab-billing').style.display = tab==='billing' ? '' : 'none';
+  document.getElementById('boq-stab-items').classList.toggle('active',   tab==='items');
+  document.getElementById('boq-stab-billing').classList.toggle('active', tab==='billing');
+  if(tab==='billing') renderBoqBilling();
+}
+
+// ── BOQ Billing / Payment Certificate ─────────────────────────
+function renderBoqBilling(){
+  const el = document.getElementById('boq-subtab-billing');
+  if(!el || !_boqCurrentProjectId) return;
+
+  const STATUS_LABELS = { none:'ללא', draft:'טיוטה', approved:'מאושר' };
+  const STATUS_CLS    = { none:'billing-status-none', draft:'billing-status-draft', approved:'billing-status-approved' };
+
+  // Order info header
+  let orderHtml = '';
+  if(_boqBillingOrderId && _allOrdersCache){
+    const ord = _allOrdersCache.find(o=>o.id===_boqBillingOrderId);
+    if(ord){
+      const amt = ord.amount_pre_vat!=null ? '₪'+Number(ord.amount_pre_vat).toLocaleString('he-IL') : '';
+      orderHtml = `<span style="font-weight:700;color:#1e3a5f;cursor:pointer;text-decoration:underline dotted"
+        onclick="navToOrderFromBilling(${ord.id})" title="עבור להזמנה">
+        הזמנה ${_esc(ord.order_number||'')}
+      </span>
+      <span style="color:#64748b;font-size:.8rem"> — ${_esc(ord.ordering_entity||'')}${amt?' · '+amt:''}</span>`;
+    } else {
+      orderHtml = `<span style="color:#94a3b8;font-size:.8rem">הזמנה #${_boqBillingOrderId}</span>`;
+    }
+  }
+
+  // Build item rows
+  let tableRows = '';
+  let totalContract = 0, totalBilling = 0;
+  for(const item of _boqItems){
+    if(item.is_section){
+      tableRows += `<tr class="billing-section-row">
+        <td colspan="7" style="font-weight:700;background:#f1f5f9;padding:7px 10px;font-size:.8rem;color:#334155">
+          ${item.item_number?`<span style="font-size:.72rem;color:#64748b;margin-left:6px">${_esc(item.item_number)}</span>`:''}
+          ${_esc(item.description)}
+        </td>
+      </tr>`;
+      continue;
+    }
+    const bil = _boqBillingItems[item.id] || {};
+    const contractQty = item.quantity || 0;
+    const execQty = bil.executed_qty != null ? bil.executed_qty : contractQty;
+    const unitPrice = item.contract_unit_price || 0;
+    const contractTotal = contractQty * unitPrice;
+    const billingTotal  = execQty * unitPrice;
+    totalContract += contractTotal;
+    totalBilling  += billingTotal;
+    const diffPct = contractTotal > 0 ? Math.round(execQty/contractQty*100) : null;
+    tableRows += `<tr class="billing-item-row">
+      <td style="color:#64748b;font-size:.75rem;white-space:nowrap">${_esc(item.item_number||'')}</td>
+      <td style="max-width:260px">${_esc(item.description||'')}</td>
+      <td style="text-align:center;color:#64748b">${_esc(item.unit||'')}</td>
+      <td style="text-align:center">${contractQty.toLocaleString('he-IL')}</td>
+      <td style="text-align:center">
+        <input type="number" class="billing-exec-input" min="0" step="any"
+          value="${execQty}" data-item="${item.id}"
+          oninput="boqBillingItemChange(${item.id},this.value)"/>
+        ${diffPct!=null&&diffPct!==100?`<span style="font-size:.7rem;color:${diffPct<100?'#d97706':'#16a34a'};margin-right:3px">${diffPct}%</span>`:''}
+      </td>
+      <td style="text-align:left;direction:ltr;white-space:nowrap">${unitPrice>0?'₪'+unitPrice.toLocaleString('he-IL',{minimumFractionDigits:2}):'—'}</td>
+      <td style="text-align:left;direction:ltr;font-weight:${billingTotal>0?'700':'400'};color:${billingTotal>0?'#1e3a5f':'#94a3b8'};white-space:nowrap">
+        ${billingTotal>0?'₪'+billingTotal.toLocaleString('he-IL',{minimumFractionDigits:2}):'—'}
+      </td>
+    </tr>`;
+  }
+
+  const pct = totalContract>0 ? Math.round(totalBilling/totalContract*100) : 0;
+
+  el.innerHTML = `
+    <!-- Order link header -->
+    <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:14px 18px;margin-bottom:14px;display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+      <div style="flex:1;min-width:180px">
+        ${_boqBillingOrderId && orderHtml
+          ? `<div style="margin-bottom:4px">${orderHtml}</div>`
+          : `<span style="color:#94a3b8;font-size:.84rem">לא קושרה הזמנה</span>`}
+        <div style="display:flex;align-items:center;gap:10px;margin-top:6px;flex-wrap:wrap">
+          <label style="font-size:.78rem;font-weight:600;color:#64748b">סטטוס:</label>
+          <select onchange="boqBillingStatusChange(this.value)"
+            style="padding:3px 8px;border:1.5px solid #e2e8f0;border-radius:6px;font-size:.8rem;font-weight:600;background:#fff">
+            ${['none','draft','approved'].map(s=>`<option value="${s}"${_boqBillingStatus===s?' selected':''}>${STATUS_LABELS[s]}</option>`).join('')}
+          </select>
+          <label style="font-size:.78rem;font-weight:600;color:#64748b">תאריך אישור:</label>
+          <input type="date" value="${_esc(_boqBillingDate)}" onchange="boqBillingDateChange(this.value)"
+            style="padding:3px 8px;border:1.5px solid #e2e8f0;border-radius:6px;font-size:.8rem"/>
+        </div>
+      </div>
+      <div style="display:flex;gap:7px;flex-wrap:wrap">
+        <button class="btn-cat" onclick="openOrderPickerModal()" style="font-size:.78rem">
+          🔗 ${_boqBillingOrderId?'שנה הזמנה':'קשר הזמנה'}
+        </button>
+        ${_boqBillingOrderId?`<button class="btn-cat" onclick="boqBillingUnlinkOrder()" style="font-size:.78rem;color:#dc2626;border-color:#fca5a5">✕ נתק</button>`:''}
+      </div>
+    </div>
+
+    <!-- Execution table -->
+    <div style="overflow-x:auto;border:1px solid #e2e8f0;border-radius:10px;margin-bottom:14px">
+      <table style="width:100%;min-width:600px;border-collapse:collapse;font-size:.82rem">
+        <thead>
+          <tr style="background:#1e3a5f;color:#fff;text-align:right">
+            <th style="padding:7px 8px;width:60px">מס׳</th>
+            <th style="padding:7px 10px">תיאור</th>
+            <th style="padding:7px 6px;width:60px;text-align:center">יח׳</th>
+            <th style="padding:7px 6px;width:80px;text-align:center">כמות חוזה</th>
+            <th style="padding:7px 6px;width:100px;text-align:center">כמות ביצוע</th>
+            <th style="padding:7px 8px;width:100px;text-align:left;direction:ltr">מחיר יח׳</th>
+            <th style="padding:7px 8px;width:110px;text-align:left;direction:ltr">סכום לתשלום</th>
+          </tr>
+        </thead>
+        <tbody>${tableRows}</tbody>
+      </table>
+    </div>
+
+    <!-- Summary bar -->
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:14px">
+      <div style="background:#fff;border:1px solid #e2e8f0;border-radius:10px;padding:12px 14px;border-top:3px solid #1e3a5f">
+        <div style="font-size:.6rem;color:#8492a6;font-weight:700;letter-spacing:.05em;text-align:right;margin-bottom:4px">סה"כ חוזה</div>
+        <div style="font-size:.95rem;font-weight:700;color:#1e3a5f;direction:ltr;text-align:left">₪${totalContract.toLocaleString('he-IL',{minimumFractionDigits:2})}</div>
+      </div>
+      <div style="background:#fff;border:1px solid #e2e8f0;border-radius:10px;padding:12px 14px;border-top:3px solid #2563eb">
+        <div style="font-size:.6rem;color:#8492a6;font-weight:700;letter-spacing:.05em;text-align:right;margin-bottom:4px">סה"כ לתשלום</div>
+        <div style="font-size:.95rem;font-weight:700;color:#2563eb;direction:ltr;text-align:left">₪${totalBilling.toLocaleString('he-IL',{minimumFractionDigits:2})}</div>
+      </div>
+      <div style="background:#fff;border:1px solid #e2e8f0;border-radius:10px;padding:12px 14px;border-top:3px solid ${totalBilling<=totalContract?'#15803d':'#dc2626'}">
+        <div style="font-size:.6rem;color:#8492a6;font-weight:700;letter-spacing:.05em;text-align:right;margin-bottom:4px">הפרש</div>
+        <div style="font-size:.95rem;font-weight:700;color:${totalBilling<=totalContract?'#15803d':'#dc2626'};direction:ltr;text-align:left">₪${Math.abs(totalContract-totalBilling).toLocaleString('he-IL',{minimumFractionDigits:2})}</div>
+      </div>
+      <div style="background:#fff;border:1px solid #e2e8f0;border-radius:10px;padding:12px 14px;border-top:3px solid #d97706">
+        <div style="font-size:.6rem;color:#8492a6;font-weight:700;letter-spacing:.05em;text-align:right;margin-bottom:4px">% ביצוע</div>
+        <div style="font-size:.95rem;font-weight:700;color:#d97706;text-align:right">${pct}%</div>
+      </div>
+    </div>
+
+    <!-- Action buttons -->
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <button class="btn-cat" onclick="boqBillingSave(false)" style="background:#eef4ff;color:#2563eb;border-color:#bfdbfe">💾 שמור</button>
+      <button class="btn-cat" onclick="boqBillingSave(true)"  style="background:#f0fdf4;color:#15803d;border-color:#bbf7d0">✅ אשר לתשלום</button>
+      <button class="btn-cat" onclick="boqBillingExport()"    style="background:#f5f3ff;color:#6d28d9;border-color:#c4b5fd">📊 ייצא Excel</button>
+    </div>`;
+}
+
+function boqBillingItemChange(itemId, val){
+  const n = val===''||val===null ? null : parseFloat(val);
+  if(!_boqBillingItems[itemId]) _boqBillingItems[itemId]={};
+  _boqBillingItems[itemId].executed_qty = isNaN(n) ? null : n;
+}
+
+function boqBillingStatusChange(val){ _boqBillingStatus = val; }
+function boqBillingDateChange(val){ _boqBillingDate = val; }
+function boqBillingUnlinkOrder(){ _boqBillingOrderId=null; renderBoqBilling(); }
+
+async function boqBillingSave(andApprove=false){
+  if(!_boqCurrentProjectId) return;
+  if(andApprove) _boqBillingStatus = 'approved';
+  const items = _boqItems.filter(i=>!i.is_section).map(i=>{
+    const inp = document.querySelector(`#boq-subtab-billing .billing-exec-input[data-item="${i.id}"]`);
+    const execQty = inp ? (inp.value===''?null:parseFloat(inp.value)) : (_boqBillingItems[i.id]?.executed_qty??null);
+    return { item_id: i.id, executed_qty: isNaN(execQty)?null:execQty, billing_notes: _boqBillingItems[i.id]?.billing_notes||null };
+  });
+  try {
+    const res = await fetch(`/api/boq/projects/${_boqCurrentProjectId}/billing`, {
+      method:'PATCH',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({
+        order_id: _boqBillingOrderId||null,
+        billing_status: _boqBillingStatus,
+        billing_date: _boqBillingDate||null,
+        billing_notes: _boqBillingNotes||null,
+        items,
+      }),
+    });
+    if(!res.ok) throw new Error(await res.text());
+    const proj = await res.json();
+    _boqBillingStatus = proj.billing_status||'none';
+    // Sync _boqBillingItems from saved data
+    items.forEach(it=>{ if(!_boqBillingItems[it.item_id]) _boqBillingItems[it.item_id]={}; _boqBillingItems[it.item_id].executed_qty=it.executed_qty; });
+    _toast(andApprove?'חשבון אושר לתשלום ✅':'נשמר בהצלחה','success');
+    renderBoqBilling();
+  } catch(e){ _toast('שגיאה בשמירה: '+e.message,'error'); }
+}
+
+function boqBillingExport(){
+  if(!_boqCurrentProjectId) return;
+  // Save current input values first, then export
+  boqBillingSave(false).then(()=>{
+    window.open(`/api/boq/projects/${_boqCurrentProjectId}/billing/export/xlsx`,'_blank');
+  }).catch(()=>{
+    window.open(`/api/boq/projects/${_boqCurrentProjectId}/billing/export/xlsx`,'_blank');
+  });
+}
+
+// ── Order Picker Modal ────────────────────────────────────────
+async function openOrderPickerModal(){
+  document.getElementById('boq-order-picker-overlay').style.display='flex';
+  document.getElementById('boq-order-picker-q').value='';
+  if(!_allOrdersCache){
+    document.getElementById('boq-order-picker-list').innerHTML='<div style="padding:20px;text-align:center;color:#94a3b8">טוען...</div>';
+    try {
+      const res = await fetch('/api/orders/all');
+      _allOrdersCache = res.ok ? await res.json() : [];
+    } catch(e){ _allOrdersCache=[]; }
+  }
+  renderOrderPickerList();
+}
+
+function closeOrderPickerModal(){
+  document.getElementById('boq-order-picker-overlay').style.display='none';
+}
+
+function renderOrderPickerList(){
+  const q = (document.getElementById('boq-order-picker-q')?.value||'').trim().toLowerCase();
+  const list = document.getElementById('boq-order-picker-list');
+  if(!list) return;
+  const orders = (_allOrdersCache||[]).filter(o=>{
+    if(!q) return true;
+    return (o.order_number||'').toLowerCase().includes(q)||(o.ordering_entity||'').toLowerCase().includes(q)||(o.project_name||'').toLowerCase().includes(q);
+  });
+  if(!orders.length){ list.innerHTML='<div style="padding:20px;text-align:center;color:#94a3b8">לא נמצאו הזמנות</div>'; return; }
+  list.innerHTML = orders.slice(0,50).map(o=>`
+    <div onclick="boqBillingLinkOrder(${o.id})" style="padding:10px 14px;border-bottom:1px solid #f1f5f9;cursor:pointer;display:flex;align-items:center;gap:10px"
+      onmouseover="this.style.background='#f8faff'" onmouseout="this.style.background=''">
+      <div style="flex:1;min-width:0">
+        <div style="font-weight:700;font-size:.85rem;color:#1e3a5f">${_esc(o.order_number||'—')}</div>
+        <div style="font-size:.76rem;color:#64748b;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${_esc(o.ordering_entity||'')}${o.project_name?' · '+_esc(o.project_name):''}</div>
+      </div>
+      ${o.amount_pre_vat!=null?`<div style="font-size:.82rem;font-weight:700;color:#1e3a5f;white-space:nowrap">₪${Number(o.amount_pre_vat).toLocaleString('he-IL')}</div>`:''}
+      ${o.order_date?`<div style="font-size:.74rem;color:#94a3b8;white-space:nowrap">${o.order_date.slice(0,10)}</div>`:''}
+    </div>`).join('');
+}
+
+function boqBillingLinkOrder(orderId){
+  _boqBillingOrderId = orderId;
+  closeOrderPickerModal();
+  renderBoqBilling();
+}
+
+function navToOrderFromBilling(orderId){
+  setView('orders');
 }
 
 function renderBoqItems(){

@@ -387,6 +387,14 @@ try { db.exec("ALTER TABLE boq_component_templates ADD COLUMN city TEXT"); } cat
 try { db.exec("ALTER TABLE boq_items ADD COLUMN manufacturer TEXT"); } catch(e) {}
 try { db.exec("ALTER TABLE boq_items ADD COLUMN model        TEXT"); } catch(e) {}
 
+// Migration: billing/payment certificate fields
+try { db.exec("ALTER TABLE boq_projects ADD COLUMN order_id INTEGER"); }           catch(e) {}
+try { db.exec("ALTER TABLE boq_projects ADD COLUMN billing_status TEXT NOT NULL DEFAULT 'none'"); } catch(e) {}
+try { db.exec("ALTER TABLE boq_projects ADD COLUMN billing_date TEXT"); }           catch(e) {}
+try { db.exec("ALTER TABLE boq_projects ADD COLUMN billing_notes TEXT"); }          catch(e) {}
+try { db.exec("ALTER TABLE boq_items ADD COLUMN executed_qty REAL"); }              catch(e) {}
+try { db.exec("ALTER TABLE boq_items ADD COLUMN billing_item_notes TEXT"); }        catch(e) {}
+
 // Migration: order_invoices — multiple invoices per order
 try {
   db.exec(`
@@ -637,6 +645,7 @@ const stmts = {
   getBoqProject:      db.prepare('SELECT * FROM boq_projects WHERE id = ?'),
   createBoqProject:   db.prepare("INSERT INTO boq_projects (name,description,site,status,currency,notes,created_by) VALUES (?,?,?,?,?,?,?)"),
   updateBoqProject:   db.prepare("UPDATE boq_projects SET name=?,description=?,site=?,status=?,currency=?,notes=?,updated_at=datetime('now') WHERE id=?"),
+  updateBoqBilling:   db.prepare("UPDATE boq_projects SET order_id=?,billing_status=?,billing_date=?,billing_notes=?,updated_at=datetime('now') WHERE id=?"),
   deleteBoqProject:   db.prepare('DELETE FROM boq_projects WHERE id = ?'),
 
   // BOQ: Items
@@ -650,6 +659,7 @@ const stmts = {
     is_rfq=?,rfq_vendor=?,rfq_notes=?,rfq_price_ils=?,is_section=?,notes=?,contract_unit_price=?,
     manufacturer=?,model=?,
     updated_at=datetime('now') WHERE id=?`),
+  updateBoqItemBilling:       db.prepare("UPDATE boq_items SET executed_qty=?,billing_item_notes=?,updated_at=datetime('now') WHERE id=?"),
   updateBoqItemContractPrice: db.prepare("UPDATE boq_items SET contract_unit_price=?,updated_at=datetime('now') WHERE id=?"),
   updateBoqItemRfqPrice: db.prepare("UPDATE boq_items SET rfq_price_ils=?,updated_at=datetime('now') WHERE id=?"),
   updateBoqItemTemplate:  db.prepare("UPDATE boq_items SET template_id=?,updated_at=datetime('now') WHERE id=?"),
@@ -707,6 +717,11 @@ const stmts = {
   updateOrderProject:   db.prepare("UPDATE order_projects SET name=?,client=?,contract_number=?,notes=?,updated_at=datetime('now') WHERE id=?"),
   deleteOrderProject:   db.prepare('DELETE FROM order_projects WHERE id = ?'),
 
+  getAllOrders:         db.prepare(`SELECT o.id, o.order_number, o.ordering_entity, o.amount_pre_vat, o.order_date, o.currency, o.project_id, p.name AS project_name, c.name AS city_name
+    FROM orders o
+    LEFT JOIN order_projects p ON p.id = o.project_id
+    LEFT JOIN order_cities c ON c.id = p.city_id
+    ORDER BY o.created_at DESC`),
   listOrders:           db.prepare('SELECT * FROM orders WHERE project_id = ? ORDER BY created_at DESC'),
   getOrder:             db.prepare('SELECT * FROM orders WHERE id = ?'),
   createOrder:          db.prepare(`INSERT INTO orders
@@ -910,6 +925,8 @@ module.exports = {
     stmts.createBoqProject.run(name, description || null, site || null, status || 'draft', currency || 'ILS', notes || null, createdBy || null),
   updateBoqProject:  (id, { name, description, site, status, currency, notes }) =>
     stmts.updateBoqProject.run(name, description || null, site || null, status || 'draft', currency || 'ILS', notes || null, id),
+  updateBoqBilling:  (id, { orderId, billingStatus, billingDate, billingNotes }) =>
+    stmts.updateBoqBilling.run(orderId || null, billingStatus || 'none', billingDate || null, billingNotes || null, id),
   deleteBoqProject:  (id) => stmts.deleteBoqProject.run(id),
 
   // BOQ: Items
@@ -933,6 +950,7 @@ module.exports = {
     opts.manufacturer || null, opts.model || null,
     id
   ),
+  updateBoqItemBilling:       (id, { executedQty, billingNotes }) => stmts.updateBoqItemBilling.run(executedQty != null ? executedQty : null, billingNotes || null, id),
   updateBoqItemContractPrice: (id, price) => stmts.updateBoqItemContractPrice.run(price != null ? price : null, id),
   updateBoqItemRfqPrice:  (id, priceIls) => stmts.updateBoqItemRfqPrice.run(priceIls, id),
   updateBoqItemTemplate:  (id, templateId) => stmts.updateBoqItemTemplate.run(templateId || null, id),
@@ -1006,6 +1024,7 @@ module.exports = {
     stmts.updateOrderProject.run(name, client||null, contractNumber||null, notes||null, id),
   deleteOrderProject: (id) => stmts.deleteOrderProject.run(id),
 
+  getAllOrders:  ()          => stmts.getAllOrders.all(),
   listOrders:   (projectId) => stmts.listOrders.all(projectId),
   getOrder:     (id)        => stmts.getOrder.get(id),
   createOrder:  ({ projectId, orderNumber, orderDate, orderingEntity, description,
