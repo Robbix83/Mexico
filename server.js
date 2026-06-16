@@ -2394,9 +2394,9 @@ app.get('/api/boq/projects/:id', requireSection('boq'), (req, res) => {
 app.put('/api/boq/projects/:id', requireSection('boq'), (req, res) => {
   const project = db.getBoqProject(parseInt(req.params.id));
   if (!project) return res.status(404).json({ error: 'Not found' });
-  const { name, description, site, status, currency, notes } = req.body;
+  const { name, project_number, description, site, status, currency, notes } = req.body;
   if (!name) return res.status(400).json({ error: 'name required' });
-  db.updateBoqProject(project.id, { name, description, site, status, currency, notes });
+  db.updateBoqProject(project.id, { name, projectNumber: project_number, description, site, status, currency, notes });
   res.json({ ok: true });
 });
 
@@ -2731,16 +2731,32 @@ app.get('/api/orders/all', requireAuth, (_req, res) => {
   res.json(db.getAllOrders());
 });
 
+app.patch('/api/boq/projects/:id/order', requireSection('boq'), (req, res) => {
+  const id = parseInt(req.params.id);
+  const project = db.getBoqProject(id);
+  if (!project) return res.status(404).json({ error: 'Not found' });
+  const { order_id } = req.body || {};
+  db.updateBoqBilling(id, {
+    orderId: order_id || null,
+    billingStatus: project.billing_status || 'none',
+    billingDate: project.billing_date || null,
+    billingNotes: project.billing_notes || null,
+    billingIsPartial: project.billing_is_partial || false,
+  });
+  res.json(db.getBoqProject(id));
+});
+
 app.patch('/api/boq/projects/:id/billing', requireSection('boq'), (req, res) => {
   const id = parseInt(req.params.id);
   const project = db.getBoqProject(id);
   if (!project) return res.status(404).json({ error: 'Not found' });
-  const { order_id, billing_status, billing_date, billing_notes, items } = req.body || {};
+  const { order_id, billing_status, billing_date, billing_notes, billing_is_partial, items } = req.body || {};
   db.updateBoqBilling(id, {
     orderId: order_id || null,
     billingStatus: billing_status || 'none',
     billingDate: billing_date || null,
     billingNotes: billing_notes || null,
+    billingIsPartial: billing_is_partial || false,
   });
   if (Array.isArray(items)) {
     for (const it of items) {
@@ -2772,7 +2788,9 @@ app.get('/api/boq/projects/:id/billing/export/xlsx', requireSection('boq'), asyn
       row++;
     };
 
-    setRow([`כתב כמויות מאושר לתשלום — ${project.name}${project.site ? ' / ' + project.site : ''}`], { font: { bold: true, size: 13 } });
+    const STATUS_LABELS_XL = { none: 'כתב כמויות', draft: 'כתב כמויות — טיוטה', pending_partial: 'כתב כמויות — לאישור חלקי', pending_final: 'כתב כמויות — לאישור סופי', approved: 'כתב כמויות — מאושר' };
+    const statusTitle = STATUS_LABELS_XL[project.billing_status] || 'כתב כמויות';
+    setRow([`${statusTitle} — ${project.name}${project.site ? ' / ' + project.site : ''}`], { font: { bold: true, size: 13 } });
     if (order) setRow([`הזמנה: ${order.order_number || ''}  |  ${order.ordering_entity || ''}  |  ₪${(order.amount_pre_vat || 0).toLocaleString('he-IL')}`]);
     if (project.billing_date) setRow([`תאריך אישור: ${project.billing_date}`]);
     row++; // blank
@@ -2820,6 +2838,123 @@ app.get('/api/boq/projects/:id/billing/export/xlsx', requireSection('boq'), asyn
     res.send(buf);
   } catch (e) {
     console.error('[boq] billing xlsx error:', e);
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// ── BOQ Billing Phases (חשבון 2, 3…) ──────────────────────────────────────────
+app.get('/api/boq/projects/:id/billing/phases', requireSection('boq'), (req, res) => {
+  const id = parseInt(req.params.id);
+  const phases = db.listBoqBillingPhases(id).map(ph => ({
+    ...ph,
+    items: db.listBoqBillingPhaseItems(ph.id),
+  }));
+  res.json(phases);
+});
+
+app.post('/api/boq/projects/:id/billing/phases', requireSection('boq'), (req, res) => {
+  const projectId = parseInt(req.params.id);
+  const project = db.getBoqProject(projectId);
+  if (!project) return res.status(404).json({ error: 'Not found' });
+  const existing = db.listBoqBillingPhases(projectId);
+  const nextPhase = existing.length > 0 ? Math.max(...existing.map(p => p.phase_num)) + 1 : 2;
+  const r = db.createBoqBillingPhase(projectId, nextPhase, 'none', null, null, false);
+  const phase = db.getBoqBillingPhase(r.lastInsertRowid);
+  res.json({ ...phase, items: [] });
+});
+
+app.patch('/api/boq/projects/:id/billing/phases/:phaseId', requireSection('boq'), (req, res) => {
+  const phase = db.getBoqBillingPhase(parseInt(req.params.phaseId));
+  if (!phase || phase.project_id !== parseInt(req.params.id)) return res.status(404).json({ error: 'Not found' });
+  const { billing_status, billing_date, billing_notes, is_partial, items } = req.body || {};
+  db.updateBoqBillingPhase(phase.id, {
+    billingStatus: billing_status || 'none',
+    billingDate: billing_date || null,
+    billingNotes: billing_notes || null,
+    isPartial: !!is_partial,
+  });
+  if (Array.isArray(items)) db.saveBoqBillingPhaseItems(phase.id, items);
+  res.json({ ...db.getBoqBillingPhase(phase.id), items: db.listBoqBillingPhaseItems(phase.id) });
+});
+
+app.delete('/api/boq/projects/:id/billing/phases/:phaseId', requireSection('boq'), (req, res) => {
+  const phase = db.getBoqBillingPhase(parseInt(req.params.phaseId));
+  if (!phase || phase.project_id !== parseInt(req.params.id)) return res.status(404).json({ error: 'Not found' });
+  db.deleteBoqBillingPhase(phase.id);
+  res.json({ ok: true });
+});
+
+app.get('/api/boq/projects/:id/billing/phases/:phaseId/export/xlsx', requireSection('boq'), async (req, res) => {
+  const project = db.getBoqProject(parseInt(req.params.id));
+  const phase   = db.getBoqBillingPhase(parseInt(req.params.phaseId));
+  if (!project || !phase || phase.project_id !== project.id) return res.status(404).json({ error: 'Not found' });
+  const allItems    = db.listBoqItems(project.id);
+  const phaseItems  = db.listBoqBillingPhaseItems(phase.id);
+  const phaseItemMap = {};
+  phaseItems.forEach(pi => { phaseItemMap[pi.item_id] = pi.executed_qty; });
+  // Phase 1 executed qtys to compute remaining
+  const phase1Map = {};
+  allItems.forEach(it => { if (it.executed_qty != null) phase1Map[it.id] = it.executed_qty; });
+
+  const order = project.order_id ? db.getOrder(project.order_id) : null;
+  try {
+    const ExcelJS = require('exceljs');
+    const wb = new ExcelJS.Workbook();
+    const ws = wb.addWorksheet(`חשבון ${phase.phase_num}`, { views: [{ rightToLeft: true }] });
+
+    let row = 1;
+    const setRow = (vals, style) => {
+      ws.getRow(row).values = ['', ...vals];
+      if (style) Object.assign(ws.getRow(row), style);
+      row++;
+    };
+
+    const STATUS_LABELS_XL = { none: 'כתב כמויות', draft: 'טיוטה', pending_partial: 'לאישור חלקי', pending_final: 'לאישור סופי', approved: 'מאושר' };
+    const statusTitle = STATUS_LABELS_XL[phase.billing_status] || '';
+    setRow([`חשבון ${phase.phase_num}${statusTitle?' — '+statusTitle:''} — ${project.name}${project.site ? ' / ' + project.site : ''}`], { font: { bold: true, size: 13 } });
+    if (order) setRow([`הזמנה: ${order.order_number || ''}  |  ${order.ordering_entity || ''}  |  ₪${(order.amount_pre_vat || 0).toLocaleString('he-IL')}`]);
+    if (phase.billing_date) setRow([`תאריך: ${phase.billing_date}`]);
+    row++;
+
+    ws.getRow(row).values = ['', 'מס׳ סעיף', 'תיאור', 'יח׳ מידה', 'יתרה', 'כמות חשבון', 'מחיר יחידה ₪', 'סכום לתשלום ₪'];
+    ws.getRow(row).font = { bold: true, color: { argb: 'FFFFFFFF' } };
+    ws.getRow(row).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF1E3A5F' } };
+    ws.getRow(row).alignment = { horizontal: 'center' };
+    row++;
+
+    let totalBilling = 0;
+    for (const item of allItems) {
+      if (item.is_section) {
+        ws.getRow(row).values = ['', item.item_number || '', item.description || '', '', '', '', '', ''];
+        ws.getRow(row).font = { bold: true };
+        ws.getRow(row).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFE2E8F0' } };
+      } else {
+        const contractQty = item.quantity || 0;
+        const phase1Exec  = phase1Map[item.id] != null ? phase1Map[item.id] : contractQty;
+        const remaining   = Math.max(0, contractQty - phase1Exec);
+        const execQty     = phaseItemMap[item.id] != null ? phaseItemMap[item.id] : remaining;
+        const unitPrice   = item.contract_unit_price || 0;
+        const billingTotal = execQty * unitPrice;
+        totalBilling += billingTotal;
+        ws.getRow(row).values = ['', item.item_number || '', item.description || '', item.unit || '', remaining, execQty, unitPrice, billingTotal];
+      }
+      row++;
+    }
+
+    row++;
+    ws.getRow(row).values = ['', '', 'סה"כ חשבון ' + phase.phase_num, '', '', '', '', totalBilling];
+    ws.getRow(row).font = { bold: true, color: { argb: 'FF1E3A5F' } };
+
+    ws.columns = [{ width: 2 }, { width: 10 }, { width: 38 }, { width: 9 }, { width: 10 }, { width: 11 }, { width: 13 }, { width: 14 }];
+    [7, 8].forEach(c => { ws.getColumn(c).numFmt = '#,##0.00'; });
+
+    const buf = await wb.xlsx.writeBuffer();
+    const filename = encodeURIComponent(`חשבון-${phase.phase_num}-${project.name}.xlsx`);
+    res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    res.setHeader('Content-Disposition', `attachment; filename*=UTF-8''${filename}`);
+    res.send(buf);
+  } catch (e) {
+    console.error('[boq] phase xlsx error:', e);
     res.status(500).json({ error: e.message });
   }
 });

@@ -394,6 +394,33 @@ try { db.exec("ALTER TABLE boq_projects ADD COLUMN billing_date TEXT"); }       
 try { db.exec("ALTER TABLE boq_projects ADD COLUMN billing_notes TEXT"); }          catch(e) {}
 try { db.exec("ALTER TABLE boq_items ADD COLUMN executed_qty REAL"); }              catch(e) {}
 try { db.exec("ALTER TABLE boq_items ADD COLUMN billing_item_notes TEXT"); }        catch(e) {}
+try { db.exec("ALTER TABLE boq_projects ADD COLUMN billing_is_partial INTEGER DEFAULT 0"); } catch(e) {}
+try { db.exec("ALTER TABLE boq_projects ADD COLUMN project_number TEXT"); } catch(e) {}
+
+// Migration: billing phases (חשבון 2, 3, ...)
+try {
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS boq_billing_phases (
+      id             INTEGER PRIMARY KEY AUTOINCREMENT,
+      project_id     INTEGER NOT NULL REFERENCES boq_projects(id) ON DELETE CASCADE,
+      phase_num      INTEGER NOT NULL DEFAULT 2,
+      billing_status TEXT    NOT NULL DEFAULT 'none',
+      billing_date   TEXT,
+      billing_notes  TEXT,
+      is_partial     INTEGER NOT NULL DEFAULT 0,
+      created_at     TEXT    NOT NULL DEFAULT (datetime('now')),
+      updated_at     TEXT    NOT NULL DEFAULT (datetime('now'))
+    );
+    CREATE TABLE IF NOT EXISTS boq_billing_phase_items (
+      id           INTEGER PRIMARY KEY AUTOINCREMENT,
+      phase_id     INTEGER NOT NULL REFERENCES boq_billing_phases(id) ON DELETE CASCADE,
+      item_id      INTEGER NOT NULL,
+      executed_qty REAL,
+      notes        TEXT,
+      UNIQUE(phase_id, item_id)
+    );
+  `);
+} catch(e) {}
 
 // Migration: order_invoices — multiple invoices per order
 try {
@@ -620,6 +647,17 @@ const stmts = {
     WHERE id = ?`),
   deleteRequisition: db.prepare('DELETE FROM requisitions WHERE id = ?'),
 
+  // BOQ Billing Phases
+  listBoqBillingPhases:      db.prepare('SELECT * FROM boq_billing_phases WHERE project_id=? ORDER BY phase_num ASC'),
+  getBoqBillingPhase:        db.prepare('SELECT * FROM boq_billing_phases WHERE id=?'),
+  createBoqBillingPhase:     db.prepare("INSERT INTO boq_billing_phases (project_id,phase_num,billing_status,billing_date,billing_notes,is_partial) VALUES (?,?,?,?,?,?)"),
+  updateBoqBillingPhase:     db.prepare("UPDATE boq_billing_phases SET billing_status=?,billing_date=?,billing_notes=?,is_partial=?,updated_at=datetime('now') WHERE id=?"),
+  deleteBoqBillingPhase:     db.prepare('DELETE FROM boq_billing_phases WHERE id=?'),
+  listBoqBillingPhaseItems:  db.prepare('SELECT * FROM boq_billing_phase_items WHERE phase_id=?'),
+  upsertBoqBillingPhaseItem: db.prepare(`INSERT INTO boq_billing_phase_items (phase_id,item_id,executed_qty,notes)
+    VALUES (?,?,?,?) ON CONFLICT(phase_id,item_id) DO UPDATE SET executed_qty=excluded.executed_qty,notes=excluded.notes`),
+  deleteBoqBillingPhaseItems:db.prepare('DELETE FROM boq_billing_phase_items WHERE phase_id=?'),
+
   // User join requests
   createUserRequest: db.prepare(`INSERT INTO user_requests
     (first_name, last_name, email, phone, role_title, division) VALUES (?, ?, ?, ?, ?, ?)`),
@@ -641,11 +679,11 @@ const stmts = {
   countBoqTemplates:  db.prepare('SELECT COUNT(*) AS n FROM boq_component_templates'),
 
   // BOQ: Projects
-  listBoqProjects:    db.prepare('SELECT id,name,description,site,status,currency,notes,created_at,updated_at,created_by FROM boq_projects ORDER BY updated_at DESC'),
+  listBoqProjects:    db.prepare('SELECT id,name,project_number,description,site,status,currency,notes,created_at,updated_at,created_by,order_id,billing_status,billing_is_partial FROM boq_projects ORDER BY updated_at DESC'),
   getBoqProject:      db.prepare('SELECT * FROM boq_projects WHERE id = ?'),
   createBoqProject:   db.prepare("INSERT INTO boq_projects (name,description,site,status,currency,notes,created_by) VALUES (?,?,?,?,?,?,?)"),
-  updateBoqProject:   db.prepare("UPDATE boq_projects SET name=?,description=?,site=?,status=?,currency=?,notes=?,updated_at=datetime('now') WHERE id=?"),
-  updateBoqBilling:   db.prepare("UPDATE boq_projects SET order_id=?,billing_status=?,billing_date=?,billing_notes=?,updated_at=datetime('now') WHERE id=?"),
+  updateBoqProject:   db.prepare("UPDATE boq_projects SET name=?,project_number=?,description=?,site=?,status=?,currency=?,notes=?,updated_at=datetime('now') WHERE id=?"),
+  updateBoqBilling:   db.prepare("UPDATE boq_projects SET order_id=?,billing_status=?,billing_date=?,billing_notes=?,billing_is_partial=?,updated_at=datetime('now') WHERE id=?"),
   deleteBoqProject:   db.prepare('DELETE FROM boq_projects WHERE id = ?'),
 
   // BOQ: Items
@@ -717,7 +755,7 @@ const stmts = {
   updateOrderProject:   db.prepare("UPDATE order_projects SET name=?,client=?,contract_number=?,notes=?,updated_at=datetime('now') WHERE id=?"),
   deleteOrderProject:   db.prepare('DELETE FROM order_projects WHERE id = ?'),
 
-  getAllOrders:         db.prepare(`SELECT o.id, o.order_number, o.ordering_entity, o.amount_pre_vat, o.order_date, o.currency, o.project_id, p.name AS project_name, c.name AS city_name
+  getAllOrders:         db.prepare(`SELECT o.id, o.order_number, o.ordering_entity, o.description, o.amount_pre_vat, o.order_date, o.currency, o.project_id, o.pdf_path, p.name AS project_name, c.name AS city_name
     FROM orders o
     LEFT JOIN order_projects p ON p.id = o.project_id
     LEFT JOIN order_cities c ON c.id = p.city_id
@@ -907,6 +945,21 @@ module.exports = {
   approveUserRequest:  (id, byUsername) => stmts.approveUserRequest.run(byUsername, id),
   rejectUserRequest:   (id, byUsername, note) => stmts.rejectUserRequest.run(byUsername, note || null, id),
 
+  // BOQ: Billing Phases
+  listBoqBillingPhases:  (projectId) => stmts.listBoqBillingPhases.all(projectId),
+  getBoqBillingPhase:    (id)        => stmts.getBoqBillingPhase.get(id),
+  createBoqBillingPhase: (projectId, phaseNum, status, date, notes, isPartial) =>
+    stmts.createBoqBillingPhase.run(projectId, phaseNum, status||'none', date||null, notes||null, isPartial?1:0),
+  updateBoqBillingPhase: (id, { billingStatus, billingDate, billingNotes, isPartial }) =>
+    stmts.updateBoqBillingPhase.run(billingStatus||'none', billingDate||null, billingNotes||null, isPartial?1:0, id),
+  deleteBoqBillingPhase: (id) => stmts.deleteBoqBillingPhase.run(id),
+  listBoqBillingPhaseItems:   (phaseId) => stmts.listBoqBillingPhaseItems.all(phaseId),
+  saveBoqBillingPhaseItems: (phaseId, items) => {
+    stmts.deleteBoqBillingPhaseItems.run(phaseId);
+    for (const it of items)
+      stmts.upsertBoqBillingPhaseItem.run(phaseId, it.item_id, it.executed_qty ?? null, it.notes || null);
+  },
+
   // BOQ: Component templates
   listBoqTemplates:  () => stmts.listBoqTemplates.all(),
   getBoqTemplate:       (id)   => stmts.getBoqTemplate.get(id),
@@ -923,10 +976,10 @@ module.exports = {
   getBoqProject:     (id) => stmts.getBoqProject.get(id),
   createBoqProject:  ({ name, description, site, status, currency, notes, createdBy }) =>
     stmts.createBoqProject.run(name, description || null, site || null, status || 'draft', currency || 'ILS', notes || null, createdBy || null),
-  updateBoqProject:  (id, { name, description, site, status, currency, notes }) =>
-    stmts.updateBoqProject.run(name, description || null, site || null, status || 'draft', currency || 'ILS', notes || null, id),
-  updateBoqBilling:  (id, { orderId, billingStatus, billingDate, billingNotes }) =>
-    stmts.updateBoqBilling.run(orderId || null, billingStatus || 'none', billingDate || null, billingNotes || null, id),
+  updateBoqProject:  (id, { name, projectNumber, description, site, status, currency, notes }) =>
+    stmts.updateBoqProject.run(name, projectNumber || null, description || null, site || null, status || 'draft', currency || 'ILS', notes || null, id),
+  updateBoqBilling:  (id, { orderId, billingStatus, billingDate, billingNotes, billingIsPartial }) =>
+    stmts.updateBoqBilling.run(orderId || null, billingStatus || 'none', billingDate || null, billingNotes || null, billingIsPartial ? 1 : 0, id),
   deleteBoqProject:  (id) => stmts.deleteBoqProject.run(id),
 
   // BOQ: Items
