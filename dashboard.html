@@ -13219,6 +13219,8 @@ function ordRenderCityTree() {
           onmouseover="this.style.background='#ffd6d6'" onmouseout="this.style.background='${isCityActive?'#ffe4e4':'#fff0f0'}'">
         <span style="font-size:.82rem;font-weight:700;color:#CC1A1A">🏙 ${city.name}</span>
         <div style="display:flex;gap:4px" onclick="event.stopPropagation()">
+          <button onclick="ordRenameCity(${city.id},'${city.name.replace(/'/g,"\\\'")}')" title="שנה שם עיר"
+            style="border:none;background:transparent;color:#94a3b8;cursor:pointer;font-size:.75rem;padding:2px 4px">✏️</button>
           <button onclick="ordOpenProjModal(${city.id})" title="הוסף פרויקט"
             style="border:none;background:transparent;color:#CC1A1A;cursor:pointer;font-size:.72rem;padding:2px 5px;font-weight:600">+ פרויקט</button>
           <button onclick="ordDeleteCity(${city.id},'${city.name.replace(/'/g,"\\\'")}')" title="מחק עיר"
@@ -13815,6 +13817,18 @@ async function ordSaveCityModal() {
     _toast('עיר נוספה ✓', 'success');
   } catch (e) { document.getElementById('ord-city-err').textContent = e.message; }
 }
+async function ordRenameCity(cityId, currentName) {
+  const newName = window.prompt('שם עיר חדש:', currentName);
+  if (!newName || newName.trim() === currentName) return;
+  const r = await fetch('/api/orders/cities/' + cityId, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ name: newName.trim() })
+  });
+  if (!r.ok) { _toast('שגיאה בשמירה', 'error'); return; }
+  await ordReload();
+}
+
 async function ordDeleteCity(cityId, name) {
   if (!await _confirm(`למחוק את העיר "${name}" וכל הפרויקטים וההזמנות שלה?`, { title: 'מחיקת עיר', ok: 'מחק', type: 'delete' })) return;
   await fetch('/api/orders/cities/' + cityId, { method: 'DELETE' });

@@ -3451,6 +3451,13 @@ app.post('/api/orders/cities', requireSection('orders'), (req, res) => {
   }
 });
 
+app.patch('/api/orders/cities/:id', requireSection('orders'), (req, res) => {
+  const { name } = req.body || {};
+  if (!name || !name.trim()) return res.status(400).json({ error: 'שם נדרש' });
+  db.updateOrderCity(parseInt(req.params.id), name.trim());
+  res.json({ ok: true });
+});
+
 app.delete('/api/orders/cities/:id', requireSection('orders'), (req, res) => {
   db.deleteOrderCity(parseInt(req.params.id));
   res.json({ ok: true });

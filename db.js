@@ -747,6 +747,7 @@ const stmts = {
   // Orders
   listOrderCities:      db.prepare('SELECT * FROM order_cities ORDER BY name ASC'),
   createOrderCity:      db.prepare("INSERT INTO order_cities (name, notes) VALUES (?, ?)"),
+  updateOrderCity:      db.prepare("UPDATE order_cities SET name=? WHERE id=?"),
   deleteOrderCity:      db.prepare('DELETE FROM order_cities WHERE id = ?'),
   getOrderCity:         db.prepare('SELECT * FROM order_cities WHERE id = ?'),
 
@@ -1070,6 +1071,7 @@ module.exports = {
   listOrderCities:    ()       => stmts.listOrderCities.all(),
   getOrderCity:       (id)     => stmts.getOrderCity.get(id),
   createOrderCity:    (name, notes) => stmts.createOrderCity.run(name, notes || null),
+  updateOrderCity:    (id, name) => stmts.updateOrderCity.run(name, id),
   deleteOrderCity:    (id)     => stmts.deleteOrderCity.run(id),
 
   listOrderProjects:  (cityId) => stmts.listOrderProjects.all(cityId),
