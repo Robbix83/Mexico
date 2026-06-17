@@ -3379,24 +3379,32 @@ async function extractOrderFromPdf(buffer) {
   // ── Description ──────────────────────────────────────────────────────────────
   let description = null;
   {
-    // Netanya (pdf-parse): description is the line just before הערות,
-    // optionally trailed by חוזה XXXX תוקף XX/XX.
-    // Fallback: line right after empty אימייל: field.
-    const netDescMatch =
-      cleanText.match(/\n([א-ת][א-ת "'\-,./0-9]{4,150})\nהערות/) ||
-      cleanText.match(/אימייל:\n([א-ת][^\n]{3,150})\n/);
-    // Bat Yam / standard: תאור: or reversed ור:
-    const vorPat  = /ור:\s*([^\n\r]{3,180})/;
-    const taorPat = /תאור\s*:\s*([^\n\r]{3,180})/;
-    const descMatch = cleanText.match(vorPat) || cleanText.match(taorPat);
-    if (netDescMatch) {
-      description = netDescMatch[1]
-        .replace(/\s+חוזה\s+\d+\s+תוקף.*$/, '')
-        .replace(/\s+/g, ' ').trim().slice(0, 300);
-    } else if (descMatch) {
-      description = descMatch[1]
-        .replace(/תא\s*$/, '')
-        .replace(/\s+/g, ' ').trim().slice(0, 180);
+    // Netanya (pdf-parse): capture block between פרטי יחידה מזמינה and הערות,
+    // take the first Hebrew-starting line and clean up admin boilerplate.
+    const netBlock = cleanText.match(/פרטי יחידה מזמינה\n([\s\S]{3,700}?)\nהערות/);
+    if (netBlock) {
+      const lines = netBlock[1].split('\n').filter(l => l.trim());
+      const hebLine = lines.find(l => /^[א-ת]/.test(l.trim()));
+      if (hebLine) {
+        description = hebLine
+          .replace(/^הועבר[^.]+\.\s*/, '')
+          .replace(/^כתבי כמויות\s+/, '')
+          .replace(/\s+עפ.{0,4}י חוזה\s+\d+.*$/, '')
+          .replace(/\s+חוזה\s+\d+\s+תוקף.*$/, '')
+          .replace(/\s+/g, ' ').trim().slice(0, 250);
+      }
+    }
+    // Fallback A: line right after empty אימייל: field
+    if (!description) {
+      const m = cleanText.match(/אימייל:\n([א-ת][^\n]{3,150})\n/);
+      if (m) description = m[1].replace(/\s+/g, ' ').trim().slice(0, 250);
+    }
+    // Fallback B: Bat Yam / standard תאור: or reversed ור:
+    if (!description) {
+      const vorPat  = /ור:\s*([^\n\r]{3,180})/;
+      const taorPat = /תאור\s*:\s*([^\n\r]{3,180})/;
+      const m = cleanText.match(vorPat) || cleanText.match(taorPat);
+      if (m) description = m[1].replace(/תא\s*$/, '').replace(/\s+/g, ' ').trim().slice(0, 180);
     }
   }
   // ── Line items ─────────────────────────────────────────────────────────
