@@ -13436,6 +13436,7 @@ function ordRenderOrders(project) {
                 <th style="padding:8px 10px;text-align:right;color:#4a5568;font-weight:600">גורם מזמין</th>
                 <th style="padding:8px 10px;text-align:right;color:#4a5568;font-weight:600">תיאור</th>
                 ${_ordThBtn('סכום לפני מעמ','amount_pre_vat','text-align:left')}
+                <th style="padding:8px 6px;text-align:right;color:#4a5568;font-weight:600">כתב כמויות</th>
                 <th style="padding:8px 6px;text-align:center;color:#4a5568;font-weight:600">סעיפים</th>
                 <th style="padding:8px 6px;text-align:center;color:#4a5568;font-weight:600">חויבה</th>
                 <th style="padding:8px 8px;text-align:right;color:#4a5568;font-weight:600">חשבונית</th>
@@ -13455,6 +13456,13 @@ function ordRenderOrders(project) {
                   <td style="padding:7px 10px;max-width:220px"><div style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${o.description||''}">${o.description||'—'}</div></td>
                   <td style="padding:7px 10px;text-align:left;direction:ltr;font-weight:600;color:#1e3a5f;white-space:nowrap">
                     ${o.amount_pre_vat!=null?'<span style="font-size:.72em;color:#9ca3af">₪</span>'+Math.round(o.amount_pre_vat).toLocaleString('he-IL'):'—'}
+                  </td>
+                  <td style="padding:7px 8px;max-width:180px">
+                    ${o.boq_project
+                      ? `<a href="#boq/${o.boq_project.id}" onclick="event.preventDefault();setView('boq');setTimeout(()=>boqLoadProject(${o.boq_project.id}),80)"
+                          style="font-size:.75rem;color:#6d28d9;font-weight:600;text-decoration:none;display:inline-flex;align-items:center;gap:3px;background:#f5f3ff;border:1px solid #ddd6fe;border-radius:6px;padding:2px 7px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:170px"
+                          title="${_esc(o.boq_project.name)}">📋 ${_esc(o.boq_project.name)}</a>`
+                      : '<span style="color:#d1d5db;font-size:.75rem">—</span>'}
                   </td>
                   <td style="padding:7px 6px;text-align:center">
                     ${(()=>{ const its = (() => { try { return JSON.parse(o.items_json||'[]'); } catch(_){return[];} })(); return its.length ? `<button onclick="ordShowItems(${o.id})" title="הצג סעיפים" style="border:1px solid #bfdbfe;background:#eff6ff;color:#1d4ed8;border-radius:12px;padding:2px 8px;font-size:.7rem;font-weight:700;cursor:pointer">${its.length}</button>` : '<span style="color:#d1d5db">—</span>'; })()}

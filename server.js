@@ -3484,6 +3484,7 @@ app.get('/api/orders/projects/:id', requireSection('orders'), (req, res) => {
   const orders = db.listOrders(project.id).map(o => ({
     ...o,
     pdf_exists: !!(o.pdf_path && fs.existsSync(o.pdf_path)),
+    boq_project: db.getBoqProjectByOrderId(o.id) || null,
     invoices: db.listOrderInvoices(o.id)
   }));
   res.json({ project, orders });

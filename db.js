@@ -680,6 +680,7 @@ const stmts = {
 
   // BOQ: Projects
   listBoqProjects:    db.prepare('SELECT id,name,project_number,description,site,status,currency,notes,created_at,updated_at,created_by,order_id,billing_status,billing_is_partial FROM boq_projects ORDER BY updated_at DESC'),
+  getBoqProjectByOrderId: db.prepare('SELECT id, name FROM boq_projects WHERE order_id = ? LIMIT 1'),
   getBoqProject:      db.prepare('SELECT * FROM boq_projects WHERE id = ?'),
   createBoqProject:   db.prepare("INSERT INTO boq_projects (name,description,site,status,currency,notes,created_by) VALUES (?,?,?,?,?,?,?)"),
   updateBoqProject:   db.prepare("UPDATE boq_projects SET name=?,project_number=?,description=?,site=?,status=?,currency=?,notes=?,updated_at=datetime('now') WHERE id=?"),
@@ -974,6 +975,7 @@ module.exports = {
 
   // BOQ: Projects
   listBoqProjects:   () => stmts.listBoqProjects.all(),
+  getBoqProjectByOrderId: (orderId) => stmts.getBoqProjectByOrderId.get(orderId),
   getBoqProject:     (id) => stmts.getBoqProject.get(id),
   createBoqProject:  ({ name, description, site, status, currency, notes, createdBy }) =>
     stmts.createBoqProject.run(name, description || null, site || null, status || 'draft', currency || 'ILS', notes || null, createdBy || null),
