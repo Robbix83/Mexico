@@ -322,11 +322,13 @@ function _buildRawRows(sheet) {
   }
   const rawRows = [];
   sheet.eachRow({ includeEmpty: false }, (row) => {
+    // Build absolute-column array (0 = col A) so colMap indices are stable
+    // regardless of where a row's data starts in the sheet.
     const cells = [];
     row.eachCell({ includeEmpty: true }, (cell) => {
+      const colIdx = cell.col - 1; // ExcelJS col is 1-based; make 0-based
       const merged = mergeValues[cell.address];
-      const effective = merged !== undefined ? { value: merged, font: cell.font, address: cell.address } : cell;
-      cells.push(effective);
+      cells[colIdx] = merged !== undefined ? { value: merged, font: cell.font, address: cell.address } : cell;
     });
     cells._hidden = !!row.hidden;
     rawRows.push(cells);
@@ -427,7 +429,12 @@ async function parseXlsx(buffer) {
     const hasItemSlot = !!numInfo || _cellHasFormula(numCell);
 
     const qty = colMap.quantity != null ? _cellNumber(row[colMap.quantity]) : null;
-    const unitPrice = colMap.unitPrice != null ? _cellNumber(row[colMap.unitPrice]) : null;
+    let unitPrice = colMap.unitPrice != null ? _cellNumber(row[colMap.unitPrice]) : null;
+    // Fallback: if unit price cell is a formula without cached result, derive from total÷qty
+    if (unitPrice == null && colMap.total != null && qty) {
+      const totalVal = _cellNumber(row[colMap.total]);
+      if (totalVal != null && totalVal > 0) unitPrice = totalVal / qty;
+    }
     const unit      = colMap.unit         != null ? _cellText(row[colMap.unit]).trim()    : '';
     const mfr       = colMap.manufacturer != null ? _cellText(row[colMap.manufacturer]).trim() : null;
     const mdl       = colMap.model        != null ? _cellText(row[colMap.model]).trim()   : null;
