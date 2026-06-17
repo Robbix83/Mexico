@@ -3370,27 +3370,30 @@ async function extractOrderFromPdf(buffer) {
     if (!isNaN(num) && num > 0) amount_pre_vat = num;
   }
 
-  // תיאור from תאור: שדה
-  // In RTL-extracted PDFs the label can appear reversed as "ור:" — match both.
+  // ── Description ──────────────────────────────────────────────────────────────
   let description = null;
   {
-    // Netanya: description between \u05E4\u05E8\u05D8\u05D9 \u05D9\u05D7\u05D9\u05D3\u05D4 \u05DE\u05D6\u05DE\u05D9\u05E0\u05D4 and \u05D4\u05E2\u05E8\u05D5\u05EA
-    const netDescMatch = cleanText.match(/\u05E4\u05E8\u05D8\u05D9 \u05D9\u05D7\u05D9\u05D3\u05D4 \u05DE\u05D6\u05DE\u05D9\u05E0\u05D4\n([\s\S]+?)\n\u05D4\u05E2\u05E8\u05D5\u05EA/);
-    // Bat Yam / standard: \u05EA\u05D0\u05D5\u05E8: label, possibly reversed to \u05D5\u05E8:
-    const vorPat  = new RegExp("\u05D5\u05E8:\s*([^\n\r]{3,180})");
-    const taorPat = new RegExp("\u05EA\u05D0\u05D5\u05E8\s*:\s*([^\n\r]{3,180})");
+    // Netanya (pdf-parse): description is the line just before הערות,
+    // optionally trailed by חוזה XXXX תוקף XX/XX.
+    // Fallback: line right after empty אימייל: field.
+    const netDescMatch =
+      cleanText.match(/\n([א-ת][א-ת "'\-,./0-9]{4,150})\nהערות/) ||
+      cleanText.match(/אימייל:\n([א-ת][^\n]{3,150})\n/);
+    // Bat Yam / standard: תאור: or reversed ור:
+    const vorPat  = /ור:\s*([^\n\r]{3,180})/;
+    const taorPat = /תאור\s*:\s*([^\n\r]{3,180})/;
     const descMatch = cleanText.match(vorPat) || cleanText.match(taorPat);
     if (netDescMatch) {
-      description = netDescMatch[1].replace(/\n/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 300);
+      description = netDescMatch[1]
+        .replace(/\s+חוזה\s+\d+\s+תוקף.*$/, '')
+        .replace(/\s+/g, ' ').trim().slice(0, 300);
     } else if (descMatch) {
       description = descMatch[1]
-        .replace(new RegExp("\u05EA\u05D0\s*$"), "")   // strip stray תא artifact
-        .replace(/\s+/g, " ").trim().slice(0, 180);
+        .replace(/תא\s*$/, '')
+        .replace(/\s+/g, ' ').trim().slice(0, 180);
     }
   }
-
-
-    // ── Line items ─────────────────────────────────────────────────────────
+  // ── Line items ─────────────────────────────────────────────────────────
   // Detect format: Netanya uses '/ קבלנית' pattern, Bat Yam uses 'רשימת פריטי העבודה'
   const items = /הזמנת עבודה \/ קבלנית/.test(flat)
     ? parseNetanyaOrderItems(rawText) : parseOrderItems(rawText);
