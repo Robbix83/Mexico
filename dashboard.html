@@ -1408,7 +1408,7 @@ tr:hover .pl-row-ds-btn{opacity:.6}
     <button class="snav-item"        id="snav-warehouse" onclick="setView('warehouse')"> <span class="snav-icon"><svg viewBox="0 0 24 24"><path d="M22 8.35V21H2V8.35a2 2 0 0 1 1.26-1.86l8-3.2a2 2 0 0 1 1.48 0l8 3.2A2 2 0 0 1 22 8.35Z"/><path d="M6 21v-7h12v7M10 14v3h4v-3"/></svg></span> מלאי מחסנים</button>
     <button class="snav-item"        id="snav-docpack"   onclick="setView('docpack')">   <span class="snav-icon"><svg viewBox="0 0 24 24"><path d="M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z"/></svg></span> תיק תיעוד</button>
     <button class="snav-item"        id="snav-pricelist" onclick="setView('pricelist')"> <span class="snav-icon"><svg viewBox="0 0 24 24"><path d="M3 5a2 2 0 0 1 2-2h6.2a2 2 0 0 1 1.4.6l8 8a2 2 0 0 1 0 2.8l-6.2 6.2a2 2 0 0 1-2.8 0l-8-8A2 2 0 0 1 3 11.2Z"/><circle cx="7.5" cy="7.5" r="1.2"/></svg></span> מחירונים</button>
-    <button class="snav-item"        id="snav-boq"       onclick="setView('boq')">      <span class="snav-icon"><svg viewBox="0 0 24 24"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/><path d="M9 12h6M9 16h4"/></svg></span> כתב כמויות</button>
+    <button class="snav-item"        id="snav-boq"       onclick="setView('boq')">      <span class="snav-icon"><svg viewBox="0 0 24 24"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/><path d="M9 12h6M9 16h4"/></svg></span> כתבי כמויות</button>
     <button class="snav-item"        id="snav-orders"    onclick="setView('orders')">   <span class="snav-icon"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg></span> הזמנות נכנסות</button>
   </nav>
   <div class="sidebar-footer">
@@ -1993,7 +1993,7 @@ tr:hover .pl-row-ds-btn{opacity:.6}
     <div id="boq-list-panel">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;flex-wrap:wrap;gap:8px">
         <h2 style="margin:0;font-size:1.15rem;font-weight:700;color:#1e3a5f">
-          כתב כמויות
+          כתבי כמויות
           <span id="boq-count-badge" style="font-size:.72rem;font-weight:500;background:#e8f0fe;color:#3b82f6;border-radius:10px;padding:1px 8px;margin-right:6px">0</span>
         </h2>
         <button class="btn-add" onclick="boqOpenNewProject()">+ פרויקט חדש</button>
@@ -3820,7 +3820,7 @@ function setView(v){
     if(svtK) svtK.classList.toggle('active',v==='kanban');
   }
   // Update page title in header
-  const titles={list:'פרויקטים — ניהול משימות',kanban:'קנבן',sites:'תצוגת אתרים',catalog:'מקטים בשימוש לאחרונה',warehouse:'מלאי מחסנים',docpack:'תיק תיעוד',pricelist:'מחירונים',requisition:'דרישת רכש',boq:'כתב כמויות'};
+  const titles={list:'פרויקטים — ניהול משימות',kanban:'קנבן',sites:'תצוגת אתרים',catalog:'מקטים בשימוש לאחרונה',warehouse:'מלאי מחסנים',docpack:'תיק תיעוד',pricelist:'מחירונים',requisition:'דרישת רכש',boq:'כתבי כמויות'};
   const pt=document.getElementById('hdr-page-title');
   if(pt && titles[v]) pt.textContent=titles[v];
   document.getElementById('list-view').style.display        =v==='list'?'':'none';
