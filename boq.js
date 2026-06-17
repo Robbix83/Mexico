@@ -303,6 +303,126 @@ function detectItemNumber(val) {
   return null;
 }
 
+// Iteratively evaluate formula cells in a workbook to recover cached results that
+// were stripped when the file was saved by a non-Excel tool (LibreOffice, etc.).
+// Returns a Map: 'ColRow' -> number, e.g. 'P6' -> 12562.
+// Only resolves cells that are needed to compute unitPrice for each data row.
+function _resolveWorkbookFormulas(workbook) {
+  const vals = {}; // 'SheetName!Address' -> number
+  const hasFormula = new Set(); // 'SheetName!Address' of cells that have a formula (vs truly empty)
+
+  // 1. Seed all plain-number cells from every sheet; mark formula cells
+  workbook.worksheets.forEach(ws => {
+    const sn = ws.name;
+    ws.eachRow({ includeEmpty: false }, row => {
+      row.eachCell({ includeEmpty: false }, cell => {
+        const v = cell.value;
+        const key = sn + '!' + cell.address;
+        if (typeof v === 'number') {
+          vals[key] = v;
+        } else if (v && typeof v === 'object') {
+          if (typeof v.result === 'number') vals[key] = v.result;
+          if (v.formula || v.sharedFormula) hasFormula.add(key);
+        }
+      });
+    });
+  });
+
+  // 2. Collect formula cells from every sheet
+  const formulas = []; // { sn, address, formula }
+  workbook.worksheets.forEach(ws => {
+    const sn = ws.name;
+    ws.eachRow({ includeEmpty: false }, row => {
+      row.eachCell({ includeEmpty: false }, cell => {
+        const v = cell.value;
+        if (!v || typeof v !== 'object') return;
+        const key = sn + '!' + cell.address;
+        if (vals[key] != null) return; // already resolved
+        // Prefer the cell's own formula; fall back to the shared-formula anchor
+        let f = v.formula || null;
+        if (!f && v.sharedFormula) {
+          const anchor = ws.getCell(v.sharedFormula);
+          f = anchor && anchor.value && anchor.value.formula ? anchor.value.formula : null;
+        }
+        if (f) formulas.push({ sn, address: cell.address, formula: f });
+      });
+    });
+  });
+
+  // 3. Iterative evaluation — each pass tries to reduce unsettled formulas
+  function tryEval(sn, formula) {
+    let f = formula.startsWith('=') ? formula.slice(1) : formula;
+
+    // Expand SUM(col:row range)
+    f = f.replace(/SUM\(([A-Z]+)(\d+):([A-Z]+)(\d+)\)/gi, (_, c1, r1, c2, r2) => {
+      if (c1.toUpperCase() !== c2.toUpperCase()) return 'UNRESOLVABLE';
+      const col = c1.toUpperCase();
+      let s = 0;
+      for (let r = parseInt(r1); r <= parseInt(r2); r++) {
+        const addr = col + r;
+        const key = sn + '!' + addr;
+        if (hasFormula.has(key) && vals[key] == null) return 'MISSING';
+        s += (vals[key] || 0);
+      }
+      return String(s);
+    });
+    if (f.includes('MISSING') || f.includes('UNRESOLVABLE')) return null;
+
+    // Cross-sheet references: 'SheetName'!A1
+    f = f.replace(/'([^']+)'!\$?([A-Z]+)\$?(\d+)/g, (_, sheet, col, row) => {
+      const key = sheet + '!' + col + row;
+      if (hasFormula.has(key) && vals[key] == null) return 'MISSING';
+      const v = vals[key];
+      if (v == null) return 'UNRESOLVABLE'; // cross-sheet cell not found
+      return String(v);
+    });
+    if (f.includes('MISSING') || f.includes('UNRESOLVABLE')) return null;
+
+    // Strip $ from absolute references
+    f = f.replace(/\$/g, '');
+
+    // Replace cell references (uppercase letter(s) + digits)
+    f = f.replace(/\b([A-Z]{1,3})(\d{1,5})\b/g, (match, col, row) => {
+      const key = sn + '!' + col + row;
+      if (hasFormula.has(key) && vals[key] == null) return 'MISSING';
+      // Empty cells (not formula, not seeded) → 0 in arithmetic
+      return String(vals[key] != null ? vals[key] : 0);
+    });
+    if (f.includes('MISSING')) return null;
+
+    // Skip any remaining Excel function calls
+    if (/[A-Z]{2,}\s*\(/i.test(f)) return null;
+
+    // Only allow safe arithmetic characters
+    if (/[^0-9+\-*/.() \t]/.test(f)) return null;
+
+    try {
+      // eslint-disable-next-line no-new-func
+      const result = Function('"use strict"; return (' + f + ')')();
+      return typeof result === 'number' && isFinite(result) ? result : null;
+    } catch {
+      return null;
+    }
+  }
+
+  let progress = true;
+  let iters = 0;
+  while (progress && iters++ < 30) {
+    progress = false;
+    for (const item of formulas) {
+      const key = item.sn + '!' + item.address;
+      if (vals[key] != null) continue;
+      const result = tryEval(item.sn, item.formula);
+      if (result != null) {
+        vals[key] = result;
+        progress = true;
+      }
+    }
+  }
+
+  return vals;
+}
+
 // Build raw rows from a single sheet, resolving merged cells
 function _buildRawRows(sheet) {
   const mergeValues = {};
@@ -331,6 +451,7 @@ function _buildRawRows(sheet) {
       cells[colIdx] = merged !== undefined ? { value: merged, font: cell.font, address: cell.address } : cell;
     });
     cells._hidden = !!row.hidden;
+    cells._rowNumber = row.number; // Excel 1-based row number (for formula lookup)
     rawRows.push(cells);
   });
   return rawRows;
@@ -398,12 +519,17 @@ async function parseXlsx(buffer) {
     startRow = 1;
   }
 
+  // Pre-compute resolved formula values (used as fallback when cells lack cached results)
+  let _resolvedVals = null;
+
   if (isOlioFormat) {
     // Override col map: indices are 0-based positions in the ExcelJS row cells array.
     // Row layout (A=0): A=empty, B=סעיף, C=תאור, D=יח'מידה, E=כמות, …, P=מחיר ליח', Q=סה"כ, R=יצרן
     colMap = { itemNumber: 1, description: 2, unit: 3, quantity: 4, unitPrice: 15, total: 16, manufacturer: 17 };
     startRow = 3; // skip rows 0-2 (title + rate row + header labels)
     warnings.push('זוהה פורמט OLIO — מיפוי עמודות קבוע (B/C/D/E/P/Q)');
+    // Resolve formula cells whose cached results were stripped (e.g. saved via LibreOffice)
+    _resolvedVals = _resolveWorkbookFormulas(workbook);
   }
 
   const items = [];
@@ -430,10 +556,16 @@ async function parseXlsx(buffer) {
 
     const qty = colMap.quantity != null ? _cellNumber(row[colMap.quantity]) : null;
     let unitPrice = colMap.unitPrice != null ? _cellNumber(row[colMap.unitPrice]) : null;
-    // Fallback: if unit price cell is a formula without cached result, derive from total÷qty
+    // Fallback 1: total÷qty when unitPrice cell has no cached result
     if (unitPrice == null && colMap.total != null && qty) {
       const totalVal = _cellNumber(row[colMap.total]);
       if (totalVal != null && totalVal > 0) unitPrice = totalVal / qty;
+    }
+    // Fallback 2 (OLIO): use iteratively-resolved formula value for the P column cell
+    if (unitPrice == null && _resolvedVals && row._rowNumber) {
+      const pAddr = bestSheet.name + '!P' + row._rowNumber;
+      const resolved = _resolvedVals[pAddr];
+      if (typeof resolved === 'number' && resolved > 0) unitPrice = resolved;
     }
     const unit      = colMap.unit         != null ? _cellText(row[colMap.unit]).trim()    : '';
     const mfr       = colMap.manufacturer != null ? _cellText(row[colMap.manufacturer]).trim() : null;
