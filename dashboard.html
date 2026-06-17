@@ -2530,7 +2530,8 @@ tr:hover .pl-row-ds-btn{opacity:.6}
     <!-- ── City modal ─────────────────────────────────────────────────────── -->
     <div id="ord-city-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:3100;align-items:center;justify-content:center;direction:rtl">
       <div style="background:#fff;border-radius:14px;width:min(92vw,420px);padding:24px 22px 20px;box-shadow:0 10px 40px rgba(0,0,0,.25)">
-        <div style="font-size:.95rem;font-weight:700;color:#1e3a5f;margin-bottom:14px">🏙 הוספת עיר</div>
+        <input type="hidden" id="ord-city-edit-id" value="">
+        <div id="ord-city-modal-title" style="font-size:.95rem;font-weight:700;color:#1e3a5f;margin-bottom:14px">🏙 הוספת עיר</div>
         <label style="font-size:.75rem;font-weight:600;color:#4a5568;display:block;margin-bottom:4px">שם העיר</label>
         <input id="ord-city-name" type="text" maxlength="60" placeholder="לדוגמה: תל אביב"
           style="width:100%;border:1px solid #e2e8f0;border-radius:8px;padding:8px 10px;font-size:.88rem;direction:rtl;outline:none"/>
@@ -13795,7 +13796,18 @@ async function ordExport() {
 
 // ── City CRUD ─────────────────────────────────────────────────────────────────
 function ordOpenCityModal() {
+  document.getElementById('ord-city-edit-id').value = '';
+  document.getElementById('ord-city-modal-title').textContent = '🏙 הוספת עיר';
   document.getElementById('ord-city-name').value = '';
+  document.getElementById('ord-city-notes').value = '';
+  document.getElementById('ord-city-err').textContent = '';
+  document.getElementById('ord-city-overlay').style.display = 'flex';
+  setTimeout(() => document.getElementById('ord-city-name').focus(), 50);
+}
+function ordRenameCity(cityId, currentName) {
+  document.getElementById('ord-city-edit-id').value = cityId;
+  document.getElementById('ord-city-modal-title').textContent = '✏️ עריכת שם עיר';
+  document.getElementById('ord-city-name').value = currentName;
   document.getElementById('ord-city-notes').value = '';
   document.getElementById('ord-city-err').textContent = '';
   document.getElementById('ord-city-overlay').style.display = 'flex';
@@ -13805,28 +13817,26 @@ function ordCloseCityModal() { document.getElementById('ord-city-overlay').style
 async function ordSaveCityModal() {
   const name = document.getElementById('ord-city-name').value.trim();
   if (!name) { document.getElementById('ord-city-err').textContent = 'שם עיר נדרש'; return; }
+  const editId = document.getElementById('ord-city-edit-id').value;
   try {
-    const r = await fetch('/api/orders/cities', {
-      method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name, notes: document.getElementById('ord-city-notes').value.trim() || null })
-    });
+    let r;
+    if (editId) {
+      r = await fetch('/api/orders/cities/' + editId, {
+        method: 'PATCH', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name })
+      });
+    } else {
+      r = await fetch('/api/orders/cities', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, notes: document.getElementById('ord-city-notes').value.trim() || null })
+      });
+    }
     const j = await r.json();
     if (!r.ok) throw new Error(j.error);
     ordCloseCityModal();
     await ordReload();
-    _toast('עיר נוספה ✓', 'success');
+    _toast(editId ? 'שם עיר עודכן ✓' : 'עיר נוספה ✓', 'success');
   } catch (e) { document.getElementById('ord-city-err').textContent = e.message; }
-}
-async function ordRenameCity(cityId, currentName) {
-  const newName = window.prompt('שם עיר חדש:', currentName);
-  if (!newName || newName.trim() === currentName) return;
-  const r = await fetch('/api/orders/cities/' + cityId, {
-    method: 'PATCH',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ name: newName.trim() })
-  });
-  if (!r.ok) { _toast('שגיאה בשמירה', 'error'); return; }
-  await ordReload();
 }
 
 async function ordDeleteCity(cityId, name) {
