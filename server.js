@@ -3309,7 +3309,7 @@ async function extractOrderFromPdf(buffer) {
   // Clean text: remove PUA chars, collapse whitespace (no newlines)
   const flat = rawText.replace(/[\uE000-\uF8FF]/g, '').replace(/\s+/g, ' ');
   // Clean text preserving newlines (for description extraction)
-  const cleanText = rawText.replace(/[\uE000-\uF8FF]/g, '');
+  const cleanText = rawText.replace(/[\uE000-\uF8FF]/g, '').replace(/\r/g, '');
 
   // ── Order number ──────────────────────────────────────────────────────
   let order_number = null;
