@@ -13460,10 +13460,10 @@ function ordRenderOrders(project) {
                   <td style="padding:7px 10px;text-align:left;direction:ltr;font-weight:600;color:#1e3a5f;white-space:nowrap">
                     ${o.amount_pre_vat!=null?'<span style="font-size:.72em;color:#9ca3af">₪</span>'+Math.round(o.amount_pre_vat).toLocaleString('he-IL'):'—'}
                   </td>
-                  <td style="padding:7px 8px;max-width:180px">
+                  <td style="padding:7px 8px;text-align:center">
                     ${o.boq_project
-                      ? `<a href="#boq/${o.boq_project.id}" onclick="event.preventDefault();setView('boq');setTimeout(()=>boqLoadProject(${o.boq_project.id}),80)"
-                          style="font-size:.75rem;color:#6d28d9;font-weight:600;text-decoration:none;display:inline-flex;align-items:center;gap:3px;background:#f5f3ff;border:1px solid #ddd6fe;border-radius:6px;padding:2px 7px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:170px"
+                      ? `<a href="#boq/${o.boq_project.id}" onclick="event.preventDefault();setView('boq');boqOpenProject(${o.boq_project.id})"
+                          style="font-size:.75rem;color:#6d28d9;font-weight:600;text-decoration:none;display:inline-flex;align-items:center;gap:3px;background:#f5f3ff;border:1px solid #ddd6fe;border-radius:6px;padding:2px 7px;max-width:170px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"
                           title="${_esc(o.boq_project.name)}">📋 ${_esc(o.boq_project.name)}</a>`
                       : '<span style="color:#d1d5db;font-size:.75rem">—</span>'}
                   </td>
