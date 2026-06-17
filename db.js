@@ -762,6 +762,7 @@ const stmts = {
     ORDER BY o.created_at DESC`),
   listOrders:           db.prepare('SELECT * FROM orders WHERE project_id = ? ORDER BY created_at DESC'),
   getOrder:             db.prepare('SELECT * FROM orders WHERE id = ?'),
+  findOrderByNumber:    db.prepare('SELECT id, order_number, project_id FROM orders WHERE order_number = ? LIMIT 1'),
   createOrder:          db.prepare(`INSERT INTO orders
     (project_id, order_number, order_date, ordering_entity, description,
      amount_pre_vat, currency, pdf_path, pdf_original_name, notes, raw_extracted, items_json)
@@ -1077,9 +1078,10 @@ module.exports = {
     stmts.updateOrderProject.run(name, client||null, contractNumber||null, notes||null, id),
   deleteOrderProject: (id) => stmts.deleteOrderProject.run(id),
 
-  getAllOrders:  ()          => stmts.getAllOrders.all(),
-  listOrders:   (projectId) => stmts.listOrders.all(projectId),
-  getOrder:     (id)        => stmts.getOrder.get(id),
+  getAllOrders:        ()          => stmts.getAllOrders.all(),
+  listOrders:         (projectId) => stmts.listOrders.all(projectId),
+  getOrder:           (id)        => stmts.getOrder.get(id),
+  findOrderByNumber:  (num)       => stmts.findOrderByNumber.get(num),
   createOrder:  ({ projectId, orderNumber, orderDate, orderingEntity, description,
                    amountPreVat, currency, pdfPath, pdfOriginalName, notes, rawExtracted, itemsJson }) =>
     stmts.createOrder.run(projectId, orderNumber||null, orderDate||null, orderingEntity||null,

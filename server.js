@@ -3500,6 +3500,18 @@ app.post('/api/orders/projects/:id/confirm', requireSection('orders'), (req, res
   if (!project) return res.status(404).json({ error: 'Not found' });
   const { orderNumber, orderDate, orderingEntity, description, amountPreVat,
           currency, notes, pdfStoredName, pdfOriginalName, rawExtracted, items } = req.body;
+
+  // Duplicate check — same order number already in the system
+  if (orderNumber) {
+    const existing = db.findOrderByNumber(orderNumber.trim());
+    if (existing) {
+      return res.status(409).json({
+        error: `הזמנה מספר ${orderNumber} כבר קיימת במערכת`,
+        existingId: existing.id,
+      });
+    }
+  }
+
   const pdfPath = pdfStoredName ? path.join(ORDER_STORAGE_DIR, pdfStoredName) : null;
   const r = db.createOrder({
     projectId: project.id, orderNumber, orderDate, orderingEntity,
