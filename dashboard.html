@@ -13174,6 +13174,8 @@ let _ordCurrentCityId   = null;
 let _ordCurrentProjId   = null;
 let _ordOrders          = [];   // orders for current project
 let _ordLoaded          = false;
+let _ordSortCol         = 'order_date';  // default sort column
+let _ordSortDir         = 'desc';        // 'asc' | 'desc'
 
 async function ordLoad() {
   if (_ordLoaded) return;
@@ -13265,32 +13267,73 @@ async function ordSelectProject(projId) {
   } catch { _toast('שגיאה בטעינת הזמנות', 'error'); }
 }
 
+// ── Sort helper ───────────────────────────────────────────────────────────────
+function ordSetSort(col) {
+  if (_ordSortCol === col) { _ordSortDir = _ordSortDir === 'asc' ? 'desc' : 'asc'; }
+  else { _ordSortCol = col; _ordSortDir = 'desc'; }
+  const proj = _ordCities.flatMap(c=>c.projects||[]).find(p=>p.id===_ordCurrentProjId);
+  if (proj) ordRenderOrders(proj);
+}
+
+function _ordSorted() {
+  const col = _ordSortCol, dir = _ordSortDir;
+  return [..._ordOrders].sort((a, b) => {
+    let av, bv;
+    if (col === 'order_number') { av = parseInt(a.order_number)||0; bv = parseInt(b.order_number)||0; }
+    else if (col === 'amount_pre_vat') { av = a.amount_pre_vat||0; bv = b.amount_pre_vat||0; }
+    else { av = a.order_date||''; bv = b.order_date||''; } // order_date default
+    if (av < bv) return dir === 'asc' ? -1 : 1;
+    if (av > bv) return dir === 'asc' ? 1 : -1;
+    return 0;
+  });
+}
+
+function _ordThBtn(label, col, extraStyle='') {
+  const active = _ordSortCol === col;
+  const arrow  = active ? (_ordSortDir === 'asc' ? ' ↑' : ' ↓') : ' ↕';
+  return `<th style="padding:8px 10px;text-align:right;color:${active?'#1e3a5f':'#4a5568'};font-weight:600;white-space:nowrap;cursor:pointer;user-select:none;${extraStyle}"
+    onclick="ordSetSort('${col}')" title="מיין לפי ${label}">
+    ${label}<span style="font-size:.7em;opacity:${active?1:.4}">${arrow}</span>
+  </th>`;
+}
+
 // ── Render orders table ───────────────────────────────────────────────────────
 function ordRenderOrders(project) {
   const panel = document.getElementById('ord-right-panel');
+  const sorted = _ordSorted();
+  const projTotal = sorted.reduce((s,o) => s + (o.amount_pre_vat||0), 0);
+  const projFmt   = '₪ ' + Math.round(projTotal).toLocaleString('he-IL');
+
   panel.innerHTML = `
     <div style="background:#fff;border:1px solid #e2e8f0;border-radius:12px;overflow:hidden">
       <div style="padding:12px 16px;border-bottom:1px solid #f1f5f9;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px">
-        <div>
-          <span style="font-size:.9rem;font-weight:700;color:#1e3a5f">📁 ${project.name}</span>
-          ${project.client?`<span style="font-size:.72rem;color:#718096;margin-right:8px">— ${project.client}</span>`:''}
+        <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap">
+          <div>
+            <span style="font-size:.9rem;font-weight:700;color:#1e3a5f">📁 ${project.name}</span>
+            ${project.client?`<span style="font-size:.72rem;color:#718096;margin-right:8px">— ${project.client}</span>`:''}
+          </div>
+          ${projTotal > 0 ? `
+          <div style="background:#f0f7ff;border:1px solid #bfdbfe;border-radius:8px;padding:4px 12px;font-size:.78rem">
+            <span style="color:#64748b">סה"כ פרויקט:</span>
+            <strong style="color:#1e3a5f;margin-right:5px;direction:ltr;display:inline-block">${projFmt}</strong>
+          </div>` : ''}
         </div>
         <div style="display:flex;gap:6px">
           <button onclick="ordOpenUploadModal()" style="border:none;background:#CC1A1A;color:#fff;border-radius:7px;padding:5px 12px;font-size:.78rem;font-weight:600;cursor:pointer">📥 העלאת הזמנה PDF</button>
           <button onclick="ordExport()" style="border:1px solid #e2e8f0;background:#f8fafc;color:#4a5568;border-radius:7px;padding:5px 12px;font-size:.78rem;cursor:pointer">⬇ Excel</button>
         </div>
       </div>
-      ${_ordOrders.length === 0
+      ${sorted.length === 0
         ? `<div style="text-align:center;color:#a0aec0;padding:40px;font-size:.85rem">אין הזמנות עדיין — העלה PDF הזמנה</div>`
         : `<div style="overflow-x:auto">
           <table style="width:100%;border-collapse:collapse;font-size:.8rem">
             <thead>
               <tr style="background:#f8fafc;border-bottom:2px solid #e2e8f0">
-                <th style="padding:8px 10px;text-align:right;color:#4a5568;font-weight:600;white-space:nowrap">מס׳ הזמנה</th>
-                <th style="padding:8px 6px;text-align:right;color:#4a5568;font-weight:600">תאריך</th>
+                ${_ordThBtn('מס׳ הזמנה','order_number')}
+                ${_ordThBtn('תאריך','order_date')}
                 <th style="padding:8px 10px;text-align:right;color:#4a5568;font-weight:600">גורם מזמין</th>
                 <th style="padding:8px 10px;text-align:right;color:#4a5568;font-weight:600">תיאור</th>
-                <th style="padding:8px 10px;text-align:left;color:#4a5568;font-weight:600;white-space:nowrap">סכום לפני מעמ</th>
+                ${_ordThBtn('סכום לפני מעמ','amount_pre_vat','text-align:left')}
                 <th style="padding:8px 6px;text-align:center;color:#4a5568;font-weight:600">סעיפים</th>
                 <th style="padding:8px 6px;text-align:center;color:#4a5568;font-weight:600">חויבה</th>
                 <th style="padding:8px 8px;text-align:right;color:#4a5568;font-weight:600">חשבונית</th>
@@ -13298,7 +13341,7 @@ function ordRenderOrders(project) {
               </tr>
             </thead>
             <tbody>
-              ${_ordOrders.map((o,i) => `
+              ${sorted.map((o,i) => `
                 <tr style="${i%2===1?'background:#fafafa':''}">
                   <td style="padding:7px 10px;color:#1e3a5f;font-weight:600;white-space:nowrap">
                     ${o.pdf_path
@@ -13339,6 +13382,14 @@ function ordRenderOrders(project) {
                 </tr>
               `).join('')}
             </tbody>
+            ${projTotal > 0 ? `
+            <tfoot>
+              <tr style="background:#f0f7ff;border-top:2px solid #bfdbfe">
+                <td colspan="4" style="padding:8px 12px;font-weight:700;color:#1e3a5f;font-size:.8rem">סה"כ פרויקט (${sorted.length} הזמנות)</td>
+                <td style="padding:8px 10px;text-align:left;direction:ltr;font-weight:700;color:#1e3a5f;font-size:.88rem">${projFmt}</td>
+                <td colspan="4"></td>
+              </tr>
+            </tfoot>` : ''}
           </table>
         </div>`}
     </div>`;
