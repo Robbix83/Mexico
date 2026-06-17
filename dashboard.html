@@ -13433,14 +13433,14 @@ function ordRenderOrders(project) {
         : `<div style="overflow-x:auto">
           <table style="width:100%;border-collapse:collapse;font-size:.8rem;table-layout:fixed">
             <colgroup>
-              <col style="width:100px">
-              <col style="width:82px">
+              <col style="width:105px">
+              <col style="width:80px">
               <col>
               <col style="width:100px">
-              <col style="width:52px">
-              <col style="width:42px">
-              <col style="width:90px">
-              <col style="width:32px">
+              <col style="width:48px">
+              <col style="width:40px">
+              <col style="width:155px">
+              <col style="width:30px">
             </colgroup>
             <thead>
               <tr style="background:#f8fafc;border-bottom:2px solid #e2e8f0">
@@ -13481,11 +13481,13 @@ function ordRenderOrders(project) {
                       style="width:15px;height:15px;cursor:pointer;accent-color:#15803d"/>
                   </td>
                   <td style="padding:5px 6px;text-align:center">
-                    <div style="display:flex;flex-direction:column;gap:2px;align-items:center">
+                    <div style="display:flex;flex-direction:column;gap:3px;align-items:center">
                       ${(o.invoices||[]).map(inv => `
-                        <div style="display:flex;align-items:center;gap:3px;background:#f0fdf4;border:1px solid #bbf7d0;border-radius:5px;padding:2px 5px;max-width:110px">
-                          <span style="font-size:.68rem;font-weight:700;color:#15803d;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:60px" title="${inv.invoice_number||''}">${inv.invoice_number||'—'}</span>
-                          ${inv.file_path?`<a href="/api/orders/${o.id}/invoices/${inv.id}/file" target="_blank" title="פתח" style="color:#1d4ed8;text-decoration:none;font-size:.68rem;flex-shrink:0">⬇</a>`:''}
+                        <div style="display:flex;align-items:center;gap:3px">
+                          ${inv.file_path
+                            ? `<a href="/api/orders/${o.id}/invoices/${inv.id}/file" target="_blank" class="ci-datasheet" style="font-size:.7rem;font-weight:700;color:#15803d;text-decoration:none;background:#f0fdf4;border:1px solid #bbf7d0;border-radius:5px;padding:2px 7px;white-space:nowrap;max-width:130px;overflow:hidden;text-overflow:ellipsis;display:inline-block" title="${_esc(inv.invoice_number||'')}">${inv.invoice_number||'—'}</a>`
+                            : `<span style="font-size:.7rem;font-weight:700;color:#15803d;background:#f0fdf4;border:1px solid #bbf7d0;border-radius:5px;padding:2px 7px;white-space:nowrap">${inv.invoice_number||'—'}</span>`
+                          }
                           <button onclick="ordDeleteInvoice(${o.id},${inv.id})" title="מחק" style="border:none;background:none;color:#fca5a5;cursor:pointer;font-size:.6rem;padding:0;line-height:1;flex-shrink:0">✕</button>
                         </div>
                       `).join('')}
