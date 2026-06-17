@@ -3408,6 +3408,20 @@ app.get('/api/orders/cities', requireSection('orders'), (req, res) => {
   })));
 });
 
+app.get('/api/orders/cities/:id/summary', requireSection('orders'), (req, res) => {
+  const city = db.getOrderCity(parseInt(req.params.id));
+  if (!city) return res.status(404).json({ error: 'Not found' });
+  const projects = db.listOrderProjects(city.id);
+  const result = projects.map(p => {
+    const orders = db.listOrders(p.id);
+    const total = orders.reduce((s, o) => s + (o.amount_pre_vat || 0), 0);
+    const invoiced = orders.filter(o => o.is_invoiced).length;
+    return { id: p.id, name: p.name, client: p.client, order_count: orders.length, total_amount: total, invoiced_count: invoiced };
+  });
+  const cityTotal = result.reduce((s, p) => s + p.total_amount, 0);
+  res.json({ city, projects: result, city_total: cityTotal });
+});
+
 app.post('/api/orders/cities', requireSection('orders'), (req, res) => {
   const { name, notes } = req.body;
   if (!name) return res.status(400).json({ error: 'שם עיר נדרש' });
