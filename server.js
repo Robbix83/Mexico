@@ -3098,15 +3098,17 @@ app.get('/preview/:file', (req, res) => {
 // ── ORDERS (הזמנות נכנסות) ────────────────────────────────────────────────────
 // ══════════════════════════════════════════════════════════════════════════════
 
-const ORDER_STORAGE_DIR  = path.join(__dirname, 'data', 'orders');
-const INVOICE_STORAGE_DIR = path.join(__dirname, 'data', 'invoices');
+// Derive base data dir from DB_PATH so files land on the persistent disk on Render
+const _DATA_DIR = path.dirname(process.env.DB_PATH || path.join(__dirname, 'data', 'db.sqlite'));
+const ORDER_STORAGE_DIR   = path.join(_DATA_DIR, 'orders');
+const INVOICE_STORAGE_DIR = path.join(_DATA_DIR, 'invoices');
 [ORDER_STORAGE_DIR, INVOICE_STORAGE_DIR,
- path.join(__dirname, 'data', '_order_staging'),
- path.join(__dirname, 'data', '_invoice_staging')
+ path.join(_DATA_DIR, '_order_staging'),
+ path.join(_DATA_DIR, '_invoice_staging')
 ].forEach(d => { if (!fs.existsSync(d)) fs.mkdirSync(d, { recursive: true }); });
 
 const orderUpload = multer({
-  dest: path.join(__dirname, 'data', '_order_staging'),
+  dest: path.join(_DATA_DIR, '_order_staging'),
   limits: { fileSize: 50 * 1024 * 1024 },
   fileFilter: (req, file, cb) => {
     if (/\.pdf$/i.test(file.originalname)) cb(null, true);
@@ -3114,7 +3116,7 @@ const orderUpload = multer({
   }
 });
 const invoiceUpload = multer({
-  dest: path.join(__dirname, 'data', '_invoice_staging'),
+  dest: path.join(_DATA_DIR, '_invoice_staging'),
   limits: { fileSize: 50 * 1024 * 1024 },
   fileFilter: (req, file, cb) => {
     if (/\.(pdf|jpe?g|png)$/i.test(file.originalname)) cb(null, true);
