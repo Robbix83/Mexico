@@ -3,19 +3,21 @@
 const ExcelJS = require('exceljs');
 const db = require('./db');
 
-// ExcelJS bug: Excel files with drawings/comments crash in reconcile() when model is undefined.
-// Patch both drawing-xform and vml-notes-xform to guard against this.
-['exceljs/lib/xlsx/xform/drawing/drawing-xform.js',
- 'exceljs/lib/xlsx/xform/comment/vml-notes-xform.js'].forEach(p => {
-  try {
-    const Xform = require(p);
-    const _orig = Xform.prototype.reconcile;
-    Xform.prototype.reconcile = function(model, options) {
-      if (!model || !model.anchors) return;
-      return _orig.call(this, model, options);
-    };
-  } catch (_) {}
-});
+// ExcelJS bug: Excel files with embedded drawings crash in XLSX.reconcile() when
+// model.drawings[name] is undefined (xlsx.js:100 reads .anchors on undefined).
+// Patch XLSX.prototype.reconcile to skip undefined drawings.
+try {
+  const XLSX_cls = require('exceljs/lib/xlsx/xlsx.js');
+  const _origReconcile = XLSX_cls.prototype.reconcile;
+  XLSX_cls.prototype.reconcile = function(model, options) {
+    if (model && model.drawings) {
+      Object.keys(model.drawings).forEach(k => {
+        if (model.drawings[k] == null) model.drawings[k] = { anchors: [] };
+      });
+    }
+    return _origReconcile.call(this, model, options);
+  };
+} catch (_) {}
 
 // ── System templates (seeded once on first run) ────────────────────────────────
 
