@@ -240,6 +240,8 @@ const FORMAT_SIGNATURES = [
   { name: 'holon',    label: 'עיריית חולון',  titleTokens: ['חולון'] },
   { name: 'raanana',  label: "עיריית רעננה",  titleTokens: ['רעננה'] },
   { name: 'petah-tikva', label: 'עיריית פתח תקווה', titleTokens: ['פתח תקווה', 'פ"ת'] },
+  // Vendor pricing sheets: sections have item-number codes but no unit/qty (e.g. "02.18.01")
+  { name: 'olio',     label: 'OLIO / תמחור ספק', titleTokens: ['OLIO', 'אוליו'] },
 ];
 
 function detectFormat(rawRows, headerRowIndex, colMap) {
@@ -360,6 +362,14 @@ async function parseXlsx(buffer) {
   }
   let colMap, startRow;
 
+  // ── OLIO / vendor-pricing format detection ───────────────────────────────────
+  // These files have "OLIO" in row 1-2, followed by a 3-row header block.
+  // Their BOQ columns are B=סעיף, C=תאור, D=יח'מידה, E=כמות, P=מחיר ליח', Q=סה"כ.
+  // The file also contains 30+ extra comparison columns to the right with duplicate
+  // keyword labels that confuse the auto-detector — so we pin the col map directly.
+  const titleSnippet = rawRows.slice(0, 3).map(r => r.map(c => _cellText(c)).join(' ')).join(' ');
+  const isOlioFormat = /OLIO|אוליו/i.test(titleSnippet);
+
   if (detection) {
     colMap = detection.colMap;
     startRow = detection.headerRowIndex + 1;
@@ -368,6 +378,14 @@ async function parseXlsx(buffer) {
     warnings.push('לא זוהתה שורת כותרת אוטומטית — מניח שורה ראשונה כותרת');
     colMap = { itemNumber: 0, description: 1, unit: 2, quantity: 3, unitPrice: 4 };
     startRow = 1;
+  }
+
+  if (isOlioFormat) {
+    // Override col map: indices are 0-based positions in the ExcelJS row cells array.
+    // Row layout (A=0): A=empty, B=סעיף, C=תאור, D=יח'מידה, E=כמות, …, P=מחיר ליח', Q=סה"כ, R=יצרן
+    colMap = { itemNumber: 1, description: 2, unit: 3, quantity: 4, unitPrice: 15, total: 16, manufacturer: 17 };
+    startRow = 3; // skip rows 0-2 (title + rate row + header labels)
+    warnings.push('זוהה פורמט OLIO — מיפוי עמודות קבוע (B/C/D/E/P/Q)');
   }
 
   const items = [];
@@ -399,13 +417,20 @@ async function parseXlsx(buffer) {
     const mdl       = colMap.model        != null ? _cellText(row[colMap.model]).trim()   : null;
     const rowNotes  = colMap.notes        != null ? _cellText(row[colMap.notes]).trim()   : null;
 
-    const hasQty = qty != null && qty >= 1;
+    const hasQty  = qty != null && qty >= 1;
+    const hasUnit = !!unit;
 
     // Section/chapter header: no item number AND (bold OR starts with "פרק")
     // Deliberately excludes "!hasQty" — a no-number, no-qty row that isn't bold
     // is just an empty/zero catalogue row and should be skipped, not imported as a section.
     const isBold = descCell && descCell.font && descCell.font.bold;
-    const isSection = !hasItemSlot && (isBold || !hasQty || /^פרק[\s ]/i.test(desc));
+    // OLIO-style parent nodes: item number present but no qty.
+    // - Generic: no unit either (e.g. "02.18.01" chapter with empty D cell)
+    // - OLIO-specific: code with ≤2 dots (parent-level code) forces section even if D has text
+    //   like a customer name ("עומר"), because OLIO sections always have 3-segment codes.
+    const dotCount = numInfo ? (numInfo.itemNumber.match(/\./g) || []).length : -1;
+    const isParentNode = hasItemSlot && !hasQty && (!hasUnit || (isOlioFormat && dotCount <= 2));
+    const isSection = isParentNode || (!hasItemSlot && (isBold || !hasQty || /^פרק[\s ]/i.test(desc)));
 
     // Skip rows hidden by Excel's AutoFilter — but KEEP section headers even if hidden,
     // because section rows have no qty and Excel's filter hides them too.
