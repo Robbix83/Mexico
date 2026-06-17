@@ -13242,18 +13242,30 @@ function ordRenderCityTree() {
 }
 
 // ── KPI ───────────────────────────────────────────────────────────────────────
-function ordRenderKpi() {
-  const allOrders = _ordOrders;
-  const count     = allOrders.length;
-  const total     = allOrders.reduce((s,o) => s + (o.amount_pre_vat||0), 0);
-  const invoiced  = allOrders.filter(o => o.is_invoiced).length;
-  const pending   = count - invoiced;
-  document.getElementById('ord-kpi-count').textContent    = count || '—';
-  document.getElementById('ord-kpi-total').innerHTML      = count
+let _ordCitySummaryData = null; // cached city summary for KPI use
+
+function ordRenderKpi(citySummary) {
+  if (citySummary) _ordCitySummaryData = citySummary;
+  let count, total, invoiced, pending;
+  if (_ordCurrentCityView && _ordCitySummaryData) {
+    const projs = _ordCitySummaryData.projects || [];
+    count    = projs.reduce((s,p) => s + p.order_count, 0);
+    total    = _ordCitySummaryData.city_total || 0;
+    invoiced = projs.reduce((s,p) => s + p.invoiced_count, 0);
+    pending  = count - invoiced;
+  } else {
+    const allOrders = _ordOrders;
+    count    = allOrders.length;
+    total    = allOrders.reduce((s,o) => s + (o.amount_pre_vat||0), 0);
+    invoiced = allOrders.filter(o => o.is_invoiced).length;
+    pending  = count - invoiced;
+  }
+  document.getElementById('ord-kpi-count').textContent   = count || '—';
+  document.getElementById('ord-kpi-total').innerHTML     = count
     ? `<span style="font-size:.72em;color:#9ca3af">₪</span>${Math.round(total).toLocaleString('he-IL')}`
     : '—';
-  document.getElementById('ord-kpi-invoiced').textContent  = count ? invoiced : '—';
-  document.getElementById('ord-kpi-pending').textContent   = count ? pending  : '—';
+  document.getElementById('ord-kpi-invoiced').textContent = count ? invoiced : '—';
+  document.getElementById('ord-kpi-pending').textContent  = count ? pending  : '—';
 }
 
 // ── Select city (summary view) ────────────────────────────────────────────────
@@ -13270,6 +13282,7 @@ async function ordSelectCity(cityId) {
     if (!r.ok) throw new Error();
     const data = await r.json();
     ordRenderCitySummary(data);
+    ordRenderKpi(data);
   } catch { _toast('שגיאה בטעינת סיכום עיר', 'error'); }
 }
 
@@ -13335,8 +13348,9 @@ function ordRenderCitySummary(data) {
 
 // ── Select project ────────────────────────────────────────────────────────────
 async function ordSelectProject(projId) {
-  _ordCurrentProjId   = projId;
-  _ordCurrentCityView = false;
+  _ordCurrentProjId      = projId;
+  _ordCurrentCityView    = false;
+  _ordCitySummaryData    = null;
   ordRenderCityTree(); // re-highlight
   const panel = document.getElementById('ord-right-panel');
   panel.innerHTML = `<div style="text-align:center;color:#a0aec0;padding:40px">טוען הזמנות...</div>`;
