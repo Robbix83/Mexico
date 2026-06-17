@@ -13436,14 +13436,13 @@ function ordRenderOrders(project) {
               <tr style="background:#f8fafc;border-bottom:2px solid #e2e8f0">
                 ${_ordThBtn('מס׳ הזמנה','order_number')}
                 ${_ordThBtn('תאריך','order_date')}
-                <th style="padding:8px 10px;text-align:right;color:#4a5568;font-weight:600">גורם מזמין</th>
-                <th style="padding:8px 10px;text-align:right;color:#4a5568;font-weight:600">תיאור</th>
+                <th style="padding:8px 10px;text-align:right;color:#4a5568;font-weight:600">גורם מזמין / תיאור</th>
                 ${_ordThBtn('סכום לפני מעמ','amount_pre_vat','text-align:left')}
-                <th style="padding:8px 6px;text-align:right;color:#4a5568;font-weight:600">כתב כמויות</th>
+                <th style="padding:8px 6px;text-align:center;color:#4a5568;font-weight:600">כתב כמויות</th>
                 <th style="padding:8px 6px;text-align:center;color:#4a5568;font-weight:600">סעיפים</th>
                 <th style="padding:8px 6px;text-align:center;color:#4a5568;font-weight:600">חויבה</th>
-                <th style="padding:8px 8px;text-align:right;color:#4a5568;font-weight:600">חשבונית</th>
-                <th style="padding:8px 4px;width:60px"></th>
+                <th style="padding:8px 6px;text-align:center;color:#4a5568;font-weight:600">חשבוניות</th>
+                <th style="padding:8px 4px;width:36px"></th>
               </tr>
             </thead>
             <tbody>
@@ -13455,15 +13454,17 @@ function ordRenderOrders(project) {
                       : (o.order_number||'—')}
                   </td>
                   <td style="padding:7px 6px;color:#718096;white-space:nowrap">${o.order_date ? o.order_date.split('-').reverse().join('/') : '—'}</td>
-                  <td style="padding:7px 10px;max-width:160px"><div style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${o.ordering_entity||''}">${o.ordering_entity||'—'}</div></td>
-                  <td style="padding:7px 10px;max-width:220px"><div style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${o.description||''}">${o.description||'—'}</div></td>
+                  <td style="padding:5px 10px;max-width:200px">
+                    <div style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:.8rem" title="${_esc(o.ordering_entity||'')}">${o.ordering_entity||'—'}</div>
+                    ${o.description?`<div style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:.7rem;color:#6b7280;margin-top:1px" title="${_esc(o.description)}">${_esc(o.description)}</div>`:''}
+                  </td>
                   <td style="padding:7px 10px;text-align:left;direction:ltr;font-weight:600;color:#1e3a5f;white-space:nowrap">
                     ${o.amount_pre_vat!=null?'<span style="font-size:.72em;color:#9ca3af">₪</span>'+Math.round(o.amount_pre_vat).toLocaleString('he-IL'):'—'}
                   </td>
-                  <td style="padding:7px 8px;text-align:center">
+                  <td style="padding:7px 6px;text-align:center">
                     ${o.boq_project
                       ? `<a href="#boq/${o.boq_project.id}" onclick="event.preventDefault();setView('boq');boqOpenProject(${o.boq_project.id})"
-                          style="font-size:.75rem;color:#6d28d9;font-weight:600;text-decoration:none;display:inline-flex;align-items:center;gap:3px;background:#f5f3ff;border:1px solid #ddd6fe;border-radius:6px;padding:2px 7px;max-width:170px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"
+                          style="font-size:.72rem;color:#6d28d9;font-weight:600;text-decoration:none;display:inline-block;background:#f5f3ff;border:1px solid #ddd6fe;border-radius:6px;padding:2px 6px;max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"
                           title="${_esc(o.boq_project.name)}">📋 ${_esc(o.boq_project.name)}</a>`
                       : '<span style="color:#d1d5db;font-size:.75rem">—</span>'}
                   </td>
@@ -13474,23 +13475,20 @@ function ordRenderOrders(project) {
                     <input type="checkbox" ${o.is_invoiced?'checked':''} onchange="ordToggleInvoiced(${o.id},this.checked)"
                       style="width:15px;height:15px;cursor:pointer;accent-color:#15803d"/>
                   </td>
-                  <td style="padding:5px 8px;min-width:140px">
-                    <div style="display:flex;flex-direction:column;gap:3px">
+                  <td style="padding:5px 6px;text-align:center;min-width:80px">
+                    <div style="display:flex;flex-direction:column;gap:2px;align-items:center">
                       ${(o.invoices||[]).map(inv => `
-                        <div style="display:flex;align-items:center;gap:4px;background:#f0fdf4;border:1px solid #bbf7d0;border-radius:5px;padding:2px 5px">
-                          <span style="font-size:.7rem;font-weight:700;color:#15803d;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${inv.invoice_number||''}">
-                            ${inv.invoice_number||'—'}
-                          </span>
-                          ${inv.invoice_date?`<span style="font-size:.62rem;color:#6b7280;white-space:nowrap">${inv.invoice_date.split('-').reverse().join('/')}</span>`:''}
-                          ${inv.file_path?`<a href="/api/orders/${o.id}/invoices/${inv.id}/file" target="_blank" title="פתח חשבונית" style="color:#1d4ed8;text-decoration:none;font-size:.72rem;flex-shrink:0">⬇️</a>`:''}
-                          <button onclick="ordDeleteInvoice(${o.id},${inv.id})" title="מחק חשבונית" style="border:none;background:none;color:#fca5a5;cursor:pointer;font-size:.65rem;padding:0 1px;line-height:1;flex-shrink:0">✕</button>
+                        <div style="display:flex;align-items:center;gap:3px;background:#f0fdf4;border:1px solid #bbf7d0;border-radius:5px;padding:2px 5px;max-width:110px">
+                          <span style="font-size:.68rem;font-weight:700;color:#15803d;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:60px" title="${inv.invoice_number||''}">${inv.invoice_number||'—'}</span>
+                          ${inv.file_path?`<a href="/api/orders/${o.id}/invoices/${inv.id}/file" target="_blank" title="פתח" style="color:#1d4ed8;text-decoration:none;font-size:.68rem;flex-shrink:0">⬇</a>`:''}
+                          <button onclick="ordDeleteInvoice(${o.id},${inv.id})" title="מחק" style="border:none;background:none;color:#fca5a5;cursor:pointer;font-size:.6rem;padding:0;line-height:1;flex-shrink:0">✕</button>
                         </div>
                       `).join('')}
-                      <button onclick="ordOpenInvoiceModal(${o.id})" style="border:1px solid #e2e8f0;background:#f8fafc;color:#64748b;border-radius:5px;padding:2px 7px;font-size:.65rem;cursor:pointer;align-self:flex-start">+ חשבונית</button>
+                      <button onclick="ordOpenInvoiceModal(${o.id})" title="הוסף חשבונית" style="border:1px solid #e2e8f0;background:#f8fafc;color:#64748b;border-radius:5px;padding:1px 6px;font-size:.65rem;cursor:pointer">+</button>
                     </div>
                   </td>
-                  <td style="padding:4px 4px;text-align:center;white-space:nowrap">
-                    <button onclick="ordDeleteOrder(${o.id})" title="מחק" style="border:none;background:none;color:#fca5a5;cursor:pointer;font-size:.75rem;padding:2px 4px">🗑</button>
+                  <td style="padding:4px 2px;text-align:center">
+                    <button onclick="ordDeleteOrder(${o.id})" title="מחק" style="border:none;background:none;color:#fca5a5;cursor:pointer;font-size:.75rem;padding:2px 3px">🗑</button>
                   </td>
                 </tr>
               `).join('')}
@@ -13498,7 +13496,7 @@ function ordRenderOrders(project) {
             ${projTotal > 0 ? `
             <tfoot>
               <tr style="background:#f0f7ff;border-top:2px solid #bfdbfe">
-                <td colspan="4" style="padding:8px 12px;font-weight:700;color:#1e3a5f;font-size:.8rem">סה"כ פרויקט (${sorted.length} הזמנות)</td>
+                <td colspan="3" style="padding:8px 12px;font-weight:700;color:#1e3a5f;font-size:.8rem">סה"כ פרויקט (${sorted.length} הזמנות)</td>
                 <td style="padding:8px 10px;text-align:left;direction:ltr;font-weight:700;color:#1e3a5f;font-size:.88rem">${projFmt}</td>
                 <td colspan="4"></td>
               </tr>
