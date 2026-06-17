@@ -6322,7 +6322,10 @@ function _getDsPreviewSrc(link,cb){
     cb(_dsBlobUrl,mime,f.name);
   } else {
     const href=link.getAttribute('href');
-    if(href&&href!=='#') cb(href,'application/pdf');
+    if(href&&href!=='#'){
+      // For server-side files, verify they exist before showing popup
+      fetch(href,{method:'HEAD'}).then(r=>{ if(r.ok) cb(href,'application/pdf'); }).catch(()=>{});
+    }
   }
 }
 function _showDsPopup(el,src,nameOverride){
