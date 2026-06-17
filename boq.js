@@ -3,6 +3,17 @@
 const ExcelJS = require('exceljs');
 const db = require('./db');
 
+// ExcelJS bug: Excel files with VML cell-comments crash in reconcile() when model is undefined.
+// Guard against it so files with annotations (like OLIO) still parse.
+try {
+  const _VmlNotes = require('exceljs/lib/xlsx/xform/comment/vml-notes-xform.js');
+  const _orig = _VmlNotes.prototype.reconcile;
+  _VmlNotes.prototype.reconcile = function(model, options) {
+    if (!model || !model.anchors) return;
+    return _orig.call(this, model, options);
+  };
+} catch (_) {}
+
 // ── System templates (seeded once on first run) ────────────────────────────────
 
 const SYSTEM_TEMPLATES = [
