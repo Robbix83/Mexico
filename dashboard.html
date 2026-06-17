@@ -11189,7 +11189,7 @@ function renderBoqProjects(){
       const ord=(_allOrdersCache||[]).find(o=>o.id===p.order_id);
       if(!ord) return `<div style="margin-top:6px;font-size:.8rem;color:#94a3b8">🔗 הזמנה #${p.order_id}</div>`;
       const num = _esc(ord.order_number||'');
-      const hasPdf = !!ord.pdf_path;
+      const hasPdf = !!(ord.pdf_exists ?? ord.pdf_path);
       const pdfUrl = `/api/orders/${ord.id}/pdf`;
       const numEl = hasPdf
         ? `<a href="${pdfUrl}" target="_blank" rel="noopener" class="ci-datasheet"
@@ -11327,7 +11327,7 @@ function renderBoqOrder(){
     const ord = _allOrdersCache.find(o=>o.id===_boqBillingOrderId);
     if(ord){
       const amt = ord.amount_pre_vat!=null ? ' · ₪'+Number(ord.amount_pre_vat).toLocaleString('he-IL') : '';
-      const hasPdf = !!ord.pdf_path;
+      const hasPdf = !!(ord.pdf_exists ?? ord.pdf_path);
       const pdfUrl = `/api/orders/${ord.id}/pdf`;
       const orderNumEl = hasPdf
         ? `<a href="${pdfUrl}" target="_blank" rel="noopener" class="ci-datasheet"
@@ -13445,7 +13445,7 @@ function ordRenderOrders(project) {
               ${sorted.map((o,i) => `
                 <tr style="${i%2===1?'background:#fafafa':''}">
                   <td style="padding:7px 10px;color:#1e3a5f;font-weight:600;white-space:nowrap">
-                    ${o.pdf_path
+                    ${(o.pdf_exists ?? o.pdf_path)
                       ? `<a href="/api/orders/${o.id}/pdf" target="_blank" class="ci-datasheet" style="color:#CC1A1A;text-decoration:none" title="פתח PDF">${o.order_number||'—'} 📄</a>`
                       : (o.order_number||'—')}
                   </td>

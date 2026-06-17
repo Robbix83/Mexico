@@ -2728,7 +2728,11 @@ app.get('/api/boq/projects/:id/export/pdf', requireSection('boq'), async (req, r
 // ── BOQ Billing / Payment Certificate ─────────────────────────────────────────
 
 app.get('/api/orders/all', requireAuth, (_req, res) => {
-  res.json(db.getAllOrders());
+  const orders = db.getAllOrders().map(o => ({
+    ...o,
+    pdf_exists: !!(o.pdf_path && fs.existsSync(o.pdf_path))
+  }));
+  res.json(orders);
 });
 
 app.patch('/api/boq/projects/:id/order', requireSection('boq'), (req, res) => {
@@ -3471,6 +3475,7 @@ app.get('/api/orders/projects/:id', requireSection('orders'), (req, res) => {
   if (!project) return res.status(404).json({ error: 'Not found' });
   const orders = db.listOrders(project.id).map(o => ({
     ...o,
+    pdf_exists: !!(o.pdf_path && fs.existsSync(o.pdf_path)),
     invoices: db.listOrderInvoices(o.id)
   }));
   res.json({ project, orders });
