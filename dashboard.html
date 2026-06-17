@@ -13431,51 +13431,56 @@ function ordRenderOrders(project) {
       ${sorted.length === 0
         ? `<div style="text-align:center;color:#a0aec0;padding:40px;font-size:.85rem">אין הזמנות עדיין — העלה PDF הזמנה</div>`
         : `<div style="overflow-x:auto">
-          <table style="width:100%;border-collapse:collapse;font-size:.8rem">
+          <table style="width:100%;border-collapse:collapse;font-size:.8rem;table-layout:fixed">
+            <colgroup>
+              <col style="width:100px">
+              <col style="width:82px">
+              <col>
+              <col style="width:100px">
+              <col style="width:52px">
+              <col style="width:42px">
+              <col style="width:90px">
+              <col style="width:32px">
+            </colgroup>
             <thead>
               <tr style="background:#f8fafc;border-bottom:2px solid #e2e8f0">
                 ${_ordThBtn('מס׳ הזמנה','order_number')}
                 ${_ordThBtn('תאריך','order_date')}
                 <th style="padding:8px 10px;text-align:right;color:#4a5568;font-weight:600">גורם מזמין / תיאור</th>
                 ${_ordThBtn('סכום לפני מעמ','amount_pre_vat','text-align:left')}
-                <th style="padding:8px 6px;text-align:center;color:#4a5568;font-weight:600">כתב כמויות</th>
-                <th style="padding:8px 6px;text-align:center;color:#4a5568;font-weight:600">סעיפים</th>
-                <th style="padding:8px 6px;text-align:center;color:#4a5568;font-weight:600">חויבה</th>
+                <th style="padding:8px 4px;text-align:center;color:#4a5568;font-weight:600">סעיפים</th>
+                <th style="padding:8px 4px;text-align:center;color:#4a5568;font-weight:600">חויבה</th>
                 <th style="padding:8px 6px;text-align:center;color:#4a5568;font-weight:600">חשבוניות</th>
-                <th style="padding:8px 4px;width:36px"></th>
+                <th style="padding:8px 4px"></th>
               </tr>
             </thead>
             <tbody>
               ${sorted.map((o,i) => `
                 <tr style="${i%2===1?'background:#fafafa':''}">
-                  <td style="padding:7px 10px;color:#1e3a5f;font-weight:600;white-space:nowrap">
-                    ${(o.pdf_exists ?? o.pdf_path)
-                      ? `<a href="/api/orders/${o.id}/pdf" target="_blank" class="ci-datasheet" style="color:#CC1A1A;text-decoration:none" title="פתח PDF">${o.order_number||'—'} 📄</a>`
-                      : (o.order_number||'—')}
+                  <td style="padding:6px 8px;color:#1e3a5f;font-weight:600">
+                    <div style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">
+                      ${(o.pdf_exists ?? o.pdf_path)
+                        ? `<a href="/api/orders/${o.id}/pdf" target="_blank" class="ci-datasheet" style="color:#CC1A1A;text-decoration:none" title="פתח PDF">${o.order_number||'—'} 📄</a>`
+                        : (o.order_number||'—')}
+                    </div>
+                    ${o.boq_project ? `<a href="#boq/${o.boq_project.id}" onclick="event.preventDefault();setView('boq');boqOpenProject(${o.boq_project.id})" style="font-size:.65rem;color:#6d28d9;text-decoration:none;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:block" title="${_esc(o.boq_project.name)}">📋 ${_esc(o.boq_project.name)}</a>` : ''}
                   </td>
-                  <td style="padding:7px 6px;color:#718096;white-space:nowrap">${o.order_date ? o.order_date.split('-').reverse().join('/') : '—'}</td>
-                  <td style="padding:5px 10px;max-width:200px">
+                  <td style="padding:7px 6px;color:#718096;white-space:nowrap;font-size:.78rem">${o.order_date ? o.order_date.split('-').reverse().join('/') : '—'}</td>
+                  <td style="padding:5px 10px">
                     <div style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:.8rem" title="${_esc(o.ordering_entity||'')}">${o.ordering_entity||'—'}</div>
                     ${o.description?`<div style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:.7rem;color:#6b7280;margin-top:1px" title="${_esc(o.description)}">${_esc(o.description)}</div>`:''}
                   </td>
-                  <td style="padding:7px 10px;text-align:left;direction:ltr;font-weight:600;color:#1e3a5f;white-space:nowrap">
+                  <td style="padding:7px 8px;text-align:left;direction:ltr;font-weight:600;color:#1e3a5f;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">
                     ${o.amount_pre_vat!=null?'<span style="font-size:.72em;color:#9ca3af">₪</span>'+Math.round(o.amount_pre_vat).toLocaleString('he-IL'):'—'}
                   </td>
-                  <td style="padding:7px 6px;text-align:center">
-                    ${o.boq_project
-                      ? `<a href="#boq/${o.boq_project.id}" onclick="event.preventDefault();setView('boq');boqOpenProject(${o.boq_project.id})"
-                          style="font-size:.72rem;color:#6d28d9;font-weight:600;text-decoration:none;display:inline-block;background:#f5f3ff;border:1px solid #ddd6fe;border-radius:6px;padding:2px 6px;max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"
-                          title="${_esc(o.boq_project.name)}">📋 ${_esc(o.boq_project.name)}</a>`
-                      : '<span style="color:#d1d5db;font-size:.75rem">—</span>'}
-                  </td>
-                  <td style="padding:7px 6px;text-align:center">
+                  <td style="padding:7px 4px;text-align:center">
                     ${(()=>{ const its = (() => { try { return JSON.parse(o.items_json||'[]'); } catch(_){return[];} })(); return its.length ? `<button onclick="ordShowItems(${o.id})" title="הצג סעיפים" style="border:1px solid #bfdbfe;background:#eff6ff;color:#1d4ed8;border-radius:12px;padding:2px 8px;font-size:.7rem;font-weight:700;cursor:pointer">${its.length}</button>` : '<span style="color:#d1d5db">—</span>'; })()}
                   </td>
                   <td style="padding:7px 6px;text-align:center">
                     <input type="checkbox" ${o.is_invoiced?'checked':''} onchange="ordToggleInvoiced(${o.id},this.checked)"
                       style="width:15px;height:15px;cursor:pointer;accent-color:#15803d"/>
                   </td>
-                  <td style="padding:5px 6px;text-align:center;min-width:80px">
+                  <td style="padding:5px 6px;text-align:center">
                     <div style="display:flex;flex-direction:column;gap:2px;align-items:center">
                       ${(o.invoices||[]).map(inv => `
                         <div style="display:flex;align-items:center;gap:3px;background:#f0fdf4;border:1px solid #bbf7d0;border-radius:5px;padding:2px 5px;max-width:110px">
