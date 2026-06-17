@@ -13429,7 +13429,7 @@ function ordRenderOrders(project) {
                 <tr style="${i%2===1?'background:#fafafa':''}">
                   <td style="padding:7px 10px;color:#1e3a5f;font-weight:600;white-space:nowrap">
                     ${o.pdf_path
-                      ? `<a href="/api/orders/${o.id}/pdf" target="_blank" style="color:#CC1A1A;text-decoration:none" title="פתח PDF">${o.order_number||'—'} 📄</a>`
+                      ? `<a href="/api/orders/${o.id}/pdf" target="_blank" class="ci-datasheet" style="color:#CC1A1A;text-decoration:none" title="פתח PDF">${o.order_number||'—'} 📄</a>`
                       : (o.order_number||'—')}
                   </td>
                   <td style="padding:7px 6px;color:#718096;white-space:nowrap">${o.order_date ? o.order_date.split('-').reverse().join('/') : '—'}</td>
