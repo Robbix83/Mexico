@@ -11812,7 +11812,7 @@ function renderOrderPickerList(){
   if(!list) return;
   const orders = (_allOrdersCache||[]).filter(o=>{
     if(!q) return true;
-    return (o.order_number||'').toLowerCase().includes(q)||(o.ordering_entity||'').toLowerCase().includes(q)||(o.project_name||'').toLowerCase().includes(q);
+    return (o.order_number||'').toLowerCase().includes(q)||(o.ordering_entity||'').toLowerCase().includes(q)||(o.project_name||'').toLowerCase().includes(q)||(o.description||'').includes(q);
   });
   if(!orders.length){ list.innerHTML='<div style="padding:20px;text-align:center;color:#94a3b8">לא נמצאו הזמנות</div>'; return; }
   list.innerHTML = orders.slice(0,50).map(o=>`
